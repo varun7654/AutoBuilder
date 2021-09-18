@@ -1,12 +1,11 @@
 package me.varun.autobuilder.pathgenerator;
 
 import com.badlogic.gdx.graphics.Color;
-import me.varun.autobuilder.rendering.PathRenderer;
+import me.varun.autobuilder.pathing.PathRenderer;
 import me.varun.autobuilder.wpi.math.geometry.Pose2d;
 import me.varun.autobuilder.wpi.math.geometry.Rotation2d;
 import me.varun.autobuilder.wpi.math.geometry.Translation2d;
 import me.varun.autobuilder.wpi.math.trajectory.Trajectory;
-import me.varun.autobuilder.wpi.math.trajectory.TrajectoryConfig;
 import me.varun.autobuilder.wpi.math.trajectory.TrajectoryGenerator;
 
 import java.util.ArrayList;

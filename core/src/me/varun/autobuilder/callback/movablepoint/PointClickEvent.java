@@ -1,7 +1,7 @@
-package me.varun.autobuilder.callback.MovablePoint;
+package me.varun.autobuilder.callback.movablepoint;
 
 import com.badlogic.gdx.math.Vector2;
-import me.varun.autobuilder.rendering.PointRenderer;
+import me.varun.autobuilder.pathing.PointRenderer;
 
 public class PointClickEvent {
     private Vector2 pos;

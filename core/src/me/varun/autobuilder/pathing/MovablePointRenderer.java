@@ -1,4 +1,4 @@
-package me.varun.autobuilder.rendering;
+package me.varun.autobuilder.pathing;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
@@ -7,9 +7,9 @@ import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.math.Vector3;
 import me.varun.autobuilder.AutoBuilder;
-import me.varun.autobuilder.callback.MovablePoint.MovablePointEventHandler;
-import me.varun.autobuilder.callback.MovablePoint.PointClickEvent;
-import me.varun.autobuilder.callback.MovablePoint.PointMoveEvent;
+import me.varun.autobuilder.callback.movablepoint.MovablePointEventHandler;
+import me.varun.autobuilder.callback.movablepoint.PointClickEvent;
+import me.varun.autobuilder.callback.movablepoint.PointMoveEvent;
 
 public class MovablePointRenderer extends PointRenderer {
 

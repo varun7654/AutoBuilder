@@ -1,4 +1,4 @@
-package me.varun.autobuilder.rendering;
+package me.varun.autobuilder.pathing;
 
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.OrthographicCamera;

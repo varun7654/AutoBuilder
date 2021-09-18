@@ -14,8 +14,8 @@ import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.utils.viewport.ExtendViewport;
 import com.badlogic.gdx.utils.viewport.Viewport;
 import me.varun.autobuilder.pathgenerator.PathGenerator;
-import me.varun.autobuilder.rendering.PathRenderer;
-import me.varun.autobuilder.rendering.PointRenderer;
+import me.varun.autobuilder.pathing.PathRenderer;
+import me.varun.autobuilder.pathing.PointRenderer;
 import me.varun.autobuilder.wpi.math.trajectory.TrajectoryConfig;
 import me.varun.autobuilder.wpi.math.trajectory.constraint.CentripetalAccelerationConstraint;
 

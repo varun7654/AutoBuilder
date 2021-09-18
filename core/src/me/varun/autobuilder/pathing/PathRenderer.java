@@ -1,4 +1,4 @@
-package me.varun.autobuilder.rendering;
+package me.varun.autobuilder.pathing;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
@@ -6,16 +6,15 @@ import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.math.Vector3;
-import me.varun.autobuilder.callback.MovablePoint.MovablePointEventHandler;
-import me.varun.autobuilder.callback.MovablePoint.PointClickEvent;
-import me.varun.autobuilder.callback.MovablePoint.PointMoveEvent;
+import me.varun.autobuilder.callback.movablepoint.MovablePointEventHandler;
+import me.varun.autobuilder.callback.movablepoint.PointClickEvent;
+import me.varun.autobuilder.callback.movablepoint.PointMoveEvent;
 import me.varun.autobuilder.wpi.math.geometry.Pose2d;
 import me.varun.autobuilder.wpi.math.geometry.Rotation2d;
 import me.varun.autobuilder.wpi.math.geometry.Translation2d;
 import me.varun.autobuilder.wpi.math.trajectory.Trajectory;
 import me.varun.autobuilder.wpi.math.trajectory.TrajectoryGenerator;
 
-import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutorService;

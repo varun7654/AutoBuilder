@@ -1,6 +1,4 @@
-package me.varun.autobuilder.callback.MovablePoint;
-
-import com.badlogic.gdx.math.Vector2;
+package me.varun.autobuilder.callback.movablepoint;
 
 public class MovablePointEventHandler {
     public void onPointMove(PointMoveEvent event){}
