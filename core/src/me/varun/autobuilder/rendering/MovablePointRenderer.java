@@ -1,0 +1,77 @@
+package me.varun.autobuilder.rendering;
+
+import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.Input;
+import com.badlogic.gdx.graphics.Color;
+import com.badlogic.gdx.graphics.OrthographicCamera;
+import com.badlogic.gdx.math.Vector2;
+import com.badlogic.gdx.math.Vector3;
+import me.varun.autobuilder.AutoBuilder;
+import me.varun.autobuilder.callback.MovablePoint.MovablePointEventHandler;
+import me.varun.autobuilder.callback.MovablePoint.PointClickEvent;
+import me.varun.autobuilder.callback.MovablePoint.PointMoveEvent;
+
+public class MovablePointRenderer extends PointRenderer {
+
+
+    private final MovablePointEventHandler eventHandler;
+    public MovablePointRenderer(float x, float y, Color color, float radius, MovablePointEventHandler eventHandler) {
+        super(x, y, color, radius);
+        this.eventHandler = eventHandler;
+    }
+
+    public MovablePointRenderer(Vector3 pos, Color color, float radius, MovablePointEventHandler eventHandler) {
+        super(pos, color, radius);
+        this.eventHandler = eventHandler;
+    }
+
+    private final Vector3 startPress = new Vector3();
+    private boolean pressed = false;
+    private boolean dragStarted = false;
+
+    public boolean update(OrthographicCamera camera, Vector3 mousePos, Vector3 lastMousePos){
+        Vector3 mouseDiff = new Vector3(mousePos).sub(this.getRenderPos3());
+
+        if(Gdx.input.isButtonJustPressed(Input.Buttons.LEFT) || Gdx.input.isButtonJustPressed(Input.Buttons.RIGHT)){
+            if (mouseDiff.len2()<Math.pow(20* camera.zoom, 2)){
+                PointClickEvent event = new PointClickEvent(getPos2(), this, Gdx.input.isButtonJustPressed(Input.Buttons.LEFT), Gdx.input.isButtonJustPressed(Input.Buttons.RIGHT));
+                eventHandler.onPointClick(event);
+                this.setPosition(event.getPos());
+
+                if(Gdx.input.isButtonJustPressed(Input.Buttons.LEFT)){
+                    startPress.set(mousePos);
+                    pressed = true;
+                }
+            }
+        }
+
+
+        if(Gdx.input.isButtonPressed(Input.Buttons.LEFT)){
+             if(pressed && !(new Vector3(lastMousePos).sub(mousePos).len2() == 0) && (dragStarted || (new Vector3(startPress).sub(mousePos).len2()>Math.pow(10 * camera.zoom, 2)))) {
+                dragStarted = true;
+                Vector2 newPos = new Vector2(mousePos.x/AutoBuilder.POINT_SCALE_FACTOR, mousePos.y/AutoBuilder.POINT_SCALE_FACTOR);
+                PointMoveEvent event = new PointMoveEvent(this.getPos2(), newPos, this);
+                eventHandler.onPointMove(event);
+                this.setPosition(event.getNewPos());
+            }
+
+        } else {
+            pressed = false;
+            dragStarted = false;
+        }
+
+        return pressed;
+
+
+    }
+
+    @Override
+    public String toString() {
+        return "MovablePointRenderer{" +
+                "eventHandler=" + eventHandler +
+                ", x=" + x +
+                ", y=" + y +
+                ", color=" + color +
+                '}';
+    }
+}

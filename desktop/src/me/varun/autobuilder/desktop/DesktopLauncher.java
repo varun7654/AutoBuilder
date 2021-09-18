@@ -10,6 +10,11 @@ public class DesktopLauncher {
 		config.title = "Auto Builder";
 		config.width = 1280;
 		config.height = 720;
+		config.samples=8;
+		config.foregroundFPS = 144;
+		config.backgroundFPS = 15;
+		config.vSyncEnabled = false;
+		config.useGL30 = true;
 		new LwjglApplication(new AutoBuilder(), config);
 	}
 }

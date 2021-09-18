@@ -31,13 +31,13 @@ public class CameraHandler implements InputProcessor {
         newMouseWorldPos = new Vector3();
     }
 
-    public void update(){
-        mousePos.set(Gdx.input.getX(), Gdx.graphics.getHeight() - Gdx.input.getY());
+    public void update(boolean moving){
+        mousePos.set(Gdx.input.getX(), Gdx.input.getY());
 
         oldMouseWorldPos.set(mousePos, 0);
         cam.unproject(oldMouseWorldPos);
 
-        cam.zoom = cam.zoom + ((this.zoom - cam.zoom)/2); //Do Smooth Zoom
+        cam.zoom = cam.zoom + ((this.zoom - cam.zoom)/(0.07f/Gdx.graphics.getDeltaTime())); //Do Smooth Zoom
 
         cam.update();
         newMouseWorldPos.set(mousePos, 0);
@@ -47,19 +47,19 @@ public class CameraHandler implements InputProcessor {
         zoomYChange = newMouseWorldPos.y - oldMouseWorldPos.y;
 
         cam.position.x = cam.position.x - zoomXChange;
-        cam.position.y = cam.position.y + zoomYChange;
+        cam.position.y = cam.position.y - zoomYChange;
         cam.update();
 
-        if(Gdx.input.isButtonPressed(Input.Buttons.LEFT)){ //Left mouse button down
+        if(!moving && Gdx.input.isButtonPressed(Input.Buttons.LEFT)){ //Left mouse button down
             Vector2 deltaPos = mousePos.sub(lastMousePos);
             cam.position.x = cam.position.x - (deltaPos.x*cam.zoom);
-            cam.position.y = cam.position.y - (deltaPos.y*cam.zoom);
+            cam.position.y = cam.position.y + (deltaPos.y*cam.zoom);
             cam.update();
         }
 
 
 
-        lastMousePos.set(Gdx.input.getX(), Gdx.graphics.getHeight() - Gdx.input.getY());
+        lastMousePos.set(Gdx.input.getX(), Gdx.input.getY());
     }
 
 
