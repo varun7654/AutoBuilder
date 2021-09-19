@@ -5,6 +5,7 @@ import com.badlogic.gdx.Input;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
+import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.math.Vector3;
 import me.varun.autobuilder.events.movablepoint.MovablePointEventHandler;
 import me.varun.autobuilder.events.movablepoint.PointClickEvent;
@@ -14,6 +15,7 @@ import me.varun.autobuilder.wpi.math.geometry.Rotation2d;
 import me.varun.autobuilder.wpi.math.geometry.Translation2d;
 import me.varun.autobuilder.wpi.math.trajectory.Trajectory;
 import me.varun.autobuilder.wpi.math.trajectory.TrajectoryGenerator;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -34,9 +36,8 @@ public class PathRenderer implements MovablePointEventHandler {
 
     private final ExecutorService executorService;
 
-    public PathRenderer(Color color, Trajectory trajectory, List<Pose2d> pointList, ExecutorService executorService){
+    public PathRenderer(Color color, List<Pose2d> pointList, ExecutorService executorService){
         this.color = color;
-        this.trajectory = trajectory;
         this.point2DList = pointList;
 
         pointRenderList = new ArrayList<>();
@@ -46,9 +47,16 @@ public class PathRenderer implements MovablePointEventHandler {
         }
 
         this.executorService = executorService;
+        updatePath();
+    }
+
+    public enum PointChange {
+        NONE, LAST, OTHER, REMOVAL, ADDITION;
     }
 
     public void render(ShapeRenderer renderer, OrthographicCamera cam){
+        if(trajectory == null) return;
+
         for( double i = 0.1; i<trajectory.getTotalTimeSeconds(); i += 0.05){
             Pose2d prev = trajectory.sample(i-0.05).poseMeters;
             Pose2d cur = trajectory.sample(i).poseMeters;
@@ -80,58 +88,94 @@ public class PathRenderer implements MovablePointEventHandler {
     }
 
     boolean pointDeleted;
+    boolean attachedToPrevPath = false;
 
-    public boolean update(OrthographicCamera cam, Vector3 mousePos, Vector3 lastMousePos){
-        boolean moving = false;
+    public PointChange update(@NotNull OrthographicCamera cam, @NotNull Vector3 mousePos, @NotNull Vector3 lastMousePos, @NotNull PointChange prevPointChange,
+                              Pose2d prevLastPoint, boolean somethingMoved){
         pointDeleted = false;
 
+        if(prevPointChange == PointChange.LAST) {
+            assert prevLastPoint != null;
+            MovablePointRenderer pointRenderer =  pointRenderList.get(0);
+            if(!attachedToPrevPath && Gdx.app.getInput().isButtonJustPressed(Input.Buttons.LEFT) &&
+                    Math.abs(pointRenderer.getPos2().sub((float) prevLastPoint.getX(), (float) prevLastPoint.getY()).len2())
+                            < Math.pow((20 / POINT_SCALE_FACTOR * cam.zoom), 2)){
+                attachedToPrevPath = true;
+            }
+
+            if(attachedToPrevPath){
+                pointRenderer.setPosition((float) prevLastPoint.getX(), (float) prevLastPoint.getY());
+                point2DList.set(0, prevLastPoint);
+                updatePath();
+                removeSelection();
+            }
+            return PointChange.OTHER;
+
+        } else {
+            attachedToPrevPath = false;
+        }
+
+        if(somethingMoved){
+            removeSelection();
+            return PointChange.NONE;
+        }
+
         if(rotationPoint != null) {
-            moving = rotationPoint.update(cam,new Vector3(mousePos), new Vector3(lastMousePos));
+            if(rotationPoint.update(cam, new Vector3(mousePos), new Vector3(lastMousePos))){
+                if(selectionPointIndex == pointRenderList.size() - 1) return PointChange.LAST;
+                else return PointChange.OTHER;
+            }
         }
 
-        if(!moving){
-            for (MovablePointRenderer pointRenderer : new ArrayList<>(pointRenderList)) {
-                if(pointRenderer.update(cam, new Vector3(mousePos), new Vector3(lastMousePos))){
-                    moving = true;
-                    break;
-                }
+        if(Gdx.app.getInput().isButtonJustPressed(Input.Buttons.RIGHT) || Gdx.app.getInput().isButtonJustPressed(Input.Buttons.LEFT)){
+            removeSelection();
+        }
+
+        ArrayList<MovablePointRenderer> tempPointRenderList = new ArrayList<>(pointRenderList);
+        for (int i = 0; i < tempPointRenderList.size(); i++) {
+            MovablePointRenderer pointRenderer =  tempPointRenderList.get(i);
+            if(pointRenderer.update(cam, new Vector3(mousePos), new Vector3(lastMousePos))){
+                if(tempPointRenderList.size()-1 == i) return PointChange.LAST;
+                else return PointChange.OTHER;
             }
         }
 
 
+        if(pointDeleted) return PointChange.REMOVAL;
 
+        return PointChange.NONE;
+    }
+
+    public PointChange addPoints(Vector3 mousePos){
         int currentIndexPos = 0;
-        if(!moving && !pointDeleted){
-            if(Gdx.app.getInput().isButtonJustPressed(Input.Buttons.RIGHT)){
-                for( double i = 0; i<trajectory.getTotalTimeSeconds(); i += 0.01){
-                    Pose2d cur = trajectory.sample(i).poseMeters;
-                    double diffX = cur.getX() - mousePos.x / POINT_SCALE_FACTOR;
-                    double diffY = cur.getY() - mousePos.y / POINT_SCALE_FACTOR;
+        if(Gdx.app.getInput().isButtonJustPressed(Input.Buttons.RIGHT)){
+            for( double i = 0; i<trajectory.getTotalTimeSeconds(); i += 0.01){
+                Pose2d cur = trajectory.sample(i).poseMeters;
+                double diffX = cur.getX() - mousePos.x / POINT_SCALE_FACTOR;
+                double diffY = cur.getY() - mousePos.y / POINT_SCALE_FACTOR;
 
-                    if(currentIndexPos + 1 < point2DList.size() && point2DList.get(currentIndexPos + 1).getTranslation().getDistance(cur.getTranslation()) < 0.1){
-                        currentIndexPos++;
-                    }
-
-                    if(Math.abs(diffX) < .1 && Math.abs(diffY) < .1) {
-                        System.out.println(currentIndexPos);
-                        point2DList.add(currentIndexPos+1, cur);
-                        pointRenderList.add(currentIndexPos+1, new MovablePointRenderer((float) cur.getX(), (float) cur.getY(), Color.BLUE, 5, this));
-                        if(selectionPointIndex > currentIndexPos ) selectionPointIndex++;
-                        updatePath();
-                        break;
-                    }
-
-
+                if(currentIndexPos + 1 < point2DList.size() && point2DList.get(currentIndexPos + 1).getTranslation().getDistance(cur.getTranslation()) < 0.1){
+                    currentIndexPos++;
                 }
+
+                if(Math.abs(diffX) < .1 && Math.abs(diffY) < .1) {
+                    System.out.println(currentIndexPos);
+                    point2DList.add(currentIndexPos+1, cur);
+                    pointRenderList.add(currentIndexPos+1, new MovablePointRenderer((float) cur.getX(), (float) cur.getY(), Color.BLUE, 5, this));
+                    if(selectionPointIndex > currentIndexPos ) selectionPointIndex++;
+                    updatePath();
+                    return PointChange.ADDITION;
+                }
+
+
             }
         }
-
-        return moving;
+        return PointChange.NONE;
     }
 
     @Override
     public void onPointClick(PointClickEvent event) {
-        if(pointRenderList.contains(event.getPoint())){
+        if(pointRenderList.contains(event.getPoint())){ //Should Only be called once per path
             if(event.isLeftClick()){
                 selectionPointIndex = pointRenderList.indexOf(event.getPoint());
                 Rotation2d rotation = point2DList.get(selectionPointIndex).getRotation();
@@ -140,14 +184,12 @@ public class PathRenderer implements MovablePointEventHandler {
                 float yPos = (float) (event.getPos().y + rotation.getSin()*1);
                 rotationPoint = new MovablePointRenderer(xPos, yPos, Color.GREEN, 5,this);
             }
-            if(event.isRightClick()){
+            if(event.isRightClick() && !pointDeleted && point2DList.size() > 2){
                 int removeIndex = pointRenderList.indexOf(event.getPoint());
                 if (selectionPointIndex > removeIndex){
                     selectionPointIndex--;
                 } else if(selectionPointIndex == removeIndex){
-                    selectionPointIndex = 0;
-                    rotationPoint = null;
-                    highlightPoint = null;
+                    removeSelection();
                 }
                 pointRenderList.remove(removeIndex);
                 point2DList.remove(removeIndex);
@@ -189,5 +231,19 @@ public class PathRenderer implements MovablePointEventHandler {
         //trajectory = TrajectoryGenerator.generateTrajectory(point2DList, TRAJECTORY_CONSTRAINTS);
         //System.out.println(trajectory.getTotalTimeSeconds());
         executorService.submit(() -> trajectory = TrajectoryGenerator.generateTrajectory(point2DList, TRAJECTORY_CONSTRAINTS));
+    }
+
+    public Trajectory getTrajectory() {
+        return trajectory;
+    }
+
+    public List<Pose2d> getPoint2DList() {
+        return point2DList;
+    }
+
+    public void removeSelection(){
+        selectionPointIndex = -1;
+        rotationPoint = null;
+        highlightPoint = null;
     }
 }

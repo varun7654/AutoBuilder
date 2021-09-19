@@ -26,6 +26,8 @@ public class CameraHandler implements MouseScrollEventHandler {
     float zoomXChange;
     float zoomYChange;
 
+    boolean mouseHeldLastFrame = false;
+
     public CameraHandler(OrthographicCamera cam, MouseScrollEventThrower mouseScrollEventThrower){
         this.cam = cam;
         lastMousePos = new Vector2(Gdx.input.getX(), Gdx.input.getY());
@@ -62,11 +64,14 @@ public class CameraHandler implements MouseScrollEventHandler {
         cam.position.y = cam.position.y - zoomYChange;
         cam.update();
 
-        if(!moving && Gdx.input.isButtonPressed(Input.Buttons.LEFT)){ //Left mouse button down. Drag Camera around
+        if((!moving || mouseHeldLastFrame)&& Gdx.input.isButtonPressed(Input.Buttons.LEFT)){ //Left mouse button down. Drag Camera around
             Vector2 deltaPos = mousePos.sub(lastMousePos);
             cam.position.x = cam.position.x - (deltaPos.x*cam.zoom);
             cam.position.y = cam.position.y + (deltaPos.y*cam.zoom);
             cam.update();
+            mouseHeldLastFrame = true;
+        } else {
+            mouseHeldLastFrame = false;
         }
 
 
@@ -83,7 +88,7 @@ public class CameraHandler implements MouseScrollEventHandler {
         } else if (amountY == - 1){
             zoom = zoom * 0.8f;
         }
-
         MathUntil.clamp(zoom, 0.2, 10);
+        zoomMousePos.set(Gdx.input.getX(), Gdx.input.getY());
     }
 }

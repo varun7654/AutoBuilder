@@ -70,6 +70,12 @@ public class PointRenderer {
         setY(position.y);
     }
 
+    public void setPosition(float x, float y){
+        setX(x);
+        setY(y);
+    }
+
+
     public Color getColor() {
         return color;
     }

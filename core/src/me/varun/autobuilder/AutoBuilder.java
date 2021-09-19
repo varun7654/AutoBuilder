@@ -17,11 +17,14 @@ import com.badlogic.gdx.utils.viewport.ExtendViewport;
 import com.badlogic.gdx.utils.viewport.ScreenViewport;
 import com.badlogic.gdx.utils.viewport.Viewport;
 import me.varun.autobuilder.events.scroll.MouseScrollEventThrower;
+import me.varun.autobuilder.gui.AbstractGuiItem;
 import me.varun.autobuilder.gui.Gui;
-import me.varun.autobuilder.pathgenerator.PathGenerator;
+import me.varun.autobuilder.gui.TrajectoryItem;
 import me.varun.autobuilder.pathing.PathRenderer;
+import me.varun.autobuilder.pathing.PathRenderer.PointChange;
 import me.varun.autobuilder.pathing.PointRenderer;
 import me.varun.autobuilder.util.RoundedShapeRenderer;
+import me.varun.autobuilder.wpi.math.geometry.Pose2d;
 import me.varun.autobuilder.wpi.math.trajectory.TrajectoryConfig;
 import me.varun.autobuilder.wpi.math.trajectory.constraint.CentripetalAccelerationConstraint;
 
@@ -33,7 +36,7 @@ public class AutoBuilder extends ApplicationAdapter {
     public static final float POINT_SCALE_FACTOR = 50f;
 
     private SpriteBatch batch;
-    private SpriteBatch batchHud;
+    private SpriteBatch hudBatch;
     public static BitmapFont font;
     public static ShaderProgram fontShader;
     private Texture field;
@@ -51,8 +54,6 @@ public class AutoBuilder extends ApplicationAdapter {
 
     PointRenderer origin;
 
-    ArrayList<PathRenderer> pathRenderers = new ArrayList<>();
-
     ExecutorService pathingService = Executors.newFixedThreadPool(1);
     Gui gui;
 
@@ -69,11 +70,12 @@ public class AutoBuilder extends ApplicationAdapter {
         Gdx.app.getInput().setInputProcessor(mouseScrollEventThrower);
 
         hudShapeRenderer = new RoundedShapeRenderer();
-        batchHud = new SpriteBatch();
+        hudBatch = new SpriteBatch();
 
         shapeRenderer = new RoundedShapeRenderer();
         batch = new SpriteBatch();
-        field = new Texture(Gdx.files.internal("field20.png"));
+        field = new Texture(Gdx.files.internal("field20.png"), true);
+        field.setFilter(Texture.TextureFilter.MipMap, Texture.TextureFilter.Nearest);
 
         cam = new OrthographicCamera(Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
         cam.position.x = Gdx.graphics.getWidth()/2f;
@@ -94,8 +96,6 @@ public class AutoBuilder extends ApplicationAdapter {
 
         preferences.flush();
 
-        pathRenderers.add(PathGenerator.genPaths(pathingService));
-
         Texture texture = new Texture(Gdx.files.internal("font/arial.png"), true); // true enables mipmaps
         texture.setFilter(Texture.TextureFilter.Nearest, Texture.TextureFilter.Linear); // linear filtering in nearest mipmap image
         texture.setAnisotropicFilter(8);
@@ -108,7 +108,7 @@ public class AutoBuilder extends ApplicationAdapter {
             Gdx.app.error("fontShader", "compilation failed:\n" + fontShader.getLog());
         }
 
-        gui = new Gui(hudViewport, font, fontShader, mouseScrollEventThrower);
+        gui = new Gui(hudViewport, font, fontShader, mouseScrollEventThrower, pathingService);
 
     }
 
@@ -138,30 +138,34 @@ public class AutoBuilder extends ApplicationAdapter {
         shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
 
         origin.draw(shapeRenderer, cam);
-        for (PathRenderer pathRenderer : pathRenderers) {
-            pathRenderer.render(shapeRenderer, cam);
+        for (AbstractGuiItem guiItem : gui.guiItems) {
+            if(guiItem instanceof TrajectoryItem){
+                ((TrajectoryItem) guiItem).getPathRenderer().render(shapeRenderer, cam);
+            }
         }
         shapeRenderer.end();
 
 
 
-        batchHud.setProjectionMatrix(hudCam.combined);
+        hudBatch.setProjectionMatrix(hudCam.combined);
         hudShapeRenderer.setProjectionMatrix(hudCam.combined);
         hudShapeRenderer.setAutoShapeType(true);
         hudShapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
 
-        batchHud.begin();
+        hudBatch.begin();
 
-        batchHud.setShader(fontShader);
+        hudBatch.setShader(fontShader);
 
         font.getData().setScale(0.2f);
-        font.draw(batchHud, "FPS: " + Gdx.graphics.getFramesPerSecond(), 0, 12);
+        font.draw(hudBatch, "FPS: " + Gdx.graphics.getFramesPerSecond(), 0, 12);
 
-        batchHud.setShader(null);
+        hudBatch.setShader(null);
 
-        gui.render(hudShapeRenderer, cam);
+        hudBatch.end();
+
+        gui.render(hudShapeRenderer, hudBatch, hudCam);
         hudShapeRenderer.end();
-        batchHud.end();
+
 
 
 
@@ -171,23 +175,53 @@ public class AutoBuilder extends ApplicationAdapter {
         mousePos.set(Gdx.input.getX(), Gdx.input.getY(), 0);
         cam.unproject(mousePos);
 
-        boolean moving = false;
+        boolean somethingMoved = false;
 
-        for (PathRenderer pathRenderer : pathRenderers) {
-            moving = moving | pathRenderer.update(cam, mousePos, lastMousePos);
+        PathRenderer lastPathRender = null;
+        PointChange lastPointChange = PointChange.NONE;
+        boolean pointDeleted = false;
+        for (AbstractGuiItem guiItem : gui.guiItems) {
+            if(guiItem instanceof TrajectoryItem){
+                PathRenderer pathRenderer = ((TrajectoryItem) guiItem).getPathRenderer();
+                //It's ok if lastPose2d is null if PointChange != LAST
+                Pose2d lastPose2d = null;
+                if(lastPointChange == PointChange.LAST){
+                    lastPose2d = lastPathRender.getPoint2DList().get(lastPathRender.getPoint2DList().size()-1);
+                }
+                lastPointChange = pathRenderer.update(cam, mousePos, lastMousePos, lastPointChange, lastPose2d, somethingMoved);
+
+                if(lastPointChange != PointChange.NONE){
+                    somethingMoved = true;
+                }
+
+                if(lastPointChange == PointChange.REMOVAL){
+                    pointDeleted = true;
+                }
+
+                lastPathRender = pathRenderer;
+            }
         }
 
+        //Don't add points if we've just deleted one
+        if(!pointDeleted){
+            for (AbstractGuiItem guiItem : gui.guiItems) {
+                if (guiItem instanceof TrajectoryItem) {
+                    PathRenderer pathRenderer = ((TrajectoryItem) guiItem).getPathRenderer();
+                    pathRenderer.addPoints(mousePos);
+                }
+            }
+        }
         boolean onGui = gui.update();
-        moving = moving || onGui;
+        somethingMoved = somethingMoved || onGui;
 
         lastMousePos.set(mousePos);
-        cameraHandler.update(moving, onGui);
+        cameraHandler.update(somethingMoved, onGui);
     }
 
     @Override
     public void dispose () {
         batch.dispose();
-        batchHud.dispose();
+        hudBatch.dispose();
         font.dispose();
         gui.dispose();
     }
