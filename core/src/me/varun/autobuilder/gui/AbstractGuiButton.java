@@ -5,18 +5,17 @@ import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import me.varun.autobuilder.util.RoundedShapeRenderer;
+import org.jetbrains.annotations.NotNull;
 
 public abstract class AbstractGuiButton {
     private int x;
     private int y;
     private int width;
     private int height;
-    private final Texture texture;
+    private final @NotNull Texture texture;
     private boolean hovering;
-    private float textureScaleX = 1;
-    private float textureScaleY = 1;
 
-    public AbstractGuiButton(int x, int y, int width, int height, Texture texture) {
+    public AbstractGuiButton(int x, int y, int width, int height, @NotNull Texture texture) {
         this.texture = texture;
         this.x = x;
         this.y = y;
@@ -36,7 +35,7 @@ public abstract class AbstractGuiButton {
                 Gdx.graphics.getHeight() - Gdx.input.getY() >= y && Gdx.graphics.getHeight() - Gdx.input.getY() <= y + height;
     }
 
-    public void render(RoundedShapeRenderer shapeRenderer, SpriteBatch spriteBatch){
+    public void render(@NotNull RoundedShapeRenderer shapeRenderer, @NotNull SpriteBatch spriteBatch){
         if(hovering){
             shapeRenderer.setColor(Color.LIGHT_GRAY);
         } else {

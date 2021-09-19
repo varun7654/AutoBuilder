@@ -10,17 +10,18 @@ import me.varun.autobuilder.AutoBuilder;
 import me.varun.autobuilder.events.movablepoint.MovablePointEventHandler;
 import me.varun.autobuilder.events.movablepoint.PointClickEvent;
 import me.varun.autobuilder.events.movablepoint.PointMoveEvent;
+import org.jetbrains.annotations.NotNull;
 
 public class MovablePointRenderer extends PointRenderer {
 
 
     private final MovablePointEventHandler eventHandler;
-    public MovablePointRenderer(float x, float y, Color color, float radius, MovablePointEventHandler eventHandler) {
+    public MovablePointRenderer(float x, float y, @NotNull Color color, float radius, @NotNull MovablePointEventHandler eventHandler) {
         super(x, y, color, radius);
         this.eventHandler = eventHandler;
     }
 
-    public MovablePointRenderer(Vector3 pos, Color color, float radius, MovablePointEventHandler eventHandler) {
+    public MovablePointRenderer(@NotNull Vector3 pos, @NotNull Color color, float radius, @NotNull MovablePointEventHandler eventHandler) {
         super(pos, color, radius);
         this.eventHandler = eventHandler;
     }
@@ -29,7 +30,7 @@ public class MovablePointRenderer extends PointRenderer {
     private boolean pressed = false;
     private boolean dragStarted = false;
 
-    public boolean update(OrthographicCamera camera, Vector3 mousePos, Vector3 lastMousePos){
+    public boolean update(@NotNull OrthographicCamera camera, @NotNull Vector3 mousePos, @NotNull Vector3 lastMousePos){
         Vector3 mouseDiff = new Vector3(mousePos).sub(this.getRenderPos3());
 
         if(Gdx.input.isButtonJustPressed(Input.Buttons.LEFT) || Gdx.input.isButtonJustPressed(Input.Buttons.RIGHT)){
@@ -66,7 +67,7 @@ public class MovablePointRenderer extends PointRenderer {
     }
 
     @Override
-    public String toString() {
+    public @NotNull String toString() {
         return "MovablePointRenderer{" +
                 "eventHandler=" + eventHandler +
                 ", x=" + x +

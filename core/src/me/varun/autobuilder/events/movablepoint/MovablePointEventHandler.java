@@ -1,7 +1,9 @@
 package me.varun.autobuilder.events.movablepoint;
 
-public interface MovablePointEventHandler {
-    void onPointMove(PointMoveEvent event);
+import org.jetbrains.annotations.NotNull;
 
-    public void onPointClick(PointClickEvent event);
+public interface MovablePointEventHandler {
+    void onPointMove(@NotNull PointMoveEvent event);
+
+    void onPointClick(@NotNull PointClickEvent event);
 }

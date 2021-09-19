@@ -17,6 +17,7 @@ import me.varun.autobuilder.wpi.math.trajectory.Trajectory;
 import me.varun.autobuilder.wpi.math.trajectory.TrajectoryGenerator;
 import org.jetbrains.annotations.NotNull;
 
+import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
@@ -25,18 +26,18 @@ import static me.varun.autobuilder.AutoBuilder.POINT_SCALE_FACTOR;
 import static me.varun.autobuilder.AutoBuilder.TRAJECTORY_CONSTRAINTS;
 
 public class PathRenderer implements MovablePointEventHandler {
-    private final Color color;
-    private Trajectory trajectory;
-    private final List<Pose2d> point2DList;
-    private final List<MovablePointRenderer> pointRenderList;
+    private @NotNull final Color color;
+    private @Nullable Trajectory trajectory;
+    private final @NotNull List<Pose2d> point2DList;
+    private final @NotNull List<MovablePointRenderer> pointRenderList;
 
-    private MovablePointRenderer rotationPoint;
-    private PointRenderer highlightPoint;
+    @Nullable private MovablePointRenderer rotationPoint;
+    @Nullable private PointRenderer highlightPoint;
     private int selectionPointIndex = -1;
 
-    private final ExecutorService executorService;
+    private final @NotNull ExecutorService executorService;
 
-    public PathRenderer(Color color, List<Pose2d> pointList, ExecutorService executorService){
+    public PathRenderer(@NotNull Color color, @NotNull List<Pose2d> pointList, @NotNull ExecutorService executorService){
         this.color = color;
         this.point2DList = pointList;
 
@@ -54,7 +55,7 @@ public class PathRenderer implements MovablePointEventHandler {
         NONE, LAST, OTHER, REMOVAL, ADDITION;
     }
 
-    public void render(ShapeRenderer renderer, OrthographicCamera cam){
+    public void render(@NotNull ShapeRenderer renderer, @NotNull OrthographicCamera cam){
         if(trajectory == null) return;
 
         for( double i = 0.1; i<trajectory.getTotalTimeSeconds(); i += 0.05){
@@ -90,8 +91,8 @@ public class PathRenderer implements MovablePointEventHandler {
     boolean pointDeleted;
     boolean attachedToPrevPath = false;
 
-    public PointChange update(@NotNull OrthographicCamera cam, @NotNull Vector3 mousePos, @NotNull Vector3 lastMousePos, @NotNull PointChange prevPointChange,
-                              Pose2d prevLastPoint, boolean somethingMoved){
+    public @NotNull PointChange update(@NotNull OrthographicCamera cam, @NotNull Vector3 mousePos, @NotNull Vector3 lastMousePos,
+                                       @NotNull PointChange prevPointChange, @Nullable Pose2d prevLastPoint, boolean somethingMoved){
         pointDeleted = false;
 
         if(prevPointChange == PointChange.LAST) {
@@ -146,7 +147,8 @@ public class PathRenderer implements MovablePointEventHandler {
         return PointChange.NONE;
     }
 
-    public PointChange addPoints(Vector3 mousePos){
+    public @NotNull PointChange addPoints(@NotNull Vector3 mousePos){
+        if(trajectory == null) return PointChange.NONE;
         int currentIndexPos = 0;
         if(Gdx.app.getInput().isButtonJustPressed(Input.Buttons.RIGHT)){
             for( double i = 0; i<trajectory.getTotalTimeSeconds(); i += 0.01){
@@ -174,7 +176,7 @@ public class PathRenderer implements MovablePointEventHandler {
     }
 
     @Override
-    public void onPointClick(PointClickEvent event) {
+    public void onPointClick(@NotNull PointClickEvent event) {
         if(pointRenderList.contains(event.getPoint())){ //Should Only be called once per path
             if(event.isLeftClick()){
                 selectionPointIndex = pointRenderList.indexOf(event.getPoint());
@@ -202,7 +204,7 @@ public class PathRenderer implements MovablePointEventHandler {
 
 
     @Override
-    public void onPointMove(PointMoveEvent event) {
+    public void onPointMove(@NotNull PointMoveEvent event) {
         if(event.getPoint() == rotationPoint){
             MovablePointRenderer referencePoint = pointRenderList.get(selectionPointIndex);
             Rotation2d rotation2d = new Rotation2d(Math.atan2(event.getNewPos().y - referencePoint.getY(), event.getNewPos().x - referencePoint.getX()));
@@ -233,11 +235,12 @@ public class PathRenderer implements MovablePointEventHandler {
         executorService.submit(() -> trajectory = TrajectoryGenerator.generateTrajectory(point2DList, TRAJECTORY_CONSTRAINTS));
     }
 
+    @Nullable
     public Trajectory getTrajectory() {
         return trajectory;
     }
 
-    public List<Pose2d> getPoint2DList() {
+    public @NotNull List<Pose2d> getPoint2DList() {
         return point2DList;
     }
 

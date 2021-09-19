@@ -8,27 +8,28 @@ import com.badlogic.gdx.math.Vector3;
 import me.varun.autobuilder.events.scroll.MouseScrollEventHandler;
 import me.varun.autobuilder.events.scroll.MouseScrollEventThrower;
 import me.varun.autobuilder.util.MathUntil;
+import org.jetbrains.annotations.NotNull;
 
 public class CameraHandler implements MouseScrollEventHandler {
 
-    private final OrthographicCamera cam;
+    private final @NotNull OrthographicCamera cam;
 
-    Vector2 lastMousePos;
-    Vector2 mousePos;
+    @NotNull Vector2 lastMousePos;
+    @NotNull Vector2 mousePos;
 
-    Vector3 oldMouseWorldPos;
-    Vector3 newMouseWorldPos;
+    @NotNull Vector3 oldMouseWorldPos;
+    @NotNull Vector3 newMouseWorldPos;
 
     float zoom = 1;
     float lastZoom = 1;
-    Vector2 zoomMousePos;
+    @NotNull Vector2 zoomMousePos;
 
     float zoomXChange;
     float zoomYChange;
 
     boolean mouseHeldLastFrame = false;
 
-    public CameraHandler(OrthographicCamera cam, MouseScrollEventThrower mouseScrollEventThrower){
+    public CameraHandler(@NotNull OrthographicCamera cam, @NotNull MouseScrollEventThrower mouseScrollEventThrower){
         this.cam = cam;
         lastMousePos = new Vector2(Gdx.input.getX(), Gdx.input.getY());
         mousePos = new Vector2(Gdx.input.getX(), Gdx.input.getY());

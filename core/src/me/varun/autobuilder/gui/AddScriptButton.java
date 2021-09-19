@@ -5,6 +5,7 @@ import com.badlogic.gdx.graphics.Texture;
 import me.varun.autobuilder.pathing.PathRenderer;
 import me.varun.autobuilder.wpi.math.geometry.Pose2d;
 import me.varun.autobuilder.wpi.math.geometry.Rotation2d;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -16,7 +17,7 @@ public class AddScriptButton extends  AbstractGuiButton{
     }
 
     @Override
-    public boolean checkClick(Gui gui) {
+    public boolean checkClick(@NotNull Gui gui) {
         if(super.checkClick(gui)){
 
             List<Pose2d> pose2dList = new ArrayList<>();

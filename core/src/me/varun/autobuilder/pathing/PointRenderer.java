@@ -7,6 +7,7 @@ import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.math.Vector3;
 import me.varun.autobuilder.AutoBuilder;
 import me.varun.autobuilder.util.MathUntil;
+import org.jetbrains.annotations.NotNull;
 
 import static java.lang.Math.tan;
 import static me.varun.autobuilder.util.MathUntil.clamp;
@@ -24,14 +25,14 @@ public class PointRenderer {
         this.radius = radius;
     }
 
-    public PointRenderer(Vector2 pos, Color color, float radius) {
+    public PointRenderer(@NotNull Vector2 pos, Color color, float radius) {
         this.x = pos.x;
         this.y = pos.y;
         this.color = color;
         this.radius = radius;
     }
 
-    public PointRenderer(Vector3 pos, Color color, float radius) {
+    public PointRenderer(@NotNull Vector3 pos, Color color, float radius) {
         this.x = pos.x;
         this.y = pos.y;
         this.color = color;
@@ -43,7 +44,7 @@ public class PointRenderer {
         this.y = y;
     }
 
-    public void draw(ShapeRenderer shape, OrthographicCamera camera) {
+    public void draw(@NotNull ShapeRenderer shape, @NotNull OrthographicCamera camera) {
         shape.setColor(color);
         shape.circle(x* AutoBuilder.POINT_SCALE_FACTOR, y*AutoBuilder.POINT_SCALE_FACTOR, radius, (int) (MathUntil.clamp(20/tan(camera.zoom), 5, 50)));
     }
@@ -65,7 +66,7 @@ public class PointRenderer {
         this.y = y;
     }
 
-    public void setPosition(Vector2 position){
+    public void setPosition(@NotNull Vector2 position){
         setX(position.x);
         setY(position.y);
     }
@@ -84,20 +85,20 @@ public class PointRenderer {
         this.color = color;
     }
 
-    public Vector2 getPos2(){
+    public @NotNull Vector2 getPos2(){
         return new Vector2(x,y);
     }
 
-    public Vector3 getPos3(){
+    public @NotNull Vector3 getPos3(){
         return new Vector3(x,y,0);
     }
 
-    public Vector3 getRenderPos3(){
+    public @NotNull Vector3 getRenderPos3(){
         return new Vector3(x*AutoBuilder.POINT_SCALE_FACTOR, y*AutoBuilder.POINT_SCALE_FACTOR ,0);
     }
 
     @Override
-    public String toString() {
+    public @NotNull String toString() {
         return "PointRenderer{" +
                 "x=" + x +
                 ", y=" + y +

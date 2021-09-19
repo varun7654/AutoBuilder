@@ -27,6 +27,7 @@ import me.varun.autobuilder.util.RoundedShapeRenderer;
 import me.varun.autobuilder.wpi.math.geometry.Pose2d;
 import me.varun.autobuilder.wpi.math.trajectory.TrajectoryConfig;
 import me.varun.autobuilder.wpi.math.trajectory.constraint.CentripetalAccelerationConstraint;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.concurrent.ExecutorService;
@@ -43,21 +44,21 @@ public class AutoBuilder extends ApplicationAdapter {
     private RoundedShapeRenderer shapeRenderer;
     private RoundedShapeRenderer hudShapeRenderer;
 
-    OrthographicCamera cam;
-    Viewport viewport;
-    CameraHandler cameraHandler;
+    @NotNull OrthographicCamera cam;
+    @NotNull Viewport viewport;
+    @NotNull CameraHandler cameraHandler;
 
-    Viewport hudViewport;
-    OrthographicCamera hudCam;
+    @NotNull Viewport hudViewport;
+    @NotNull OrthographicCamera hudCam;
 
-    Preferences preferences;
+    @NotNull Preferences preferences;
 
-    PointRenderer origin;
+    @NotNull PointRenderer origin;
 
-    ExecutorService pathingService = Executors.newFixedThreadPool(1);
-    Gui gui;
+    @NotNull ExecutorService pathingService = Executors.newFixedThreadPool(1);
+    @NotNull Gui gui;
 
-    MouseScrollEventThrower mouseScrollEventThrower = new MouseScrollEventThrower();
+    @NotNull MouseScrollEventThrower mouseScrollEventThrower = new MouseScrollEventThrower();
 
     public static TrajectoryConfig TRAJECTORY_CONSTRAINTS;
     static {

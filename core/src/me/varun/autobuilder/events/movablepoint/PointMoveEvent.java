@@ -2,11 +2,12 @@ package me.varun.autobuilder.events.movablepoint;
 
 import com.badlogic.gdx.math.Vector2;
 import me.varun.autobuilder.pathing.MovablePointRenderer;
+import org.jetbrains.annotations.NotNull;
 
 public class PointMoveEvent {
-    private final Vector2 prevPos;
+    private final @NotNull Vector2 prevPos;
     private Vector2 newPos;
-    private final MovablePointRenderer movablePointInterface;
+    private final @NotNull MovablePointRenderer movablePointInterface;
 
     /**
      * The point should use the newPos value of this event to set it's position after the event is completed
@@ -14,7 +15,7 @@ public class PointMoveEvent {
      * @param newPos Position the point will be set to after this event
      * @param movablePointRenderer Point calling this event
      */
-    public PointMoveEvent(Vector2 prevPos, Vector2 newPos, MovablePointRenderer movablePointRenderer){
+    public PointMoveEvent(@NotNull Vector2 prevPos, @NotNull Vector2 newPos, @NotNull MovablePointRenderer movablePointRenderer){
         this.prevPos = prevPos;
         this.newPos = newPos;
         this.movablePointInterface = movablePointRenderer;
@@ -24,7 +25,7 @@ public class PointMoveEvent {
      *
      * @return The position of the point in the previous frame
      */
-    public Vector2 getPreviousPos() {
+    public @NotNull Vector2 getPreviousPos() {
         return prevPos;
     }
 
@@ -40,7 +41,7 @@ public class PointMoveEvent {
      *
      * @return Get the point that was moved
      */
-    public MovablePointRenderer getPoint() {
+    public @NotNull MovablePointRenderer getPoint() {
         return movablePointInterface;
     }
 
@@ -53,7 +54,7 @@ public class PointMoveEvent {
     }
 
     @Override
-    public String toString() {
+    public @NotNull String toString() {
         return "PointMoveEvent{" +
                 "prevPos=" + prevPos +
                 ", curPos=" + newPos +

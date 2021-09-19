@@ -1,18 +1,19 @@
 package me.varun.autobuilder.events.scroll;
 
 import com.badlogic.gdx.InputProcessor;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 
 public class MouseScrollEventThrower implements InputProcessor {
 
-    ArrayList<MouseScrollEventHandler> eventHandlers = new ArrayList<>();
+    @NotNull ArrayList<MouseScrollEventHandler> eventHandlers = new ArrayList<>();
 
-    public void register(MouseScrollEventHandler eventHandler){
+    public void register(@NotNull MouseScrollEventHandler eventHandler){
         eventHandlers.add(eventHandler);
     }
 
-    public boolean unRegister(MouseScrollEventHandler eventHandler){
+    public boolean unRegister(@NotNull MouseScrollEventHandler eventHandler){
         return eventHandlers.remove(eventHandler);
     }
 
