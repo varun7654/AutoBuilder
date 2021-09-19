@@ -1,4 +1,4 @@
-package me.varun.autobuilder.callback.movablepoint;
+package me.varun.autobuilder.events.movablepoint;
 
 import com.badlogic.gdx.math.Vector2;
 import me.varun.autobuilder.pathing.MovablePointRenderer;

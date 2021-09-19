@@ -6,9 +6,9 @@ import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.math.Vector3;
-import me.varun.autobuilder.callback.movablepoint.MovablePointEventHandler;
-import me.varun.autobuilder.callback.movablepoint.PointClickEvent;
-import me.varun.autobuilder.callback.movablepoint.PointMoveEvent;
+import me.varun.autobuilder.events.movablepoint.MovablePointEventHandler;
+import me.varun.autobuilder.events.movablepoint.PointClickEvent;
+import me.varun.autobuilder.events.movablepoint.PointMoveEvent;
 import me.varun.autobuilder.wpi.math.geometry.Pose2d;
 import me.varun.autobuilder.wpi.math.geometry.Rotation2d;
 import me.varun.autobuilder.wpi.math.geometry.Translation2d;
@@ -22,7 +22,7 @@ import java.util.concurrent.ExecutorService;
 import static me.varun.autobuilder.AutoBuilder.POINT_SCALE_FACTOR;
 import static me.varun.autobuilder.AutoBuilder.TRAJECTORY_CONSTRAINTS;
 
-public class PathRenderer extends MovablePointEventHandler {
+public class PathRenderer implements MovablePointEventHandler {
     private final Color color;
     private Trajectory trajectory;
     private final List<Pose2d> point2DList;
@@ -141,7 +141,6 @@ public class PathRenderer extends MovablePointEventHandler {
                 rotationPoint = new MovablePointRenderer(xPos, yPos, Color.GREEN, 5,this);
             }
             if(event.isRightClick()){
-                System.out.println("here");
                 int removeIndex = pointRenderList.indexOf(event.getPoint());
                 if (selectionPointIndex > removeIndex){
                     selectionPointIndex--;

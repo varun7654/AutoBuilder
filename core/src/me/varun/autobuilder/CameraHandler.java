@@ -2,13 +2,14 @@ package me.varun.autobuilder;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
-import com.badlogic.gdx.InputProcessor;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.math.Vector3;
+import me.varun.autobuilder.events.scroll.MouseScrollEventHandler;
+import me.varun.autobuilder.events.scroll.MouseScrollEventThrower;
 import me.varun.autobuilder.util.MathUntil;
 
-public class CameraHandler implements InputProcessor {
+public class CameraHandler implements MouseScrollEventHandler {
 
     private final OrthographicCamera cam;
 
@@ -19,28 +20,39 @@ public class CameraHandler implements InputProcessor {
     Vector3 newMouseWorldPos;
 
     float zoom = 1;
+    float lastZoom = 1;
+    Vector2 zoomMousePos;
 
     float zoomXChange;
     float zoomYChange;
 
-    public CameraHandler(OrthographicCamera cam){
+    public CameraHandler(OrthographicCamera cam, MouseScrollEventThrower mouseScrollEventThrower){
         this.cam = cam;
         lastMousePos = new Vector2(Gdx.input.getX(), Gdx.input.getY());
         mousePos = new Vector2(Gdx.input.getX(), Gdx.input.getY());
         oldMouseWorldPos = new Vector3();
         newMouseWorldPos = new Vector3();
+        zoomMousePos = new Vector2();
+        mouseScrollEventThrower.register(this);
     }
 
-    public void update(boolean moving){
+    public void update(boolean moving, boolean onGui){
+        if(onGui) zoom = lastZoom; else lastZoom = zoom;
         mousePos.set(Gdx.input.getX(), Gdx.input.getY());
 
-        oldMouseWorldPos.set(mousePos, 0);
+        /*
+        Basically we're getting the world coordinates of the mouse before we zoom and after we zoom. We then find the
+        difference between these 2 points and move the camera by that difference. This is so that that the item that is
+        under the mouse cursor doesn't move as the camera zooms in and out.
+        */
+
+        oldMouseWorldPos.set(zoomMousePos, 0);
         cam.unproject(oldMouseWorldPos);
 
-        cam.zoom = cam.zoom + ((this.zoom - cam.zoom)/(0.07f/Gdx.graphics.getDeltaTime())); //Do Smooth Zoom
+        cam.zoom = cam.zoom + ((this.zoom - cam.zoom)/(Math.max(1,0.07f/Gdx.graphics.getDeltaTime()))); //Do Smooth Zoom
 
         cam.update();
-        newMouseWorldPos.set(mousePos, 0);
+        newMouseWorldPos.set(zoomMousePos, 0);
         cam.unproject(newMouseWorldPos);
 
         zoomXChange = newMouseWorldPos.x - oldMouseWorldPos.x;
@@ -50,7 +62,7 @@ public class CameraHandler implements InputProcessor {
         cam.position.y = cam.position.y - zoomYChange;
         cam.update();
 
-        if(!moving && Gdx.input.isButtonPressed(Input.Buttons.LEFT)){ //Left mouse button down
+        if(!moving && Gdx.input.isButtonPressed(Input.Buttons.LEFT)){ //Left mouse button down. Drag Camera around
             Vector2 deltaPos = mousePos.sub(lastMousePos);
             cam.position.x = cam.position.x - (deltaPos.x*cam.zoom);
             cam.position.y = cam.position.y + (deltaPos.y*cam.zoom);
@@ -63,101 +75,9 @@ public class CameraHandler implements InputProcessor {
     }
 
 
-    /**
-     * Called when a key was pressed
-     *
-     * @param keycode one of the constants in {@link Input.Keys}
-     * @return whether the input was processed
-     */
-    @Override
-    public boolean keyDown(int keycode) {
-        return false;
-    }
 
-    /**
-     * Called when a key was released
-     *
-     * @param keycode one of the constants in {@link Input.Keys}
-     * @return whether the input was processed
-     */
     @Override
-    public boolean keyUp(int keycode) {
-        return false;
-    }
-
-    /**
-     * Called when a key was typed
-     *
-     * @param character The character
-     * @return whether the input was processed
-     */
-    @Override
-    public boolean keyTyped(char character) {
-        return false;
-    }
-
-    /**
-     * Called when the screen was touched or a mouse button was pressed. The button parameter will be {@link Input.Buttons#LEFT} on iOS.
-     *
-     * @param screenX The x coordinate, origin is in the upper left corner
-     * @param screenY The y coordinate, origin is in the upper left corner
-     * @param pointer the pointer for the event.
-     * @param button  the button
-     * @return whether the input was processed
-     */
-    @Override
-    public boolean touchDown(int screenX, int screenY, int pointer, int button) {
-        return false;
-    }
-
-    /**
-     * Called when a finger was lifted or a mouse button was released. The button parameter will be {@link Input.Buttons#LEFT} on iOS.
-     *
-     * @param screenX
-     * @param screenY
-     * @param pointer the pointer for the event.
-     * @param button  the button
-     * @return whether the input was processed
-     */
-    @Override
-    public boolean touchUp(int screenX, int screenY, int pointer, int button) {
-        return false;
-    }
-
-    /**
-     * Called when a finger or the mouse was dragged.
-     *
-     * @param screenX
-     * @param screenY
-     * @param pointer the pointer for the event.
-     * @return whether the input was processed
-     */
-    @Override
-    public boolean touchDragged(int screenX, int screenY, int pointer) {
-        return false;
-    }
-
-    /**
-     * Called when the mouse was moved without any buttons being pressed. Will not be called on iOS.
-     *
-     * @param screenX
-     * @param screenY
-     * @return whether the input was processed
-     */
-    @Override
-    public boolean mouseMoved(int screenX, int screenY) {
-        return false;
-    }
-
-    /**
-     * Called when the mouse wheel was scrolled. Will not be called on iOS.
-     *
-     * @param amountX the horizontal scroll amount, negative or positive depending on the direction the wheel was scrolled.
-     * @param amountY the vertical scroll amount, negative or positive depending on the direction the wheel was scrolled.
-     * @return whether the input was processed.
-     */
-    @Override
-    public boolean scrolled(float amountX, float amountY) {
+    public void onScroll(float amountX, float amountY) {
         if(amountY == 1){
             zoom = zoom * 1.2f;
         } else if (amountY == - 1){
@@ -165,7 +85,5 @@ public class CameraHandler implements InputProcessor {
         }
 
         MathUntil.clamp(zoom, 0.2, 10);
-
-        return false;
     }
 }

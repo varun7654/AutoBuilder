@@ -14,7 +14,6 @@ public class DesktopLauncher {
 		config.foregroundFPS = 144;
 		config.backgroundFPS = 15;
 		config.vSyncEnabled = false;
-		config.useGL30 = true;
 		new LwjglApplication(new AutoBuilder(), config);
 	}
 }
