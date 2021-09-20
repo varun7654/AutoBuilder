@@ -5,12 +5,12 @@ import com.badlogic.gdx.Input;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.math.Vector3;
-import me.varun.autobuilder.events.scroll.MouseScrollEventHandler;
+import me.varun.autobuilder.events.scroll.InputEventHandler;
 import me.varun.autobuilder.events.scroll.MouseScrollEventThrower;
 import me.varun.autobuilder.util.MathUntil;
 import org.jetbrains.annotations.NotNull;
 
-public class CameraHandler implements MouseScrollEventHandler {
+public class CameraHandler extends InputEventHandler {
 
     private final @NotNull OrthographicCamera cam;
 

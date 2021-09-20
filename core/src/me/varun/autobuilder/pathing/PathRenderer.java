@@ -64,7 +64,7 @@ public class PathRenderer implements MovablePointEventHandler {
             double speed = trajectory.sample(i).velocityMetersPerSecond;
             float[] color = new float[3];
             this.color.toHsv(color);
-            color[0] = (float) (speed*255/TRAJECTORY_CONSTRAINTS.getMaxVelocity());
+            color[1] = (float) (0.5*(speed/TRAJECTORY_CONSTRAINTS.getMaxVelocity())+0.5);
             Color speedColor = new Color().fromHsv(color);
             renderer.setColor(speedColor);
             renderer.line((float) prev.getX()*50,(float) prev.getY()*50, (float) cur.getX()*50, (float) cur.getY()*50);
@@ -248,5 +248,9 @@ public class PathRenderer implements MovablePointEventHandler {
         selectionPointIndex = -1;
         rotationPoint = null;
         highlightPoint = null;
+    }
+
+    public @NotNull Color getColor() {
+        return color;
     }
 }

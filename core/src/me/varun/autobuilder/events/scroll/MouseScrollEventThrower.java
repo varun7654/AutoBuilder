@@ -7,13 +7,13 @@ import java.util.ArrayList;
 
 public class MouseScrollEventThrower implements InputProcessor {
 
-    @NotNull ArrayList<MouseScrollEventHandler> eventHandlers = new ArrayList<>();
+    @NotNull ArrayList<InputEventHandler> eventHandlers = new ArrayList<>();
 
-    public void register(@NotNull MouseScrollEventHandler eventHandler){
+    public void register(@NotNull InputEventHandler eventHandler){
         eventHandlers.add(eventHandler);
     }
 
-    public boolean unRegister(@NotNull MouseScrollEventHandler eventHandler){
+    public boolean unRegister(@NotNull InputEventHandler eventHandler){
         return eventHandlers.remove(eventHandler);
     }
 
@@ -29,6 +29,9 @@ public class MouseScrollEventThrower implements InputProcessor {
 
     @Override
     public boolean keyTyped(char character) {
+        for (InputEventHandler eventHandler : eventHandlers) {
+            eventHandler.onKeyType(character);
+        }
         return false;
     }
 
@@ -54,7 +57,7 @@ public class MouseScrollEventThrower implements InputProcessor {
 
     @Override
     public boolean scrolled(float amountX, float amountY) {
-        for (MouseScrollEventHandler eventHandler : eventHandlers) {
+        for (InputEventHandler eventHandler : eventHandlers) {
             eventHandler.onScroll(amountX, amountY);
         }
         return false;

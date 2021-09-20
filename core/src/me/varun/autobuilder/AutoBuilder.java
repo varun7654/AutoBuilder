@@ -158,14 +158,15 @@ public class AutoBuilder extends ApplicationAdapter {
         hudBatch.setShader(fontShader);
 
         font.getData().setScale(0.2f);
+        font.setColor(Color.WHITE);
         font.draw(hudBatch, "FPS: " + Gdx.graphics.getFramesPerSecond(), 0, 12);
 
         hudBatch.setShader(null);
-
         hudBatch.end();
 
         gui.render(hudShapeRenderer, hudBatch, hudCam);
         hudShapeRenderer.end();
+
 
 
 
