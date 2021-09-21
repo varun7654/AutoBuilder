@@ -16,7 +16,7 @@ import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.utils.viewport.ExtendViewport;
 import com.badlogic.gdx.utils.viewport.ScreenViewport;
 import com.badlogic.gdx.utils.viewport.Viewport;
-import me.varun.autobuilder.events.scroll.MouseScrollEventThrower;
+import me.varun.autobuilder.events.scroll.InputEventThrower;
 import me.varun.autobuilder.gui.AbstractGuiItem;
 import me.varun.autobuilder.gui.Gui;
 import me.varun.autobuilder.gui.TrajectoryItem;
@@ -28,8 +28,8 @@ import me.varun.autobuilder.wpi.math.geometry.Pose2d;
 import me.varun.autobuilder.wpi.math.trajectory.TrajectoryConfig;
 import me.varun.autobuilder.wpi.math.trajectory.constraint.CentripetalAccelerationConstraint;
 import org.jetbrains.annotations.NotNull;
+import java.time.Instant;
 
-import java.util.ArrayList;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -58,7 +58,7 @@ public class AutoBuilder extends ApplicationAdapter {
     @NotNull ExecutorService pathingService = Executors.newFixedThreadPool(1);
     @NotNull Gui gui;
 
-    @NotNull MouseScrollEventThrower mouseScrollEventThrower = new MouseScrollEventThrower();
+    @NotNull InputEventThrower inputEventThrower = new InputEventThrower();
 
     public static TrajectoryConfig TRAJECTORY_CONSTRAINTS;
     static {
@@ -68,7 +68,7 @@ public class AutoBuilder extends ApplicationAdapter {
 
     @Override
     public void create () {
-        Gdx.app.getInput().setInputProcessor(mouseScrollEventThrower);
+        Gdx.app.getInput().setInputProcessor(inputEventThrower);
 
         hudShapeRenderer = new RoundedShapeRenderer();
         hudBatch = new SpriteBatch();
@@ -82,7 +82,7 @@ public class AutoBuilder extends ApplicationAdapter {
         cam.position.x = Gdx.graphics.getWidth()/2f;
         cam.position.y = Gdx.graphics.getHeight()/2f;
         viewport = new ExtendViewport(Gdx.graphics.getWidth(), Gdx.graphics.getHeight(), cam);
-        cameraHandler = new CameraHandler(cam, mouseScrollEventThrower);
+        cameraHandler = new CameraHandler(cam, inputEventThrower);
 
 
         hudCam = new OrthographicCamera(Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
@@ -98,8 +98,8 @@ public class AutoBuilder extends ApplicationAdapter {
         preferences.flush();
 
         Texture texture = new Texture(Gdx.files.internal("font/arial.png"), true); // true enables mipmaps
-        texture.setFilter(Texture.TextureFilter.Nearest, Texture.TextureFilter.Linear); // linear filtering in nearest mipmap image
-        texture.setAnisotropicFilter(8);
+        texture.setFilter(Texture.TextureFilter.MipMapLinearLinear, Texture.TextureFilter.Linear); // linear filtering in nearest mipmap image
+        //texture.setAnisotropicFilter(8);
 
 
         font = new BitmapFont(Gdx.files.internal("font/arial.fnt"), new TextureRegion(texture), false);
@@ -109,15 +109,18 @@ public class AutoBuilder extends ApplicationAdapter {
             Gdx.app.error("fontShader", "compilation failed:\n" + fontShader.getLog());
         }
 
-        gui = new Gui(hudViewport, font, fontShader, mouseScrollEventThrower, pathingService);
+        gui = new Gui(hudViewport, font, fontShader, inputEventThrower, pathingService);
 
     }
 
     private final Vector3 mousePos = new Vector3();
     private final Vector3 lastMousePos = new Vector3();
 
+    int time;
+
     @Override
     public void render () {
+        time = Instant.now().getNano();
         update();
         draw();
     }
@@ -159,7 +162,7 @@ public class AutoBuilder extends ApplicationAdapter {
 
         font.getData().setScale(0.2f);
         font.setColor(Color.WHITE);
-        font.draw(hudBatch, "FPS: " + Gdx.graphics.getFramesPerSecond(), 0, 12);
+        font.draw(hudBatch, "FPS: " + Gdx.graphics.getFramesPerSecond() + ", " + (Instant.now().getNano() - time)/1000000f + " ms", 0, 12);
 
         hudBatch.setShader(null);
         hudBatch.end();
@@ -206,10 +209,13 @@ public class AutoBuilder extends ApplicationAdapter {
 
         //Don't add points if we've just deleted one
         if(!pointDeleted){
+            boolean pointAdded = false;
             for (AbstractGuiItem guiItem : gui.guiItems) {
                 if (guiItem instanceof TrajectoryItem) {
                     PathRenderer pathRenderer = ((TrajectoryItem) guiItem).getPathRenderer();
-                    pathRenderer.addPoints(mousePos);
+                    if(PointChange.ADDITION == pathRenderer.addPoints(mousePos)){
+                        pointAdded = true;
+                    }
                 }
             }
         }

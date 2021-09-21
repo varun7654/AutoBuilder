@@ -26,11 +26,7 @@ public class AddPathButton extends AbstractGuiButton{
     @Override
     public boolean checkClick(@NotNull Gui gui) {
         if(super.checkClick(gui)){
-            List<Pose2d> pose2dList = new ArrayList<>();
-            pose2dList.add(new Pose2d());
-            pose2dList.add(new Pose2d(10, 10, Rotation2d.fromDegrees(0)));
-            gui.guiItems.add(new TrajectoryItem(new PathRenderer(gui.getNextColor(), pose2dList, gui.executorService),
-                    fontShader, font));
+            gui.guiItems.add(new TrajectoryItem(gui, fontShader, font));
             return true;
         }
 

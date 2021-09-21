@@ -10,6 +10,7 @@ import com.badlogic.gdx.math.Vector3;
 import me.varun.autobuilder.events.movablepoint.MovablePointEventHandler;
 import me.varun.autobuilder.events.movablepoint.PointClickEvent;
 import me.varun.autobuilder.events.movablepoint.PointMoveEvent;
+import me.varun.autobuilder.events.pathchange.PathChangeListener;
 import me.varun.autobuilder.wpi.math.geometry.Pose2d;
 import me.varun.autobuilder.wpi.math.geometry.Rotation2d;
 import me.varun.autobuilder.wpi.math.geometry.Translation2d;
@@ -37,9 +38,12 @@ public class PathRenderer implements MovablePointEventHandler {
 
     private final @NotNull ExecutorService executorService;
 
-    public PathRenderer(@NotNull Color color, @NotNull List<Pose2d> pointList, @NotNull ExecutorService executorService){
+    PathChangeListener pathChangeListener;
+
+    public PathRenderer(@NotNull Color color, @NotNull List<Pose2d> pointList, @NotNull ExecutorService executorService, PathChangeListener pathChangeListener){
         this.color = color;
         this.point2DList = pointList;
+        this.pathChangeListener = pathChangeListener;
 
         pointRenderList = new ArrayList<>();
 
@@ -233,6 +237,7 @@ public class PathRenderer implements MovablePointEventHandler {
         //trajectory = TrajectoryGenerator.generateTrajectory(point2DList, TRAJECTORY_CONSTRAINTS);
         //System.out.println(trajectory.getTotalTimeSeconds());
         executorService.submit(() -> trajectory = TrajectoryGenerator.generateTrajectory(point2DList, TRAJECTORY_CONSTRAINTS));
+        pathChangeListener.onPathChange();
     }
 
     @Nullable

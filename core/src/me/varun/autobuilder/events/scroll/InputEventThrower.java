@@ -5,15 +5,15 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 
-public class MouseScrollEventThrower implements InputProcessor {
+public class InputEventThrower implements InputProcessor {
 
-    @NotNull ArrayList<InputEventHandler> eventHandlers = new ArrayList<>();
+    @NotNull ArrayList<InputEventListener> eventHandlers = new ArrayList<>();
 
-    public void register(@NotNull InputEventHandler eventHandler){
+    public void register(@NotNull InputEventListener eventHandler){
         eventHandlers.add(eventHandler);
     }
 
-    public boolean unRegister(@NotNull InputEventHandler eventHandler){
+    public boolean unRegister(@NotNull InputEventListener eventHandler){
         return eventHandlers.remove(eventHandler);
     }
 
@@ -29,7 +29,7 @@ public class MouseScrollEventThrower implements InputProcessor {
 
     @Override
     public boolean keyTyped(char character) {
-        for (InputEventHandler eventHandler : eventHandlers) {
+        for (InputEventListener eventHandler : eventHandlers) {
             eventHandler.onKeyType(character);
         }
         return false;
@@ -57,7 +57,7 @@ public class MouseScrollEventThrower implements InputProcessor {
 
     @Override
     public boolean scrolled(float amountX, float amountY) {
-        for (InputEventHandler eventHandler : eventHandlers) {
+        for (InputEventListener eventHandler : eventHandlers) {
             eventHandler.onScroll(amountX, amountY);
         }
         return false;

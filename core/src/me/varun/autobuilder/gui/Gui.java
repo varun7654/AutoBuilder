@@ -10,8 +10,8 @@ import com.badlogic.gdx.graphics.glutils.ShaderProgram;
 import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.scenes.scene2d.utils.ScissorStack;
 import com.badlogic.gdx.utils.viewport.Viewport;
-import me.varun.autobuilder.events.scroll.InputEventHandler;
-import me.varun.autobuilder.events.scroll.MouseScrollEventThrower;
+import me.varun.autobuilder.events.scroll.InputEventListener;
+import me.varun.autobuilder.events.scroll.InputEventThrower;
 import me.varun.autobuilder.util.MathUntil;
 import me.varun.autobuilder.util.RoundedShapeRenderer;
 import org.jetbrains.annotations.NotNull;
@@ -20,7 +20,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 
-public class Gui extends InputEventHandler {
+public class Gui extends InputEventListener {
     private final @NotNull Viewport viewport;
     private final @NotNull BitmapFont font;
     private final @NotNull ShaderProgram fontShader;
@@ -44,7 +44,7 @@ public class Gui extends InputEventHandler {
     final @NotNull ExecutorService executorService;
 
     public Gui(@NotNull Viewport viewport, @NotNull BitmapFont font, @NotNull ShaderProgram fontShader,
-               @NotNull MouseScrollEventThrower eventThrower, @NotNull ExecutorService executorService){
+               @NotNull InputEventThrower eventThrower, @NotNull ExecutorService executorService){
         this.viewport = viewport;
         this.font = font;
         this.fontShader = fontShader;
