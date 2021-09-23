@@ -18,7 +18,7 @@ import me.varun.autobuilder.wpi.math.trajectory.Trajectory;
 import me.varun.autobuilder.wpi.math.trajectory.TrajectoryGenerator;
 import org.jetbrains.annotations.NotNull;
 
-import javax.annotation.Nullable;
+import org.jetbrains.annotations.Nullable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
@@ -38,12 +38,11 @@ public class PathRenderer implements MovablePointEventHandler {
 
     private final @NotNull ExecutorService executorService;
 
-    PathChangeListener pathChangeListener;
+    @Nullable PathChangeListener pathChangeListener;
 
-    public PathRenderer(@NotNull Color color, @NotNull List<Pose2d> pointList, @NotNull ExecutorService executorService, PathChangeListener pathChangeListener){
+    public PathRenderer(@NotNull Color color, @NotNull List<Pose2d> pointList, @NotNull ExecutorService executorService){
         this.color = color;
         this.point2DList = pointList;
-        this.pathChangeListener = pathChangeListener;
 
         pointRenderList = new ArrayList<>();
 
@@ -52,6 +51,11 @@ public class PathRenderer implements MovablePointEventHandler {
         }
 
         this.executorService = executorService;
+        updatePath();
+    }
+
+    public void setPathChangeListener(@NotNull PathChangeListener pathChangeListener){
+        this.pathChangeListener = pathChangeListener;
         updatePath();
     }
 
@@ -233,11 +237,15 @@ public class PathRenderer implements MovablePointEventHandler {
         updatePath();
     }
 
-    private void updatePath(){
+    public void updatePath(){
+       updatePath(true);
+    }
+
+    public void updatePath(boolean updateListener){
         //trajectory = TrajectoryGenerator.generateTrajectory(point2DList, TRAJECTORY_CONSTRAINTS);
         //System.out.println(trajectory.getTotalTimeSeconds());
         executorService.submit(() -> trajectory = TrajectoryGenerator.generateTrajectory(point2DList, TRAJECTORY_CONSTRAINTS));
-        pathChangeListener.onPathChange();
+        if(updateListener && pathChangeListener != null ) pathChangeListener.onPathChange();
     }
 
     @Nullable
@@ -257,5 +265,9 @@ public class PathRenderer implements MovablePointEventHandler {
 
     public @NotNull Color getColor() {
         return color;
+    }
+
+    public List<MovablePointRenderer> getPointList() {
+        return pointRenderList;
     }
 }

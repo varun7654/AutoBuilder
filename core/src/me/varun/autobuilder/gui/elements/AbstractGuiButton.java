@@ -1,9 +1,10 @@
-package me.varun.autobuilder.gui;
+package me.varun.autobuilder.gui.elements;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
+import me.varun.autobuilder.gui.Gui;
 import me.varun.autobuilder.util.RoundedShapeRenderer;
 import org.jetbrains.annotations.NotNull;
 

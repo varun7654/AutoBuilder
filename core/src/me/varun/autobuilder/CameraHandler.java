@@ -24,10 +24,10 @@ public class CameraHandler extends InputEventListener {
     float lastZoom = 1;
     @NotNull Vector2 zoomMousePos;
 
-    float zoomXChange;
-    float zoomYChange;
-
     boolean mouseHeldLastFrame = false;
+
+    float targetX;
+    float targetY;
 
     public CameraHandler(@NotNull OrthographicCamera cam, @NotNull InputEventThrower inputEventThrower){
         this.cam = cam;
@@ -58,8 +58,8 @@ public class CameraHandler extends InputEventListener {
         newMouseWorldPos.set(zoomMousePos, 0);
         cam.unproject(newMouseWorldPos);
 
-        zoomXChange = newMouseWorldPos.x - oldMouseWorldPos.x;
-        zoomYChange = newMouseWorldPos.y - oldMouseWorldPos.y;
+        float zoomXChange = newMouseWorldPos.x - oldMouseWorldPos.x;
+        float zoomYChange = newMouseWorldPos.y - oldMouseWorldPos.y;
 
         cam.position.x = cam.position.x - zoomXChange;
         cam.position.y = cam.position.y - zoomYChange;
@@ -71,11 +71,13 @@ public class CameraHandler extends InputEventListener {
             cam.position.y = cam.position.y + (deltaPos.y*cam.zoom);
             cam.update();
             mouseHeldLastFrame = true;
+            targetX = cam.position.x;
+            targetY = cam.position.y;
         } else {
             mouseHeldLastFrame = false;
         }
 
-
+        //TODO Implement smooth cam movement
 
         lastMousePos.set(Gdx.input.getX(), Gdx.input.getY());
     }
@@ -91,5 +93,24 @@ public class CameraHandler extends InputEventListener {
         }
         MathUntil.clamp(zoom, 0.2, 10);
         zoomMousePos.set(Gdx.input.getX(), Gdx.input.getY());
+    }
+
+    public boolean ensureOnScreen(Vector3 worldPos){
+        cam.project(worldPos); //World Pos is now screen cords
+        float correctionX = 0;
+        float correctionY = 0;
+        if(worldPos.x < 10 ){
+            correctionX = 30 - worldPos.x;
+        } else if(worldPos.x > Gdx.graphics.getWidth() - 10){
+            correctionX =  worldPos.x - Gdx.graphics.getWidth() + 30;
+        }
+
+        if(worldPos.y < 10 ){
+            correctionY = 30 - worldPos.y;
+        } else if( worldPos.y > Gdx.graphics.getHeight()){
+            correctionY =  worldPos.y - Gdx.graphics.getHeight() + 30;
+        }
+
+        return false;
     }
 }

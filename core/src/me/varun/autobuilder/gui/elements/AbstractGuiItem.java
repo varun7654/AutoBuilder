@@ -1,4 +1,4 @@
-package me.varun.autobuilder.gui;
+package me.varun.autobuilder.gui.elements;
 
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import me.varun.autobuilder.util.RoundedShapeRenderer;

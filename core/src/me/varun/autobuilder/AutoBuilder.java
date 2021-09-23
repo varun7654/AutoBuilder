@@ -17,7 +17,7 @@ import com.badlogic.gdx.utils.viewport.ExtendViewport;
 import com.badlogic.gdx.utils.viewport.ScreenViewport;
 import com.badlogic.gdx.utils.viewport.Viewport;
 import me.varun.autobuilder.events.scroll.InputEventThrower;
-import me.varun.autobuilder.gui.AbstractGuiItem;
+import me.varun.autobuilder.gui.elements.AbstractGuiItem;
 import me.varun.autobuilder.gui.Gui;
 import me.varun.autobuilder.gui.TrajectoryItem;
 import me.varun.autobuilder.pathing.PathRenderer;
@@ -97,8 +97,10 @@ public class AutoBuilder extends ApplicationAdapter {
 
         preferences.flush();
 
+        //TODO: Looks like the texture is messed up and it makes it look really ugly
         Texture texture = new Texture(Gdx.files.internal("font/arial.png"), true); // true enables mipmaps
         texture.setFilter(Texture.TextureFilter.MipMapLinearLinear, Texture.TextureFilter.Linear); // linear filtering in nearest mipmap image
+
         //texture.setAnisotropicFilter(8);
 
 
@@ -109,7 +111,7 @@ public class AutoBuilder extends ApplicationAdapter {
             Gdx.app.error("fontShader", "compilation failed:\n" + fontShader.getLog());
         }
 
-        gui = new Gui(hudViewport, font, fontShader, inputEventThrower, pathingService);
+        gui = new Gui(hudViewport, font, fontShader, inputEventThrower, pathingService, cameraHandler );
 
     }
 
@@ -213,7 +215,7 @@ public class AutoBuilder extends ApplicationAdapter {
             for (AbstractGuiItem guiItem : gui.guiItems) {
                 if (guiItem instanceof TrajectoryItem) {
                     PathRenderer pathRenderer = ((TrajectoryItem) guiItem).getPathRenderer();
-                    if(PointChange.ADDITION == pathRenderer.addPoints(mousePos)){
+                    if(!pointAdded && PointChange.ADDITION == pathRenderer.addPoints(mousePos)){
                         pointAdded = true;
                     }
                 }

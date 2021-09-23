@@ -10,8 +10,12 @@ import com.badlogic.gdx.graphics.glutils.ShaderProgram;
 import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.scenes.scene2d.utils.ScissorStack;
 import com.badlogic.gdx.utils.viewport.Viewport;
+import me.varun.autobuilder.CameraHandler;
 import me.varun.autobuilder.events.scroll.InputEventListener;
 import me.varun.autobuilder.events.scroll.InputEventThrower;
+import me.varun.autobuilder.gui.elements.AbstractGuiItem;
+import me.varun.autobuilder.gui.elements.AddPathButton;
+import me.varun.autobuilder.gui.elements.AddScriptButton;
 import me.varun.autobuilder.util.MathUntil;
 import me.varun.autobuilder.util.RoundedShapeRenderer;
 import org.jetbrains.annotations.NotNull;
@@ -44,12 +48,12 @@ public class Gui extends InputEventListener {
     final @NotNull ExecutorService executorService;
 
     public Gui(@NotNull Viewport viewport, @NotNull BitmapFont font, @NotNull ShaderProgram fontShader,
-               @NotNull InputEventThrower eventThrower, @NotNull ExecutorService executorService){
+               @NotNull InputEventThrower eventThrower, @NotNull ExecutorService executorService, @NotNull CameraHandler cameraHandler){
         this.viewport = viewport;
         this.font = font;
         this.fontShader = fontShader;
 
-        addPathButton = new AddPathButton(0,0, 40, 40, fontShader, font);
+        addPathButton = new AddPathButton(0,0, 40, 40, fontShader, font, eventThrower,  cameraHandler );
         addScriptButton = new AddScriptButton(0,0, 40, 40, fontShader, font);
 
         updateScreen(Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
