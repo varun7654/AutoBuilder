@@ -31,6 +31,10 @@ public abstract class AbstractGuiButton implements Disposable {
         return hovering;
     }
 
+    public boolean checkClick(){
+        return hovering;
+    }
+
 
     public boolean checkHover(){
         return hovering = Gdx.input.getX() >= x && Gdx.input.getX() <= x + width &&
@@ -48,6 +52,21 @@ public abstract class AbstractGuiButton implements Disposable {
         shapeRenderer.flush();
         spriteBatch.begin();
         spriteBatch.draw(texture, x+5, y+5, width-10, height-10);
+        spriteBatch.end();
+
+    }
+
+    public void render(@NotNull RoundedShapeRenderer shapeRenderer, @NotNull SpriteBatch spriteBatch, boolean renderTexture){
+        if(hovering){
+            shapeRenderer.setColor(Color.LIGHT_GRAY);
+        } else {
+            shapeRenderer.setColor(Color.WHITE);
+        }
+
+        shapeRenderer.roundedRect(x, y, width, height, 4);
+        shapeRenderer.flush();
+        spriteBatch.begin();
+        if(renderTexture) spriteBatch.draw(texture, x+5, y+5, width-10, ((width-10f)/(texture.getWidth()))*texture.getHeight());
         spriteBatch.end();
 
     }

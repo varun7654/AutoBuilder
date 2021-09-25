@@ -5,7 +5,6 @@ import com.badlogic.gdx.Input;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
-import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.math.Vector3;
 import me.varun.autobuilder.events.movablepoint.MovablePointEventHandler;
 import me.varun.autobuilder.events.movablepoint.PointClickEvent;
@@ -15,7 +14,9 @@ import me.varun.autobuilder.wpi.math.geometry.Pose2d;
 import me.varun.autobuilder.wpi.math.geometry.Rotation2d;
 import me.varun.autobuilder.wpi.math.geometry.Translation2d;
 import me.varun.autobuilder.wpi.math.trajectory.Trajectory;
+import me.varun.autobuilder.wpi.math.trajectory.TrajectoryConfig;
 import me.varun.autobuilder.wpi.math.trajectory.TrajectoryGenerator;
+import me.varun.autobuilder.wpi.math.trajectory.constraint.TrajectoryConstraint;
 import org.jetbrains.annotations.NotNull;
 
 import org.jetbrains.annotations.Nullable;
@@ -23,14 +24,14 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 
-import static me.varun.autobuilder.AutoBuilder.POINT_SCALE_FACTOR;
-import static me.varun.autobuilder.AutoBuilder.TRAJECTORY_CONSTRAINTS;
+import static me.varun.autobuilder.AutoBuilder.*;
 
 public class PathRenderer implements MovablePointEventHandler {
     private @NotNull final Color color;
     private @Nullable Trajectory trajectory;
     private final @NotNull List<Pose2d> point2DList;
     private final @NotNull List<MovablePointRenderer> pointRenderList;
+    private boolean reversed = false;
 
     @Nullable private MovablePointRenderer rotationPoint;
     @Nullable private PointRenderer highlightPoint;
@@ -72,7 +73,7 @@ public class PathRenderer implements MovablePointEventHandler {
             double speed = trajectory.sample(i).velocityMetersPerSecond;
             float[] color = new float[3];
             this.color.toHsv(color);
-            color[1] = (float) (0.5*(speed/TRAJECTORY_CONSTRAINTS.getMaxVelocity())+0.5);
+            color[1] = (float) (0.5*(speed/ maxVelocityMetersPerSecond)+0.5);
             Color speedColor = new Color().fromHsv(color);
             renderer.setColor(speedColor);
             renderer.line((float) prev.getX()*50,(float) prev.getY()*50, (float) cur.getX()*50, (float) cur.getY()*50);
@@ -244,7 +245,14 @@ public class PathRenderer implements MovablePointEventHandler {
     public void updatePath(boolean updateListener){
         //trajectory = TrajectoryGenerator.generateTrajectory(point2DList, TRAJECTORY_CONSTRAINTS);
         //System.out.println(trajectory.getTotalTimeSeconds());
-        executorService.submit(() -> trajectory = TrajectoryGenerator.generateTrajectory(point2DList, TRAJECTORY_CONSTRAINTS));
+        executorService.submit(() -> {
+            TrajectoryConfig trajectoryConfig = new TrajectoryConfig(maxVelocityMetersPerSecond, maxAccelerationMetersPerSecondSq);
+            for (TrajectoryConstraint trajectoryConstraint : trajectoryConstraints) {
+                trajectoryConfig.addConstraint(trajectoryConstraint);
+            }
+            trajectoryConfig.setReversed(isReversed());
+            trajectory = TrajectoryGenerator.generateTrajectory(point2DList, trajectoryConfig);
+        });
         if(updateListener && pathChangeListener != null ) pathChangeListener.onPathChange();
     }
 
@@ -285,5 +293,13 @@ public class PathRenderer implements MovablePointEventHandler {
                 "color=" + color +
                 ", point2DList=" + stringBuilder +
                 '}';
+    }
+
+    public boolean isReversed() {
+        return reversed;
+    }
+
+    public void setReversed(boolean reversed) {
+        this.reversed = reversed;
     }
 }

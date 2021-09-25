@@ -27,9 +27,11 @@ import me.varun.autobuilder.util.RoundedShapeRenderer;
 import me.varun.autobuilder.wpi.math.geometry.Pose2d;
 import me.varun.autobuilder.wpi.math.trajectory.TrajectoryConfig;
 import me.varun.autobuilder.wpi.math.trajectory.constraint.CentripetalAccelerationConstraint;
+import me.varun.autobuilder.wpi.math.trajectory.constraint.TrajectoryConstraint;
 import org.jetbrains.annotations.NotNull;
 import java.time.Instant;
 
+import java.util.ArrayList;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -60,10 +62,14 @@ public class AutoBuilder extends ApplicationAdapter {
 
     @NotNull InputEventThrower inputEventThrower = new InputEventThrower();
 
-    public static TrajectoryConfig TRAJECTORY_CONSTRAINTS;
+    public static ArrayList<TrajectoryConstraint> trajectoryConstraints = new ArrayList<>();
+    public static double maxVelocityMetersPerSecond;
+    public static double maxAccelerationMetersPerSecondSq;
+
     static {
-        TRAJECTORY_CONSTRAINTS = new TrajectoryConfig(5, 1.5);
-        TRAJECTORY_CONSTRAINTS.addConstraint(new CentripetalAccelerationConstraint(1));
+        maxVelocityMetersPerSecond = 5;
+        maxAccelerationMetersPerSecondSq = 0.5;
+        trajectoryConstraints.add(new CentripetalAccelerationConstraint(1));
     }
 
     @Override
@@ -99,7 +105,7 @@ public class AutoBuilder extends ApplicationAdapter {
 
         //TODO: Looks like the texture is messed up and it makes it look really ugly
         Texture texture = new Texture(Gdx.files.internal("font/arial.png"), true); // true enables mipmaps
-        texture.setFilter(Texture.TextureFilter.MipMapLinearLinear, Texture.TextureFilter.Linear); // linear filtering in nearest mipmap image
+        texture.setFilter(Texture.TextureFilter.MipMap, Texture.TextureFilter.Linear); // linear filtering in nearest mipmap image
 
         //texture.setAnisotropicFilter(8);
 
