@@ -32,7 +32,6 @@ public class InputEventThrower implements InputProcessor {
         for (InputEventListener eventHandler : eventHandlers) {
             eventHandler.onKeyType(character);
         }
-        System.out.println("size: " + eventHandlers.size() + " char: " + character);
         return false;
     }
 

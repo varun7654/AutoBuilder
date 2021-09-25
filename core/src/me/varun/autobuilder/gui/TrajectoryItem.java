@@ -1,13 +1,14 @@
 package me.varun.autobuilder.gui;
 
 import com.badlogic.gdx.graphics.Color;
+import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.glutils.ShaderProgram;
 import me.varun.autobuilder.CameraHandler;
 import me.varun.autobuilder.events.pathchange.PathChangeListener;
 import me.varun.autobuilder.events.scroll.InputEventThrower;
-import me.varun.autobuilder.events.textchange.TextChangeListener;
+import me.varun.autobuilder.events.textchange.TextPositionChangeListener;
 import me.varun.autobuilder.gui.elements.AbstractGuiItem;
 import me.varun.autobuilder.gui.elements.NumberTextBox;
 import me.varun.autobuilder.pathing.MovablePointRenderer;
@@ -17,21 +18,21 @@ import me.varun.autobuilder.wpi.math.geometry.Pose2d;
 import me.varun.autobuilder.wpi.math.geometry.Rotation2d;
 import org.jetbrains.annotations.NotNull;
 
-import java.nio.channels.FileLock;
 import java.text.DecimalFormat;
-import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.List;
 
-public class TrajectoryItem extends AbstractGuiItem implements PathChangeListener, TextChangeListener {
+public class TrajectoryItem extends AbstractGuiItem implements PathChangeListener, TextPositionChangeListener {
     private @NotNull PathRenderer pathRenderer;
 
     private final @NotNull ShaderProgram fontShader;
     private final @NotNull BitmapFont font;
-    private static final @NotNull Color LIGHT_GREY = Color.valueOf("E9E9E9");
+
     private final @NotNull List<List<NumberTextBox>> textBoxes = new ArrayList<>();
     private final @NotNull InputEventThrower eventThrower;
-    private CameraHandler cameraHandler;
+    private final @NotNull CameraHandler cameraHandler;
+    private final @NotNull Texture trashTexture;
+    private final @NotNull Texture warningTexture;
 
     private static final DecimalFormat df = new DecimalFormat();
     static {
@@ -40,9 +41,12 @@ public class TrajectoryItem extends AbstractGuiItem implements PathChangeListene
         df.setMinimumIntegerDigits(1);
     }
 
-    public TrajectoryItem(Gui gui, @NotNull ShaderProgram fontShader, @NotNull BitmapFont font, @NotNull InputEventThrower eventThrower, CameraHandler cameraHandler){
+    public TrajectoryItem(Gui gui, @NotNull ShaderProgram fontShader, @NotNull BitmapFont font, @NotNull InputEventThrower eventThrower,
+                          @NotNull CameraHandler cameraHandler, @NotNull Texture trashTexture, @NotNull Texture warningTexture){
         this.eventThrower = eventThrower;
         this.cameraHandler = cameraHandler;
+        this.trashTexture = trashTexture;
+        this.warningTexture = warningTexture;
         List<Pose2d> pose2dList = new ArrayList<>();
         pose2dList.add(new Pose2d());
         pose2dList.add(new Pose2d(10, 10, Rotation2d.fromDegrees(0)));
@@ -55,36 +59,47 @@ public class TrajectoryItem extends AbstractGuiItem implements PathChangeListene
 
     }
 
+
     @Override
-    public int render(@NotNull RoundedShapeRenderer shapeRenderer, @NotNull SpriteBatch spriteBatch, int drawStartX, int drawStartY, int drawWidth) {
-        List<Pose2d> pose2dList = pathRenderer.getPoint2DList();
-        shapeRenderer.setColor(LIGHT_GREY);
-        shapeRenderer.roundedRect(drawStartX+5, drawStartY - 40 - pose2dList.size()*30-5, drawWidth-5, (pose2dList.size()*30)+9, 2 );
+    public int render(@NotNull RoundedShapeRenderer shapeRenderer, @NotNull SpriteBatch spriteBatch, int drawStartX, int drawStartY, int drawWidth, Gui gui) {
+        super.render(shapeRenderer, spriteBatch, drawStartX, drawStartY, drawWidth, gui);
+        if(isClosed()){
+            renderHeader(shapeRenderer,spriteBatch, fontShader, font, drawStartX, drawStartY, drawWidth, trashTexture, warningTexture, pathRenderer.getColor(), "Path", checkWarning(gui));
+            spriteBatch.end();
+            return 40;
+        } else {
+            List<Pose2d> pose2dList = pathRenderer.getPoint2DList();
+            shapeRenderer.setColor(LIGHT_GREY);
+            shapeRenderer.roundedRect(drawStartX + 5, drawStartY - 40 - pose2dList.size() * 30 - 5, drawWidth - 5, (pose2dList.size() * 30) + 9, 2);
 
-        shapeRenderer.setColor(pathRenderer.getColor());
-        shapeRenderer.roundedRect(drawStartX, drawStartY - 40, drawWidth, 40, 2 );
-        shapeRenderer.flush();
+            renderHeader(shapeRenderer,spriteBatch, fontShader, font, drawStartX, drawStartY, drawWidth, trashTexture, warningTexture, pathRenderer.getColor(), "Path", checkWarning(gui));
+            checkWarning(gui);
 
-        spriteBatch.setShader(fontShader);
-        spriteBatch.begin();
-        font.getData().setScale(0.6f);
-        font.setColor(Color.WHITE);
-        font.draw(spriteBatch, "Path", drawStartX+5, drawStartY-5);
-        spriteBatch.flush();
+            spriteBatch.setShader(fontShader);
 
-        font.getData().setScale(0.4f);
-        font.setColor(Color.BLACK);
-        for (int i = 0; i < textBoxes.size(); i++) {
-            List<NumberTextBox> textBoxList = textBoxes.get(i);
-            for (int b = 0; b < textBoxList.size(); b++) {
-                textBoxList.get(b).draw(shapeRenderer, spriteBatch, drawStartX + 10 + b*123, drawStartY - 43 - i*30, 120, 28);
+            font.setColor(Color.BLACK);
+            for (int i = 0; i < textBoxes.size(); i++) {
+                List<NumberTextBox> textBoxList = textBoxes.get(i);
+                for (int b = 0; b < textBoxList.size(); b++) {
+                    textBoxList.get(b).draw(shapeRenderer, spriteBatch, drawStartX + 10 + b * 123, drawStartY - 43 - i * 30, 120, 28);
+                }
             }
+            spriteBatch.end();
+            spriteBatch.setShader(null);
+
+            return 50 + pose2dList.size() * 30;
         }
-        spriteBatch.end();
-        spriteBatch.setShader(null);
 
-        return 50 + pose2dList.size()*30;
+    }
 
+    private boolean checkWarning(Gui gui) {
+        TrajectoryItem lastTrajectoryItem = gui.getLastPath();
+        if(lastTrajectoryItem != null){
+            List<Pose2d> lastPose2dList = lastTrajectoryItem.getPathRenderer().getPoint2DList();
+            Pose2d lastPoint = lastPose2dList.get(lastPose2dList.size()-1);
+            return !lastPoint.equals(pathRenderer.getPoint2DList().get(0));
+        }
+        return false;
     }
 
     public @NotNull PathRenderer getPathRenderer() {
@@ -134,10 +149,27 @@ public class TrajectoryItem extends AbstractGuiItem implements PathChangeListene
                     break;
             }
 
-            pathRenderer.updatePath(false);
             cameraHandler.ensureOnScreen(point.getRenderPos3());
+            pathRenderer.updatePath(false);
+
 
         } catch (NumberFormatException ignored){ }
 
+    }
+
+    @Override
+    public void dispose() {
+        for (List<NumberTextBox> textBox : textBoxes) {
+            for (NumberTextBox box : textBox) {
+                box.dispose();
+            }
+        }
+    }
+
+    @Override
+    public String toString() {
+        return "TrajectoryItem{" +
+                "pathRenderer=" + pathRenderer +
+                '}';
     }
 }

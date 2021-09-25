@@ -1,11 +1,12 @@
 package me.varun.autobuilder.events.textchange;
 
+import me.varun.autobuilder.gui.elements.TextBox;
+
 public interface TextChangeListener {
     /**
      * Fired when text in a textbox is changed
      * @param text new text
-     * @param row row specified when creating the object
-     * @param column column specified when creating the object
+     * @param textBox textbox that called this
      */
-    void onTextChange(String text, int row, int column);
+    void onTextChange(String text, TextBox textBox);
 }

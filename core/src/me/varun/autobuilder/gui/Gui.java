@@ -4,10 +4,12 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
 import com.badlogic.gdx.graphics.Camera;
 import com.badlogic.gdx.graphics.Color;
+import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.glutils.ShaderProgram;
 import com.badlogic.gdx.math.Rectangle;
+import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.scenes.scene2d.utils.ScissorStack;
 import com.badlogic.gdx.utils.viewport.Viewport;
 import me.varun.autobuilder.CameraHandler;
@@ -19,6 +21,7 @@ import me.varun.autobuilder.gui.elements.AddScriptButton;
 import me.varun.autobuilder.util.MathUntil;
 import me.varun.autobuilder.util.RoundedShapeRenderer;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -47,14 +50,25 @@ public class Gui extends InputEventListener {
 
     final @NotNull ExecutorService executorService;
 
+    protected final Texture trashTexture;
+    protected final Texture warningTexture;
+
+    private @Nullable TrajectoryItem lastPath = null;
+
     public Gui(@NotNull Viewport viewport, @NotNull BitmapFont font, @NotNull ShaderProgram fontShader,
                @NotNull InputEventThrower eventThrower, @NotNull ExecutorService executorService, @NotNull CameraHandler cameraHandler){
         this.viewport = viewport;
         this.font = font;
         this.fontShader = fontShader;
 
-        addPathButton = new AddPathButton(0,0, 40, 40, fontShader, font, eventThrower,  cameraHandler );
-        addScriptButton = new AddScriptButton(0,0, 40, 40, fontShader, font);
+        warningTexture = new Texture(Gdx.files.internal("warning.png"), true);
+        trashTexture = new Texture(Gdx.files.internal("trash.png"), true);
+        warningTexture.setFilter(Texture.TextureFilter.MipMap, Texture.TextureFilter.Linear);
+        trashTexture.setFilter(Texture.TextureFilter.MipMap, Texture.TextureFilter.Linear);
+
+
+        addPathButton = new AddPathButton(0,0, 40, 40, fontShader, font, eventThrower, warningTexture, trashTexture, cameraHandler );
+        addScriptButton = new AddScriptButton(0,0, 40, 40, fontShader, font, eventThrower, warningTexture, trashTexture);
 
         updateScreen(Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
 
@@ -65,6 +79,12 @@ public class Gui extends InputEventListener {
 
     }
 
+    Vector2 mouseDownPos = new Vector2();
+    boolean dragging = false;
+    AbstractGuiItem draggingElement = null;
+    int newDraggingElementIndex = 0;
+    int oldDraggingElementIndex = 0;
+
     public void render(@NotNull RoundedShapeRenderer shapeRenderer, @NotNull SpriteBatch spriteBatch, @NotNull Camera camera) {
 
         shapeRenderer.setColor(Color.WHITE);
@@ -73,8 +93,6 @@ public class Gui extends InputEventListener {
         addScriptButton.render(shapeRenderer, spriteBatch);
         addPathButton.render(shapeRenderer, spriteBatch);
 
-        //spriteBatch.draw(new Texture("path_icon.png"), 1, 1);
-
         Rectangle scissors = new Rectangle();
 
         ScissorStack.calculateScissors(camera, shapeRenderer.getTransformMatrix(), clipBounds, scissors );
@@ -82,9 +100,42 @@ public class Gui extends InputEventListener {
 
         int yPos = Gdx.graphics.getHeight() - 20 + (int) smoothScrollPos;
 
-        for (AbstractGuiItem guiItem : guiItems) {
-            yPos = yPos - 10 - guiItem.render(shapeRenderer, spriteBatch, panelX + 10 , yPos, panelWidth - 20);
+        lastPath = null;
+        boolean elementDrawn = false;
+        for (int i = 0; i < guiItems.size(); i++) {
+            AbstractGuiItem guiItem = guiItems.get(i);
+            int newYPos = yPos;
+
+            if(!(draggingElement == null) && !elementDrawn && newYPos < Gdx.graphics.getHeight() - Gdx.input.getY()){
+                newYPos = yPos = yPos - 10 - draggingElement.render(shapeRenderer, spriteBatch, Gdx.input.getX() - (panelWidth - 20)/2,
+                        (Gdx.graphics.getHeight() - Gdx.input.getY())+20, panelWidth - 20,this);
+                newDraggingElementIndex = i;
+                elementDrawn = true;
+            }
+
+            if(!(guiItem == draggingElement)){
+                newYPos = yPos - 10 - guiItem.render(shapeRenderer, spriteBatch, panelX + 10 , yPos, panelWidth - 20,this);
+            }
+
+            if(guiItem instanceof TrajectoryItem){
+                lastPath = (TrajectoryItem) guiItem;
+            }
+
+            if(dragging && draggingElement == null && guiItem.isMouseOver(panelX + 10, yPos-40, panelWidth - 20 -45, 40)){
+                draggingElement = guiItem;
+                draggingElement.setClosed(true);
+                oldDraggingElementIndex = i;
+            }
+            yPos = newYPos;
         }
+
+        if(!(draggingElement == null) && !elementDrawn ){
+            draggingElement.render(shapeRenderer, spriteBatch, Gdx.input.getX() - (panelWidth - 20)/2,
+                    (Gdx.graphics.getHeight() - Gdx.input.getY())+20, panelWidth - 20,this);
+            newDraggingElementIndex = guiItems.size();
+        }
+
+
         shapeRenderer.flush();
 
 
@@ -96,18 +147,46 @@ public class Gui extends InputEventListener {
         //System.out.println(maxScroll);
     }
 
+    public ArrayList<AbstractGuiItem> guiItemsDeletions = new ArrayList<>();
+
     public boolean update(){
+        for (AbstractGuiItem guiItemsDeletion : guiItemsDeletions) {
+            guiItemsDeletion.dispose();
+            guiItems.remove(guiItemsDeletion);
+        }
+        guiItemsDeletions.clear();
+
+        scrollPos = MathUntil.clamp(scrollPos, 0, maxScroll);
         smoothScrollPos = (float) (smoothScrollPos + (scrollPos - smoothScrollPos)/Math.max(1,0.05/Gdx.graphics.getDeltaTime()));
 
         boolean onGui = false;
 
         //TODO: Store in a list and iterate over the list
-        onGui = onGui | addScriptButton.checkHover();
+        onGui = addScriptButton.checkHover();
         onGui = onGui | addPathButton.checkHover();
 
         if(Gdx.input.isButtonJustPressed(Input.Buttons.LEFT)){
             addScriptButton.checkClick(this);
             addPathButton.checkClick(this);
+        }
+
+        if(Gdx.input.isButtonJustPressed(Input.Buttons.LEFT)){
+            mouseDownPos.x = Gdx.input.getX();
+            mouseDownPos.y = Gdx.input.getY();
+            draggingElement = null;
+        } else if (Gdx.input.isButtonPressed(Input.Buttons.LEFT)){
+            if(MathUntil.len2(mouseDownPos, Gdx.input.getX(), Gdx.input.getY()) > 100){
+                dragging = true;
+            }
+        } else {
+            dragging = false;
+            if(draggingElement != null){
+                System.out.println(newDraggingElementIndex);
+                guiItems.remove(oldDraggingElementIndex);
+                if(newDraggingElementIndex>oldDraggingElementIndex) newDraggingElementIndex--;
+                guiItems.add(newDraggingElementIndex, draggingElement);
+                draggingElement = null;
+            }
         }
 
         if(Gdx.input.getX() > panelX && Gdx.input.getX() < panelX + panelWidth &&
@@ -129,11 +208,18 @@ public class Gui extends InputEventListener {
         addScriptButton.setX(addPathButton.getX() - 10 - addScriptButton.getWidth());
         addScriptButton.setY(10);
 
-        clipBounds = new Rectangle(addScriptButton.getX(), panelY, panelWidth + panelX - addScriptButton.getX(),
+        clipBounds = new Rectangle(addScriptButton.getX()-500, panelY, panelWidth + panelX - addScriptButton.getX()+500,
                 panelHeight);
     }
 
     public void dispose() {
+        for (AbstractGuiItem guiItem : guiItems) {
+            guiItem.dispose();
+        }
+        trashTexture.dispose();
+        warningTexture.dispose();
+        addPathButton.dispose();
+        addScriptButton.dispose();
     }
 
     @Override
@@ -141,11 +227,11 @@ public class Gui extends InputEventListener {
         if(Gdx.input.getX() > panelX && Gdx.input.getX() < panelX + panelWidth &&
                 Gdx.graphics.getHeight() - Gdx.input.getY() > panelY && Gdx.graphics.getHeight() - Gdx.input.getY() < panelY + panelHeight ){
             scrollPos = scrollPos + amountY * 80;
-            scrollPos = MathUntil.clamp(scrollPos, 0, maxScroll);
         }
     }
 
     @NotNull Color color = new Color();
+
     {
         color.fromHsv(1, 1, 1);
     }
@@ -157,6 +243,12 @@ public class Gui extends InputEventListener {
         Color color = new Color();
         return this.color = color.fromHsv(colorHsv);
     }
+
+
+    public @Nullable TrajectoryItem getLastPath() {
+        return lastPath;
+    }
+
 
 
 }

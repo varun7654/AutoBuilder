@@ -270,4 +270,20 @@ public class PathRenderer implements MovablePointEventHandler {
     public List<MovablePointRenderer> getPointList() {
         return pointRenderList;
     }
+
+    @Override
+    public String toString() {
+        StringBuilder stringBuilder = new StringBuilder("Points{");
+        for (Pose2d pose2d : point2DList) {
+            stringBuilder.append("[Translation: (").
+                    append(pose2d.getX()).append(", ").
+                    append(pose2d.getY()).append("), Rotation: ").
+                    append(pose2d.getRotation().getDegrees())
+                    .append("] ");
+        }
+        return "PathRenderer{" +
+                "color=" + color +
+                ", point2DList=" + stringBuilder +
+                '}';
+    }
 }

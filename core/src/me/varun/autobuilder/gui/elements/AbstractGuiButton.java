@@ -4,11 +4,12 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
+import com.badlogic.gdx.utils.Disposable;
 import me.varun.autobuilder.gui.Gui;
 import me.varun.autobuilder.util.RoundedShapeRenderer;
 import org.jetbrains.annotations.NotNull;
 
-public abstract class AbstractGuiButton {
+public abstract class AbstractGuiButton implements Disposable {
     private int x;
     private int y;
     private int width;
@@ -81,5 +82,9 @@ public abstract class AbstractGuiButton {
 
     public void setHeight(int height) {
         this.height = height;
+    }
+
+    public void dispose(){
+        texture.dispose();
     }
 }

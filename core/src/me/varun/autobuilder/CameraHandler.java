@@ -37,6 +37,8 @@ public class CameraHandler extends InputEventListener {
         newMouseWorldPos = new Vector3();
         zoomMousePos = new Vector2();
         inputEventThrower.register(this);
+        targetX = cam.position.x;
+        targetY = cam.position.y;
     }
 
     public void update(boolean moving, boolean onGui){
@@ -63,18 +65,25 @@ public class CameraHandler extends InputEventListener {
 
         cam.position.x = cam.position.x - zoomXChange;
         cam.position.y = cam.position.y - zoomYChange;
+        targetX -= zoomXChange;
+        targetY -= zoomYChange;
         cam.update();
+        if(Gdx.input.isButtonJustPressed(Input.Buttons.LEFT) && !moving){
+            mouseHeldLastFrame = true;
+        }
 
-        if((!moving || mouseHeldLastFrame)&& Gdx.input.isButtonPressed(Input.Buttons.LEFT)){ //Left mouse button down. Drag Camera around
+        if(mouseHeldLastFrame && Gdx.input.isButtonPressed(Input.Buttons.LEFT)){ //Left mouse button down. Drag Camera around
             Vector2 deltaPos = mousePos.sub(lastMousePos);
             cam.position.x = cam.position.x - (deltaPos.x*cam.zoom);
             cam.position.y = cam.position.y + (deltaPos.y*cam.zoom);
             cam.update();
-            mouseHeldLastFrame = true;
             targetX = cam.position.x;
             targetY = cam.position.y;
         } else {
             mouseHeldLastFrame = false;
+            cam.position.x = cam.position.x + ((targetX - cam.position.x)/(Math.max(1,0.1f/Gdx.graphics.getDeltaTime())));
+            cam.position.y = cam.position.y + ((targetY - cam.position.y)/(Math.max(1,0.1f/Gdx.graphics.getDeltaTime())));
+            cam.update();
         }
 
         //TODO Implement smooth cam movement
@@ -95,22 +104,36 @@ public class CameraHandler extends InputEventListener {
         zoomMousePos.set(Gdx.input.getX(), Gdx.input.getY());
     }
 
-    public boolean ensureOnScreen(Vector3 worldPos){
-        cam.project(worldPos); //World Pos is now screen cords
-        float correctionX = 0;
-        float correctionY = 0;
-        if(worldPos.x < 10 ){
-            correctionX = 30 - worldPos.x;
-        } else if(worldPos.x > Gdx.graphics.getWidth() - 10){
-            correctionX =  worldPos.x - Gdx.graphics.getWidth() + 30;
+
+    Vector3 worldPosOfTargetScreenPos = new Vector3();
+    public void ensureOnScreen(Vector3 worldPos){
+        Vector3 screenPos = new Vector3(worldPos);
+        cam.project(screenPos); //Get chordates of the point in relation to the screen
+
+
+        //Set some default values that will result in the screen not moving
+        float targetScreenX = screenPos.x;
+        float targetScreenY = Gdx.graphics.getHeight() - screenPos.y;
+
+        //Check screen bounds and if were outside of it set a target screen pos thats inside the screen
+        if(screenPos.x < 25 ){
+            targetScreenX = 50;
+        } else if(screenPos.x > Gdx.graphics.getWidth() - 500){
+            targetScreenX = Gdx.graphics.getWidth() - 525;
         }
 
-        if(worldPos.y < 10 ){
-            correctionY = 30 - worldPos.y;
-        } else if( worldPos.y > Gdx.graphics.getHeight()){
-            correctionY =  worldPos.y - Gdx.graphics.getHeight() + 30;
+        if(screenPos.y < 25 ){
+            targetScreenY = Gdx.graphics.getHeight() - 50;
+        } else if( screenPos.y > Gdx.graphics.getHeight() - 25){
+            targetScreenY = 50;
         }
 
-        return false;
+        worldPosOfTargetScreenPos.set(targetScreenX, targetScreenY ,0);
+        cam.unproject(worldPosOfTargetScreenPos); //Find the world position of where we want the point on the screen
+
+        //Find the difference between where we want the point (unprojected target screen cords) and where the point is
+        //and then add that to the current camera pos
+        targetX = cam.position.x + worldPos.x - worldPosOfTargetScreenPos.x;
+        targetY = cam.position.y + worldPos.y - worldPosOfTargetScreenPos.y;
     }
 }

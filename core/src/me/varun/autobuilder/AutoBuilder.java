@@ -123,8 +123,17 @@ public class AutoBuilder extends ApplicationAdapter {
     @Override
     public void render () {
         time = Instant.now().getNano();
-        update();
-        draw();
+        try{
+            update();
+            draw();
+        } catch (Exception e){
+            e.printStackTrace();
+            System.out.println("Oops Something went wrong during fame " + Gdx.graphics.getFrameId());
+            System.out.println("Recovered Data: " + gui.guiItems);
+            System.exit(-1);
+        }
+
+
     }
 
     private void draw() {
