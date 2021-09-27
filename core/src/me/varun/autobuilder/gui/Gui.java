@@ -18,6 +18,7 @@ import me.varun.autobuilder.events.scroll.InputEventThrower;
 import me.varun.autobuilder.gui.elements.AbstractGuiItem;
 import me.varun.autobuilder.gui.elements.AddPathButton;
 import me.varun.autobuilder.gui.elements.AddScriptButton;
+import me.varun.autobuilder.gui.elements.PushAutoButton;
 import me.varun.autobuilder.util.MathUntil;
 import me.varun.autobuilder.util.RoundedShapeRenderer;
 import org.jetbrains.annotations.NotNull;
@@ -43,6 +44,7 @@ public class Gui extends InputEventListener {
 
     @NotNull AddPathButton addPathButton;
     @NotNull AddScriptButton addScriptButton;
+    @NotNull PushAutoButton pushAutoButton;
 
     private @NotNull Rectangle clipBounds;
 
@@ -69,6 +71,7 @@ public class Gui extends InputEventListener {
 
         addPathButton = new AddPathButton(0,0, 40, 40, fontShader, font, eventThrower, warningTexture, trashTexture, cameraHandler );
         addScriptButton = new AddScriptButton(0,0, 40, 40, fontShader, font, eventThrower, warningTexture, trashTexture);
+        pushAutoButton = new PushAutoButton(0,0, 40, 40);
 
         updateScreen(Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
 
@@ -92,6 +95,7 @@ public class Gui extends InputEventListener {
 
         addScriptButton.render(shapeRenderer, spriteBatch);
         addPathButton.render(shapeRenderer, spriteBatch);
+        pushAutoButton.render(shapeRenderer, spriteBatch);
 
         Rectangle scissors = new Rectangle();
 
@@ -164,10 +168,12 @@ public class Gui extends InputEventListener {
         //TODO: Store in a list and iterate over the list
         onGui = addScriptButton.checkHover();
         onGui = onGui | addPathButton.checkHover();
+        onGui = onGui | pushAutoButton.checkHover();
 
         if(Gdx.input.isButtonJustPressed(Input.Buttons.LEFT)){
             addScriptButton.checkClick(this);
             addPathButton.checkClick(this);
+            pushAutoButton.checkClick(this);
         }
 
         if(Gdx.input.isButtonJustPressed(Input.Buttons.LEFT)){
@@ -207,8 +213,10 @@ public class Gui extends InputEventListener {
         addPathButton.setY(10);
         addScriptButton.setX(addPathButton.getX() - 10 - addScriptButton.getWidth());
         addScriptButton.setY(10);
+        pushAutoButton.setX(addScriptButton.getX() - 10 - pushAutoButton.getWidth());
+        pushAutoButton.setY(10);
 
-        clipBounds = new Rectangle(addScriptButton.getX()-500, panelY, panelWidth + panelX - addScriptButton.getX()+500,
+        clipBounds = new Rectangle(pushAutoButton.getX()-500, panelY, panelWidth + panelX - pushAutoButton.getX()+500,
                 panelHeight);
     }
 

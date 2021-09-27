@@ -99,4 +99,8 @@ public class ScriptItem extends AbstractGuiItem implements TextChangeListener {
                 "textBox=" + textBox +
                 '}';
     }
+
+    public String getText() {
+        return textBox.getText();
+    }
 }

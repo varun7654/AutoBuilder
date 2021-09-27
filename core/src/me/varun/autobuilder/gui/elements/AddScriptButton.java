@@ -34,8 +34,6 @@ public class AddScriptButton extends  AbstractGuiButton{
             gui.guiItems.add(new ScriptItem(fontShader, font, inputEventThrower, warningTexture ,trashTexture));
             return true;
         }
-
         return false;
-
     }
 }

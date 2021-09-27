@@ -20,12 +20,12 @@ import me.varun.autobuilder.events.scroll.InputEventThrower;
 import me.varun.autobuilder.gui.elements.AbstractGuiItem;
 import me.varun.autobuilder.gui.Gui;
 import me.varun.autobuilder.gui.TrajectoryItem;
+import me.varun.autobuilder.net.NetworkTables;
 import me.varun.autobuilder.pathing.PathRenderer;
 import me.varun.autobuilder.pathing.PathRenderer.PointChange;
 import me.varun.autobuilder.pathing.PointRenderer;
 import me.varun.autobuilder.util.RoundedShapeRenderer;
 import me.varun.autobuilder.wpi.math.geometry.Pose2d;
-import me.varun.autobuilder.wpi.math.trajectory.TrajectoryConfig;
 import me.varun.autobuilder.wpi.math.trajectory.constraint.CentripetalAccelerationConstraint;
 import me.varun.autobuilder.wpi.math.trajectory.constraint.TrajectoryConstraint;
 import org.jetbrains.annotations.NotNull;
@@ -36,7 +36,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 public class AutoBuilder extends ApplicationAdapter {
-    public static final float POINT_SCALE_FACTOR = 50f;
+    public static final float POINT_SCALE_FACTOR = 73.67131887402519f;
 
     private SpriteBatch batch;
     private SpriteBatch hudBatch;
@@ -66,6 +66,8 @@ public class AutoBuilder extends ApplicationAdapter {
     public static double maxVelocityMetersPerSecond;
     public static double maxAccelerationMetersPerSecondSq;
 
+    NetworkTables networkTables = NetworkTables.getInstance();
+
     static {
         maxVelocityMetersPerSecond = 5;
         maxAccelerationMetersPerSecondSq = 0.5;
@@ -74,6 +76,7 @@ public class AutoBuilder extends ApplicationAdapter {
 
     @Override
     public void create () {
+        networkTables.start();
         Gdx.app.getInput().setInputProcessor(inputEventThrower);
 
         hudShapeRenderer = new RoundedShapeRenderer();
@@ -151,7 +154,7 @@ public class AutoBuilder extends ApplicationAdapter {
         batch.setProjectionMatrix(cam.combined);
 
         batch.begin();
-        batch.draw(field, 0, 0);
+        batch.draw(field, -14, -300);
         batch.end();
 
         shapeRenderer.setProjectionMatrix(cam.combined);

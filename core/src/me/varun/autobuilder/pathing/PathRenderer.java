@@ -18,15 +18,19 @@ import me.varun.autobuilder.wpi.math.trajectory.TrajectoryConfig;
 import me.varun.autobuilder.wpi.math.trajectory.TrajectoryGenerator;
 import me.varun.autobuilder.wpi.math.trajectory.constraint.TrajectoryConstraint;
 import org.jetbrains.annotations.NotNull;
-
 import org.jetbrains.annotations.Nullable;
+
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
+import java.util.function.Supplier;
 
 import static me.varun.autobuilder.AutoBuilder.*;
 
-public class PathRenderer implements MovablePointEventHandler {
+public class PathRenderer implements MovablePointEventHandler, Serializable {
     private @NotNull final Color color;
     private @Nullable Trajectory trajectory;
     private final @NotNull List<Pose2d> point2DList;
@@ -76,7 +80,7 @@ public class PathRenderer implements MovablePointEventHandler {
             color[1] = (float) (0.5*(speed/ maxVelocityMetersPerSecond)+0.5);
             Color speedColor = new Color().fromHsv(color);
             renderer.setColor(speedColor);
-            renderer.line((float) prev.getX()*50,(float) prev.getY()*50, (float) cur.getX()*50, (float) cur.getY()*50);
+            renderer.line((float) prev.getX()*POINT_SCALE_FACTOR,(float) prev.getY()*POINT_SCALE_FACTOR, (float) cur.getX()*POINT_SCALE_FACTOR, (float) cur.getY()*POINT_SCALE_FACTOR);
         }
 
         if(rotationPoint != null) {
@@ -242,18 +246,36 @@ public class PathRenderer implements MovablePointEventHandler {
        updatePath(true);
     }
 
+    CompletableFuture<Trajectory> completableFutureTrajectory;
+
     public void updatePath(boolean updateListener){
         //trajectory = TrajectoryGenerator.generateTrajectory(point2DList, TRAJECTORY_CONSTRAINTS);
         //System.out.println(trajectory.getTotalTimeSeconds());
-        executorService.submit(() -> {
-            TrajectoryConfig trajectoryConfig = new TrajectoryConfig(maxVelocityMetersPerSecond, maxAccelerationMetersPerSecondSq);
-            for (TrajectoryConstraint trajectoryConstraint : trajectoryConstraints) {
-                trajectoryConfig.addConstraint(trajectoryConstraint);
+        completableFutureTrajectory = CompletableFuture.supplyAsync(new Supplier<>() {
+            @Override
+            public Trajectory get() {
+                TrajectoryConfig trajectoryConfig = new TrajectoryConfig(maxVelocityMetersPerSecond, maxAccelerationMetersPerSecondSq);
+                for (TrajectoryConstraint trajectoryConstraint : trajectoryConstraints) {
+                    trajectoryConfig.addConstraint(trajectoryConstraint);
+                }
+                trajectoryConfig.setReversed(isReversed());
+                return trajectory = TrajectoryGenerator.generateTrajectory(point2DList, trajectoryConfig);
             }
-            trajectoryConfig.setReversed(isReversed());
-            trajectory = TrajectoryGenerator.generateTrajectory(point2DList, trajectoryConfig);
         });
+
+
         if(updateListener && pathChangeListener != null ) pathChangeListener.onPathChange();
+    }
+
+    @NotNull
+    public Trajectory getNotNullTrajectory(){
+        try {
+            return completableFutureTrajectory.get();
+        } catch (InterruptedException | ExecutionException e) {
+            e.printStackTrace();
+        }
+
+        return null; //Should never happen
     }
 
     @Nullable
