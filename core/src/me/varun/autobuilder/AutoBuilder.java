@@ -3,6 +3,7 @@ package me.varun.autobuilder;
 import com.badlogic.gdx.ApplicationAdapter;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Preferences;
+import com.badlogic.gdx.files.FileHandle;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.OrthographicCamera;
@@ -21,14 +22,19 @@ import me.varun.autobuilder.gui.elements.AbstractGuiItem;
 import me.varun.autobuilder.gui.Gui;
 import me.varun.autobuilder.gui.TrajectoryItem;
 import me.varun.autobuilder.net.NetworkTables;
+import me.varun.autobuilder.net.Serializer;
 import me.varun.autobuilder.pathing.PathRenderer;
 import me.varun.autobuilder.pathing.PathRenderer.PointChange;
 import me.varun.autobuilder.pathing.PointRenderer;
+import me.varun.autobuilder.serialization.Autonomous;
+import me.varun.autobuilder.serialization.GuiSerializer;
 import me.varun.autobuilder.util.RoundedShapeRenderer;
 import me.varun.autobuilder.wpi.math.geometry.Pose2d;
 import me.varun.autobuilder.wpi.math.trajectory.constraint.CentripetalAccelerationConstraint;
 import me.varun.autobuilder.wpi.math.trajectory.constraint.TrajectoryConstraint;
 import org.jetbrains.annotations.NotNull;
+
+import java.io.*;
 import java.time.Instant;
 
 import java.util.ArrayList;
@@ -62,6 +68,8 @@ public class AutoBuilder extends ApplicationAdapter {
 
     @NotNull InputEventThrower inputEventThrower = new InputEventThrower();
 
+    @NotNull UndoHandler undoHandler = UndoHandler.getInstance();
+
     public static ArrayList<TrajectoryConstraint> trajectoryConstraints = new ArrayList<>();
     public static double maxVelocityMetersPerSecond;
     public static double maxAccelerationMetersPerSecondSq;
@@ -76,7 +84,7 @@ public class AutoBuilder extends ApplicationAdapter {
 
     @Override
     public void create () {
-        networkTables.start();
+        //networkTables.start();
         Gdx.app.getInput().setInputProcessor(inputEventThrower);
 
         hudShapeRenderer = new RoundedShapeRenderer();
@@ -121,6 +129,18 @@ public class AutoBuilder extends ApplicationAdapter {
         }
 
         gui = new Gui(hudViewport, font, fontShader, inputEventThrower, pathingService, cameraHandler );
+
+        File file = new File(Gdx.files.getExternalStoragePath()+ "/AppData/Roaming/AutoBuilder/data.ser");
+        System.out.println(file.getParentFile().mkdirs());
+
+        try {
+            FileInputStream fileInputStream = new FileInputStream(file);
+            ObjectInputStream objectInputStream = new ObjectInputStream(fileInputStream);
+            Autonomous autonomous = (Autonomous) objectInputStream.readObject();
+            undoHandler.restoreState(autonomous, gui, fontShader, font, inputEventThrower, cameraHandler);
+        } catch (IOException | ClassNotFoundException e) {
+            e.printStackTrace();
+        }
 
     }
 
@@ -197,6 +217,7 @@ public class AutoBuilder extends ApplicationAdapter {
     }
 
     private void update() {
+        undoHandler.update(gui, fontShader, font, inputEventThrower, cameraHandler);
         mousePos.set(Gdx.input.getX(), Gdx.input.getY(), 0);
         cam.unproject(mousePos);
 
@@ -264,5 +285,24 @@ public class AutoBuilder extends ApplicationAdapter {
         viewport.update(width, height);
 
         gui.updateScreen(width, height);
+    }
+
+    @Override
+    public void pause() {
+        super.pause();
+        File file = new File(Gdx.files.getExternalStoragePath()+ "/AppData/Roaming/AutoBuilder/data.ser");
+        System.out.println(file.getParentFile().mkdirs());
+
+
+        try {
+            FileOutputStream fileOut = new FileOutputStream(file);
+            ObjectOutputStream out = new ObjectOutputStream(fileOut);
+            out.writeObject(GuiSerializer.serializeAutonomousForSaving(gui.guiItems));
+            out.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+
     }
 }

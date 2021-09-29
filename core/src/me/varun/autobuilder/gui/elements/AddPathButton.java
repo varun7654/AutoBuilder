@@ -17,25 +17,19 @@ public class AddPathButton extends AbstractGuiButton{
     private final @NotNull InputEventThrower eventThrower;
     private final CameraHandler cameraHandler;
 
-    @NotNull private final Texture trashTexture;
-    @NotNull private final Texture warningTexture;
-
     public AddPathButton(int x, int y, int width, int height, @NotNull ShaderProgram fontShader, @NotNull BitmapFont font,
-                         @NotNull InputEventThrower eventThrower, @NotNull Texture trashTexture, @NotNull Texture warningTexture,
-                         CameraHandler cameraHandler) {
+                         @NotNull InputEventThrower eventThrower, CameraHandler cameraHandler) {
         super(x, y, width, height, new Texture(Gdx.files.internal("path_icon.png"), true));
         this.fontShader = fontShader;
         this.font = font;
         this.eventThrower = eventThrower;
         this.cameraHandler = cameraHandler;
-        this.trashTexture = trashTexture;
-        this.warningTexture = warningTexture;
     }
 
     @Override
     public boolean checkClick(@NotNull Gui gui) {
         if(super.checkClick(gui)){
-            gui.guiItems.add(new TrajectoryItem(gui, fontShader, font, eventThrower, cameraHandler, warningTexture ,trashTexture));
+            gui.guiItems.add(new TrajectoryItem(gui, fontShader, font, eventThrower, cameraHandler));
             return true;
         }
 

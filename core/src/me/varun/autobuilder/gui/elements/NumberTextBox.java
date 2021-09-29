@@ -2,6 +2,7 @@ package me.varun.autobuilder.gui.elements;
 
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.glutils.ShaderProgram;
+import me.varun.autobuilder.UndoHandler;
 import me.varun.autobuilder.events.scroll.InputEventThrower;
 import me.varun.autobuilder.events.textchange.TextPositionChangeListener;
 import org.jetbrains.annotations.NotNull;
@@ -10,6 +11,7 @@ public class NumberTextBox extends TextBox{
     @NotNull private final TextPositionChangeListener textPositionChangeListener;
     private final int row;
     private final int column;
+    private UndoHandler undoHandler = UndoHandler.getInstance();
 
     public NumberTextBox(@NotNull String text, @NotNull ShaderProgram fontShader, @NotNull BitmapFont font,
                          @NotNull InputEventThrower eventThrower, @NotNull TextPositionChangeListener textPositionChangeListener, int row, int column ) {
@@ -29,5 +31,6 @@ public class NumberTextBox extends TextBox{
     @Override
     protected void fireTextChangeEvent() {
         textPositionChangeListener.onTextChange(text, row, column);
+        undoHandler.somethingChanged();
     }
 }

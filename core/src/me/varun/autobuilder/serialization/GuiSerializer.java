@@ -3,24 +3,44 @@ package me.varun.autobuilder.serialization;
 import me.varun.autobuilder.gui.ScriptItem;
 import me.varun.autobuilder.gui.TrajectoryItem;
 import me.varun.autobuilder.gui.elements.AbstractGuiItem;
-import me.varun.autobuilder.wpi.math.trajectory.Trajectory;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class GuiSerializer {
-    public static Autonomous serializeAutonomous(List<AbstractGuiItem> guiItemList){
-        Autonomous autonomous = new Autonomous();
+    public static Autonomous serializeAutonomousForDeployment(List<AbstractGuiItem> guiItemList){
+        List<AbstractAutonomousStep> autonomousSteps = new ArrayList<>();
         for (AbstractGuiItem abstractGuiItem : guiItemList) {
             if(abstractGuiItem instanceof ScriptItem){
                 ScriptItem scriptItem = (ScriptItem) abstractGuiItem;
-                autonomous.autonomousSteps.add(new ScriptAutonomousStep(scriptItem.getText()));
+                autonomousSteps.add(new ScriptAutonomousStep(scriptItem.getText(), scriptItem.isClosed()));
             }
 
             if(abstractGuiItem instanceof TrajectoryItem){
                 TrajectoryItem trajectoryItem = (TrajectoryItem) abstractGuiItem;
-                autonomous.autonomousSteps.add(new TrajectoryAutonomousStep(trajectoryItem.getPathRenderer().getNotNullTrajectory().getStates(), trajectoryItem.getPathRenderer().getPoint2DList()));
+                autonomousSteps.add(new TrajectoryAutonomousStep(trajectoryItem.getPathRenderer().getNotNullTrajectory().getStates(),
+                        null, trajectoryItem.getPathRenderer().isReversed(), 0, trajectoryItem.isClosed()));
             }
         }
-        return autonomous;
+        return new Autonomous(autonomousSteps);
+    }
+
+    public static Autonomous serializeAutonomousForSaving(List<AbstractGuiItem> guiItemList){
+        List<AbstractAutonomousStep> autonomousSteps = new ArrayList<>();
+        for (AbstractGuiItem abstractGuiItem : guiItemList) {
+            if(abstractGuiItem instanceof ScriptItem){
+                ScriptItem scriptItem = (ScriptItem) abstractGuiItem;
+                autonomousSteps.add(new ScriptAutonomousStep(scriptItem.getText(), scriptItem.isClosed()));
+            }
+
+            if(abstractGuiItem instanceof TrajectoryItem){
+                TrajectoryItem trajectoryItem = (TrajectoryItem) abstractGuiItem;
+                float[] color = new float[3];
+                trajectoryItem.getPathRenderer().getColor().toHsv(color);
+                autonomousSteps.add(new TrajectoryAutonomousStep(null, trajectoryItem.getPathRenderer().getPoint2DList(),
+                        trajectoryItem.getPathRenderer().isReversed(), color[0], trajectoryItem.isClosed()));
+            }
+        }
+        return new Autonomous(autonomousSteps);
     }
 }

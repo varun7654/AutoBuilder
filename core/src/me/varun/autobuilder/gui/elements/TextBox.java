@@ -7,6 +7,7 @@ import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.GlyphLayout;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.glutils.ShaderProgram;
+import me.varun.autobuilder.UndoHandler;
 import me.varun.autobuilder.events.scroll.InputEventListener;
 import me.varun.autobuilder.events.scroll.InputEventThrower;
 import me.varun.autobuilder.events.textchange.TextChangeListener;
@@ -15,6 +16,11 @@ import me.varun.autobuilder.util.RoundedShapeRenderer;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.awt.*;
+import java.awt.datatransfer.Clipboard;
+import java.awt.datatransfer.DataFlavor;
+import java.awt.datatransfer.UnsupportedFlavorException;
+import java.io.IOException;
 import java.util.Calendar;
 
 
@@ -138,6 +144,19 @@ public class TextBox extends InputEventListener {
                 }
             }
 
+            if((Gdx.input.isKeyPressed(Input.Keys.CONTROL_LEFT) || Gdx.input.isKeyPressed(Input.Keys.CONTROL_LEFT)) &&
+                    Gdx.input.isKeyJustPressed(Input.Keys.V)){
+                Clipboard clipboard= Toolkit.getDefaultToolkit().getSystemClipboard();
+                try {
+                    String clipboardText = (String) clipboard.getData(DataFlavor.stringFlavor);
+                    for (int i = 0; i < clipboardText.length(); i++) {
+                        onKeyType(clipboardText.charAt(i));
+                    }
+                } catch (UnsupportedFlavorException | IOException e) {
+                    System.out.println("bad Clipboard data");
+                }
+            }
+
             if(nextFlashChange < Calendar.getInstance().getTimeInMillis()){
                 flashing = !flashing;
                 nextFlashChange = Calendar.getInstance().getTimeInMillis() + 500;
@@ -207,6 +226,7 @@ public class TextBox extends InputEventListener {
     protected void fireTextChangeEvent() {
         assert textChangeListener != null;
         textChangeListener.onTextChange(text, this);
+        UndoHandler.getInstance().somethingChanged();
     }
 
     public float getHeight(int drawWidth, int drawHeight){

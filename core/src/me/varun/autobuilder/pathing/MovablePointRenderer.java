@@ -7,6 +7,7 @@ import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.math.Vector3;
 import me.varun.autobuilder.AutoBuilder;
+import me.varun.autobuilder.UndoHandler;
 import me.varun.autobuilder.events.movablepoint.MovablePointEventHandler;
 import me.varun.autobuilder.events.movablepoint.PointClickEvent;
 import me.varun.autobuilder.events.movablepoint.PointMoveEvent;
@@ -57,6 +58,9 @@ public class MovablePointRenderer extends PointRenderer {
             }
 
         } else {
+            if(pressed){
+                UndoHandler.getInstance().somethingChanged();
+            }
             pressed = false;
             dragStarted = false;
         }

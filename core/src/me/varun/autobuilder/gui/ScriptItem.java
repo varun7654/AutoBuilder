@@ -1,7 +1,6 @@
 package me.varun.autobuilder.gui;
 
 import com.badlogic.gdx.graphics.Color;
-import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.glutils.ShaderProgram;
@@ -20,8 +19,6 @@ import javax.script.ScriptException;
 public class ScriptItem extends AbstractGuiItem implements TextChangeListener {
     private final ShaderProgram fontShader;
     private final BitmapFont font;
-    @NotNull private final Texture trashTexture;
-    @NotNull private final Texture warningTexture;
 
     TextBox textBox;
 
@@ -43,14 +40,20 @@ public class ScriptItem extends AbstractGuiItem implements TextChangeListener {
     }
 
     boolean error = true;
-    public ScriptItem(@NotNull ShaderProgram fontShader, @NotNull BitmapFont font, @NotNull InputEventThrower inputEventThrower,
-                      @NotNull Texture trashTexture, @NotNull Texture warningTexture) {
+    public ScriptItem(@NotNull ShaderProgram fontShader, @NotNull BitmapFont font, @NotNull InputEventThrower inputEventThrower) {
         this.fontShader = fontShader;
         this.font = font;
-        this.trashTexture = trashTexture;
-        this.warningTexture = warningTexture;
 
         textBox = new TextBox("", fontShader, font, inputEventThrower, true, this);
+    }
+
+    public ScriptItem(@NotNull ShaderProgram fontShader, @NotNull BitmapFont font, @NotNull InputEventThrower inputEventThrower, String text, boolean closed) {
+        this.fontShader = fontShader;
+        this.font = font;
+
+        textBox = new TextBox(text, fontShader, font, inputEventThrower, true, this);
+
+        this.setClosed(closed);
     }
 
     @Override

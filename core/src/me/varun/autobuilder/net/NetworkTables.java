@@ -3,7 +3,6 @@ package me.varun.autobuilder.net;
 import edu.wpi.first.networktables.NetworkTable;
 import edu.wpi.first.networktables.NetworkTableEntry;
 import edu.wpi.first.networktables.NetworkTableInstance;
-import me.varun.autobuilder.gui.Gui;
 import me.varun.autobuilder.gui.elements.AbstractGuiItem;
 import me.varun.autobuilder.serialization.Autonomous;
 import me.varun.autobuilder.serialization.GuiSerializer;
@@ -36,7 +35,7 @@ public class NetworkTables {
 
         if(inst.isConnected()){
             try {
-                byte[] bytes = Serializer.serialize(GuiSerializer.serializeAutonomous(guiItemList));
+                byte[] bytes = Serializer.serialize(GuiSerializer.serializeAutonomousForDeployment(guiItemList));
                 autoPath.setRaw(bytes);
                 Autonomous autonomous = (Autonomous) Serializer.deserialize(autoPath.getRaw(null));
                 System.out.println("Sent Data: " + autonomous);

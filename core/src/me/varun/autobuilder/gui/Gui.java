@@ -13,6 +13,7 @@ import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.scenes.scene2d.utils.ScissorStack;
 import com.badlogic.gdx.utils.viewport.Viewport;
 import me.varun.autobuilder.CameraHandler;
+import me.varun.autobuilder.UndoHandler;
 import me.varun.autobuilder.events.scroll.InputEventListener;
 import me.varun.autobuilder.events.scroll.InputEventThrower;
 import me.varun.autobuilder.gui.elements.AbstractGuiItem;
@@ -52,9 +53,6 @@ public class Gui extends InputEventListener {
 
     final @NotNull ExecutorService executorService;
 
-    protected final Texture trashTexture;
-    protected final Texture warningTexture;
-
     private @Nullable TrajectoryItem lastPath = null;
 
     public Gui(@NotNull Viewport viewport, @NotNull BitmapFont font, @NotNull ShaderProgram fontShader,
@@ -63,14 +61,9 @@ public class Gui extends InputEventListener {
         this.font = font;
         this.fontShader = fontShader;
 
-        warningTexture = new Texture(Gdx.files.internal("warning.png"), true);
-        trashTexture = new Texture(Gdx.files.internal("trash.png"), true);
-        warningTexture.setFilter(Texture.TextureFilter.MipMap, Texture.TextureFilter.Linear);
-        trashTexture.setFilter(Texture.TextureFilter.MipMap, Texture.TextureFilter.Linear);
 
-
-        addPathButton = new AddPathButton(0,0, 40, 40, fontShader, font, eventThrower, warningTexture, trashTexture, cameraHandler );
-        addScriptButton = new AddScriptButton(0,0, 40, 40, fontShader, font, eventThrower, warningTexture, trashTexture);
+        addPathButton = new AddPathButton(0,0, 40, 40, fontShader, font, eventThrower, cameraHandler );
+        addScriptButton = new AddScriptButton(0,0, 40, 40, fontShader, font, eventThrower);
         pushAutoButton = new PushAutoButton(0,0, 40, 40);
 
         updateScreen(Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
@@ -192,6 +185,7 @@ public class Gui extends InputEventListener {
                 if(newDraggingElementIndex>oldDraggingElementIndex) newDraggingElementIndex--;
                 guiItems.add(newDraggingElementIndex, draggingElement);
                 draggingElement = null;
+                UndoHandler.getInstance().somethingChanged();
             }
         }
 
@@ -224,8 +218,6 @@ public class Gui extends InputEventListener {
         for (AbstractGuiItem guiItem : guiItems) {
             guiItem.dispose();
         }
-        trashTexture.dispose();
-        warningTexture.dispose();
         addPathButton.dispose();
         addScriptButton.dispose();
     }

@@ -4,7 +4,8 @@ public class ScriptAutonomousStep extends AbstractAutonomousStep{
 
     private final String script;
 
-    public ScriptAutonomousStep(String script) {
+    public ScriptAutonomousStep(String script, boolean closed) {
+        super(closed);
         this.script = script;
     }
 
@@ -18,5 +19,9 @@ public class ScriptAutonomousStep extends AbstractAutonomousStep{
         return "ScriptAutonomousStep{" +
                 "script='" + script + '\'' +
                 '}';
+    }
+
+    public String getScript() {
+        return script;
     }
 }

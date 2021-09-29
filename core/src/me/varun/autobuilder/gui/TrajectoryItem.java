@@ -34,8 +34,6 @@ public class TrajectoryItem extends AbstractGuiItem implements PathChangeListene
     private final @NotNull List<List<NumberTextBox>> textBoxes = new ArrayList<>();
     private final @NotNull InputEventThrower eventThrower;
     private final @NotNull CameraHandler cameraHandler;
-    private final @NotNull Texture trashTexture;
-    private final @NotNull Texture warningTexture;
     private final @NotNull CheckBox checkBox = new CheckBox(0 ,0 , 30, 30);
 
     private static final DecimalFormat df = new DecimalFormat();
@@ -48,20 +46,34 @@ public class TrajectoryItem extends AbstractGuiItem implements PathChangeListene
 
 
     public TrajectoryItem(Gui gui, @NotNull ShaderProgram fontShader, @NotNull BitmapFont font, @NotNull InputEventThrower eventThrower,
-                          @NotNull CameraHandler cameraHandler, @NotNull Texture trashTexture, @NotNull Texture warningTexture){
+                          @NotNull CameraHandler cameraHandler){
         this.eventThrower = eventThrower;
         this.cameraHandler = cameraHandler;
-        this.trashTexture = trashTexture;
-        this.warningTexture = warningTexture;
         List<Pose2d> pose2dList = new ArrayList<>();
         pose2dList.add(new Pose2d());
-        pose2dList.add(new Pose2d(10, 10, Rotation2d.fromDegrees(0)));
+        pose2dList.add(new Pose2d(2, 2, Rotation2d.fromDegrees(0)));
 
         this.fontShader = fontShader;
         this.font = font;
 
         this.pathRenderer = new PathRenderer(gui.getNextColor(), pose2dList, gui.executorService);
         pathRenderer.setPathChangeListener(this);
+
+    }
+
+    public TrajectoryItem(Gui gui, @NotNull ShaderProgram fontShader, @NotNull BitmapFont font, @NotNull InputEventThrower eventThrower,
+                          @NotNull CameraHandler cameraHandler, List<Pose2d> pose2dList, boolean reversed, Color color, boolean closed){
+        this.eventThrower = eventThrower;
+        this.cameraHandler = cameraHandler;
+
+        this.fontShader = fontShader;
+        this.font = font;
+
+        this.pathRenderer = new PathRenderer(color, pose2dList, gui.executorService);
+        pathRenderer.setReversed(reversed);
+        pathRenderer.setPathChangeListener(this);
+
+        this.setClosed(closed);
 
     }
 

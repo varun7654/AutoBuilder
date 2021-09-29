@@ -28,6 +28,15 @@ public abstract class AbstractGuiItem implements Disposable {
 
     abstract public void dispose();
 
+    static protected final Texture trashTexture;
+    static protected final Texture warningTexture;
+    static {
+        warningTexture = new Texture(Gdx.files.internal("warning.png"), true);
+        trashTexture = new Texture(Gdx.files.internal("trash.png"), true);
+        warningTexture.setFilter(Texture.TextureFilter.MipMap, Texture.TextureFilter.Linear);
+        trashTexture.setFilter(Texture.TextureFilter.MipMap, Texture.TextureFilter.Linear);
+    }
+
     public int render(@NotNull RoundedShapeRenderer shapeRenderer, @NotNull SpriteBatch spriteBatch, int drawStartX, int drawStartY, int drawWidth, Gui gui){
         if(Gdx.input.isButtonJustPressed(Input.Buttons.LEFT)){
             if(isMouseOver(drawStartX + drawWidth -45, drawStartY-40, drawWidth -5, 40)){

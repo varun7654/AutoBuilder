@@ -14,24 +14,21 @@ public class AddScriptButton extends  AbstractGuiButton{
     final ShaderProgram fontShader;
     private @NotNull
     final InputEventThrower inputEventThrower;
-    @NotNull private final Texture trashTexture;
-    @NotNull private final Texture warningTexture;
+
     private @NotNull
     final BitmapFont font;
     public AddScriptButton(int x, int y, int width, int height, @NotNull ShaderProgram fontShader, @NotNull BitmapFont font,
-                           @NotNull InputEventThrower inputEventThrower, @NotNull Texture trashTexture, @NotNull Texture warningTexture) {
+                           @NotNull InputEventThrower inputEventThrower) {
         super(x, y, width, height, new Texture(Gdx.files.internal("script_icon.png"), true));
         this.font = font;
         this.fontShader = fontShader;
         this.inputEventThrower = inputEventThrower;
-        this.trashTexture = trashTexture;
-        this.warningTexture = warningTexture;
     }
 
     @Override
     public boolean checkClick(@NotNull Gui gui) {
         if(super.checkClick(gui)){
-            gui.guiItems.add(new ScriptItem(fontShader, font, inputEventThrower, warningTexture ,trashTexture));
+            gui.guiItems.add(new ScriptItem(fontShader, font, inputEventThrower));
             return true;
         }
         return false;

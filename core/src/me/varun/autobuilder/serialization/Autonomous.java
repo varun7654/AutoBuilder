@@ -5,7 +5,16 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class Autonomous implements Serializable {
-    List<AbstractAutonomousStep> autonomousSteps = new ArrayList<>();
+    private final List<AbstractAutonomousStep> autonomousSteps;
+
+    public Autonomous(List<AbstractAutonomousStep> autonomousSteps){
+
+        this.autonomousSteps = autonomousSteps;
+    }
+
+    public List<AbstractAutonomousStep> getAutonomousSteps() {
+        return autonomousSteps;
+    }
 
     @Override
     public String toString() {
