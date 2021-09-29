@@ -142,6 +142,8 @@ public class AutoBuilder extends ApplicationAdapter {
             e.printStackTrace();
         }
 
+        undoHandler.somethingChanged();
+
     }
 
     private final Vector3 mousePos = new Vector3();
