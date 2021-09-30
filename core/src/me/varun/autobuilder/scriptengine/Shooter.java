@@ -85,8 +85,6 @@ public class Shooter{
 
     private double getRPM(){
         return 0;
-
-
     }
 
     public boolean getHomeSwitch(){

@@ -29,7 +29,7 @@ public class Serializer {
         return objectMapper.readValue(file, Autonomous.class);
     }
 
-    public static Object deserialize(String object) throws IOException, ClassNotFoundException {
+    public static Autonomous deserialize(String object) throws IOException, ClassNotFoundException {
        return objectMapper.readValue(object, Autonomous.class);
     }
 

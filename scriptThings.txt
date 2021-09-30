@@ -1,0 +1,24 @@
+intake:
+setDeployStateUnDeploy() 
+setDeployStateDeploy()
+setIntakeStateIntake()
+setIntakeStateOff()
+setIntakeStateEject()
+
+hopper:
+setSnailMotorStateActive(boolean slow)
+setSnailMotorStateInactive(boolean slow)
+setSnailMotorStateReverse(boolean slow)
+setFrontMotorStateActive()
+setFrontMotorStateInactive()
+
+visionManager
+setStateIdle()
+setStateAiming()
+setStateWin()
+
+shooter:
+setSpeed(double speed)
+setFiring(boolean fire)
+
+to call super use auto.<method>
