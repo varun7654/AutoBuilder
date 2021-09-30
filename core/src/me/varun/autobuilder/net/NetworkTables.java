@@ -35,9 +35,9 @@ public class NetworkTables {
 
         if(inst.isConnected()){
             try {
-                byte[] bytes = Serializer.serialize(GuiSerializer.serializeAutonomousForDeployment(guiItemList));
-                autoPath.setRaw(bytes);
-                Autonomous autonomous = (Autonomous) Serializer.deserialize(autoPath.getRaw(null));
+                String autonomousString = Serializer.serializeToString(GuiSerializer.serializeAutonomousForDeployment(guiItemList));
+                autoPath.setString(autonomousString);
+                Autonomous autonomous = (Autonomous) Serializer.deserialize(autoPath.getString(null));
                 System.out.println("Sent Data: " + autonomous);
             } catch (IOException | ClassNotFoundException e) {
                 e.printStackTrace();

@@ -4,6 +4,7 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.glutils.ShaderProgram;
+import me.varun.autobuilder.UndoHandler;
 import me.varun.autobuilder.events.scroll.InputEventThrower;
 import me.varun.autobuilder.gui.Gui;
 import me.varun.autobuilder.gui.ScriptItem;
@@ -29,6 +30,7 @@ public class AddScriptButton extends  AbstractGuiButton{
     public boolean checkClick(@NotNull Gui gui) {
         if(super.checkClick(gui)){
             gui.guiItems.add(new ScriptItem(fontShader, font, inputEventThrower));
+            UndoHandler.getInstance().somethingChanged();
             return true;
         }
         return false;

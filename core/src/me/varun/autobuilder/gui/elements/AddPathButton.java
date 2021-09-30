@@ -5,6 +5,7 @@ import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.glutils.ShaderProgram;
 import me.varun.autobuilder.CameraHandler;
+import me.varun.autobuilder.UndoHandler;
 import me.varun.autobuilder.events.scroll.InputEventThrower;
 import me.varun.autobuilder.gui.Gui;
 import me.varun.autobuilder.gui.TrajectoryItem;
@@ -30,6 +31,7 @@ public class AddPathButton extends AbstractGuiButton{
     public boolean checkClick(@NotNull Gui gui) {
         if(super.checkClick(gui)){
             gui.guiItems.add(new TrajectoryItem(gui, fontShader, font, eventThrower, cameraHandler));
+            UndoHandler.getInstance().somethingChanged();
             return true;
         }
 

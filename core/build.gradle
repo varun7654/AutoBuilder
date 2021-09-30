@@ -23,9 +23,10 @@ dependencies {
     testImplementation "org.mockito:mockito-core:2.+"
     compileOnly 'org.projectlombok:lombok:1.18.2'
     implementation 'com.google.guava:guava:27.0-jre'
-    implementation 'com.fasterxml.jackson.core:jackson-core:2.4.1'
-    implementation 'com.fasterxml.jackson.core:jackson-annotations:2.4.1'
-    implementation 'com.fasterxml.jackson.core:jackson-databind:2.4.1'
+
+    api "com.fasterxml.jackson.core:jackson-annotations:2.10.0"
+    api "com.fasterxml.jackson.core:jackson-core:2.10.0"
+    api "com.fasterxml.jackson.core:jackson-databind:2.10.0"
 
     // Add ntcore-java
     implementation "edu.wpi.first.ntcore:ntcore-java:2021.3.1"

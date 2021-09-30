@@ -1,28 +1,36 @@
 package me.varun.autobuilder.net;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
+import me.varun.autobuilder.serialization.Autonomous;
+
+import java.io.File;
 import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
+import java.io.InputStream;
+import java.io.OutputStream;
 
 public class Serializer {
-
-    public static byte[] serialize(Object obj) throws IOException {
-        try(ByteArrayOutputStream b = new ByteArrayOutputStream()){
-            try(ObjectOutputStream o = new ObjectOutputStream(b)){
-                o.writeObject(obj);
-            }
-            return b.toByteArray();
-        }
+    static ObjectMapper objectMapper = new ObjectMapper();
+    static {
+        //objectMapper.configure(SerializationFeature.INDENT_OUTPUT, true);
     }
 
-    public static Object deserialize(byte[] bytes) throws IOException, ClassNotFoundException {
-        try(ByteArrayInputStream b = new ByteArrayInputStream(bytes)){
-            try(ObjectInputStream o = new ObjectInputStream(b)){
-                return o.readObject();
-            }
-        }
+    public static String serializeToString(Autonomous obj) throws IOException {
+        String data = objectMapper.writeValueAsString(obj);
+        System.out.println(data);
+        return data;
+    }
+
+    public static void serializeToFile(Autonomous obj, File file) throws IOException {
+        objectMapper.writeValue(file, obj);
+    }
+
+    public static Autonomous deserializeFromFile(File file) throws IOException {
+        return objectMapper.readValue(file, Autonomous.class);
+    }
+
+    public static Object deserialize(String object) throws IOException, ClassNotFoundException {
+       return objectMapper.readValue(object, Autonomous.class);
     }
 
 }

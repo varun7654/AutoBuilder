@@ -1,12 +1,21 @@
 package me.varun.autobuilder.serialization;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 public class ScriptAutonomousStep extends AbstractAutonomousStep{
 
     private final String script;
+    private final boolean valid;
 
-    public ScriptAutonomousStep(String script, boolean closed) {
+    @JsonCreator
+    public ScriptAutonomousStep(@JsonProperty(required = true, value = "script") String script,
+                                @JsonProperty(required = true, value = "closed") boolean closed,
+                                @JsonProperty(required = true, value = "valid") boolean valid) {
         super(closed);
         this.script = script;
+        this.valid = valid;
     }
 
     @Override
@@ -21,7 +30,13 @@ public class ScriptAutonomousStep extends AbstractAutonomousStep{
                 '}';
     }
 
+    @JsonProperty
     public String getScript() {
         return script;
+    }
+
+    @JsonProperty
+    public boolean isValid() {
+        return valid;
     }
 }

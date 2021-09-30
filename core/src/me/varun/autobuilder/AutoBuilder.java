@@ -3,7 +3,6 @@ package me.varun.autobuilder;
 import com.badlogic.gdx.ApplicationAdapter;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Preferences;
-import com.badlogic.gdx.files.FileHandle;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.OrthographicCamera;
@@ -82,6 +81,12 @@ public class AutoBuilder extends ApplicationAdapter {
         trajectoryConstraints.add(new CentripetalAccelerationConstraint(1));
     }
 
+    public static void handleException(Exception e) {
+        e.printStackTrace();
+        System.out.println("Oops Something went wrong during fame " + Gdx.graphics.getFrameId());
+        Gdx.app.exit();
+    }
+
     @Override
     public void create () {
         //networkTables.start();
@@ -115,8 +120,8 @@ public class AutoBuilder extends ApplicationAdapter {
         preferences.flush();
 
         //TODO: Looks like the texture is messed up and it makes it look really ugly
-        Texture texture = new Texture(Gdx.files.internal("font/arial.png"), true); // true enables mipmaps
-        texture.setFilter(Texture.TextureFilter.MipMap, Texture.TextureFilter.Linear); // linear filtering in nearest mipmap image
+        Texture texture = new Texture(Gdx.files.internal("font/arial.png"), true);
+        texture.setFilter(Texture.TextureFilter.MipMap, Texture.TextureFilter.Linear);
 
         //texture.setAnisotropicFilter(8);
 
@@ -130,15 +135,13 @@ public class AutoBuilder extends ApplicationAdapter {
 
         gui = new Gui(hudViewport, font, fontShader, inputEventThrower, pathingService, cameraHandler );
 
-        File file = new File(Gdx.files.getExternalStoragePath()+ "/AppData/Roaming/AutoBuilder/data.ser");
+        File file = new File(Gdx.files.getExternalStoragePath()+ "/AppData/Roaming/AutoBuilder/data.json");
         System.out.println(file.getParentFile().mkdirs());
 
         try {
-            FileInputStream fileInputStream = new FileInputStream(file);
-            ObjectInputStream objectInputStream = new ObjectInputStream(fileInputStream);
-            Autonomous autonomous = (Autonomous) objectInputStream.readObject();
+            Autonomous autonomous = Serializer.deserializeFromFile(file);
             undoHandler.restoreState(autonomous, gui, fontShader, font, inputEventThrower, cameraHandler);
-        } catch (IOException | ClassNotFoundException e) {
+        } catch (IOException e) {
             e.printStackTrace();
         }
 
@@ -158,10 +161,7 @@ public class AutoBuilder extends ApplicationAdapter {
             update();
             draw();
         } catch (Exception e){
-            e.printStackTrace();
-            System.out.println("Oops Something went wrong during fame " + Gdx.graphics.getFrameId());
-            System.out.println("Recovered Data: " + gui.guiItems);
-            System.exit(-1);
+            handleException(e);
         }
 
 
@@ -292,15 +292,11 @@ public class AutoBuilder extends ApplicationAdapter {
     @Override
     public void pause() {
         super.pause();
-        File file = new File(Gdx.files.getExternalStoragePath()+ "/AppData/Roaming/AutoBuilder/data.ser");
-        System.out.println(file.getParentFile().mkdirs());
-
+        File file = new File(Gdx.files.getExternalStoragePath()+ "/AppData/Roaming/AutoBuilder/data.json");
+        file.getParentFile().mkdirs();
 
         try {
-            FileOutputStream fileOut = new FileOutputStream(file);
-            ObjectOutputStream out = new ObjectOutputStream(fileOut);
-            out.writeObject(GuiSerializer.serializeAutonomousForSaving(gui.guiItems));
-            out.close();
+            Serializer.serializeToFile(GuiSerializer.serializeAutonomous(gui.guiItems), file);
         } catch (IOException e) {
             e.printStackTrace();
         }

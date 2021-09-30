@@ -1,6 +1,7 @@
 package me.varun.autobuilder.events.scroll;
 
 import com.badlogic.gdx.InputProcessor;
+import me.varun.autobuilder.AutoBuilder;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
@@ -29,10 +30,15 @@ public class InputEventThrower implements InputProcessor {
 
     @Override
     public boolean keyTyped(char character) {
-        for (InputEventListener eventHandler : eventHandlers) {
-            eventHandler.onKeyType(character);
+        try{
+            for (InputEventListener eventHandler : eventHandlers) {
+                eventHandler.onKeyType(character);
+            }
+        } catch (Exception e){
+            AutoBuilder.handleException(e);
         }
         return false;
+
     }
 
     @Override
@@ -57,9 +63,14 @@ public class InputEventThrower implements InputProcessor {
 
     @Override
     public boolean scrolled(float amountX, float amountY) {
-        for (InputEventListener eventHandler : eventHandlers) {
-            eventHandler.onScroll(amountX, amountY);
+        try {
+            for (InputEventListener eventHandler : eventHandlers) {
+                eventHandler.onScroll(amountX, amountY);
+            }
+        } catch (Exception e){
+            AutoBuilder.handleException(e);
         }
+
         return false;
     }
 }

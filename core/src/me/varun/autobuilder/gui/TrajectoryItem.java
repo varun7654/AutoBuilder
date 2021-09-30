@@ -8,6 +8,7 @@ import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.glutils.ShaderProgram;
 import me.varun.autobuilder.CameraHandler;
+import me.varun.autobuilder.UndoHandler;
 import me.varun.autobuilder.events.pathchange.PathChangeListener;
 import me.varun.autobuilder.events.scroll.InputEventThrower;
 import me.varun.autobuilder.events.textchange.TextPositionChangeListener;
@@ -26,7 +27,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class TrajectoryItem extends AbstractGuiItem implements PathChangeListener, TextPositionChangeListener {
-    private @NotNull PathRenderer pathRenderer;
+    private @NotNull
+    final PathRenderer pathRenderer;
 
     private final @NotNull ShaderProgram fontShader;
     private final @NotNull BitmapFont font;
@@ -113,6 +115,7 @@ public class TrajectoryItem extends AbstractGuiItem implements PathChangeListene
             if(Gdx.input.isButtonJustPressed(Input.Buttons.LEFT) && checkBox.checkClick()){
                 pathRenderer.setReversed(!pathRenderer.isReversed());
                 pathRenderer.updatePath(false);
+                UndoHandler.getInstance().somethingChanged();
             }
             checkBox.render(shapeRenderer, spriteBatch, pathRenderer.isReversed());
 

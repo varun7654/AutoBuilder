@@ -29,7 +29,6 @@ public abstract class AbstractGuiButton implements Disposable {
     }
 
     public boolean checkClick(Gui gui){
-        UndoHandler.getInstance().somethingChanged();
         return hovering;
     }
 

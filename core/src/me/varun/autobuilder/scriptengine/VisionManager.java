@@ -35,6 +35,18 @@ public class VisionManager {
     public synchronized void setState(VisionStatus state){
     }
 
+    public synchronized void setStateWin(){
+        setState(VisionStatus.WIN);
+    }
+
+    public synchronized void setStateIdle(){
+        setState(VisionStatus.IDLE);
+    }
+
+    public synchronized void setStateAiming(){
+        setState(VisionStatus.AIMING);
+    }
+
     public synchronized boolean isFinished(){
         return false;
     }

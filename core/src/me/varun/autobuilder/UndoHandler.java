@@ -83,7 +83,8 @@ public class UndoHandler {
 
             } else if(autonomousStep instanceof ScriptAutonomousStep){
                 ScriptAutonomousStep scriptAutonomousStep = (ScriptAutonomousStep) autonomousStep;
-                ScriptItem scriptItem = new ScriptItem(fontShader, font, inputEventThrower, scriptAutonomousStep.getScript(), scriptAutonomousStep.isClosed());
+                ScriptItem scriptItem = new ScriptItem(fontShader, font, inputEventThrower, scriptAutonomousStep.getScript(),
+                        scriptAutonomousStep.isClosed(), scriptAutonomousStep.isValid());
                 guiItemList.add(scriptItem);
             }
         }

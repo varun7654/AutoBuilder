@@ -15,6 +15,7 @@ import org.jetbrains.annotations.NotNull;
 import javax.script.ScriptEngine;
 import javax.script.ScriptEngineManager;
 import javax.script.ScriptException;
+import java.lang.invoke.WrongMethodTypeException;
 
 public class ScriptItem extends AbstractGuiItem implements TextChangeListener {
     private final ShaderProgram fontShader;
@@ -47,12 +48,13 @@ public class ScriptItem extends AbstractGuiItem implements TextChangeListener {
         textBox = new TextBox("", fontShader, font, inputEventThrower, true, this);
     }
 
-    public ScriptItem(@NotNull ShaderProgram fontShader, @NotNull BitmapFont font, @NotNull InputEventThrower inputEventThrower, String text, boolean closed) {
+    public ScriptItem(@NotNull ShaderProgram fontShader, @NotNull BitmapFont font, @NotNull InputEventThrower inputEventThrower,
+                      String text, boolean closed, boolean valid) {
         this.fontShader = fontShader;
         this.font = font;
 
         textBox = new TextBox(text, fontShader, font, inputEventThrower, true, this);
-
+        error = !valid;
         this.setClosed(closed);
     }
 
@@ -86,7 +88,11 @@ public class ScriptItem extends AbstractGuiItem implements TextChangeListener {
         try {
             engine.eval(text);
             error = false;
-        } catch (ScriptException exception) {
+        } catch (ScriptException | WrongMethodTypeException exception) {
+            error = true;
+        } catch (Exception e){
+            System.out.println("Unexpected Exception");
+            e.printStackTrace();
             error = true;
         }
     }
@@ -105,5 +111,9 @@ public class ScriptItem extends AbstractGuiItem implements TextChangeListener {
 
     public String getText() {
         return textBox.getText();
+    }
+
+    public boolean isValid() {
+        return !error;
     }
 }

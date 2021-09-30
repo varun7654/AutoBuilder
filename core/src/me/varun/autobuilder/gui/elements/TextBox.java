@@ -58,7 +58,7 @@ public class TextBox extends InputEventListener {
     }
 
 
-    //TODO: Fix Text Going outside the box
+    //TODO: Fix Text Going outside the box and the entire cringe that this class is
     public void draw(@NotNull RoundedShapeRenderer shapeRenderer, @NotNull SpriteBatch spriteBatch, int drawStartX,
                      int drawStartY, int drawWidth, int drawHeight){
         font.getData().setScale((drawHeight-2)/64f);
