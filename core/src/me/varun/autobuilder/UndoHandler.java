@@ -40,7 +40,7 @@ public class UndoHandler {
             if(undoHistory.size()> MAX_UNDO_HISTORY){
                 undoHistory.remove(undoHistory.size()-1);
             }
-            System.out.println("adding: " + newState);
+            //System.out.println("adding: " + newState);
             redoHistory.clear();
             somethingChanged = false;
         }
@@ -50,7 +50,7 @@ public class UndoHandler {
             if((Gdx.input.isKeyPressed(Input.Keys.SHIFT_LEFT) || Gdx.input.isKeyPressed(Input.Keys.SHIFT_RIGHT))){
                 if(redoHistory.size()>=1){
                     Autonomous autonomous = redoHistory.get(0);
-                    System.out.println("redoing: "  + autonomous);
+                    //System.out.println("redoing: "  + autonomous);
                     restoreState(autonomous, gui, fontShader, font, inputEventThrower, cameraHandler);
                     undoHistory.add(0, redoHistory.get(0));
                     redoHistory.remove(0);
@@ -58,7 +58,7 @@ public class UndoHandler {
             } else{
                 if(undoHistory.size()>=2){
                     Autonomous autonomous = undoHistory.get(1);
-                    System.out.println(autonomous);
+                    //System.out.println(autonomous);
                     restoreState(autonomous, gui, fontShader, font, inputEventThrower, cameraHandler);
                     redoHistory.add(0, undoHistory.get(0));
                     undoHistory.remove(0);
