@@ -6,6 +6,9 @@ import me.varun.autobuilder.wpi.math.geometry.Pose2d;
 import me.varun.autobuilder.wpi.math.trajectory.Trajectory;
 import org.jetbrains.annotations.Nullable;
 
+import javax.annotation.concurrent.Immutable;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 public class TrajectoryAutonomousStep extends AbstractAutonomousStep {
@@ -24,6 +27,7 @@ public class TrajectoryAutonomousStep extends AbstractAutonomousStep {
         this.reversed = reversed;
         this.color = color;
         this.pose2DList = point2DList;
+
         this.states = m_states;
 
 

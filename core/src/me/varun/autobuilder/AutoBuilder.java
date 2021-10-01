@@ -20,7 +20,7 @@ import me.varun.autobuilder.events.scroll.InputEventThrower;
 import me.varun.autobuilder.gui.elements.AbstractGuiItem;
 import me.varun.autobuilder.gui.Gui;
 import me.varun.autobuilder.gui.TrajectoryItem;
-import me.varun.autobuilder.net.NetworkTables;
+import me.varun.autobuilder.net.NetworkTablesHelper;
 import me.varun.autobuilder.net.Serializer;
 import me.varun.autobuilder.pathing.PathRenderer;
 import me.varun.autobuilder.pathing.PathRenderer.PointChange;
@@ -73,15 +73,15 @@ public class AutoBuilder extends ApplicationAdapter {
     public static double maxVelocityMetersPerSecond;
     public static double maxAccelerationMetersPerSecondSq;
 
-    NetworkTables networkTables = NetworkTables.getInstance();
+    NetworkTablesHelper networkTables = NetworkTablesHelper.getInstance();
 
     static {
-        maxVelocityMetersPerSecond = 5;
-        maxAccelerationMetersPerSecondSq = 0.5;
+        maxVelocityMetersPerSecond = 1;
+        maxAccelerationMetersPerSecondSq = 1;
         trajectoryConstraints.add(new CentripetalAccelerationConstraint(1));
     }
 
-    public static void handleException(Exception e) {
+    public static void handleCrash(Exception e) {
         e.printStackTrace();
         System.out.println("Oops Something went wrong during fame " + Gdx.graphics.getFrameId());
         Gdx.app.exit();
@@ -161,36 +161,48 @@ public class AutoBuilder extends ApplicationAdapter {
             update();
             draw();
         } catch (Exception e){
-            handleException(e);
+            handleCrash(e);
         }
 
 
     }
 
     private void draw() {
-        Gdx.gl.glClearColor(0, 0, 0, 1);
+        //Clear everything
+        Gdx.gl.glClearColor(0f, 0f, 0f, 1f);
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT | GL20.GL_DEPTH_BUFFER_BIT |
                 (Gdx.graphics.getBufferFormat().coverageSampling?GL20.GL_COVERAGE_BUFFER_BIT_NV:0));
 
-
+        //Initialize our camera for the batch
         batch.setProjectionMatrix(cam.combined);
 
+        //Draw the image
         batch.begin();
         batch.draw(field, -14, -300);
         batch.end();
 
+        //Initialize our camera and shape renderer
         shapeRenderer.setProjectionMatrix(cam.combined);
         shapeRenderer.setAutoShapeType(true);
         shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
 
+        //Draw all the paths
         origin.draw(shapeRenderer, cam);
         for (AbstractGuiItem guiItem : gui.guiItems) {
             if(guiItem instanceof TrajectoryItem){
                 ((TrajectoryItem) guiItem).getPathRenderer().render(shapeRenderer, cam);
             }
         }
-        shapeRenderer.end();
 
+
+        //Draw the robot path
+        for (int i = 0; i < networkTables.getRobotPositions().size()-1; i++) {
+            Float[] pos1 = networkTables.getRobotPositions().get(i);
+            Float[] pos2 = networkTables.getRobotPositions().get(i+1);
+            shapeRenderer.line(pos1[0], pos1[1], pos2[0], pos2[1]);
+        }
+
+        shapeRenderer.end();
 
 
         hudBatch.setProjectionMatrix(hudCam.combined);
@@ -199,7 +211,6 @@ public class AutoBuilder extends ApplicationAdapter {
         hudShapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
 
         hudBatch.begin();
-
         hudBatch.setShader(fontShader);
 
         font.getData().setScale(0.2f);
@@ -211,9 +222,6 @@ public class AutoBuilder extends ApplicationAdapter {
 
         gui.render(hudShapeRenderer, hudBatch, hudCam);
         hudShapeRenderer.end();
-
-
-
 
 
     }
@@ -267,6 +275,8 @@ public class AutoBuilder extends ApplicationAdapter {
 
         lastMousePos.set(mousePos);
         cameraHandler.update(somethingMoved, onGui);
+
+        networkTables.updateRobotPath();
     }
 
     @Override

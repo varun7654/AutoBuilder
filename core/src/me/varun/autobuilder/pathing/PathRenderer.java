@@ -52,7 +52,7 @@ public class PathRenderer implements MovablePointEventHandler, Serializable {
         pointRenderList = new ArrayList<>();
 
         for (Pose2d pose2d : point2DList) {
-            pointRenderList.add(new MovablePointRenderer((float) pose2d.getX(), (float) pose2d.getY(), Color.ORANGE, 5, this));
+            pointRenderList.add(new MovablePointRenderer((float) pose2d.getX(), (float) pose2d.getY(), color, 5, this));
         }
 
         this.executorService = executorService;
@@ -176,7 +176,7 @@ public class PathRenderer implements MovablePointEventHandler, Serializable {
                 if(Math.abs(diffX) < .1 && Math.abs(diffY) < .1) {
                     System.out.println(currentIndexPos);
                     point2DList.add(currentIndexPos+1, cur);
-                    pointRenderList.add(currentIndexPos+1, new MovablePointRenderer((float) cur.getX(), (float) cur.getY(), Color.BLUE, 5, this));
+                    pointRenderList.add(currentIndexPos+1, new MovablePointRenderer((float) cur.getX(), (float) cur.getY(), color, 5, this));
                     if(selectionPointIndex > currentIndexPos ) selectionPointIndex++;
                     updatePath();
                     return PointChange.ADDITION;

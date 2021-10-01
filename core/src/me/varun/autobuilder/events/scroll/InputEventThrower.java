@@ -35,7 +35,7 @@ public class InputEventThrower implements InputProcessor {
                 eventHandler.onKeyType(character);
             }
         } catch (Exception e){
-            AutoBuilder.handleException(e);
+            AutoBuilder.handleCrash(e);
         }
         return false;
 
@@ -68,7 +68,7 @@ public class InputEventThrower implements InputProcessor {
                 eventHandler.onScroll(amountX, amountY);
             }
         } catch (Exception e){
-            AutoBuilder.handleException(e);
+            AutoBuilder.handleCrash(e);
         }
 
         return false;

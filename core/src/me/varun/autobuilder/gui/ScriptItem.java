@@ -99,7 +99,7 @@ public class ScriptItem extends AbstractGuiItem implements TextChangeListener {
 
     @Override
     public void dispose() {
-
+        textBox.dispose();
     }
 
     @Override
