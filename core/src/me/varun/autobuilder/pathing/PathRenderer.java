@@ -74,7 +74,7 @@ public class PathRenderer implements MovablePointEventHandler, Serializable {
         for( double i = 0.1; i<trajectory.getTotalTimeSeconds(); i += 0.05){
             Pose2d prev = trajectory.sample(i-0.05).poseMeters;
             Pose2d cur = trajectory.sample(i).poseMeters;
-            double speed = trajectory.sample(i).velocityMetersPerSecond;
+            double speed = Math.abs(trajectory.sample(i).velocityMetersPerSecond);
             float[] color = new float[3];
             this.color.toHsv(color);
             color[1] = (float) (0.5*(speed/ maxVelocityMetersPerSecond)+0.5);

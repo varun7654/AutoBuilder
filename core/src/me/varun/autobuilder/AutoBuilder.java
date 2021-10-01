@@ -156,7 +156,6 @@ public class AutoBuilder extends ApplicationAdapter {
 
     @Override
     public void render () {
-        time = Instant.now().getNano();
         try{
             update();
             draw();
@@ -215,7 +214,7 @@ public class AutoBuilder extends ApplicationAdapter {
 
         font.getData().setScale(0.2f);
         font.setColor(Color.WHITE);
-        font.draw(hudBatch, "FPS: " + Gdx.graphics.getFramesPerSecond() + ", " + (Instant.now().getNano() - time)/1000000f + " ms", 0, 12);
+        font.draw(hudBatch, "FPS: " + Gdx.graphics.getFramesPerSecond() + ", " + Gdx.graphics.getDeltaTime()*1000 + " ms", 0, 12);
 
         hudBatch.setShader(null);
         hudBatch.end();

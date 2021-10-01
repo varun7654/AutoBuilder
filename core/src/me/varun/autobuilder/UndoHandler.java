@@ -80,9 +80,9 @@ public class UndoHandler {
             if(autonomousStep instanceof TrajectoryAutonomousStep){
                 TrajectoryAutonomousStep trajectoryAutonomousStep = (TrajectoryAutonomousStep) autonomousStep;
                 Color color = new Color().fromHsv(trajectoryAutonomousStep.getColor(), 1, 1);
-                trajectoryAutonomousStep.getPose2DList();
                 TrajectoryItem trajectoryItem = new TrajectoryItem(gui, fontShader, font, inputEventThrower, cameraHandler,
-                        new ArrayList<>(trajectoryAutonomousStep.getPose2DList()), trajectoryAutonomousStep.isReversed(), color, trajectoryAutonomousStep.isClosed());
+                        new ArrayList<>(trajectoryAutonomousStep.getPose2DList()), trajectoryAutonomousStep.isReversed(),
+                        color, trajectoryAutonomousStep.isClosed());
                 guiItemList.add(trajectoryItem);
 
 
