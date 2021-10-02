@@ -43,7 +43,7 @@ public class UndoHandler {
             if(undoHistory.size()> MAX_UNDO_HISTORY){
                 undoHistory.remove(undoHistory.size()-1);
             }
-            System.out.println("adding: " + newState);
+            //System.out.println("adding: " + newState);
             somethingChanged = false;
         }
 
@@ -53,7 +53,7 @@ public class UndoHandler {
                 pointer--;
                 if(pointer >= 0){
                     restoreState(undoHistory.get(pointer), gui, fontShader, font, inputEventThrower, cameraHandler);
-                    System.out.println("redoing to: " + undoHistory.get(pointer));
+                    //System.out.println("redoing to: " + undoHistory.get(pointer));
                 } else pointer = 0;
             } else{
                 //Undoing
@@ -61,7 +61,7 @@ public class UndoHandler {
                 pointer++;
                 if(pointer < undoHistory.size()){
                     restoreState(undoHistory.get(pointer), gui, fontShader, font, inputEventThrower, cameraHandler);
-                    System.out.println("undoing to: " + undoHistory.get(pointer));
+                    //System.out.println("undoing to: " + undoHistory.get(pointer));
                 } else pointer = undoHistory.size()-1;
 
             }
