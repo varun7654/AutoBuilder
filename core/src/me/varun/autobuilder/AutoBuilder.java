@@ -17,9 +17,9 @@ import com.badlogic.gdx.utils.viewport.ExtendViewport;
 import com.badlogic.gdx.utils.viewport.ScreenViewport;
 import com.badlogic.gdx.utils.viewport.Viewport;
 import me.varun.autobuilder.events.scroll.InputEventThrower;
-import me.varun.autobuilder.gui.elements.AbstractGuiItem;
 import me.varun.autobuilder.gui.Gui;
 import me.varun.autobuilder.gui.TrajectoryItem;
+import me.varun.autobuilder.gui.elements.AbstractGuiItem;
 import me.varun.autobuilder.net.NetworkTablesHelper;
 import me.varun.autobuilder.net.Serializer;
 import me.varun.autobuilder.pathing.PathRenderer;
@@ -33,9 +33,8 @@ import me.varun.autobuilder.wpi.math.trajectory.constraint.CentripetalAccelerati
 import me.varun.autobuilder.wpi.math.trajectory.constraint.TrajectoryConstraint;
 import org.jetbrains.annotations.NotNull;
 
-import java.io.*;
-import java.time.Instant;
-
+import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -94,7 +93,7 @@ public class AutoBuilder extends ApplicationAdapter {
 
     @Override
     public void create () {
-        //networkTables.start();
+        networkTables.start();
         Gdx.app.getInput().setInputProcessor(inputEventThrower);
 
         hudShapeRenderer = new RoundedShapeRenderer();
