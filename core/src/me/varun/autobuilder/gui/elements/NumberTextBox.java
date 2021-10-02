@@ -30,7 +30,7 @@ public class NumberTextBox extends TextBox{
 
     @Override
     protected void fireTextChangeEvent() {
-        textPositionChangeListener.onTextChange(text, row, column);
+        textPositionChangeListener.onTextChange(text, row, column, this);
         undoHandler.somethingChanged();
     }
 }

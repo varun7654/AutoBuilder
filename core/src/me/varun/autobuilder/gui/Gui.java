@@ -169,28 +169,28 @@ public class Gui extends InputEventListener {
             pushAutoButton.checkClick(this);
         }
 
-        if(Gdx.input.isButtonJustPressed(Input.Buttons.LEFT)){
-            mouseDownPos.x = Gdx.input.getX();
-            mouseDownPos.y = Gdx.input.getY();
-            draggingElement = null;
-        } else if (Gdx.input.isButtonPressed(Input.Buttons.LEFT)){
-            if(MathUntil.len2(mouseDownPos, Gdx.input.getX(), Gdx.input.getY()) > 100){
-                dragging = true;
-            }
-        } else {
-            dragging = false;
-            if(draggingElement != null){
-                System.out.println(newDraggingElementIndex);
-                guiItems.remove(oldDraggingElementIndex);
-                if(newDraggingElementIndex>oldDraggingElementIndex) newDraggingElementIndex--;
-                guiItems.add(newDraggingElementIndex, draggingElement);
-                draggingElement = null;
-                UndoHandler.getInstance().somethingChanged();
-            }
-        }
-
         if(Gdx.input.getX() > panelX && Gdx.input.getX() < panelX + panelWidth &&
                 Gdx.input.getY() > panelY && Gdx.input.getY() < panelY + panelHeight ){
+            if(Gdx.input.isButtonJustPressed(Input.Buttons.LEFT)){
+                mouseDownPos.x = Gdx.input.getX();
+                mouseDownPos.y = Gdx.input.getY();
+                draggingElement = null;
+            } else if (Gdx.input.isButtonPressed(Input.Buttons.LEFT)){
+                if(MathUntil.len2(mouseDownPos, Gdx.input.getX(), Gdx.input.getY()) > 100){
+                    dragging = true;
+                }
+            } else {
+                dragging = false;
+                if(draggingElement != null){
+                    System.out.println(newDraggingElementIndex);
+                    guiItems.remove(oldDraggingElementIndex);
+                    if(newDraggingElementIndex>oldDraggingElementIndex) newDraggingElementIndex--;
+                    guiItems.add(newDraggingElementIndex, draggingElement);
+                    draggingElement = null;
+                    UndoHandler.getInstance().somethingChanged();
+                }
+            }
+
             return true;
         }
 

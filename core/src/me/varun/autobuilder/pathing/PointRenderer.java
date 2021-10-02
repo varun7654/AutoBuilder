@@ -46,7 +46,7 @@ public class PointRenderer {
 
     public void draw(@NotNull ShapeRenderer shape, @NotNull OrthographicCamera camera) {
         shape.setColor(color);
-        shape.circle(x* AutoBuilder.POINT_SCALE_FACTOR, y*AutoBuilder.POINT_SCALE_FACTOR, radius, (int) (MathUntil.clamp(20/tan(camera.zoom), 5, 50)));
+        shape.circle(x* AutoBuilder.POINT_SCALE_FACTOR, y*AutoBuilder.POINT_SCALE_FACTOR, radius, 50);
     }
 
 
@@ -95,6 +95,10 @@ public class PointRenderer {
 
     public @NotNull Vector3 getRenderPos3(){
         return new Vector3(x*AutoBuilder.POINT_SCALE_FACTOR, y*AutoBuilder.POINT_SCALE_FACTOR ,0);
+    }
+
+    public @NotNull Vector2 getRenderPos2(){
+        return new Vector2(x*AutoBuilder.POINT_SCALE_FACTOR, y*AutoBuilder.POINT_SCALE_FACTOR );
     }
 
     @Override

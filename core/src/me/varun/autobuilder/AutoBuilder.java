@@ -41,7 +41,12 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 public class AutoBuilder extends ApplicationAdapter {
-    public static final float POINT_SCALE_FACTOR = 73.67131887402519f;
+    public static final float POINT_SCALE_FACTOR = 153.719228856023f;
+    public static final float LINE_THICKNESS = 4;
+    public static final float POINT_SIZE = 8;
+
+    public static final float ROBOT_WIDTH = 36.3375f*0.0254f;
+    public static final float ROBOT_HEIGHT = 36.1875f*0.0254f;
 
     private SpriteBatch batch;
     private SpriteBatch hudBatch;
@@ -76,8 +81,8 @@ public class AutoBuilder extends ApplicationAdapter {
     NetworkTablesHelper networkTables = NetworkTablesHelper.getInstance();
 
     static {
-        maxVelocityMetersPerSecond = 1;
-        maxAccelerationMetersPerSecondSq = 1;
+        maxVelocityMetersPerSecond = 3.04;
+        maxAccelerationMetersPerSecondSq = 1.5;
         trajectoryConstraints.add(new CentripetalAccelerationConstraint(1));
     }
 
@@ -115,7 +120,7 @@ public class AutoBuilder extends ApplicationAdapter {
         preferences =  Gdx.app.getPreferences("me.varun.autobuilder.prefs");
 
         origin = new PointRenderer(preferences.getFloat("ORIGIN_POINT_X", 0), preferences.getFloat("ORIGIN_POINT_Y", 0),
-                Color.ORANGE, 5);
+                Color.ORANGE, POINT_SIZE);
 
         preferences.flush();
 
@@ -177,7 +182,7 @@ public class AutoBuilder extends ApplicationAdapter {
 
         //Draw the image
         batch.begin();
-        batch.draw(field, -14, -300);
+        batch.draw(field, -639, -2160/2);
         batch.end();
 
         //Initialize our camera and shape renderer
@@ -198,7 +203,7 @@ public class AutoBuilder extends ApplicationAdapter {
         for (int i = 0; i < networkTables.getRobotPositions().size()-1; i++) {
             Float[] pos1 = networkTables.getRobotPositions().get(i);
             Float[] pos2 = networkTables.getRobotPositions().get(i+1);
-            shapeRenderer.line(pos1[0], pos1[1], pos2[0], pos2[1]);
+            shapeRenderer.rectLine(pos1[0], pos1[1], pos2[0], pos2[1], LINE_THICKNESS);
         }
 
         shapeRenderer.end();

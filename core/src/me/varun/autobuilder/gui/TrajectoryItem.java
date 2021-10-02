@@ -3,7 +3,6 @@ package me.varun.autobuilder.gui;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
 import com.badlogic.gdx.graphics.Color;
-import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.glutils.ShaderProgram;
@@ -37,6 +36,8 @@ public class TrajectoryItem extends AbstractGuiItem implements PathChangeListene
     private final @NotNull InputEventThrower eventThrower;
     private final @NotNull CameraHandler cameraHandler;
     private final @NotNull CheckBox checkBox = new CheckBox(0 ,0 , 30, 30);
+    private final @NotNull NumberTextBox startVelocityTextBox;
+    private final @NotNull NumberTextBox endVelocityTextBox;
 
     private static final DecimalFormat df = new DecimalFormat();
     static {
@@ -58,41 +59,53 @@ public class TrajectoryItem extends AbstractGuiItem implements PathChangeListene
         this.fontShader = fontShader;
         this.font = font;
 
-        this.pathRenderer = new PathRenderer(gui.getNextColor(), pose2dList, gui.executorService);
+        this.pathRenderer = new PathRenderer(gui.getNextColor(), pose2dList, gui.executorService, 0, 0);
         pathRenderer.setPathChangeListener(this);
 
+        startVelocityTextBox = new NumberTextBox(df.format(getPathRenderer().getVelocityStart()), fontShader, font,
+                eventThrower, this, 0 ,0);
+        endVelocityTextBox = new NumberTextBox(df.format(getPathRenderer().getVelocityEnd()), fontShader, font,
+                eventThrower, this, 0 ,0);
     }
 
     public TrajectoryItem(Gui gui, @NotNull ShaderProgram fontShader, @NotNull BitmapFont font, @NotNull InputEventThrower eventThrower,
-                          @NotNull CameraHandler cameraHandler, List<Pose2d> pose2dList, boolean reversed, Color color, boolean closed){
+                          @NotNull CameraHandler cameraHandler, List<Pose2d> pose2dList, boolean reversed, Color color, boolean closed, float velocityStart, float velocityEnd){
         this.eventThrower = eventThrower;
         this.cameraHandler = cameraHandler;
 
         this.fontShader = fontShader;
         this.font = font;
 
-        this.pathRenderer = new PathRenderer(color, pose2dList, gui.executorService);
+        this.pathRenderer = new PathRenderer(color, pose2dList, gui.executorService, velocityStart, velocityEnd);
         pathRenderer.setReversed(reversed);
         pathRenderer.setPathChangeListener(this);
 
         this.setClosed(closed);
 
+        startVelocityTextBox = new NumberTextBox(df.format(getPathRenderer().getVelocityStart()), fontShader, font,
+                eventThrower, this, 0 ,0);
+        endVelocityTextBox = new NumberTextBox(df.format(getPathRenderer().getVelocityEnd()), fontShader, font,
+                eventThrower, this, 0 ,0);
     }
 
 
     @Override
     public int render(@NotNull RoundedShapeRenderer shapeRenderer, @NotNull SpriteBatch spriteBatch, int drawStartX, int drawStartY, int drawWidth, Gui gui) {
         super.render(shapeRenderer, spriteBatch, drawStartX, drawStartY, drawWidth, gui);
+        String title;
+        if (pathRenderer.getTrajectory() != null) {
+            title = "Path - " + df.format(pathRenderer.getTrajectory().getTotalTimeSeconds()) + "s";
+        } else title = "Path - Calculating Time";
         if(isClosed()){
-            renderHeader(shapeRenderer,spriteBatch, fontShader, font, drawStartX, drawStartY, drawWidth, trashTexture, warningTexture, pathRenderer.getColor(), "Path", checkWarning(gui));
+            renderHeader(shapeRenderer,spriteBatch, fontShader, font, drawStartX, drawStartY, drawWidth, trashTexture, warningTexture, pathRenderer.getColor(), title, checkWarning(gui));
             spriteBatch.end();
             return 40;
         } else {
             List<Pose2d> pose2dList = pathRenderer.getPoint2DList();
             shapeRenderer.setColor(LIGHT_GREY);
-            shapeRenderer.roundedRect(drawStartX + 5, drawStartY - (35 + (pose2dList.size() * 30) + 40) - 5, drawWidth - 5, 35 + (pose2dList.size() * 30) + 9, 2);
+            shapeRenderer.roundedRect(drawStartX + 5, drawStartY - (35*3 + (pose2dList.size() * 30) + 40) - 5, drawWidth - 5, 35*3 + (pose2dList.size() * 30) + 9, 2);
 
-            renderHeader(shapeRenderer,spriteBatch, fontShader, font, drawStartX, drawStartY, drawWidth, trashTexture, warningTexture, pathRenderer.getColor(), "Path", checkWarning(gui));
+            renderHeader(shapeRenderer,spriteBatch, fontShader, font, drawStartX, drawStartY, drawWidth, trashTexture, warningTexture, pathRenderer.getColor(), title, checkWarning(gui));
 
             spriteBatch.setShader(fontShader);
 
@@ -105,12 +118,20 @@ public class TrajectoryItem extends AbstractGuiItem implements PathChangeListene
             }
 
             spriteBatch.setShader(fontShader);
-            font.draw(spriteBatch, "Reversed",drawStartX + 10 + 40, drawStartY - (40 + pose2dList.size() * 30)-10);
+            font.draw(spriteBatch, "Start Velocity",drawStartX + 10, drawStartY - (40 + pose2dList.size() * 30) - 10);
+            font.draw(spriteBatch, "End Velocity",drawStartX + 10, drawStartY - (40 + pose2dList.size() * 30) - 10 - 35);
+            font.draw(spriteBatch, "Reversed",drawStartX + 10, drawStartY - (40 + pose2dList.size() * 30)-10 - 35*2);
+
             spriteBatch.end();
             spriteBatch.setShader(null);
 
-            checkBox.setX(drawStartX + 10);
-            checkBox.setY(drawStartY - (40 + pose2dList.size() * 30) - 35);
+            spriteBatch.begin();
+            startVelocityTextBox.draw(shapeRenderer, spriteBatch, drawStartX + 10 + 2 * 123, drawStartY - 43 - pose2dList.size() * 30, 120, 28);
+            endVelocityTextBox.draw(shapeRenderer, spriteBatch, drawStartX + 10 + 2 * 123, drawStartY - 43 - (pose2dList.size()+1) * 30, 120, 28);
+            spriteBatch.end();
+
+            checkBox.setX(drawStartX + drawWidth - 35);
+            checkBox.setY(drawStartY - (40 + (pose2dList.size()+2) * 30) - 35);
             checkBox.checkHover();
             if(Gdx.input.isButtonJustPressed(Input.Buttons.LEFT) && checkBox.checkClick()){
                 pathRenderer.setReversed(!pathRenderer.isReversed());
@@ -119,7 +140,9 @@ public class TrajectoryItem extends AbstractGuiItem implements PathChangeListene
             }
             checkBox.render(shapeRenderer, spriteBatch, pathRenderer.isReversed());
 
-            return 40 + (pose2dList.size() * 30) + 35;
+
+
+            return 40 + (pose2dList.size() * 30) + 35*3;
         }
 
     }
@@ -161,7 +184,28 @@ public class TrajectoryItem extends AbstractGuiItem implements PathChangeListene
     }
 
     @Override
-    public void onTextChange(String text, int row, int column) {
+    public void onTextChange(String text, int row, int column, NumberTextBox numberTextBox) {
+        if(numberTextBox == startVelocityTextBox){
+            try{
+                float parsedNumber = Float.parseFloat(text);
+                getPathRenderer().setVelocityStart(parsedNumber);
+                pathRenderer.updatePath(false);
+            } catch (NumberFormatException ignored){ }
+            return;
+        }
+
+        if(numberTextBox == endVelocityTextBox){
+            try{
+                float parsedNumber = Float.parseFloat(text);
+                getPathRenderer().setVelocityEnd(parsedNumber);
+                pathRenderer.updatePath(false);
+            } catch (NumberFormatException ignored){ }
+            return;
+        }
+
+
+
+
         try{
             double parsedNumber = Double.parseDouble(text);
 

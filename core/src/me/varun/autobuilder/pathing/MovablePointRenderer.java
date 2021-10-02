@@ -58,7 +58,7 @@ public class MovablePointRenderer extends PointRenderer {
             }
 
         } else {
-            if(pressed){
+            if(pressed && dragStarted){
                 UndoHandler.getInstance().somethingChanged();
             }
             pressed = false;

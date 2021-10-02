@@ -6,9 +6,6 @@ import me.varun.autobuilder.wpi.math.geometry.Pose2d;
 import me.varun.autobuilder.wpi.math.trajectory.Trajectory;
 import org.jetbrains.annotations.Nullable;
 
-import javax.annotation.concurrent.Immutable;
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 public class TrajectoryAutonomousStep extends AbstractAutonomousStep {
@@ -16,21 +13,25 @@ public class TrajectoryAutonomousStep extends AbstractAutonomousStep {
     private final List<Pose2d> pose2DList;
     private final boolean reversed;
     private final float color;
+    private final float velocityStart;
+    private final float velocityEnd;
 
     @JsonCreator
     public TrajectoryAutonomousStep(@JsonProperty(required = true, value = "states") @Nullable List<Trajectory.State> m_states,
                                     @JsonProperty(required = true, value = "pointList") @Nullable List<Pose2d> point2DList,
                                     @JsonProperty(required = true, value = "reversed") boolean reversed,
                                     @JsonProperty(required = true, value = "color") float color,
-                                    @JsonProperty(required = true, value = "closed") boolean closed) {
+                                    @JsonProperty(required = true, value = "closed") boolean closed,
+                                    @JsonProperty(defaultValue = "0", value = "velocityStart")float velocityStart,
+                                    @JsonProperty(defaultValue = "0", value = "velocityEnd")float velocityEnd) {
         super(closed);
         this.reversed = reversed;
         this.color = color;
         this.pose2DList = point2DList;
 
         this.states = m_states;
-
-
+        this.velocityStart = velocityStart;
+        this.velocityEnd = velocityEnd;
     }
 
     public Trajectory getTrajectory(){
@@ -72,5 +73,15 @@ public class TrajectoryAutonomousStep extends AbstractAutonomousStep {
     @JsonProperty("states")
     public List<Trajectory.State> getStates() {
         return states;
+    }
+
+    @JsonProperty
+    public float getVelocityStart() {
+        return velocityStart;
+    }
+
+    @JsonProperty
+    public float getVelocityEnd() {
+        return velocityEnd;
     }
 }

@@ -11,8 +11,6 @@ import me.varun.autobuilder.gui.ScriptItem;
 import me.varun.autobuilder.gui.TrajectoryItem;
 import me.varun.autobuilder.gui.elements.AbstractGuiItem;
 import me.varun.autobuilder.serialization.*;
-import me.varun.autobuilder.wpi.math.geometry.Pose2d;
-import org.checkerframework.checker.units.qual.C;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
@@ -82,7 +80,8 @@ public class UndoHandler {
                 Color color = new Color().fromHsv(trajectoryAutonomousStep.getColor(), 1, 1);
                 TrajectoryItem trajectoryItem = new TrajectoryItem(gui, fontShader, font, inputEventThrower, cameraHandler,
                         new ArrayList<>(trajectoryAutonomousStep.getPose2DList()), trajectoryAutonomousStep.isReversed(),
-                        color, trajectoryAutonomousStep.isClosed());
+                        color, trajectoryAutonomousStep.isClosed(), trajectoryAutonomousStep.getVelocityStart(),
+                        trajectoryAutonomousStep.getVelocityEnd());
                 guiItemList.add(trajectoryItem);
 
 

@@ -5,7 +5,9 @@ import com.badlogic.gdx.Input;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
+import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.math.Vector3;
+import me.varun.autobuilder.UndoHandler;
 import me.varun.autobuilder.events.movablepoint.MovablePointEventHandler;
 import me.varun.autobuilder.events.movablepoint.PointClickEvent;
 import me.varun.autobuilder.events.movablepoint.PointMoveEvent;
@@ -45,18 +47,24 @@ public class PathRenderer implements MovablePointEventHandler, Serializable {
 
     @Nullable PathChangeListener pathChangeListener;
 
-    public PathRenderer(@NotNull Color color, @NotNull List<Pose2d> pointList, @NotNull ExecutorService executorService){
+    private float velocityStart = 0;
+    private float velocityEnd = 0;
+
+    public PathRenderer(@NotNull Color color, @NotNull List<Pose2d> pointList, @NotNull ExecutorService executorService, float velocityStart, float velocityEnd){
         this.color = color;
         this.point2DList = pointList;
 
         pointRenderList = new ArrayList<>();
 
         for (Pose2d pose2d : point2DList) {
-            pointRenderList.add(new MovablePointRenderer((float) pose2d.getX(), (float) pose2d.getY(), color, 5, this));
+            pointRenderList.add(new MovablePointRenderer((float) pose2d.getX(), (float) pose2d.getY(), color, POINT_SIZE, this));
         }
 
         this.executorService = executorService;
         updatePath();
+
+        this.velocityStart = velocityStart;
+        this.velocityEnd = velocityEnd;
     }
 
     public void setPathChangeListener(@NotNull PathChangeListener pathChangeListener){
@@ -71,28 +79,49 @@ public class PathRenderer implements MovablePointEventHandler, Serializable {
     public void render(@NotNull ShapeRenderer renderer, @NotNull OrthographicCamera cam){
         if(trajectory == null) return;
 
-        for( double i = 0.1; i<trajectory.getTotalTimeSeconds(); i += 0.05){
+        for( double i = 0.05; i<trajectory.getTotalTimeSeconds(); i += 0.05){
             Pose2d prev = trajectory.sample(i-0.05).poseMeters;
             Pose2d cur = trajectory.sample(i).poseMeters;
             double speed = Math.abs(trajectory.sample(i).velocityMetersPerSecond);
             float[] color = new float[3];
             this.color.toHsv(color);
-            color[1] = (float) (0.5*(speed/ maxVelocityMetersPerSecond)+0.5);
+            color[1] = (float) (0.9*(speed/ maxVelocityMetersPerSecond)+0.05);
             Color speedColor = new Color().fromHsv(color);
             renderer.setColor(speedColor);
-            renderer.line((float) prev.getX()*POINT_SCALE_FACTOR,(float) prev.getY()*POINT_SCALE_FACTOR, (float) cur.getX()*POINT_SCALE_FACTOR, (float) cur.getY()*POINT_SCALE_FACTOR);
+            renderer.rectLine((float) prev.getX()*POINT_SCALE_FACTOR,(float) prev.getY()*POINT_SCALE_FACTOR, (float) cur.getX()*POINT_SCALE_FACTOR, (float) cur.getY()*POINT_SCALE_FACTOR, LINE_THICKNESS);
         }
 
         if(rotationPoint != null) {
             rotationPoint.draw(renderer, cam);
-            renderer.line(pointRenderList.get(selectionPointIndex).getRenderPos3(), rotationPoint.getRenderPos3());
+            renderer.rectLine(pointRenderList.get(selectionPointIndex).getRenderPos2(), rotationPoint.getRenderPos2(), LINE_THICKNESS);
+            float rotation = (float) point2DList.get(selectionPointIndex).getRotation().getRadians();
+
+            Vector2 origin = pointRenderList.get(selectionPointIndex).getRenderPos2();
+
+            Vector2 leftTop = new Vector2(origin).add(-(ROBOT_WIDTH/2)*POINT_SCALE_FACTOR, (ROBOT_HEIGHT/2)*POINT_SCALE_FACTOR);
+            Vector2 rightTop = new Vector2(origin).add((ROBOT_WIDTH/2)*POINT_SCALE_FACTOR, (ROBOT_HEIGHT/2)*POINT_SCALE_FACTOR);
+            Vector2 leftBottom = new Vector2(origin).add(-(ROBOT_WIDTH/2)*POINT_SCALE_FACTOR, -(ROBOT_HEIGHT/2)*POINT_SCALE_FACTOR);
+            Vector2 rightBottom = new Vector2(origin).add((ROBOT_WIDTH/2)*POINT_SCALE_FACTOR, -(ROBOT_HEIGHT/2)*POINT_SCALE_FACTOR);
+
+            leftTop.rotateAroundRad(origin, rotation);
+            rightTop.rotateAroundRad(origin, rotation);
+            leftBottom.rotateAroundRad(origin, rotation);
+            rightBottom.rotateAroundRad(origin, rotation);
+
+            renderer.setColor(Color.BLUE);
+
+            renderer.rectLine(leftTop, rightTop, LINE_THICKNESS);
+            renderer.rectLine(rightTop, rightBottom, LINE_THICKNESS);
+            renderer.rectLine(rightBottom, leftBottom, LINE_THICKNESS);
+            renderer.rectLine(leftBottom, leftTop, LINE_THICKNESS);
+
         }
 
         for (int i = 0; i< pointRenderList.size(); i++) {
             PointRenderer pointRenderer = pointRenderList.get(i);
 
             if(i == selectionPointIndex){
-                if(highlightPoint == null) highlightPoint = new PointRenderer(pointRenderer.getPos2(), Color.WHITE, 7);
+                if(highlightPoint == null) highlightPoint = new PointRenderer(pointRenderer.getPos2(), Color.WHITE, POINT_SIZE*1.4f);
                 else highlightPoint.setPosition(pointRenderer.getPos2());
 
                 highlightPoint.draw(renderer, cam);
@@ -155,7 +184,10 @@ public class PathRenderer implements MovablePointEventHandler, Serializable {
         }
 
 
-        if(pointDeleted) return PointChange.REMOVAL;
+        if(pointDeleted) {
+            UndoHandler.getInstance().somethingChanged();
+            return PointChange.REMOVAL;
+        }
 
         return PointChange.NONE;
     }
@@ -176,9 +208,10 @@ public class PathRenderer implements MovablePointEventHandler, Serializable {
                 if(Math.abs(diffX) < .1 && Math.abs(diffY) < .1) {
                     System.out.println(currentIndexPos);
                     point2DList.add(currentIndexPos+1, cur);
-                    pointRenderList.add(currentIndexPos+1, new MovablePointRenderer((float) cur.getX(), (float) cur.getY(), color, 5, this));
+                    pointRenderList.add(currentIndexPos+1, new MovablePointRenderer((float) cur.getX(), (float) cur.getY(), color, POINT_SIZE, this));
                     if(selectionPointIndex > currentIndexPos ) selectionPointIndex++;
                     updatePath();
+                    UndoHandler.getInstance().somethingChanged();
                     return PointChange.ADDITION;
                 }
 
@@ -197,18 +230,21 @@ public class PathRenderer implements MovablePointEventHandler, Serializable {
 
                 float xPos = (float) (event.getPos().x + rotation.getCos()*1);
                 float yPos = (float) (event.getPos().y + rotation.getSin()*1);
-                rotationPoint = new MovablePointRenderer(xPos, yPos, Color.GREEN, 5,this);
+                rotationPoint = new MovablePointRenderer(xPos, yPos, Color.GREEN, POINT_SIZE,this);
             }
-            if(event.isRightClick() && !pointDeleted && point2DList.size() > 2){
-                int removeIndex = pointRenderList.indexOf(event.getPoint());
-                if (selectionPointIndex > removeIndex){
-                    selectionPointIndex--;
-                } else if(selectionPointIndex == removeIndex){
-                    removeSelection();
-                }
-                pointRenderList.remove(removeIndex);
-                point2DList.remove(removeIndex);
-                pointDeleted = true;
+            if(event.isRightClick() && !pointDeleted){
+                if(point2DList.size() > 2){
+                    int removeIndex = pointRenderList.indexOf(event.getPoint());
+                    if (selectionPointIndex > removeIndex){
+                        selectionPointIndex--;
+                    } else if(selectionPointIndex == removeIndex){
+                        removeSelection();
+                    }
+                    pointRenderList.remove(removeIndex);
+                    point2DList.remove(removeIndex);
+                    pointDeleted = true;
+                } else pointDeleted = true;
+
             }
         }
 
@@ -234,7 +270,7 @@ public class PathRenderer implements MovablePointEventHandler, Serializable {
 
             float xPos = (float) (event.getNewPos().x + rotation.getCos()*1);
             float yPos = (float) (event.getNewPos().y + rotation.getSin()*1);
-            rotationPoint = new MovablePointRenderer(xPos, yPos, Color.GREEN, 5, this);
+            rotationPoint = new MovablePointRenderer(xPos, yPos, Color.GREEN, POINT_SIZE, this);
 
             Pose2d pose2d = new Pose2d(new Translation2d(event.getNewPos().x, event.getNewPos().y), point2DList.get(selectionPointIndex).getRotation());
             point2DList.set(selectionPointIndex, pose2d);
@@ -251,16 +287,15 @@ public class PathRenderer implements MovablePointEventHandler, Serializable {
     public void updatePath(boolean updateListener){
         //trajectory = TrajectoryGenerator.generateTrajectory(point2DList, TRAJECTORY_CONSTRAINTS);
         //System.out.println(trajectory.getTotalTimeSeconds());
-        completableFutureTrajectory = CompletableFuture.supplyAsync(new Supplier<>() {
-            @Override
-            public Trajectory get() {
-                TrajectoryConfig trajectoryConfig = new TrajectoryConfig(maxVelocityMetersPerSecond, maxAccelerationMetersPerSecondSq);
-                for (TrajectoryConstraint trajectoryConstraint : trajectoryConstraints) {
-                    trajectoryConfig.addConstraint(trajectoryConstraint);
-                }
-                trajectoryConfig.setReversed(isReversed());
-                return trajectory = TrajectoryGenerator.generateTrajectory(point2DList, trajectoryConfig);
+        completableFutureTrajectory = CompletableFuture.supplyAsync(() -> {
+            TrajectoryConfig trajectoryConfig = new TrajectoryConfig(maxVelocityMetersPerSecond, maxAccelerationMetersPerSecondSq);
+            for (TrajectoryConstraint trajectoryConstraint : trajectoryConstraints) {
+                trajectoryConfig.addConstraint(trajectoryConstraint);
             }
+            trajectoryConfig.setReversed(isReversed());
+            trajectoryConfig.setStartVelocity(velocityStart);
+            trajectoryConfig.setEndVelocity(velocityEnd);
+            return trajectory = TrajectoryGenerator.generateTrajectory(point2DList, trajectoryConfig);
         });
 
 
@@ -323,5 +358,21 @@ public class PathRenderer implements MovablePointEventHandler, Serializable {
 
     public void setReversed(boolean reversed) {
         this.reversed = reversed;
+    }
+
+    public float getVelocityStart() {
+        return velocityStart;
+    }
+
+    public void setVelocityStart(float velocityStart) {
+        this.velocityStart = velocityStart;
+    }
+
+    public float getVelocityEnd() {
+        return velocityEnd;
+    }
+
+    public void setVelocityEnd(float velocityEnd) {
+        this.velocityEnd = velocityEnd;
     }
 }
