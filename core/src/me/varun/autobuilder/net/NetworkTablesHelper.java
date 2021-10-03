@@ -13,6 +13,9 @@ import java.util.List;
 
 public class NetworkTablesHelper {
 
+    private static final float INCHES_PER_METER = 39.3700787f;
+    static NetworkTablesHelper networkTablesInstance = new NetworkTablesHelper();
+    private final ArrayList<Float[]> robotPositions = new ArrayList<>();
     NetworkTableInstance inst = NetworkTableInstance.getDefault();
     NetworkTable table = inst.getTable("autodata");
     NetworkTableEntry autoPath = table.getEntry("autoPath");
@@ -20,20 +23,14 @@ public class NetworkTablesHelper {
     NetworkTableEntry xPos = position.getEntry("x");
     NetworkTableEntry yPos = position.getEntry("y");
     NetworkTableEntry enabledTable = table.getEntry("enabled");
-
-    static NetworkTablesHelper networkTablesInstance = new NetworkTablesHelper();
-
-    private ArrayList<Float[]> robotPositions = new ArrayList<>();
     private boolean enabled = false;
 
-    private static final float INCHES_PER_METER = 39.3700787f;
+    private NetworkTablesHelper() {
 
-    public static NetworkTablesHelper getInstance(){
-        return networkTablesInstance;
     }
 
-    private NetworkTablesHelper(){
-
+    public static NetworkTablesHelper getInstance() {
+        return networkTablesInstance;
     }
 
     public void start() {
@@ -41,9 +38,9 @@ public class NetworkTablesHelper {
         //inst.startDSClient();  // recommended if running on DS computer; this gets the robot IP from the DS
     }
 
-    public void pushData(List<AbstractGuiItem> guiItemList){
+    public void pushData(List<AbstractGuiItem> guiItemList) {
 
-        if(inst.isConnected()){
+        if (inst.isConnected()) {
             try {
                 String autonomousString = Serializer.serializeToString(GuiSerializer.serializeAutonomousForDeployment(guiItemList));
                 autoPath.setString(autonomousString);
@@ -60,18 +57,18 @@ public class NetworkTablesHelper {
 
     }
 
-    public void updateRobotPath(){
-        if(inst.isConnected()){
-            if(enabledTable.getBoolean(false)){
-                if(!enabled){
+    public void updateRobotPath() {
+        if (inst.isConnected()) {
+            if (enabledTable.getBoolean(false)) {
+                if (!enabled) {
                     robotPositions.clear();
                     enabled = true;
                 }
 
                 float x = (float) xPos.getDouble(0);
                 float y = (float) yPos.getDouble(0);
-                if(robotPositions.size()<1 || (robotPositions.get(robotPositions.size()-1)[0] != x || robotPositions.get(robotPositions.size()-1)[1] != y)){
-                    robotPositions.add(new Float[] {x/INCHES_PER_METER, y/INCHES_PER_METER});
+                if (robotPositions.size() < 1 || (robotPositions.get(robotPositions.size() - 1)[0] != x || robotPositions.get(robotPositions.size() - 1)[1] != y)) {
+                    robotPositions.add(new Float[]{x / INCHES_PER_METER, y / INCHES_PER_METER});
                 }
             } else {
                 enabled = false;

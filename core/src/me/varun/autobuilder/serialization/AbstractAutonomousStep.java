@@ -3,7 +3,6 @@ package me.varun.autobuilder.serialization;
 import com.fasterxml.jackson.annotation.*;
 import com.fasterxml.jackson.annotation.JsonSubTypes.Type;
 
-import java.io.Serializable;
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME,
         include = JsonTypeInfo.As.PROPERTY,
         property = "type")
@@ -12,7 +11,7 @@ import java.io.Serializable;
         @Type(value = ScriptAutonomousStep.class, name = "script"),
 })
 @JsonIgnoreProperties(ignoreUnknown = true)
-public abstract class AbstractAutonomousStep{
+public abstract class AbstractAutonomousStep {
 
     private final boolean closed;
 

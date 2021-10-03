@@ -10,11 +10,11 @@ public class InputEventThrower implements InputProcessor {
 
     @NotNull ArrayList<InputEventListener> eventHandlers = new ArrayList<>();
 
-    public void register(@NotNull InputEventListener eventHandler){
+    public void register(@NotNull InputEventListener eventHandler) {
         eventHandlers.add(eventHandler);
     }
 
-    public boolean unRegister(@NotNull InputEventListener eventHandler){
+    public boolean unRegister(@NotNull InputEventListener eventHandler) {
         return eventHandlers.remove(eventHandler);
     }
 
@@ -30,11 +30,11 @@ public class InputEventThrower implements InputProcessor {
 
     @Override
     public boolean keyTyped(char character) {
-        try{
+        try {
             for (InputEventListener eventHandler : eventHandlers) {
                 eventHandler.onKeyType(character);
             }
-        } catch (Exception e){
+        } catch (Exception e) {
             AutoBuilder.handleCrash(e);
         }
         return false;
@@ -67,7 +67,7 @@ public class InputEventThrower implements InputProcessor {
             for (InputEventListener eventHandler : eventHandlers) {
                 eventHandler.onScroll(amountX, amountY);
             }
-        } catch (Exception e){
+        } catch (Exception e) {
             AutoBuilder.handleCrash(e);
         }
 

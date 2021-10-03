@@ -5,17 +5,16 @@ import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.utils.Disposable;
-import me.varun.autobuilder.UndoHandler;
 import me.varun.autobuilder.gui.Gui;
 import me.varun.autobuilder.util.RoundedShapeRenderer;
 import org.jetbrains.annotations.NotNull;
 
 public abstract class AbstractGuiButton implements Disposable {
+    private final @NotNull Texture texture;
     private int x;
     private int y;
     private int width;
     private int height;
-    private final @NotNull Texture texture;
     private boolean hovering;
 
     public AbstractGuiButton(int x, int y, int width, int height, @NotNull Texture texture) {
@@ -28,22 +27,22 @@ public abstract class AbstractGuiButton implements Disposable {
 
     }
 
-    public boolean checkClick(Gui gui){
+    public boolean checkClick(Gui gui) {
         return hovering;
     }
 
-    public boolean checkClick(){
+    public boolean checkClick() {
         return hovering;
     }
 
 
-    public boolean checkHover(){
+    public boolean checkHover() {
         return hovering = Gdx.input.getX() >= x && Gdx.input.getX() <= x + width &&
                 Gdx.graphics.getHeight() - Gdx.input.getY() >= y && Gdx.graphics.getHeight() - Gdx.input.getY() <= y + height;
     }
 
-    public void render(@NotNull RoundedShapeRenderer shapeRenderer, @NotNull SpriteBatch spriteBatch){
-        if(hovering){
+    public void render(@NotNull RoundedShapeRenderer shapeRenderer, @NotNull SpriteBatch spriteBatch) {
+        if (hovering) {
             shapeRenderer.setColor(Color.LIGHT_GRAY);
         } else {
             shapeRenderer.setColor(Color.WHITE);
@@ -52,13 +51,13 @@ public abstract class AbstractGuiButton implements Disposable {
         shapeRenderer.roundedRect(x, y, width, height, 4);
         shapeRenderer.flush();
         spriteBatch.begin();
-        spriteBatch.draw(texture, x+5, y+5, width-10, height-10);
+        spriteBatch.draw(texture, x + 5, y + 5, width - 10, height - 10);
         spriteBatch.end();
 
     }
 
-    public void render(@NotNull RoundedShapeRenderer shapeRenderer, @NotNull SpriteBatch spriteBatch, boolean renderTexture){
-        if(hovering){
+    public void render(@NotNull RoundedShapeRenderer shapeRenderer, @NotNull SpriteBatch spriteBatch, boolean renderTexture) {
+        if (hovering) {
             shapeRenderer.setColor(Color.LIGHT_GRAY);
         } else {
             shapeRenderer.setColor(Color.WHITE);
@@ -67,7 +66,8 @@ public abstract class AbstractGuiButton implements Disposable {
         shapeRenderer.roundedRect(x, y, width, height, 4);
         shapeRenderer.flush();
         spriteBatch.begin();
-        if(renderTexture) spriteBatch.draw(texture, x+5, y+5, width-10, ((width-10f)/(texture.getWidth()))*texture.getHeight());
+        if (renderTexture)
+            spriteBatch.draw(texture, x + 5, y + 5, width - 10, ((width - 10f) / (texture.getWidth())) * texture.getHeight());
         spriteBatch.end();
 
     }
@@ -104,7 +104,7 @@ public abstract class AbstractGuiButton implements Disposable {
         this.height = height;
     }
 
-    public void dispose(){
+    public void dispose() {
         texture.dispose();
     }
 }

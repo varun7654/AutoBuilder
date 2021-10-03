@@ -22,8 +22,8 @@ public class TrajectoryAutonomousStep extends AbstractAutonomousStep {
                                     @JsonProperty(required = true, value = "reversed") boolean reversed,
                                     @JsonProperty(required = true, value = "color") float color,
                                     @JsonProperty(required = true, value = "closed") boolean closed,
-                                    @JsonProperty(defaultValue = "0", value = "velocityStart")float velocityStart,
-                                    @JsonProperty(defaultValue = "0", value = "velocityEnd")float velocityEnd) {
+                                    @JsonProperty(defaultValue = "0", value = "velocityStart") float velocityStart,
+                                    @JsonProperty(defaultValue = "0", value = "velocityEnd") float velocityEnd) {
         super(closed);
         this.reversed = reversed;
         this.color = color;
@@ -34,18 +34,18 @@ public class TrajectoryAutonomousStep extends AbstractAutonomousStep {
         this.velocityEnd = velocityEnd;
     }
 
-    public Trajectory getTrajectory(){
+    public Trajectory getTrajectory() {
         return new Trajectory(states);
     }
 
     @JsonProperty("pointList")
-    public List<Pose2d> getPose2DList(){
+    public List<Pose2d> getPose2DList() {
 
         return pose2DList;
     }
 
     @JsonProperty
-    public boolean isReversed(){
+    public boolean isReversed() {
         return reversed;
     }
 

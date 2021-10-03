@@ -28,8 +28,9 @@ public class CameraHandler extends InputEventListener {
 
     float targetX;
     float targetY;
+    Vector3 worldPosOfTargetScreenPos = new Vector3();
 
-    public CameraHandler(@NotNull OrthographicCamera cam, @NotNull InputEventThrower inputEventThrower){
+    public CameraHandler(@NotNull OrthographicCamera cam, @NotNull InputEventThrower inputEventThrower) {
         this.cam = cam;
         lastMousePos = new Vector2(Gdx.input.getX(), Gdx.input.getY());
         mousePos = new Vector2(Gdx.input.getX(), Gdx.input.getY());
@@ -41,8 +42,9 @@ public class CameraHandler extends InputEventListener {
         targetY = cam.position.y;
     }
 
-    public void update(boolean moving, boolean onGui){
-        if(onGui) zoom = lastZoom; else lastZoom = zoom;
+    public void update(boolean moving, boolean onGui) {
+        if (onGui) zoom = lastZoom;
+        else lastZoom = zoom;
         mousePos.set(Gdx.input.getX(), Gdx.input.getY());
 
         /*
@@ -54,7 +56,7 @@ public class CameraHandler extends InputEventListener {
         oldMouseWorldPos.set(zoomMousePos, 0);
         cam.unproject(oldMouseWorldPos);
 
-        cam.zoom = cam.zoom + ((this.zoom - cam.zoom)/(Math.max(1,0.07f/Gdx.graphics.getDeltaTime()))); //Do Smooth Zoom
+        cam.zoom = cam.zoom + ((this.zoom - cam.zoom) / (Math.max(1, 0.07f / Gdx.graphics.getDeltaTime()))); //Do Smooth Zoom
 
         cam.update();
         newMouseWorldPos.set(zoomMousePos, 0);
@@ -68,45 +70,39 @@ public class CameraHandler extends InputEventListener {
         targetX -= zoomXChange;
         targetY -= zoomYChange;
         cam.update();
-        if(Gdx.input.isButtonJustPressed(Input.Buttons.LEFT) && !moving){
+        if (Gdx.input.isButtonJustPressed(Input.Buttons.LEFT) && !moving) {
             mouseHeldLastFrame = true;
         }
 
-        if(mouseHeldLastFrame && Gdx.input.isButtonPressed(Input.Buttons.LEFT)){ //Left mouse button down. Drag Camera around
+        if (mouseHeldLastFrame && Gdx.input.isButtonPressed(Input.Buttons.LEFT)) { //Left mouse button down. Drag Camera around
             Vector2 deltaPos = mousePos.sub(lastMousePos);
-            cam.position.x = cam.position.x - (deltaPos.x*cam.zoom);
-            cam.position.y = cam.position.y + (deltaPos.y*cam.zoom);
+            cam.position.x = cam.position.x - (deltaPos.x * cam.zoom);
+            cam.position.y = cam.position.y + (deltaPos.y * cam.zoom);
             cam.update();
             targetX = cam.position.x;
             targetY = cam.position.y;
         } else {
             mouseHeldLastFrame = false;
-            cam.position.x = cam.position.x + ((targetX - cam.position.x)/(Math.max(1,0.1f/Gdx.graphics.getDeltaTime())));
-            cam.position.y = cam.position.y + ((targetY - cam.position.y)/(Math.max(1,0.1f/Gdx.graphics.getDeltaTime())));
+            cam.position.x = cam.position.x + ((targetX - cam.position.x) / (Math.max(1, 0.1f / Gdx.graphics.getDeltaTime())));
+            cam.position.y = cam.position.y + ((targetY - cam.position.y) / (Math.max(1, 0.1f / Gdx.graphics.getDeltaTime())));
             cam.update();
         }
-
-        //TODO Implement smooth cam movement
 
         lastMousePos.set(Gdx.input.getX(), Gdx.input.getY());
     }
 
-
-
     @Override
     public void onScroll(float amountX, float amountY) {
-        if(amountY == 1){
+        if (amountY == 1) {
             zoom = zoom * 1.2f;
-        } else if (amountY == - 1){
+        } else if (amountY == -1) {
             zoom = zoom * 0.8f;
         }
         MathUntil.clamp(zoom, 0.2, 10);
         zoomMousePos.set(Gdx.input.getX(), Gdx.input.getY());
     }
 
-
-    Vector3 worldPosOfTargetScreenPos = new Vector3();
-    public void ensureOnScreen(Vector3 worldPos){
+    public void ensureOnScreen(Vector3 worldPos) {
         Vector3 screenPos = new Vector3(worldPos);
         cam.project(screenPos); //Get chordates of the point in relation to the screen
 
@@ -116,19 +112,19 @@ public class CameraHandler extends InputEventListener {
         float targetScreenY = Gdx.graphics.getHeight() - screenPos.y;
 
         //Check screen bounds and if were outside of it set a target screen pos thats inside the screen
-        if(screenPos.x < 25 ){
+        if (screenPos.x < 25) {
             targetScreenX = 50;
-        } else if(screenPos.x > Gdx.graphics.getWidth() - 500){
+        } else if (screenPos.x > Gdx.graphics.getWidth() - 500) {
             targetScreenX = Gdx.graphics.getWidth() - 525;
         }
 
-        if(screenPos.y < 25 ){
+        if (screenPos.y < 25) {
             targetScreenY = Gdx.graphics.getHeight() - 50;
-        } else if( screenPos.y > Gdx.graphics.getHeight() - 25){
+        } else if (screenPos.y > Gdx.graphics.getHeight() - 25) {
             targetScreenY = 50;
         }
 
-        worldPosOfTargetScreenPos.set(targetScreenX, targetScreenY ,0);
+        worldPosOfTargetScreenPos.set(targetScreenX, targetScreenY, 0);
         cam.unproject(worldPosOfTargetScreenPos); //Find the world position of where we want the point on the screen
 
         //Find the difference between where we want the point (unprojected target screen cords) and where the point is

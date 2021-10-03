@@ -18,13 +18,7 @@ import javax.script.ScriptException;
 import java.lang.invoke.WrongMethodTypeException;
 
 public class ScriptItem extends AbstractGuiItem implements TextChangeListener {
-    private final ShaderProgram fontShader;
-    private final BitmapFont font;
-
-    TextBox textBox;
-
     private static final Color LIGHT_BLUE = Color.valueOf("86CDF9");
-
     static ScriptEngineManager manager;
     static ScriptEngine engine;
 
@@ -40,7 +34,11 @@ public class ScriptItem extends AbstractGuiItem implements TextChangeListener {
         engine.put("auto", new TemplateAuto(new Translation2D()));
     }
 
+    private final ShaderProgram fontShader;
+    private final BitmapFont font;
+    TextBox textBox;
     boolean error = true;
+
     public ScriptItem(@NotNull ShaderProgram fontShader, @NotNull BitmapFont font, @NotNull InputEventThrower inputEventThrower) {
         this.fontShader = fontShader;
         this.font = font;
@@ -61,8 +59,8 @@ public class ScriptItem extends AbstractGuiItem implements TextChangeListener {
     @Override
     public int render(@NotNull RoundedShapeRenderer shapeRenderer, @NotNull SpriteBatch spriteBatch, int drawStartX, int drawStartY, int drawWidth, Gui gui) {
         super.render(shapeRenderer, spriteBatch, drawStartX, drawStartY, drawWidth, gui);
-        if(isClosed()){
-            renderHeader(shapeRenderer,spriteBatch, fontShader, font, drawStartX, drawStartY, drawWidth, trashTexture, warningTexture, LIGHT_BLUE, "Script", error);
+        if (isClosed()) {
+            renderHeader(shapeRenderer, spriteBatch, fontShader, font, drawStartX, drawStartY, drawWidth, trashTexture, warningTexture, LIGHT_BLUE, "Script", error);
             spriteBatch.end();
             return 40;
         } else {
@@ -70,7 +68,7 @@ public class ScriptItem extends AbstractGuiItem implements TextChangeListener {
             shapeRenderer.setColor(LIGHT_GREY);
             shapeRenderer.roundedRect(drawStartX + 5, (drawStartY - 40) - height, drawWidth - 5, height + 5, 2);
 
-            renderHeader(shapeRenderer,spriteBatch, fontShader, font, drawStartX, drawStartY, drawWidth, trashTexture, warningTexture, LIGHT_BLUE, "Script", error);
+            renderHeader(shapeRenderer, spriteBatch, fontShader, font, drawStartX, drawStartY, drawWidth, trashTexture, warningTexture, LIGHT_BLUE, "Script", error);
 
             spriteBatch.setShader(fontShader);
             font.setColor(Color.BLACK);
@@ -90,7 +88,7 @@ public class ScriptItem extends AbstractGuiItem implements TextChangeListener {
             error = false;
         } catch (ScriptException | WrongMethodTypeException exception) {
             error = true;
-        } catch (Exception e){
+        } catch (Exception e) {
             System.out.println("Unexpected Exception");
             e.printStackTrace();
             error = true;

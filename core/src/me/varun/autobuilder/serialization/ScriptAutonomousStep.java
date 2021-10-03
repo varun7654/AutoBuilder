@@ -1,10 +1,9 @@
 package me.varun.autobuilder.serialization;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-public class ScriptAutonomousStep extends AbstractAutonomousStep{
+public class ScriptAutonomousStep extends AbstractAutonomousStep {
 
     private final String script;
     private final boolean valid;

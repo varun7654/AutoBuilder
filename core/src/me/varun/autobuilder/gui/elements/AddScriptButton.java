@@ -10,7 +10,7 @@ import me.varun.autobuilder.gui.Gui;
 import me.varun.autobuilder.gui.ScriptItem;
 import org.jetbrains.annotations.NotNull;
 
-public class AddScriptButton extends  AbstractGuiButton{
+public class AddScriptButton extends AbstractGuiButton {
     private @NotNull
     final ShaderProgram fontShader;
     private @NotNull
@@ -18,6 +18,7 @@ public class AddScriptButton extends  AbstractGuiButton{
 
     private @NotNull
     final BitmapFont font;
+
     public AddScriptButton(int x, int y, int width, int height, @NotNull ShaderProgram fontShader, @NotNull BitmapFont font,
                            @NotNull InputEventThrower inputEventThrower) {
         super(x, y, width, height, new Texture(Gdx.files.internal("script_icon.png"), true));
@@ -28,7 +29,7 @@ public class AddScriptButton extends  AbstractGuiButton{
 
     @Override
     public boolean checkClick(@NotNull Gui gui) {
-        if(super.checkClick(gui)){
+        if (super.checkClick(gui)) {
             gui.guiItems.add(new ScriptItem(fontShader, font, inputEventThrower));
             UndoHandler.getInstance().somethingChanged();
             return true;

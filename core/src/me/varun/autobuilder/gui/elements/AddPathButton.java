@@ -11,7 +11,7 @@ import me.varun.autobuilder.gui.Gui;
 import me.varun.autobuilder.gui.TrajectoryItem;
 import org.jetbrains.annotations.NotNull;
 
-public class AddPathButton extends AbstractGuiButton{
+public class AddPathButton extends AbstractGuiButton {
 
     private final @NotNull ShaderProgram fontShader;
     private final @NotNull BitmapFont font;
@@ -29,7 +29,7 @@ public class AddPathButton extends AbstractGuiButton{
 
     @Override
     public boolean checkClick(@NotNull Gui gui) {
-        if(super.checkClick(gui)){
+        if (super.checkClick(gui)) {
             gui.guiItems.add(new TrajectoryItem(gui, fontShader, font, eventThrower, cameraHandler));
             UndoHandler.getInstance().somethingChanged();
             return true;

@@ -17,6 +17,10 @@ public class MovablePointRenderer extends PointRenderer {
 
 
     private final MovablePointEventHandler eventHandler;
+    private final Vector3 startPress = new Vector3();
+    private boolean pressed = false;
+    private boolean dragStarted = false;
+
     public MovablePointRenderer(float x, float y, @NotNull Color color, float radius, @NotNull MovablePointEventHandler eventHandler) {
         super(x, y, color, radius);
         this.eventHandler = eventHandler;
@@ -27,20 +31,16 @@ public class MovablePointRenderer extends PointRenderer {
         this.eventHandler = eventHandler;
     }
 
-    private final Vector3 startPress = new Vector3();
-    private boolean pressed = false;
-    private boolean dragStarted = false;
-
-    public boolean update(@NotNull OrthographicCamera camera, @NotNull Vector3 mousePos, @NotNull Vector3 lastMousePos){
+    public boolean update(@NotNull OrthographicCamera camera, @NotNull Vector3 mousePos, @NotNull Vector3 lastMousePos) {
         Vector3 mouseDiff = new Vector3(mousePos).sub(this.getRenderPos3());
 
-        if(Gdx.input.isButtonJustPressed(Input.Buttons.LEFT) || Gdx.input.isButtonJustPressed(Input.Buttons.RIGHT)){
-            if (mouseDiff.len2()<Math.pow(20* camera.zoom, 2)){
+        if (Gdx.input.isButtonJustPressed(Input.Buttons.LEFT) || Gdx.input.isButtonJustPressed(Input.Buttons.RIGHT)) {
+            if (mouseDiff.len2() < Math.pow(20 * camera.zoom, 2)) {
                 PointClickEvent event = new PointClickEvent(getPos2(), this, Gdx.input.isButtonJustPressed(Input.Buttons.LEFT), Gdx.input.isButtonJustPressed(Input.Buttons.RIGHT));
                 eventHandler.onPointClick(event);
                 this.setPosition(event.getPos());
 
-                if(Gdx.input.isButtonJustPressed(Input.Buttons.LEFT)){
+                if (Gdx.input.isButtonJustPressed(Input.Buttons.LEFT)) {
                     startPress.set(mousePos);
                     pressed = true;
                 }
@@ -48,17 +48,17 @@ public class MovablePointRenderer extends PointRenderer {
         }
 
 
-        if(Gdx.input.isButtonPressed(Input.Buttons.LEFT)){
-             if(pressed && !(new Vector3(lastMousePos).sub(mousePos).len2() == 0) && (dragStarted || (new Vector3(startPress).sub(mousePos).len2()>Math.pow(10 * camera.zoom, 2)))) {
+        if (Gdx.input.isButtonPressed(Input.Buttons.LEFT)) {
+            if (pressed && !(new Vector3(lastMousePos).sub(mousePos).len2() == 0) && (dragStarted || (new Vector3(startPress).sub(mousePos).len2() > Math.pow(10 * camera.zoom, 2)))) {
                 dragStarted = true;
-                Vector2 newPos = new Vector2(mousePos.x/AutoBuilder.POINT_SCALE_FACTOR, mousePos.y/AutoBuilder.POINT_SCALE_FACTOR);
+                Vector2 newPos = new Vector2(mousePos.x / AutoBuilder.POINT_SCALE_FACTOR, mousePos.y / AutoBuilder.POINT_SCALE_FACTOR);
                 PointMoveEvent event = new PointMoveEvent(this.getPos2(), newPos, this);
                 eventHandler.onPointMove(event);
                 this.setPosition(event.getNewPos());
             }
 
         } else {
-            if(pressed && dragStarted){
+            if (pressed && dragStarted) {
                 UndoHandler.getInstance().somethingChanged();
             }
             pressed = false;

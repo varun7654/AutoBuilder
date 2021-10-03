@@ -44,46 +44,40 @@ public class AutoBuilder extends ApplicationAdapter {
     public static final float LINE_THICKNESS = 4;
     public static final float POINT_SIZE = 8;
 
-    public static final float ROBOT_WIDTH = 36.3375f*0.0254f;
-    public static final float ROBOT_HEIGHT = 36.1875f*0.0254f;
-
-    private SpriteBatch batch;
-    private SpriteBatch hudBatch;
+    public static final float ROBOT_WIDTH = 36.3375f * 0.0254f;
+    public static final float ROBOT_HEIGHT = 36.1875f * 0.0254f;
     public static BitmapFont font;
     public static ShaderProgram fontShader;
-    private Texture field;
-    private RoundedShapeRenderer shapeRenderer;
-    private RoundedShapeRenderer hudShapeRenderer;
-
-    @NotNull OrthographicCamera cam;
-    @NotNull Viewport viewport;
-    @NotNull CameraHandler cameraHandler;
-
-    @NotNull Viewport hudViewport;
-    @NotNull OrthographicCamera hudCam;
-
-    @NotNull Preferences preferences;
-
-    @NotNull PointRenderer origin;
-
-    @NotNull ExecutorService pathingService = Executors.newFixedThreadPool(1);
-    @NotNull Gui gui;
-
-    @NotNull InputEventThrower inputEventThrower = new InputEventThrower();
-
-    @NotNull UndoHandler undoHandler = UndoHandler.getInstance();
-
     public static ArrayList<TrajectoryConstraint> trajectoryConstraints = new ArrayList<>();
     public static double maxVelocityMetersPerSecond;
     public static double maxAccelerationMetersPerSecondSq;
-
-    NetworkTablesHelper networkTables = NetworkTablesHelper.getInstance();
 
     static {
         maxVelocityMetersPerSecond = 3.048;
         maxAccelerationMetersPerSecondSq = 5.08;
         trajectoryConstraints.add(new CentripetalAccelerationConstraint(1.016));
     }
+
+    private final Vector3 mousePos = new Vector3();
+    private final Vector3 lastMousePos = new Vector3();
+    @NotNull OrthographicCamera cam;
+    @NotNull Viewport viewport;
+    @NotNull CameraHandler cameraHandler;
+    @NotNull Viewport hudViewport;
+    @NotNull OrthographicCamera hudCam;
+    @NotNull Preferences preferences;
+    @NotNull PointRenderer origin;
+    @NotNull ExecutorService pathingService = Executors.newFixedThreadPool(1);
+    @NotNull Gui gui;
+    @NotNull InputEventThrower inputEventThrower = new InputEventThrower();
+    @NotNull UndoHandler undoHandler = UndoHandler.getInstance();
+    NetworkTablesHelper networkTables = NetworkTablesHelper.getInstance();
+    int time;
+    private SpriteBatch batch;
+    private SpriteBatch hudBatch;
+    private Texture field;
+    private RoundedShapeRenderer shapeRenderer;
+    private RoundedShapeRenderer hudShapeRenderer;
 
     public static void handleCrash(Exception e) {
         e.printStackTrace();
@@ -92,7 +86,7 @@ public class AutoBuilder extends ApplicationAdapter {
     }
 
     @Override
-    public void create () {
+    public void create() {
         networkTables.start();
         Gdx.app.getInput().setInputProcessor(inputEventThrower);
 
@@ -105,18 +99,18 @@ public class AutoBuilder extends ApplicationAdapter {
         field.setFilter(Texture.TextureFilter.MipMap, Texture.TextureFilter.Nearest);
 
         cam = new OrthographicCamera(Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
-        cam.position.x = Gdx.graphics.getWidth()/2f;
-        cam.position.y = Gdx.graphics.getHeight()/2f;
+        cam.position.x = Gdx.graphics.getWidth() / 2f;
+        cam.position.y = Gdx.graphics.getHeight() / 2f;
         viewport = new ExtendViewport(Gdx.graphics.getWidth(), Gdx.graphics.getHeight(), cam);
         cameraHandler = new CameraHandler(cam, inputEventThrower);
 
 
         hudCam = new OrthographicCamera(Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
-        hudCam.position.x = Gdx.graphics.getWidth()/2f;
-        hudCam.position.y = Gdx.graphics.getHeight()/2f;
+        hudCam.position.x = Gdx.graphics.getWidth() / 2f;
+        hudCam.position.y = Gdx.graphics.getHeight() / 2f;
         hudViewport = new ScreenViewport(hudCam);
 
-        preferences =  Gdx.app.getPreferences("me.varun.autobuilder.prefs");
+        preferences = Gdx.app.getPreferences("me.varun.autobuilder.prefs");
 
         origin = new PointRenderer(preferences.getFloat("ORIGIN_POINT_X", 0), preferences.getFloat("ORIGIN_POINT_Y", 0),
                 Color.ORANGE, POINT_SIZE);
@@ -137,9 +131,9 @@ public class AutoBuilder extends ApplicationAdapter {
             Gdx.app.error("fontShader", "compilation failed:\n" + fontShader.getLog());
         }
 
-        gui = new Gui(hudViewport, font, fontShader, inputEventThrower, pathingService, cameraHandler );
+        gui = new Gui(hudViewport, font, fontShader, inputEventThrower, pathingService, cameraHandler);
 
-        File file = new File(Gdx.files.getExternalStoragePath()+ "/AppData/Roaming/AutoBuilder/data.json");
+        File file = new File(Gdx.files.getExternalStoragePath() + "/AppData/Roaming/AutoBuilder/data.json");
         System.out.println(file.getParentFile().mkdirs());
 
         try {
@@ -153,17 +147,12 @@ public class AutoBuilder extends ApplicationAdapter {
 
     }
 
-    private final Vector3 mousePos = new Vector3();
-    private final Vector3 lastMousePos = new Vector3();
-
-    int time;
-
     @Override
-    public void render () {
-        try{
+    public void render() {
+        try {
             update();
             draw();
-        } catch (Exception e){
+        } catch (Exception e) {
             handleCrash(e);
         }
 
@@ -174,14 +163,14 @@ public class AutoBuilder extends ApplicationAdapter {
         //Clear everything
         Gdx.gl.glClearColor(0f, 0f, 0f, 1f);
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT | GL20.GL_DEPTH_BUFFER_BIT |
-                (Gdx.graphics.getBufferFormat().coverageSampling?GL20.GL_COVERAGE_BUFFER_BIT_NV:0));
+                (Gdx.graphics.getBufferFormat().coverageSampling ? GL20.GL_COVERAGE_BUFFER_BIT_NV : 0));
 
         //Initialize our camera for the batch
         batch.setProjectionMatrix(cam.combined);
 
         //Draw the image
         batch.begin();
-        batch.draw(field, -639, -2160/2);
+        batch.draw(field, -639, -2160 / 2);
         batch.end();
 
         //Initialize our camera and shape renderer
@@ -192,7 +181,7 @@ public class AutoBuilder extends ApplicationAdapter {
         //Draw all the paths
         origin.draw(shapeRenderer, cam);
         for (AbstractGuiItem guiItem : gui.guiItems) {
-            if(guiItem instanceof TrajectoryItem){
+            if (guiItem instanceof TrajectoryItem) {
                 ((TrajectoryItem) guiItem).getPathRenderer().render(shapeRenderer, cam);
             }
         }
@@ -200,9 +189,9 @@ public class AutoBuilder extends ApplicationAdapter {
 
         //Draw the robot path
         shapeRenderer.setColor(Color.WHITE);
-        for (int i = 0; i < networkTables.getRobotPositions().size()-1; i++) {
+        for (int i = 0; i < networkTables.getRobotPositions().size() - 1; i++) {
             Float[] pos1 = networkTables.getRobotPositions().get(i);
-            Float[] pos2 = networkTables.getRobotPositions().get(i+1);
+            Float[] pos2 = networkTables.getRobotPositions().get(i + 1);
             shapeRenderer.rectLine(pos1[0], pos1[1], pos2[0], pos2[1], LINE_THICKNESS);
         }
 
@@ -219,7 +208,7 @@ public class AutoBuilder extends ApplicationAdapter {
 
         font.getData().setScale(0.2f);
         font.setColor(Color.WHITE);
-        font.draw(hudBatch, "FPS: " + Gdx.graphics.getFramesPerSecond() + ", " + Gdx.graphics.getDeltaTime()*1000 + " ms", 0, 12);
+        font.draw(hudBatch, "FPS: " + Gdx.graphics.getFramesPerSecond() + ", " + Gdx.graphics.getDeltaTime() * 1000 + " ms", 0, 12);
 
         hudBatch.setShader(null);
         hudBatch.end();
@@ -241,20 +230,20 @@ public class AutoBuilder extends ApplicationAdapter {
         PointChange lastPointChange = PointChange.NONE;
         boolean pointDeleted = false;
         for (AbstractGuiItem guiItem : gui.guiItems) {
-            if(guiItem instanceof TrajectoryItem){
+            if (guiItem instanceof TrajectoryItem) {
                 PathRenderer pathRenderer = ((TrajectoryItem) guiItem).getPathRenderer();
                 //It's ok if lastPose2d is null if PointChange != LAST
                 Pose2d lastPose2d = null;
-                if(lastPointChange == PointChange.LAST){
-                    lastPose2d = lastPathRender.getPoint2DList().get(lastPathRender.getPoint2DList().size()-1);
+                if (lastPointChange == PointChange.LAST) {
+                    lastPose2d = lastPathRender.getPoint2DList().get(lastPathRender.getPoint2DList().size() - 1);
                 }
                 lastPointChange = pathRenderer.update(cam, mousePos, lastMousePos, lastPointChange, lastPose2d, somethingMoved);
 
-                if(lastPointChange != PointChange.NONE){
+                if (lastPointChange != PointChange.NONE) {
                     somethingMoved = true;
                 }
 
-                if(lastPointChange == PointChange.REMOVAL){
+                if (lastPointChange == PointChange.REMOVAL) {
                     pointDeleted = true;
                 }
 
@@ -263,12 +252,12 @@ public class AutoBuilder extends ApplicationAdapter {
         }
 
         //Don't add points if we've just deleted one
-        if(!pointDeleted){
+        if (!pointDeleted) {
             boolean pointAdded = false;
             for (AbstractGuiItem guiItem : gui.guiItems) {
                 if (guiItem instanceof TrajectoryItem) {
                     PathRenderer pathRenderer = ((TrajectoryItem) guiItem).getPathRenderer();
-                    if(!pointAdded && PointChange.ADDITION == pathRenderer.addPoints(mousePos)){
+                    if (!pointAdded && PointChange.ADDITION == pathRenderer.addPoints(mousePos)) {
                         pointAdded = true;
                     }
                 }
@@ -284,7 +273,7 @@ public class AutoBuilder extends ApplicationAdapter {
     }
 
     @Override
-    public void dispose () {
+    public void dispose() {
         batch.dispose();
         hudBatch.dispose();
         font.dispose();
@@ -292,12 +281,9 @@ public class AutoBuilder extends ApplicationAdapter {
     }
 
 
-
-
     @Override
-    public void resize(int width, int height)
-    {
-        hudViewport.update(width,height, true);
+    public void resize(int width, int height) {
+        hudViewport.update(width, height, true);
         viewport.update(width, height);
 
         gui.updateScreen(width, height);
@@ -306,7 +292,7 @@ public class AutoBuilder extends ApplicationAdapter {
     @Override
     public void pause() {
         super.pause();
-        File file = new File(Gdx.files.getExternalStoragePath()+ "/AppData/Roaming/AutoBuilder/data.json");
+        File file = new File(Gdx.files.getExternalStoragePath() + "/AppData/Roaming/AutoBuilder/data.json");
         file.getParentFile().mkdirs();
 
         try {

@@ -1,16 +1,14 @@
 package me.varun.autobuilder.net;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
 import me.varun.autobuilder.serialization.Autonomous;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
 
 public class Serializer {
     static ObjectMapper objectMapper = new ObjectMapper();
+
     static {
         //objectMapper.configure(SerializationFeature.INDENT_OUTPUT, true);
     }
@@ -30,7 +28,7 @@ public class Serializer {
     }
 
     public static Autonomous deserialize(String object) throws IOException, ClassNotFoundException {
-       return objectMapper.readValue(object, Autonomous.class);
+        return objectMapper.readValue(object, Autonomous.class);
     }
 
 }

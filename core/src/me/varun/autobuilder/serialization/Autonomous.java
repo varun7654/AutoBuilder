@@ -1,19 +1,15 @@
 package me.varun.autobuilder.serialization;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.core.JsonGenerator;
 
-import java.io.Serializable;
-import java.util.ArrayList;
 import java.util.List;
 
-public class Autonomous{
+public class Autonomous {
     private final List<AbstractAutonomousStep> autonomousSteps;
 
     @JsonCreator
-    public Autonomous(@JsonProperty(required = true, value = "autonomousSteps") List<AbstractAutonomousStep> autonomousSteps){
+    public Autonomous(@JsonProperty(required = true, value = "autonomousSteps") List<AbstractAutonomousStep> autonomousSteps) {
 
         this.autonomousSteps = autonomousSteps;
     }

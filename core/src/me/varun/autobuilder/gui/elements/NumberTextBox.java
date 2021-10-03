@@ -7,14 +7,15 @@ import me.varun.autobuilder.events.scroll.InputEventThrower;
 import me.varun.autobuilder.events.textchange.TextPositionChangeListener;
 import org.jetbrains.annotations.NotNull;
 
-public class NumberTextBox extends TextBox{
-    @NotNull private final TextPositionChangeListener textPositionChangeListener;
+public class NumberTextBox extends TextBox {
+    @NotNull
+    private final TextPositionChangeListener textPositionChangeListener;
     private final int row;
     private final int column;
-    private UndoHandler undoHandler = UndoHandler.getInstance();
+    private final UndoHandler undoHandler = UndoHandler.getInstance();
 
     public NumberTextBox(@NotNull String text, @NotNull ShaderProgram fontShader, @NotNull BitmapFont font,
-                         @NotNull InputEventThrower eventThrower, @NotNull TextPositionChangeListener textPositionChangeListener, int row, int column ) {
+                         @NotNull InputEventThrower eventThrower, @NotNull TextPositionChangeListener textPositionChangeListener, int row, int column) {
         super(text, fontShader, font, eventThrower, false, null);
         this.textPositionChangeListener = textPositionChangeListener;
         this.row = row;
@@ -23,8 +24,8 @@ public class NumberTextBox extends TextBox{
 
     @Override
     public void onKeyType(char character) {
-        if(Character.isDigit(character) || character == '.' || character == '-'){
-           super.onKeyType(character);
+        if (Character.isDigit(character) || character == '.' || character == '-') {
+            super.onKeyType(character);
         }
     }
 

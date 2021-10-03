@@ -6,17 +6,13 @@ import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.math.Vector3;
 import me.varun.autobuilder.AutoBuilder;
-import me.varun.autobuilder.util.MathUntil;
 import org.jetbrains.annotations.NotNull;
 
-import static java.lang.Math.tan;
-import static me.varun.autobuilder.util.MathUntil.clamp;
-
 public class PointRenderer {
+    protected final float radius;
     protected float x;
     protected float y;
     protected Color color;
-    protected final float radius;
 
     public PointRenderer(float x, float y, Color color, float radius) {
         this.x = x;
@@ -46,7 +42,7 @@ public class PointRenderer {
 
     public void draw(@NotNull ShapeRenderer shape, @NotNull OrthographicCamera camera) {
         shape.setColor(color);
-        shape.circle(x* AutoBuilder.POINT_SCALE_FACTOR, y*AutoBuilder.POINT_SCALE_FACTOR, radius, 50);
+        shape.circle(x * AutoBuilder.POINT_SCALE_FACTOR, y * AutoBuilder.POINT_SCALE_FACTOR, radius, 50);
     }
 
 
@@ -66,12 +62,12 @@ public class PointRenderer {
         this.y = y;
     }
 
-    public void setPosition(@NotNull Vector2 position){
+    public void setPosition(@NotNull Vector2 position) {
         setX(position.x);
         setY(position.y);
     }
 
-    public void setPosition(float x, float y){
+    public void setPosition(float x, float y) {
         setX(x);
         setY(y);
     }
@@ -85,20 +81,20 @@ public class PointRenderer {
         this.color = color;
     }
 
-    public @NotNull Vector2 getPos2(){
-        return new Vector2(x,y);
+    public @NotNull Vector2 getPos2() {
+        return new Vector2(x, y);
     }
 
-    public @NotNull Vector3 getPos3(){
-        return new Vector3(x,y,0);
+    public @NotNull Vector3 getPos3() {
+        return new Vector3(x, y, 0);
     }
 
-    public @NotNull Vector3 getRenderPos3(){
-        return new Vector3(x*AutoBuilder.POINT_SCALE_FACTOR, y*AutoBuilder.POINT_SCALE_FACTOR ,0);
+    public @NotNull Vector3 getRenderPos3() {
+        return new Vector3(x * AutoBuilder.POINT_SCALE_FACTOR, y * AutoBuilder.POINT_SCALE_FACTOR, 0);
     }
 
-    public @NotNull Vector2 getRenderPos2(){
-        return new Vector2(x*AutoBuilder.POINT_SCALE_FACTOR, y*AutoBuilder.POINT_SCALE_FACTOR );
+    public @NotNull Vector2 getRenderPos2() {
+        return new Vector2(x * AutoBuilder.POINT_SCALE_FACTOR, y * AutoBuilder.POINT_SCALE_FACTOR);
     }
 
     @Override
