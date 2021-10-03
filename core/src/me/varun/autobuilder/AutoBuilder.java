@@ -80,9 +80,9 @@ public class AutoBuilder extends ApplicationAdapter {
     NetworkTablesHelper networkTables = NetworkTablesHelper.getInstance();
 
     static {
-        maxVelocityMetersPerSecond = 3.04;
-        maxAccelerationMetersPerSecondSq = 1.5;
-        trajectoryConstraints.add(new CentripetalAccelerationConstraint(1));
+        maxVelocityMetersPerSecond = 3.048;
+        maxAccelerationMetersPerSecondSq = 5.08;
+        trajectoryConstraints.add(new CentripetalAccelerationConstraint(1.016));
     }
 
     public static void handleCrash(Exception e) {
@@ -199,6 +199,7 @@ public class AutoBuilder extends ApplicationAdapter {
 
 
         //Draw the robot path
+        shapeRenderer.setColor(Color.WHITE);
         for (int i = 0; i < networkTables.getRobotPositions().size()-1; i++) {
             Float[] pos1 = networkTables.getRobotPositions().get(i);
             Float[] pos2 = networkTables.getRobotPositions().get(i+1);

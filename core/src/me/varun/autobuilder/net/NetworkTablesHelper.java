@@ -26,6 +26,8 @@ public class NetworkTablesHelper {
     private ArrayList<Float[]> robotPositions = new ArrayList<>();
     private boolean enabled = false;
 
+    private static final float INCHES_PER_METER = 39.3700787f;
+
     public static NetworkTablesHelper getInstance(){
         return networkTablesInstance;
     }
@@ -68,8 +70,8 @@ public class NetworkTablesHelper {
 
                 float x = (float) xPos.getDouble(0);
                 float y = (float) yPos.getDouble(0);
-                if(robotPositions.size()>1 || (robotPositions.get(robotPositions.size()-1)[0] != x || robotPositions.get(robotPositions.size()-1)[1] != y)){
-                    robotPositions.add(new Float[] {x, y});
+                if(robotPositions.size()<1 || (robotPositions.get(robotPositions.size()-1)[0] != x || robotPositions.get(robotPositions.size()-1)[1] != y)){
+                    robotPositions.add(new Float[] {x/INCHES_PER_METER, y/INCHES_PER_METER});
                 }
             } else {
                 enabled = false;
