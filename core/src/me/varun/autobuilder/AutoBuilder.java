@@ -88,6 +88,7 @@ public class AutoBuilder extends ApplicationAdapter {
     @Override
     public void create() {
         networkTables.start();
+
         Gdx.app.getInput().setInputProcessor(inputEventThrower);
 
         hudShapeRenderer = new RoundedShapeRenderer();
@@ -104,6 +105,7 @@ public class AutoBuilder extends ApplicationAdapter {
         viewport = new ExtendViewport(Gdx.graphics.getWidth(), Gdx.graphics.getHeight(), cam);
         cameraHandler = new CameraHandler(cam, inputEventThrower);
 
+        Gdx.gl.glClearColor(0f, 0f, 0f, 1f);
 
         hudCam = new OrthographicCamera(Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
         hudCam.position.x = Gdx.graphics.getWidth() / 2f;
@@ -161,7 +163,6 @@ public class AutoBuilder extends ApplicationAdapter {
 
     private void draw() {
         //Clear everything
-        Gdx.gl.glClearColor(0f, 0f, 0f, 1f);
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT | GL20.GL_DEPTH_BUFFER_BIT |
                 (Gdx.graphics.getBufferFormat().coverageSampling ? GL20.GL_COVERAGE_BUFFER_BIT_NV : 0));
 

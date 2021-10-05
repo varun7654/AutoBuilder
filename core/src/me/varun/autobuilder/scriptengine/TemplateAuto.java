@@ -1,7 +1,5 @@
 package me.varun.autobuilder.scriptengine;
 
-import me.varun.autobuilder.scriptengine.Rotation2D;
-
 @SuppressWarnings("unused")
 public class TemplateAuto implements Runnable {
 
@@ -33,7 +31,6 @@ public class TemplateAuto implements Runnable {
     }
 
     synchronized public boolean isDead() {
-        System.out.println("yes");
         return killSwitch;
     }
 

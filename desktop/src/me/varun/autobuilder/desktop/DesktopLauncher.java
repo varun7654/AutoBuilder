@@ -1,6 +1,5 @@
 package me.varun.autobuilder.desktop;
 
-import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.backends.lwjgl.LwjglApplication;
 import com.badlogic.gdx.backends.lwjgl.LwjglApplicationConfiguration;
 import me.varun.autobuilder.AutoBuilder;
@@ -15,6 +14,7 @@ public class DesktopLauncher {
 		config.foregroundFPS = 144;
 		config.backgroundFPS = config.foregroundFPS/2;
 		config.vSyncEnabled = false;
+		config.forceExit = false;
 		new LwjglApplication(new AutoBuilder(), config);
 	}
 }
