@@ -23,9 +23,11 @@ import me.varun.autobuilder.util.MathUntil;
 import me.varun.autobuilder.util.RoundedShapeRenderer;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import space.earlygrey.shapedrawer.ShapeDrawer;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Random;
 import java.util.concurrent.ExecutorService;
 
 public class Gui extends InputEventListener {
@@ -43,7 +45,7 @@ public class Gui extends InputEventListener {
     AbstractGuiItem draggingElement = null;
     int newDraggingElementIndex = 0;
     int oldDraggingElementIndex = 0;
-    @NotNull Color color = new Color();
+    @NotNull Color color = new Color(1, 1, 1, 1);
     private int panelX;
     private int panelY;
     private int panelWidth;
@@ -78,10 +80,10 @@ public class Gui extends InputEventListener {
 
     }
 
-    public void render(@NotNull RoundedShapeRenderer shapeRenderer, @NotNull SpriteBatch spriteBatch, @NotNull Camera camera) {
+    public void render(@NotNull ShapeDrawer shapeRenderer, @NotNull SpriteBatch spriteBatch, @NotNull Camera camera) {
 
         shapeRenderer.setColor(Color.WHITE);
-        shapeRenderer.roundedRect(panelX, panelY, panelWidth, panelHeight, 5);
+        RoundedShapeRenderer.roundedRect(shapeRenderer, panelX, panelY, panelWidth, panelHeight, 5);
 
         addScriptButton.render(shapeRenderer, spriteBatch);
         addPathButton.render(shapeRenderer, spriteBatch);
@@ -89,7 +91,7 @@ public class Gui extends InputEventListener {
 
         Rectangle scissors = new Rectangle();
 
-        ScissorStack.calculateScissors(camera, shapeRenderer.getTransformMatrix(), clipBounds, scissors);
+        ScissorStack.calculateScissors(camera, spriteBatch.getTransformMatrix(), clipBounds, scissors);
         boolean pop = ScissorStack.pushScissors(scissors);
 
         int yPos = Gdx.graphics.getHeight() - 20 + (int) smoothScrollPos;
@@ -128,9 +130,6 @@ public class Gui extends InputEventListener {
                     (Gdx.graphics.getHeight() - Gdx.input.getY()) + 20, panelWidth - 20, this);
             newDraggingElementIndex = guiItems.size();
         }
-
-
-        shapeRenderer.flush();
 
 
         if (pop) {
@@ -224,13 +223,16 @@ public class Gui extends InputEventListener {
             scrollPos = scrollPos + amountY * 80;
         }
     }
-
+    Random random = new Random();
     public @NotNull Color getNextColor() {
         float[] colorHsv = new float[3];
         color.toHsv(colorHsv);
         colorHsv[0] = (colorHsv[0] + 37) % 360;
         Color color = new Color();
-        return this.color = color.fromHsv(colorHsv);
+        this.color = color.fromHsv(random.nextInt(255), 1, 1);
+        this.color.set(color.r, color.g, color.b, 1);
+        System.out.println(color);
+        return color;
     }
 
 

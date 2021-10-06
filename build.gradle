@@ -25,6 +25,8 @@ allprojects {
         ashleyVersion = '1.7.3'
         aiVersion = '1.8.2'
         gdxControllersVersion = '2.1.0'
+        shapedrawerVersion = '2.5.0'
+
     }
 
     repositories {
@@ -35,6 +37,7 @@ allprojects {
         maven { url "https://oss.sonatype.org/content/repositories/snapshots/" }
         maven { url "https://oss.sonatype.org/content/repositories/releases/" }
         maven { url "https://frcmaven.wpi.edu/artifactory/release/" }
+        maven { url 'https://jitpack.io' }
 
     }
 }

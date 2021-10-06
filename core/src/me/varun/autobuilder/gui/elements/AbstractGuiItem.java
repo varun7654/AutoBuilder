@@ -11,6 +11,7 @@ import com.badlogic.gdx.utils.Disposable;
 import me.varun.autobuilder.gui.Gui;
 import me.varun.autobuilder.util.RoundedShapeRenderer;
 import org.jetbrains.annotations.NotNull;
+import space.earlygrey.shapedrawer.ShapeDrawer;
 
 public abstract class AbstractGuiItem implements Disposable {
 
@@ -37,7 +38,7 @@ public abstract class AbstractGuiItem implements Disposable {
 
     abstract public void dispose();
 
-    public int render(@NotNull RoundedShapeRenderer shapeRenderer, @NotNull SpriteBatch spriteBatch, int drawStartX, int drawStartY, int drawWidth, Gui gui) {
+    public int render(@NotNull ShapeDrawer shapeRenderer, @NotNull SpriteBatch spriteBatch, int drawStartX, int drawStartY, int drawWidth, Gui gui) {
         if (Gdx.input.isButtonJustPressed(Input.Buttons.LEFT)) {
             if (isMouseOver(drawStartX + drawWidth - 45, drawStartY - 40, drawWidth - 5, 40)) {
                 gui.guiItemsDeletions.add(this);
@@ -49,19 +50,17 @@ public abstract class AbstractGuiItem implements Disposable {
         return 40;
     }
 
-    public void renderHeader(RoundedShapeRenderer shapeRenderer, SpriteBatch spriteBatch, ShaderProgram fontShader,
+    public void renderHeader(ShapeDrawer shapeRenderer, SpriteBatch spriteBatch, ShaderProgram fontShader,
                              BitmapFont font, float drawStartX, float drawStartY, float drawWidth,
                              Texture trashTexture, Texture warningTexture, Color headerColor, String headerText, boolean warning) {
         shapeRenderer.setColor(headerColor);
-        shapeRenderer.roundedRect(drawStartX, drawStartY - 40, drawWidth, 40, 2);
-        shapeRenderer.flush();
+        //System.out.println(headerColor);
+        RoundedShapeRenderer.roundedRect(shapeRenderer, drawStartX, drawStartY - 40, drawWidth, 40, 2, headerColor);
 
         spriteBatch.setShader(fontShader);
-        spriteBatch.begin();
         font.getData().setScale(0.6f);
         font.setColor(Color.WHITE);
         font.draw(spriteBatch, headerText, drawStartX + 5, drawStartY - 5);
-        spriteBatch.flush();
         spriteBatch.setShader(null);
         spriteBatch.draw(trashTexture, drawStartX + drawWidth - 45, drawStartY - 38, trashTexture.getWidth() * (36f / trashTexture.getHeight()), 36);
         if (warning) {

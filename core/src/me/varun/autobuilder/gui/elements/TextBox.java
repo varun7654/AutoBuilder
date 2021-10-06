@@ -14,6 +14,7 @@ import me.varun.autobuilder.events.textchange.TextChangeListener;
 import me.varun.autobuilder.util.RoundedShapeRenderer;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import space.earlygrey.shapedrawer.ShapeDrawer;
 
 import java.awt.*;
 import java.awt.datatransfer.Clipboard;
@@ -64,7 +65,7 @@ public class TextBox extends InputEventListener {
 
 
     //TODO: Fix Text Going outside the box and the entire cringe that this class is
-    public void draw(@NotNull RoundedShapeRenderer shapeRenderer, @NotNull SpriteBatch spriteBatch, int drawStartX,
+    public void draw(@NotNull ShapeDrawer shapeRenderer, @NotNull SpriteBatch spriteBatch, int drawStartX,
                      int drawStartY, int drawWidth, int drawHeight) {
         font.getData().setScale((drawHeight - 2) / 64f);
 
@@ -170,8 +171,7 @@ public class TextBox extends InputEventListener {
 
         glyphLayout.setText(font, text, 0, text.length(), Color.BLACK, drawWidth - 8, -1, wrapText, null);
         shapeRenderer.setColor(Color.WHITE);
-        shapeRenderer.roundedRect(drawStartX, drawStartY - glyphLayout.height - 8, drawWidth, glyphLayout.height + 8, 2);
-        shapeRenderer.flush();
+        RoundedShapeRenderer.roundedRect(shapeRenderer, drawStartX, drawStartY - glyphLayout.height - 8, drawWidth, glyphLayout.height + 8, 2);
 
 
         spriteBatch.setShader(fontShader);

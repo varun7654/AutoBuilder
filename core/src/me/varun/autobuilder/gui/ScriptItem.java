@@ -11,6 +11,7 @@ import me.varun.autobuilder.gui.elements.TextBox;
 import me.varun.autobuilder.scriptengine.*;
 import me.varun.autobuilder.util.RoundedShapeRenderer;
 import org.jetbrains.annotations.NotNull;
+import space.earlygrey.shapedrawer.ShapeDrawer;
 
 import javax.script.ScriptEngine;
 import javax.script.ScriptEngineManager;
@@ -57,23 +58,21 @@ public class ScriptItem extends AbstractGuiItem implements TextChangeListener {
     }
 
     @Override
-    public int render(@NotNull RoundedShapeRenderer shapeRenderer, @NotNull SpriteBatch spriteBatch, int drawStartX, int drawStartY, int drawWidth, Gui gui) {
+    public int render(@NotNull ShapeDrawer shapeRenderer, @NotNull SpriteBatch spriteBatch, int drawStartX, int drawStartY, int drawWidth, Gui gui) {
         super.render(shapeRenderer, spriteBatch, drawStartX, drawStartY, drawWidth, gui);
         if (isClosed()) {
             renderHeader(shapeRenderer, spriteBatch, fontShader, font, drawStartX, drawStartY, drawWidth, trashTexture, warningTexture, LIGHT_BLUE, "Script", error);
-            spriteBatch.end();
             return 40;
         } else {
             int height = (int) (textBox.getHeight(drawWidth - 15, 20) + 8);
             shapeRenderer.setColor(LIGHT_GREY);
-            shapeRenderer.roundedRect(drawStartX + 5, (drawStartY - 40) - height, drawWidth - 5, height + 5, 2);
+            RoundedShapeRenderer.roundedRect(shapeRenderer, drawStartX + 5, (drawStartY - 40) - height, drawWidth - 5, height + 5, 2);
 
             renderHeader(shapeRenderer, spriteBatch, fontShader, font, drawStartX, drawStartY, drawWidth, trashTexture, warningTexture, LIGHT_BLUE, "Script", error);
 
             spriteBatch.setShader(fontShader);
             font.setColor(Color.BLACK);
             textBox.draw(shapeRenderer, spriteBatch, drawStartX + 10, drawStartY - 43, drawWidth - 15, 20);
-            spriteBatch.end();
             spriteBatch.setShader(null);
 
             return height + 40;

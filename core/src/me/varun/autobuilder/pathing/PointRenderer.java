@@ -2,11 +2,11 @@ package me.varun.autobuilder.pathing;
 
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.OrthographicCamera;
-import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.math.Vector3;
 import me.varun.autobuilder.AutoBuilder;
 import org.jetbrains.annotations.NotNull;
+import space.earlygrey.shapedrawer.ShapeDrawer;
 
 public class PointRenderer {
     protected final float radius;
@@ -40,9 +40,8 @@ public class PointRenderer {
         this.y = y;
     }
 
-    public void draw(@NotNull ShapeRenderer shape, @NotNull OrthographicCamera camera) {
-        shape.setColor(color);
-        shape.circle(x * AutoBuilder.POINT_SCALE_FACTOR, y * AutoBuilder.POINT_SCALE_FACTOR, radius, 50);
+    public void draw(@NotNull ShapeDrawer shape, @NotNull OrthographicCamera camera) {
+        shape.filledCircle(x * AutoBuilder.POINT_SCALE_FACTOR, y * AutoBuilder.POINT_SCALE_FACTOR, radius, color);
     }
 
 

@@ -4,7 +4,6 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.OrthographicCamera;
-import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.math.Vector3;
 import me.varun.autobuilder.UndoHandler;
@@ -21,6 +20,7 @@ import me.varun.autobuilder.wpi.math.trajectory.TrajectoryGenerator;
 import me.varun.autobuilder.wpi.math.trajectory.constraint.TrajectoryConstraint;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import space.earlygrey.shapedrawer.ShapeDrawer;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -73,9 +73,8 @@ public class PathRenderer implements MovablePointEventHandler, Serializable {
         updatePath();
     }
 
-    public void render(@NotNull ShapeRenderer renderer, @NotNull OrthographicCamera cam) {
+    public void render(@NotNull ShapeDrawer renderer, @NotNull OrthographicCamera cam) {
         if (trajectory == null) return;
-
         for (double i = 0.05; i < trajectory.getTotalTimeSeconds(); i += 0.05) {
             Pose2d prev = trajectory.sample(i - 0.05).poseMeters;
             Pose2d cur = trajectory.sample(i).poseMeters;
@@ -84,13 +83,14 @@ public class PathRenderer implements MovablePointEventHandler, Serializable {
             this.color.toHsv(color);
             color[1] = (float) (0.9 * (speed / maxVelocityMetersPerSecond) + 0.05);
             Color speedColor = new Color().fromHsv(color);
-            renderer.setColor(speedColor);
-            renderer.rectLine((float) prev.getX() * POINT_SCALE_FACTOR, (float) prev.getY() * POINT_SCALE_FACTOR, (float) cur.getX() * POINT_SCALE_FACTOR, (float) cur.getY() * POINT_SCALE_FACTOR, LINE_THICKNESS);
+            speedColor.set(speedColor.r, speedColor.g, speedColor.b, 1);
+            renderer.line((float) prev.getX() * POINT_SCALE_FACTOR, (float) prev.getY() * POINT_SCALE_FACTOR,
+                    (float) cur.getX() * POINT_SCALE_FACTOR, (float) cur.getY() * POINT_SCALE_FACTOR, speedColor, LINE_THICKNESS);
         }
 
         if (rotationPoint != null) {
+            renderer.line(pointRenderList.get(selectionPointIndex).getRenderPos2(), rotationPoint.getRenderPos2(), LINE_THICKNESS);
             rotationPoint.draw(renderer, cam);
-            renderer.rectLine(pointRenderList.get(selectionPointIndex).getRenderPos2(), rotationPoint.getRenderPos2(), LINE_THICKNESS);
             float rotation = (float) point2DList.get(selectionPointIndex).getRotation().getRadians();
 
             Vector2 origin = pointRenderList.get(selectionPointIndex).getRenderPos2();
@@ -107,10 +107,10 @@ public class PathRenderer implements MovablePointEventHandler, Serializable {
 
             renderer.setColor(Color.BLUE);
 
-            renderer.rectLine(leftTop, rightTop, LINE_THICKNESS);
-            renderer.rectLine(rightTop, rightBottom, LINE_THICKNESS);
-            renderer.rectLine(rightBottom, leftBottom, LINE_THICKNESS);
-            renderer.rectLine(leftBottom, leftTop, LINE_THICKNESS);
+            renderer.line(leftTop, rightTop, LINE_THICKNESS);
+            renderer.line(rightTop, rightBottom, LINE_THICKNESS);
+            renderer.line(rightBottom, leftBottom, LINE_THICKNESS);
+            renderer.line(leftBottom, leftTop, LINE_THICKNESS);
 
         }
 

@@ -11,7 +11,6 @@ import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.graphics.glutils.ShaderProgram;
-import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.utils.viewport.ExtendViewport;
 import com.badlogic.gdx.utils.viewport.ScreenViewport;
@@ -27,11 +26,11 @@ import me.varun.autobuilder.pathing.PathRenderer.PointChange;
 import me.varun.autobuilder.pathing.PointRenderer;
 import me.varun.autobuilder.serialization.Autonomous;
 import me.varun.autobuilder.serialization.GuiSerializer;
-import me.varun.autobuilder.util.RoundedShapeRenderer;
 import me.varun.autobuilder.wpi.math.geometry.Pose2d;
 import me.varun.autobuilder.wpi.math.trajectory.constraint.CentripetalAccelerationConstraint;
 import me.varun.autobuilder.wpi.math.trajectory.constraint.TrajectoryConstraint;
 import org.jetbrains.annotations.NotNull;
+import space.earlygrey.shapedrawer.ShapeDrawer;
 
 import java.io.File;
 import java.io.IOException;
@@ -72,12 +71,11 @@ public class AutoBuilder extends ApplicationAdapter {
     @NotNull InputEventThrower inputEventThrower = new InputEventThrower();
     @NotNull UndoHandler undoHandler = UndoHandler.getInstance();
     NetworkTablesHelper networkTables = NetworkTablesHelper.getInstance();
-    int time;
     private SpriteBatch batch;
     private SpriteBatch hudBatch;
     private Texture field;
-    private RoundedShapeRenderer shapeRenderer;
-    private RoundedShapeRenderer hudShapeRenderer;
+    private ShapeDrawer shapeRenderer;
+    private ShapeDrawer hudShapeRenderer;
 
     public static void handleCrash(Exception e) {
         e.printStackTrace();
@@ -91,11 +89,12 @@ public class AutoBuilder extends ApplicationAdapter {
 
         Gdx.app.getInput().setInputProcessor(inputEventThrower);
 
-        hudShapeRenderer = new RoundedShapeRenderer();
         hudBatch = new SpriteBatch();
+        hudShapeRenderer = new ShapeDrawer(hudBatch, new TextureRegion(new Texture(Gdx.files.internal("white.png"))));
 
-        shapeRenderer = new RoundedShapeRenderer();
         batch = new SpriteBatch();
+        shapeRenderer = new ShapeDrawer(batch, new TextureRegion(new Texture(Gdx.files.internal("white.png"))));
+
         field = new Texture(Gdx.files.internal("field20.png"), true);
         field.setFilter(Texture.TextureFilter.MipMap, Texture.TextureFilter.Nearest);
 
@@ -106,6 +105,8 @@ public class AutoBuilder extends ApplicationAdapter {
         cameraHandler = new CameraHandler(cam, inputEventThrower);
 
         Gdx.gl.glClearColor(0f, 0f, 0f, 1f);
+
+
 
         hudCam = new OrthographicCamera(Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
         hudCam.position.x = Gdx.graphics.getWidth() / 2f;
@@ -172,12 +173,6 @@ public class AutoBuilder extends ApplicationAdapter {
         //Draw the image
         batch.begin();
         batch.draw(field, -639, -2160 / 2);
-        batch.end();
-
-        //Initialize our camera and shape renderer
-        shapeRenderer.setProjectionMatrix(cam.combined);
-        shapeRenderer.setAutoShapeType(true);
-        shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
 
         //Draw all the paths
         origin.draw(shapeRenderer, cam);
@@ -189,20 +184,16 @@ public class AutoBuilder extends ApplicationAdapter {
 
 
         //Draw the robot path
-        shapeRenderer.setColor(Color.WHITE);
         for (int i = 0; i < networkTables.getRobotPositions().size() - 1; i++) {
             Float[] pos1 = networkTables.getRobotPositions().get(i);
             Float[] pos2 = networkTables.getRobotPositions().get(i + 1);
-            shapeRenderer.rectLine(pos1[0], pos1[1], pos2[0], pos2[1], LINE_THICKNESS);
+            shapeRenderer.line(pos1[0], pos1[1], pos2[0], pos2[1], Color.WHITE, LINE_THICKNESS);
         }
 
-        shapeRenderer.end();
+        batch.end();
 
 
         hudBatch.setProjectionMatrix(hudCam.combined);
-        hudShapeRenderer.setProjectionMatrix(hudCam.combined);
-        hudShapeRenderer.setAutoShapeType(true);
-        hudShapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
 
         hudBatch.begin();
         hudBatch.setShader(fontShader);
@@ -212,10 +203,11 @@ public class AutoBuilder extends ApplicationAdapter {
         font.draw(hudBatch, "FPS: " + Gdx.graphics.getFramesPerSecond() + ", " + Gdx.graphics.getDeltaTime() * 1000 + " ms", 0, 12);
 
         hudBatch.setShader(null);
-        hudBatch.end();
+
 
         gui.render(hudShapeRenderer, hudBatch, hudCam);
-        hudShapeRenderer.end();
+
+        hudBatch.end();
 
 
     }

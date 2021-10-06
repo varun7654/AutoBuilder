@@ -42,4 +42,6 @@ dependencies {
     runtimeOnly "edu.wpi.first.ntcore:ntcore-jni:2021.3.1:linuxraspbian"
     runtimeOnly "edu.wpi.first.ntcore:ntcore-jni:2021.3.1:osxx86-64"
 
+    implementation "space.earlygrey:shapedrawer:$shapedrawerVersion"
+
 }

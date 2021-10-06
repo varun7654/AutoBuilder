@@ -20,6 +20,7 @@ import me.varun.autobuilder.util.RoundedShapeRenderer;
 import me.varun.autobuilder.wpi.math.geometry.Pose2d;
 import me.varun.autobuilder.wpi.math.geometry.Rotation2d;
 import org.jetbrains.annotations.NotNull;
+import space.earlygrey.shapedrawer.ShapeDrawer;
 
 import java.text.DecimalFormat;
 import java.util.ArrayList;
@@ -88,7 +89,7 @@ public class TrajectoryItem extends AbstractGuiItem implements PathChangeListene
 
 
     @Override
-    public int render(@NotNull RoundedShapeRenderer shapeRenderer, @NotNull SpriteBatch spriteBatch, int drawStartX, int drawStartY, int drawWidth, Gui gui) {
+    public int render(@NotNull ShapeDrawer shapeRenderer, @NotNull SpriteBatch spriteBatch, int drawStartX, int drawStartY, int drawWidth, Gui gui) {
         super.render(shapeRenderer, spriteBatch, drawStartX, drawStartY, drawWidth, gui);
         String title;
         if (pathRenderer.getTrajectory() != null) {
@@ -96,12 +97,11 @@ public class TrajectoryItem extends AbstractGuiItem implements PathChangeListene
         } else title = "Path - Calculating Time";
         if (isClosed()) {
             renderHeader(shapeRenderer, spriteBatch, fontShader, font, drawStartX, drawStartY, drawWidth, trashTexture, warningTexture, pathRenderer.getColor(), title, checkWarning(gui));
-            spriteBatch.end();
             return 40;
         } else {
             List<Pose2d> pose2dList = pathRenderer.getPoint2DList();
             shapeRenderer.setColor(LIGHT_GREY);
-            shapeRenderer.roundedRect(drawStartX + 5, drawStartY - (35 * 3 + (pose2dList.size() * 30) + 40) - 5, drawWidth - 5, 35 * 3 + (pose2dList.size() * 30) + 9, 2);
+            RoundedShapeRenderer.roundedRect(shapeRenderer, drawStartX + 5, drawStartY - (35 * 3 + (pose2dList.size() * 30) + 40) - 5, drawWidth - 5, 35 * 3 + (pose2dList.size() * 30) + 9, 2);
 
             renderHeader(shapeRenderer, spriteBatch, fontShader, font, drawStartX, drawStartY, drawWidth, trashTexture, warningTexture, pathRenderer.getColor(), title, checkWarning(gui));
 
@@ -119,14 +119,10 @@ public class TrajectoryItem extends AbstractGuiItem implements PathChangeListene
             font.draw(spriteBatch, "Start Velocity", drawStartX + 10, drawStartY - (40 + pose2dList.size() * 30) - 10);
             font.draw(spriteBatch, "End Velocity", drawStartX + 10, drawStartY - (40 + pose2dList.size() * 30) - 10 - 35);
             font.draw(spriteBatch, "Reversed", drawStartX + 10, drawStartY - (40 + pose2dList.size() * 30) - 10 - 35 * 2);
-
-            spriteBatch.end();
             spriteBatch.setShader(null);
 
-            spriteBatch.begin();
             startVelocityTextBox.draw(shapeRenderer, spriteBatch, drawStartX + 10 + 2 * 123, drawStartY - 43 - pose2dList.size() * 30, 120, 28);
             endVelocityTextBox.draw(shapeRenderer, spriteBatch, drawStartX + 10 + 2 * 123, drawStartY - 43 - (pose2dList.size() + 1) * 30, 120, 28);
-            spriteBatch.end();
 
             checkBox.setX(drawStartX + drawWidth - 35);
             checkBox.setY(drawStartY - (40 + (pose2dList.size() + 2) * 30) - 35);

@@ -8,6 +8,7 @@ import com.badlogic.gdx.utils.Disposable;
 import me.varun.autobuilder.gui.Gui;
 import me.varun.autobuilder.util.RoundedShapeRenderer;
 import org.jetbrains.annotations.NotNull;
+import space.earlygrey.shapedrawer.ShapeDrawer;
 
 public abstract class AbstractGuiButton implements Disposable {
     private final @NotNull Texture texture;
@@ -41,34 +42,27 @@ public abstract class AbstractGuiButton implements Disposable {
                 Gdx.graphics.getHeight() - Gdx.input.getY() >= y && Gdx.graphics.getHeight() - Gdx.input.getY() <= y + height;
     }
 
-    public void render(@NotNull RoundedShapeRenderer shapeRenderer, @NotNull SpriteBatch spriteBatch) {
+    public void render(@NotNull ShapeDrawer shapeRenderer, @NotNull SpriteBatch spriteBatch) {
         if (hovering) {
             shapeRenderer.setColor(Color.LIGHT_GRAY);
         } else {
             shapeRenderer.setColor(Color.WHITE);
         }
 
-        shapeRenderer.roundedRect(x, y, width, height, 4);
-        shapeRenderer.flush();
-        spriteBatch.begin();
+        RoundedShapeRenderer.roundedRect(shapeRenderer, x, y, width, height, 4);
         spriteBatch.draw(texture, x + 5, y + 5, width - 10, height - 10);
-        spriteBatch.end();
 
     }
 
-    public void render(@NotNull RoundedShapeRenderer shapeRenderer, @NotNull SpriteBatch spriteBatch, boolean renderTexture) {
+    public void render(@NotNull ShapeDrawer shapeRenderer, @NotNull SpriteBatch spriteBatch, boolean renderTexture) {
         if (hovering) {
             shapeRenderer.setColor(Color.LIGHT_GRAY);
         } else {
             shapeRenderer.setColor(Color.WHITE);
         }
-
-        shapeRenderer.roundedRect(x, y, width, height, 4);
-        shapeRenderer.flush();
-        spriteBatch.begin();
+        RoundedShapeRenderer.roundedRect(shapeRenderer, x, y, width, height, 4);
         if (renderTexture)
             spriteBatch.draw(texture, x + 5, y + 5, width - 10, ((width - 10f) / (texture.getWidth())) * texture.getHeight());
-        spriteBatch.end();
 
     }
 
