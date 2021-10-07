@@ -169,6 +169,7 @@ public class AutoBuilder extends ApplicationAdapter {
 
         //Initialize our camera for the batch
         batch.setProjectionMatrix(cam.combined);
+        shapeRenderer.setPixelSize(cam.zoom);
 
         //Draw the image
         batch.begin();

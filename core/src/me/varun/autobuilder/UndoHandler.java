@@ -56,7 +56,7 @@ public class UndoHandler {
                 } else pointer = 0;
             } else {
                 //Undoing
-                System.out.println(undoHistory);
+                //System.out.println(undoHistory);
                 pointer++;
                 if (pointer < undoHistory.size()) {
                     restoreState(undoHistory.get(pointer), gui, fontShader, font, inputEventThrower, cameraHandler);

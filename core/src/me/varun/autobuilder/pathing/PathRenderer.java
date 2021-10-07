@@ -75,13 +75,13 @@ public class PathRenderer implements MovablePointEventHandler, Serializable {
 
     public void render(@NotNull ShapeDrawer renderer, @NotNull OrthographicCamera cam) {
         if (trajectory == null) return;
-        for (double i = 0.05; i < trajectory.getTotalTimeSeconds(); i += 0.05) {
-            Pose2d prev = trajectory.sample(i - 0.05).poseMeters;
+        for (double i = 0.01; i < trajectory.getTotalTimeSeconds(); i += 0.01) {
+            Pose2d prev = trajectory.sample(i - 0.01).poseMeters;
             Pose2d cur = trajectory.sample(i).poseMeters;
             double speed = Math.abs(trajectory.sample(i).velocityMetersPerSecond);
             float[] color = new float[3];
             this.color.toHsv(color);
-            color[1] = (float) (0.9 * (speed / maxVelocityMetersPerSecond) + 0.05);
+            color[1] = (float) (0.9 * (speed / maxVelocityMetersPerSecond) + 0.1);
             Color speedColor = new Color().fromHsv(color);
             speedColor.set(speedColor.r, speedColor.g, speedColor.b, 1);
             renderer.line((float) prev.getX() * POINT_SCALE_FACTOR, (float) prev.getY() * POINT_SCALE_FACTOR,

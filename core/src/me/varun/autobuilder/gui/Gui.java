@@ -19,6 +19,7 @@ import me.varun.autobuilder.gui.elements.AbstractGuiItem;
 import me.varun.autobuilder.gui.elements.AddPathButton;
 import me.varun.autobuilder.gui.elements.AddScriptButton;
 import me.varun.autobuilder.gui.elements.PushAutoButton;
+import me.varun.autobuilder.gui.notification.NotificationHandler;
 import me.varun.autobuilder.util.MathUntil;
 import me.varun.autobuilder.util.RoundedShapeRenderer;
 import org.jetbrains.annotations.NotNull;
@@ -60,6 +61,8 @@ public class Gui extends InputEventListener {
         color.fromHsv(1, 1, 1);
     }
 
+    NotificationHandler notificationHandler = new NotificationHandler();
+
     public Gui(@NotNull Viewport viewport, @NotNull BitmapFont font, @NotNull ShaderProgram fontShader,
                @NotNull InputEventThrower eventThrower, @NotNull ExecutorService executorService, @NotNull CameraHandler cameraHandler) {
         this.viewport = viewport;
@@ -81,7 +84,6 @@ public class Gui extends InputEventListener {
     }
 
     public void render(@NotNull ShapeDrawer shapeRenderer, @NotNull SpriteBatch spriteBatch, @NotNull Camera camera) {
-
         shapeRenderer.setColor(Color.WHITE);
         RoundedShapeRenderer.roundedRect(shapeRenderer, panelX, panelY, panelWidth, panelHeight, 5);
 
@@ -135,6 +137,8 @@ public class Gui extends InputEventListener {
         if (pop) {
             ScissorStack.popScissors();
         }
+
+        notificationHandler.processNotification(shapeRenderer, spriteBatch, font, fontShader);
 
         maxScroll = Math.max(0, -(yPos - (int) smoothScrollPos - 10));
         //System.out.println(maxScroll);
