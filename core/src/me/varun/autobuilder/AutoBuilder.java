@@ -76,6 +76,7 @@ public class AutoBuilder extends ApplicationAdapter {
     private Texture field;
     private ShapeDrawer shapeRenderer;
     private ShapeDrawer hudShapeRenderer;
+    private static Config config;
 
     public static void handleCrash(Exception e) {
         e.printStackTrace();
@@ -85,6 +86,39 @@ public class AutoBuilder extends ApplicationAdapter {
 
     @Override
     public void create() {
+        File configFile = new File(Gdx.files.getExternalStoragePath() + "/AppData/Roaming/AutoBuilder/config.json");
+        configFile.getParentFile().mkdirs();
+        try {
+            config = (Config) Serializer.deserializeFromFile(configFile, Config.class);
+        } catch (IOException e) {
+            ArrayList<String> methods = new ArrayList<>();
+            methods.add("print");
+            methods.add("deployIntake");
+            methods.add("undeployIntake");
+            methods.add("intakeOn");
+            methods.add("intakeOff");
+            methods.add("intakeReverse");
+            methods.add("snailOn");
+            methods.add("snailOff");
+            methods.add("snailReverse");
+            methods.add("frontActive");
+            methods.add("frontInactive");
+            methods.add("frontReverse");
+            methods.add("visionIdle");
+            methods.add("visionWin");
+            methods.add("visionAim");
+            methods.add("setShooterSpeed");
+            methods.add("fireShooter");
+            methods.add("stopFiringShooter");
+            methods.add("shootBalls");
+            methods.add("turnOnIntakeTrack");
+            methods.add("turnOffIntakeTrack");
+
+            config = new Config(methods);
+            e.printStackTrace();
+        }
+
+
         networkTables.start();
 
         Gdx.app.getInput().setInputProcessor(inputEventThrower);
@@ -137,10 +171,10 @@ public class AutoBuilder extends ApplicationAdapter {
         gui = new Gui(hudViewport, font, fontShader, inputEventThrower, pathingService, cameraHandler);
 
         File file = new File(Gdx.files.getExternalStoragePath() + "/AppData/Roaming/AutoBuilder/data.json");
-        System.out.println(file.getParentFile().mkdirs());
+        file.getParentFile().mkdirs();
 
         try {
-            Autonomous autonomous = Serializer.deserializeFromFile(file);
+            Autonomous autonomous = Serializer.deserializeAutoFromFile(file);
             undoHandler.restoreState(autonomous, gui, fontShader, font, inputEventThrower, cameraHandler);
         } catch (IOException e) {
             e.printStackTrace();
@@ -287,14 +321,21 @@ public class AutoBuilder extends ApplicationAdapter {
     public void pause() {
         super.pause();
         File file = new File(Gdx.files.getExternalStoragePath() + "/AppData/Roaming/AutoBuilder/data.json");
+        File configFile = new File(Gdx.files.getExternalStoragePath() + "/AppData/Roaming/AutoBuilder/config.json");
         file.getParentFile().mkdirs();
+        configFile.getParentFile().mkdirs();
 
         try {
             Serializer.serializeToFile(GuiSerializer.serializeAutonomous(gui.guiItems), file);
+            configFile.createNewFile();
+            Serializer.serializeToFile(config, configFile);
         } catch (IOException e) {
             e.printStackTrace();
         }
 
+    }
 
+    public static Config getConfig(){
+        return config;
     }
 }

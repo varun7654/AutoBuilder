@@ -4,35 +4,20 @@ import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.glutils.ShaderProgram;
+import me.varun.autobuilder.AutoBuilder;
 import me.varun.autobuilder.events.scroll.InputEventThrower;
 import me.varun.autobuilder.events.textchange.TextChangeListener;
 import me.varun.autobuilder.gui.elements.AbstractGuiItem;
 import me.varun.autobuilder.gui.elements.TextBox;
-import me.varun.autobuilder.scriptengine.*;
+import me.varun.autobuilder.scripting.Parser;
 import me.varun.autobuilder.util.RoundedShapeRenderer;
 import org.jetbrains.annotations.NotNull;
 import space.earlygrey.shapedrawer.ShapeDrawer;
 
-import javax.script.ScriptEngine;
-import javax.script.ScriptEngineManager;
-import javax.script.ScriptException;
-import java.lang.invoke.WrongMethodTypeException;
-
 public class ScriptItem extends AbstractGuiItem implements TextChangeListener {
     private static final Color LIGHT_BLUE = Color.valueOf("86CDF9");
-    static ScriptEngineManager manager;
-    static ScriptEngine engine;
 
     static {
-        manager = new ScriptEngineManager();
-        engine = manager.getEngineByName("JavaScript");
-
-        engine.put("shooter", new Shooter());
-        engine.put("hopper", Hopper.getInstance());
-        engine.put("intake", Intake.getInstance());
-        engine.put("visionManager", VisionManager.getInstance());
-
-        engine.put("auto", new TemplateAuto(new Translation2D()));
     }
 
     private final ShaderProgram fontShader;
@@ -82,16 +67,9 @@ public class ScriptItem extends AbstractGuiItem implements TextChangeListener {
 
     @Override
     public void onTextChange(String text, TextBox textBox) {
-        try {
-            engine.eval(text);
-            error = false;
-        } catch (ScriptException | WrongMethodTypeException exception) {
-            error = true;
-        } catch (Exception e) {
-            System.out.println("Unexpected Exception");
-            e.printStackTrace();
-            error = true;
-        }
+
+        error = !Parser.execute(text, AutoBuilder.getConfig().getScriptMethods());
+
     }
 
     @Override

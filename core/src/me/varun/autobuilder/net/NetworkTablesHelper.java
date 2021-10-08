@@ -54,7 +54,7 @@ public class NetworkTablesHelper {
             try {
                 String autonomousString = Serializer.serializeToString(GuiSerializer.serializeAutonomousForDeployment(guiItemList));
                 autoPath.setString(autonomousString);
-                Autonomous autonomous = Serializer.deserialize(autoPath.getString(null));
+                Autonomous autonomous = Serializer.deserializeAuto(autoPath.getString(null));
                 System.out.println("Sent Data: " + autonomous);
 
                 NotificationHandler.addNotification(new Notification(LIGHT_GREEN, "Auto Uploaded", 2000 ));
@@ -89,6 +89,7 @@ public class NetworkTablesHelper {
                 enabled = false;
             }
 
+            //Check for the roborio processing notification
             if(processingTable.getDouble(0) != processing){
                 processing = processingTable.getDouble(0);
                 if(processing == 1){
