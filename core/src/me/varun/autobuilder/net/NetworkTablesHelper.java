@@ -41,7 +41,7 @@ public class NetworkTablesHelper {
 
     public void start() {
         inst.startClientTeam(3476);  // where TEAM=190, 294, etc, or use inst.startClient("hostname") or similar
-        inst.startDSClient();  // recommended if running on DS computer; this gets the robot IP from the DS
+        //inst.startDSClient();  // recommended if running on DS computer; this gets the robot IP from the DS
     }
 
 

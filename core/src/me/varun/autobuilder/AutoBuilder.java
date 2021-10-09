@@ -52,9 +52,9 @@ public class AutoBuilder extends ApplicationAdapter {
     public static double maxAccelerationMetersPerSecondSq;
 
     static {
-        maxVelocityMetersPerSecond = 3.048;
-        maxAccelerationMetersPerSecondSq = 5.08;
-        trajectoryConstraints.add(new CentripetalAccelerationConstraint(1.016));
+        maxVelocityMetersPerSecond = 80 * .0254;
+        maxAccelerationMetersPerSecondSq = 140 * 0.0254;
+        trajectoryConstraints.add(new CentripetalAccelerationConstraint(65 * 0.0254));
     }
 
     private final Vector3 mousePos = new Vector3();
@@ -222,7 +222,7 @@ public class AutoBuilder extends ApplicationAdapter {
         for (int i = 0; i < networkTables.getRobotPositions().size() - 1; i++) {
             Float[] pos1 = networkTables.getRobotPositions().get(i);
             Float[] pos2 = networkTables.getRobotPositions().get(i + 1);
-            shapeRenderer.line(pos1[0], pos1[1], pos2[0], pos2[1], Color.WHITE, LINE_THICKNESS);
+            shapeRenderer.line(pos1[0] * POINT_SCALE_FACTOR, pos1[1] * POINT_SCALE_FACTOR, pos2[0] * POINT_SCALE_FACTOR, pos2[1] * POINT_SCALE_FACTOR, Color.WHITE, LINE_THICKNESS);
         }
 
         batch.end();
