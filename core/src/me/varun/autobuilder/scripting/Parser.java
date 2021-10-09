@@ -33,6 +33,7 @@ public class Parser {
                     break;
                 case "shootBalls":
                 case "setShooterSpeed":
+                case "sleep":
                     try{
                         Float.parseFloat(argument.toString());
                     } catch (NumberFormatException | NullPointerException e){

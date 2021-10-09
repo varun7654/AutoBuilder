@@ -54,7 +54,7 @@ public class AutoBuilder extends ApplicationAdapter {
     static {
         maxVelocityMetersPerSecond = 80 * .0254;
         maxAccelerationMetersPerSecondSq = 140 * 0.0254;
-        trajectoryConstraints.add(new CentripetalAccelerationConstraint(65 * 0.0254));
+        trajectoryConstraints.add(new CentripetalAccelerationConstraint(80 * 0.0254));
     }
 
     private final Vector3 mousePos = new Vector3();
