@@ -34,12 +34,13 @@ import space.earlygrey.shapedrawer.ShapeDrawer;
 
 import java.io.File;
 import java.io.IOException;
+import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 public class AutoBuilder extends ApplicationAdapter {
-    public static final float POINT_SCALE_FACTOR = 153.719228856023f;
+    public static final float POINT_SCALE_FACTOR = 128.8485607008760951188986232791f; //153.719228856023f; 2020 field
     public static final float LINE_THICKNESS = 4;
     public static final float POINT_SIZE = 8;
 
@@ -129,7 +130,7 @@ public class AutoBuilder extends ApplicationAdapter {
         batch = new SpriteBatch();
         shapeRenderer = new ShapeDrawer(batch, new TextureRegion(new Texture(Gdx.files.internal("white.png"))));
 
-        field = new Texture(Gdx.files.internal("field20.png"), true);
+        field = new Texture(Gdx.files.internal("field21.png"), true);
         field.setFilter(Texture.TextureFilter.MipMap, Texture.TextureFilter.Nearest);
 
         cam = new OrthographicCamera(Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
@@ -196,6 +197,13 @@ public class AutoBuilder extends ApplicationAdapter {
 
     }
 
+    DecimalFormat df;
+
+    {
+        df = new DecimalFormat();
+        df.setMaximumFractionDigits(5);
+    }
+
     private void draw() {
         //Clear everything
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT | GL20.GL_DEPTH_BUFFER_BIT |
@@ -207,7 +215,7 @@ public class AutoBuilder extends ApplicationAdapter {
 
         //Draw the image
         batch.begin();
-        batch.draw(field, -639, -2160 / 2);
+        batch.draw(field, -422f, -589f);
 
         //Draw all the paths
         origin.draw(shapeRenderer, cam);
@@ -235,7 +243,7 @@ public class AutoBuilder extends ApplicationAdapter {
 
         font.getData().setScale(0.2f);
         font.setColor(Color.WHITE);
-        font.draw(hudBatch, "FPS: " + Gdx.graphics.getFramesPerSecond() + ", " + Gdx.graphics.getDeltaTime() * 1000 + " ms", 0, 12);
+        font.draw(hudBatch, "FPS: " + Gdx.graphics.getFramesPerSecond() + ", " + df.format(Gdx.graphics.getDeltaTime()* 1000) + " ms", 0, 12);
 
         hudBatch.setShader(null);
 
