@@ -9,7 +9,7 @@ import me.varun.autobuilder.events.scroll.InputEventThrower;
 import me.varun.autobuilder.gui.path.PathGui;
 import me.varun.autobuilder.gui.path.ScriptItem;
 import me.varun.autobuilder.gui.path.TrajectoryItem;
-import me.varun.autobuilder.gui.elements.AbstractGuiItem;
+import me.varun.autobuilder.gui.path.AbstractGuiItem;
 import me.varun.autobuilder.serialization.*;
 import org.jetbrains.annotations.NotNull;
 

@@ -15,7 +15,6 @@ import me.varun.autobuilder.CameraHandler;
 import me.varun.autobuilder.UndoHandler;
 import me.varun.autobuilder.events.scroll.InputEventListener;
 import me.varun.autobuilder.events.scroll.InputEventThrower;
-import me.varun.autobuilder.gui.elements.AbstractGuiItem;
 import me.varun.autobuilder.gui.notification.NotificationHandler;
 import me.varun.autobuilder.util.MathUntil;
 import me.varun.autobuilder.util.RoundedShapeRenderer;

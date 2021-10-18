@@ -11,7 +11,6 @@ import me.varun.autobuilder.UndoHandler;
 import me.varun.autobuilder.events.pathchange.PathChangeListener;
 import me.varun.autobuilder.events.scroll.InputEventThrower;
 import me.varun.autobuilder.events.textchange.TextPositionChangeListener;
-import me.varun.autobuilder.gui.elements.AbstractGuiItem;
 import me.varun.autobuilder.gui.elements.CheckBox;
 import me.varun.autobuilder.gui.elements.NumberTextBox;
 import me.varun.autobuilder.pathing.MovablePointRenderer;

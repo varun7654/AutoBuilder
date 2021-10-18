@@ -7,7 +7,6 @@ import com.badlogic.gdx.graphics.glutils.ShaderProgram;
 import me.varun.autobuilder.AutoBuilder;
 import me.varun.autobuilder.events.scroll.InputEventThrower;
 import me.varun.autobuilder.events.textchange.TextChangeListener;
-import me.varun.autobuilder.gui.elements.AbstractGuiItem;
 import me.varun.autobuilder.gui.elements.TextBox;
 import me.varun.autobuilder.scripting.Parser;
 import me.varun.autobuilder.util.RoundedShapeRenderer;

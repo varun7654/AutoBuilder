@@ -18,7 +18,7 @@ import com.badlogic.gdx.utils.viewport.Viewport;
 import me.varun.autobuilder.events.scroll.InputEventThrower;
 import me.varun.autobuilder.gui.path.PathGui;
 import me.varun.autobuilder.gui.path.TrajectoryItem;
-import me.varun.autobuilder.gui.elements.AbstractGuiItem;
+import me.varun.autobuilder.gui.path.AbstractGuiItem;
 import me.varun.autobuilder.net.NetworkTablesHelper;
 import me.varun.autobuilder.net.Serializer;
 import me.varun.autobuilder.pathing.PathRenderer;

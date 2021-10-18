@@ -5,6 +5,7 @@ import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.utils.Disposable;
+import me.varun.autobuilder.events.button.ButtonClickEventHandler;
 import me.varun.autobuilder.gui.path.PathGui;
 import me.varun.autobuilder.util.RoundedShapeRenderer;
 import org.jetbrains.annotations.NotNull;
@@ -17,6 +18,7 @@ public abstract class AbstractGuiButton implements Disposable {
     private int width;
     private int height;
     private boolean hovering;
+    private ButtonClickEventHandler buttonClickEventHandler;
 
     public AbstractGuiButton(int x, int y, int width, int height, @NotNull Texture texture) {
         this.texture = texture;
@@ -26,6 +28,16 @@ public abstract class AbstractGuiButton implements Disposable {
         setHeight(height);
         texture.setFilter(Texture.TextureFilter.MipMap, Texture.TextureFilter.Linear);
 
+    }
+
+    public AbstractGuiButton(int x, int y, int width, int height, @NotNull Texture texture, ButtonClickEventHandler buttonClickEventHandler) {
+        this.texture = texture;
+        this.x = x;
+        this.y = y;
+        setWidth(width);
+        setHeight(height);
+        texture.setFilter(Texture.TextureFilter.MipMap, Texture.TextureFilter.Linear);
+        this.buttonClickEventHandler = buttonClickEventHandler;
     }
 
     public boolean checkClick(PathGui pathGui) {

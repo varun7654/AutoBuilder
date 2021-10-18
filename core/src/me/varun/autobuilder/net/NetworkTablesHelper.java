@@ -4,7 +4,7 @@ import com.badlogic.gdx.graphics.Color;
 import edu.wpi.first.networktables.NetworkTable;
 import edu.wpi.first.networktables.NetworkTableEntry;
 import edu.wpi.first.networktables.NetworkTableInstance;
-import me.varun.autobuilder.gui.elements.AbstractGuiItem;
+import me.varun.autobuilder.gui.path.AbstractGuiItem;
 import me.varun.autobuilder.gui.notification.Notification;
 import me.varun.autobuilder.gui.notification.NotificationHandler;
 import me.varun.autobuilder.serialization.Autonomous;
