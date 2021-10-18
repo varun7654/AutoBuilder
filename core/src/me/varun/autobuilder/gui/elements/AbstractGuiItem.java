@@ -8,7 +8,7 @@ import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.glutils.ShaderProgram;
 import com.badlogic.gdx.utils.Disposable;
-import me.varun.autobuilder.gui.Gui;
+import me.varun.autobuilder.gui.path.PathGui;
 import me.varun.autobuilder.util.RoundedShapeRenderer;
 import org.jetbrains.annotations.NotNull;
 import space.earlygrey.shapedrawer.ShapeDrawer;
@@ -38,10 +38,10 @@ public abstract class AbstractGuiItem implements Disposable {
 
     abstract public void dispose();
 
-    public int render(@NotNull ShapeDrawer shapeRenderer, @NotNull SpriteBatch spriteBatch, int drawStartX, int drawStartY, int drawWidth, Gui gui) {
+    public int render(@NotNull ShapeDrawer shapeRenderer, @NotNull SpriteBatch spriteBatch, int drawStartX, int drawStartY, int drawWidth, PathGui pathGui) {
         if (Gdx.input.isButtonJustPressed(Input.Buttons.LEFT)) {
             if (isMouseOver(drawStartX + drawWidth - 45, drawStartY - 40, drawWidth - 5, 40)) {
-                gui.guiItemsDeletions.add(this);
+                pathGui.guiItemsDeletions.add(this);
             } else if (isMouseOver(drawStartX, drawStartY - 40, drawWidth - 5, 40)) {
                 setClosed(!isClosed());
             }

@@ -16,16 +16,15 @@ public class Serializer {
     }
 
     public static void serializeToFile(Object obj, File file) throws IOException {
-        objectMapper.configure(SerializationFeature.INDENT_OUTPUT, true);
+        objectMapper.configure(SerializationFeature.INDENT_OUTPUT, false);
         objectMapper.writeValue(file, obj);
     }
 
     public static Autonomous deserializeAutoFromFile(File file) throws IOException {
-        objectMapper.configure(SerializationFeature.INDENT_OUTPUT, false);
         return objectMapper.readValue(file, Autonomous.class);
     }
 
-    public static Object deserialize(String object, Class serializableObject) throws IOException, ClassNotFoundException {
+    public static Object deserialize(String object, Class serializableObject) throws IOException {
         return objectMapper.readValue(object, serializableObject);
     }
 

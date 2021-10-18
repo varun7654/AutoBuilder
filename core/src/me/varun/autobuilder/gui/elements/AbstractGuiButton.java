@@ -5,7 +5,7 @@ import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.utils.Disposable;
-import me.varun.autobuilder.gui.Gui;
+import me.varun.autobuilder.gui.path.PathGui;
 import me.varun.autobuilder.util.RoundedShapeRenderer;
 import org.jetbrains.annotations.NotNull;
 import space.earlygrey.shapedrawer.ShapeDrawer;
@@ -28,7 +28,7 @@ public abstract class AbstractGuiButton implements Disposable {
 
     }
 
-    public boolean checkClick(Gui gui) {
+    public boolean checkClick(PathGui pathGui) {
         return hovering;
     }
 

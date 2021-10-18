@@ -1,8 +1,8 @@
-package me.varun.autobuilder.gui.elements;
+package me.varun.autobuilder.gui.path;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Texture;
-import me.varun.autobuilder.gui.Gui;
+import me.varun.autobuilder.gui.elements.AbstractGuiButton;
 import me.varun.autobuilder.net.NetworkTablesHelper;
 import org.jetbrains.annotations.NotNull;
 
@@ -15,10 +15,10 @@ public class PushAutoButton extends AbstractGuiButton {
     }
 
     @Override
-    public boolean checkClick(@NotNull Gui gui) {
-        if (super.checkClick(gui)) {
+    public boolean checkClick(@NotNull PathGui pathGui) {
+        if (super.checkClick(pathGui)) {
 
-            networkTables.pushData(gui.guiItems);
+            networkTables.pushData(pathGui.guiItems);
             return true;
         }
         return false;

@@ -16,8 +16,8 @@ import com.badlogic.gdx.utils.viewport.ExtendViewport;
 import com.badlogic.gdx.utils.viewport.ScreenViewport;
 import com.badlogic.gdx.utils.viewport.Viewport;
 import me.varun.autobuilder.events.scroll.InputEventThrower;
-import me.varun.autobuilder.gui.Gui;
-import me.varun.autobuilder.gui.TrajectoryItem;
+import me.varun.autobuilder.gui.path.PathGui;
+import me.varun.autobuilder.gui.path.TrajectoryItem;
 import me.varun.autobuilder.gui.elements.AbstractGuiItem;
 import me.varun.autobuilder.net.NetworkTablesHelper;
 import me.varun.autobuilder.net.Serializer;
@@ -40,7 +40,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 public class AutoBuilder extends ApplicationAdapter {
-    public static final float POINT_SCALE_FACTOR = 128.8485607008760951188986232791f; //153.719228856023f; 2020 field
+    public static final float POINT_SCALE_FACTOR = 129.7007874015748f; //153.719228856023f; 2020 field
     public static final float LINE_THICKNESS = 4;
     public static final float POINT_SIZE = 8;
 
@@ -68,7 +68,7 @@ public class AutoBuilder extends ApplicationAdapter {
     @NotNull Preferences preferences;
     @NotNull PointRenderer origin;
     @NotNull ExecutorService pathingService = Executors.newFixedThreadPool(1);
-    @NotNull Gui gui;
+    @NotNull PathGui pathGui;
     @NotNull InputEventThrower inputEventThrower = new InputEventThrower();
     @NotNull UndoHandler undoHandler = UndoHandler.getInstance();
     NetworkTablesHelper networkTables = NetworkTablesHelper.getInstance();
@@ -169,14 +169,14 @@ public class AutoBuilder extends ApplicationAdapter {
             Gdx.app.error("fontShader", "compilation failed:\n" + fontShader.getLog());
         }
 
-        gui = new Gui(hudViewport, font, fontShader, inputEventThrower, pathingService, cameraHandler);
+        pathGui = new PathGui(hudViewport, font, fontShader, inputEventThrower, pathingService, cameraHandler);
 
         File file = new File(Gdx.files.getExternalStoragePath() + "/AppData/Roaming/AutoBuilder/data.json");
         file.getParentFile().mkdirs();
 
         try {
             Autonomous autonomous = Serializer.deserializeAutoFromFile(file);
-            undoHandler.restoreState(autonomous, gui, fontShader, font, inputEventThrower, cameraHandler);
+            undoHandler.restoreState(autonomous, pathGui, fontShader, font, inputEventThrower, cameraHandler);
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -211,7 +211,7 @@ public class AutoBuilder extends ApplicationAdapter {
 
         //Initialize our camera for the batch
         batch.setProjectionMatrix(cam.combined);
-        shapeRenderer.setPixelSize(cam.zoom);
+        shapeRenderer.setPixelSize(cam.zoom/8);
 
         //Draw the image
         batch.begin();
@@ -219,7 +219,7 @@ public class AutoBuilder extends ApplicationAdapter {
 
         //Draw all the paths
         origin.draw(shapeRenderer, cam);
-        for (AbstractGuiItem guiItem : gui.guiItems) {
+        for (AbstractGuiItem guiItem : pathGui.guiItems) {
             if (guiItem instanceof TrajectoryItem) {
                 ((TrajectoryItem) guiItem).getPathRenderer().render(shapeRenderer, cam);
             }
@@ -248,7 +248,7 @@ public class AutoBuilder extends ApplicationAdapter {
         hudBatch.setShader(null);
 
 
-        gui.render(hudShapeRenderer, hudBatch, hudCam);
+        pathGui.render(hudShapeRenderer, hudBatch, hudCam);
 
         hudBatch.end();
 
@@ -256,7 +256,7 @@ public class AutoBuilder extends ApplicationAdapter {
     }
 
     private void update() {
-        undoHandler.update(gui, fontShader, font, inputEventThrower, cameraHandler);
+        undoHandler.update(pathGui, fontShader, font, inputEventThrower, cameraHandler);
         mousePos.set(Gdx.input.getX(), Gdx.input.getY(), 0);
         cam.unproject(mousePos);
 
@@ -265,7 +265,7 @@ public class AutoBuilder extends ApplicationAdapter {
         PathRenderer lastPathRender = null;
         PointChange lastPointChange = PointChange.NONE;
         boolean pointDeleted = false;
-        for (AbstractGuiItem guiItem : gui.guiItems) {
+        for (AbstractGuiItem guiItem : pathGui.guiItems) {
             if (guiItem instanceof TrajectoryItem) {
                 PathRenderer pathRenderer = ((TrajectoryItem) guiItem).getPathRenderer();
                 //It's ok if lastPose2d is null if PointChange != LAST
@@ -290,7 +290,7 @@ public class AutoBuilder extends ApplicationAdapter {
         //Don't add points if we've just deleted one
         if (!pointDeleted) {
             boolean pointAdded = false;
-            for (AbstractGuiItem guiItem : gui.guiItems) {
+            for (AbstractGuiItem guiItem : pathGui.guiItems) {
                 if (guiItem instanceof TrajectoryItem) {
                     PathRenderer pathRenderer = ((TrajectoryItem) guiItem).getPathRenderer();
                     if (!pointAdded && PointChange.ADDITION == pathRenderer.addPoints(mousePos)) {
@@ -299,7 +299,7 @@ public class AutoBuilder extends ApplicationAdapter {
                 }
             }
         }
-        boolean onGui = gui.update();
+        boolean onGui = pathGui.update();
         somethingMoved = somethingMoved || onGui;
 
         lastMousePos.set(mousePos);
@@ -313,7 +313,7 @@ public class AutoBuilder extends ApplicationAdapter {
         batch.dispose();
         hudBatch.dispose();
         font.dispose();
-        gui.dispose();
+        pathGui.dispose();
     }
 
 
@@ -322,7 +322,7 @@ public class AutoBuilder extends ApplicationAdapter {
         hudViewport.update(width, height, true);
         viewport.update(width, height);
 
-        gui.updateScreen(width, height);
+        pathGui.updateScreen(width, height);
     }
 
     @Override
@@ -334,7 +334,7 @@ public class AutoBuilder extends ApplicationAdapter {
         configFile.getParentFile().mkdirs();
 
         try {
-            Serializer.serializeToFile(GuiSerializer.serializeAutonomous(gui.guiItems), file);
+            Serializer.serializeToFile(GuiSerializer.serializeAutonomous(pathGui.guiItems), file);
             configFile.createNewFile();
             Serializer.serializeToFile(config, configFile);
         } catch (IOException e) {

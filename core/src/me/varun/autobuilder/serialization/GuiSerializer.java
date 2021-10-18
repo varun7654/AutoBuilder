@@ -1,7 +1,7 @@
 package me.varun.autobuilder.serialization;
 
-import me.varun.autobuilder.gui.ScriptItem;
-import me.varun.autobuilder.gui.TrajectoryItem;
+import me.varun.autobuilder.gui.path.ScriptItem;
+import me.varun.autobuilder.gui.path.TrajectoryItem;
 import me.varun.autobuilder.gui.elements.AbstractGuiItem;
 
 import java.util.ArrayList;

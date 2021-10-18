@@ -1,4 +1,4 @@
-package me.varun.autobuilder.gui;
+package me.varun.autobuilder.gui.path;
 
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
@@ -43,8 +43,8 @@ public class ScriptItem extends AbstractGuiItem implements TextChangeListener {
     }
 
     @Override
-    public int render(@NotNull ShapeDrawer shapeRenderer, @NotNull SpriteBatch spriteBatch, int drawStartX, int drawStartY, int drawWidth, Gui gui) {
-        super.render(shapeRenderer, spriteBatch, drawStartX, drawStartY, drawWidth, gui);
+    public int render(@NotNull ShapeDrawer shapeRenderer, @NotNull SpriteBatch spriteBatch, int drawStartX, int drawStartY, int drawWidth, PathGui pathGui) {
+        super.render(shapeRenderer, spriteBatch, drawStartX, drawStartY, drawWidth, pathGui);
         if (isClosed()) {
             renderHeader(shapeRenderer, spriteBatch, fontShader, font, drawStartX, drawStartY, drawWidth, trashTexture, warningTexture, LIGHT_BLUE, "Script", error);
             return 40;

@@ -1,4 +1,4 @@
-package me.varun.autobuilder.gui.elements;
+package me.varun.autobuilder.gui.path;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Texture;
@@ -6,8 +6,7 @@ import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.glutils.ShaderProgram;
 import me.varun.autobuilder.UndoHandler;
 import me.varun.autobuilder.events.scroll.InputEventThrower;
-import me.varun.autobuilder.gui.Gui;
-import me.varun.autobuilder.gui.ScriptItem;
+import me.varun.autobuilder.gui.elements.AbstractGuiButton;
 import org.jetbrains.annotations.NotNull;
 
 public class AddScriptButton extends AbstractGuiButton {
@@ -28,9 +27,9 @@ public class AddScriptButton extends AbstractGuiButton {
     }
 
     @Override
-    public boolean checkClick(@NotNull Gui gui) {
-        if (super.checkClick(gui)) {
-            gui.guiItems.add(new ScriptItem(fontShader, font, inputEventThrower));
+    public boolean checkClick(@NotNull PathGui pathGui) {
+        if (super.checkClick(pathGui)) {
+            pathGui.guiItems.add(new ScriptItem(fontShader, font, inputEventThrower));
             UndoHandler.getInstance().somethingChanged();
             return true;
         }

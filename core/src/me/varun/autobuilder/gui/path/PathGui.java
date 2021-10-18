@@ -1,4 +1,4 @@
-package me.varun.autobuilder.gui;
+package me.varun.autobuilder.gui.path;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
@@ -16,9 +16,6 @@ import me.varun.autobuilder.UndoHandler;
 import me.varun.autobuilder.events.scroll.InputEventListener;
 import me.varun.autobuilder.events.scroll.InputEventThrower;
 import me.varun.autobuilder.gui.elements.AbstractGuiItem;
-import me.varun.autobuilder.gui.elements.AddPathButton;
-import me.varun.autobuilder.gui.elements.AddScriptButton;
-import me.varun.autobuilder.gui.elements.PushAutoButton;
 import me.varun.autobuilder.gui.notification.NotificationHandler;
 import me.varun.autobuilder.util.MathUntil;
 import me.varun.autobuilder.util.RoundedShapeRenderer;
@@ -31,7 +28,7 @@ import java.util.List;
 import java.util.Random;
 import java.util.concurrent.ExecutorService;
 
-public class Gui extends InputEventListener {
+public class PathGui extends InputEventListener {
     final @NotNull ExecutorService executorService;
     private final @NotNull Viewport viewport;
     private final @NotNull BitmapFont font;
@@ -63,8 +60,8 @@ public class Gui extends InputEventListener {
 
     NotificationHandler notificationHandler = new NotificationHandler();
 
-    public Gui(@NotNull Viewport viewport, @NotNull BitmapFont font, @NotNull ShaderProgram fontShader,
-               @NotNull InputEventThrower eventThrower, @NotNull ExecutorService executorService, @NotNull CameraHandler cameraHandler) {
+    public PathGui(@NotNull Viewport viewport, @NotNull BitmapFont font, @NotNull ShaderProgram fontShader,
+                   @NotNull InputEventThrower eventThrower, @NotNull ExecutorService executorService, @NotNull CameraHandler cameraHandler) {
         this.viewport = viewport;
         this.font = font;
         this.fontShader = fontShader;

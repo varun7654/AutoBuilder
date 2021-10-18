@@ -1,4 +1,4 @@
-package me.varun.autobuilder.gui;
+package me.varun.autobuilder.gui.path;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
@@ -47,7 +47,7 @@ public class TrajectoryItem extends AbstractGuiItem implements PathChangeListene
     private final @NotNull NumberTextBox endVelocityTextBox;
 
 
-    public TrajectoryItem(Gui gui, @NotNull ShaderProgram fontShader, @NotNull BitmapFont font, @NotNull InputEventThrower eventThrower,
+    public TrajectoryItem(PathGui pathGui, @NotNull ShaderProgram fontShader, @NotNull BitmapFont font, @NotNull InputEventThrower eventThrower,
                           @NotNull CameraHandler cameraHandler) {
         this.eventThrower = eventThrower;
         this.cameraHandler = cameraHandler;
@@ -58,7 +58,7 @@ public class TrajectoryItem extends AbstractGuiItem implements PathChangeListene
         this.fontShader = fontShader;
         this.font = font;
 
-        this.pathRenderer = new PathRenderer(gui.getNextColor(), pose2dList, gui.executorService, 0, 0);
+        this.pathRenderer = new PathRenderer(pathGui.getNextColor(), pose2dList, pathGui.executorService, 0, 0);
         pathRenderer.setPathChangeListener(this);
 
         startVelocityTextBox = new NumberTextBox(df.format(getPathRenderer().getVelocityStart()), fontShader, font,
@@ -67,7 +67,7 @@ public class TrajectoryItem extends AbstractGuiItem implements PathChangeListene
                 eventThrower, this, 0, 0);
     }
 
-    public TrajectoryItem(Gui gui, @NotNull ShaderProgram fontShader, @NotNull BitmapFont font, @NotNull InputEventThrower eventThrower,
+    public TrajectoryItem(PathGui pathGui, @NotNull ShaderProgram fontShader, @NotNull BitmapFont font, @NotNull InputEventThrower eventThrower,
                           @NotNull CameraHandler cameraHandler, List<Pose2d> pose2dList, boolean reversed, Color color, boolean closed, float velocityStart, float velocityEnd) {
         this.eventThrower = eventThrower;
         this.cameraHandler = cameraHandler;
@@ -75,7 +75,7 @@ public class TrajectoryItem extends AbstractGuiItem implements PathChangeListene
         this.fontShader = fontShader;
         this.font = font;
 
-        this.pathRenderer = new PathRenderer(color, pose2dList, gui.executorService, velocityStart, velocityEnd);
+        this.pathRenderer = new PathRenderer(color, pose2dList, pathGui.executorService, velocityStart, velocityEnd);
         pathRenderer.setReversed(reversed);
         pathRenderer.setPathChangeListener(this);
 
@@ -89,21 +89,21 @@ public class TrajectoryItem extends AbstractGuiItem implements PathChangeListene
 
 
     @Override
-    public int render(@NotNull ShapeDrawer shapeRenderer, @NotNull SpriteBatch spriteBatch, int drawStartX, int drawStartY, int drawWidth, Gui gui) {
-        super.render(shapeRenderer, spriteBatch, drawStartX, drawStartY, drawWidth, gui);
+    public int render(@NotNull ShapeDrawer shapeRenderer, @NotNull SpriteBatch spriteBatch, int drawStartX, int drawStartY, int drawWidth, PathGui pathGui) {
+        super.render(shapeRenderer, spriteBatch, drawStartX, drawStartY, drawWidth, pathGui);
         String title;
         if (pathRenderer.getTrajectory() != null) {
             title = "Path - " + df.format(pathRenderer.getTrajectory().getTotalTimeSeconds()) + "s";
         } else title = "Path - Calculating Time";
         if (isClosed()) {
-            renderHeader(shapeRenderer, spriteBatch, fontShader, font, drawStartX, drawStartY, drawWidth, trashTexture, warningTexture, pathRenderer.getColor(), title, checkWarning(gui));
+            renderHeader(shapeRenderer, spriteBatch, fontShader, font, drawStartX, drawStartY, drawWidth, trashTexture, warningTexture, pathRenderer.getColor(), title, checkWarning(pathGui));
             return 40;
         } else {
             List<Pose2d> pose2dList = pathRenderer.getPoint2DList();
             shapeRenderer.setColor(LIGHT_GREY);
             RoundedShapeRenderer.roundedRect(shapeRenderer, drawStartX + 5, drawStartY - (35 * 3 + (pose2dList.size() * 30) + 40) - 5, drawWidth - 5, 35 * 3 + (pose2dList.size() * 30) + 9, 2);
 
-            renderHeader(shapeRenderer, spriteBatch, fontShader, font, drawStartX, drawStartY, drawWidth, trashTexture, warningTexture, pathRenderer.getColor(), title, checkWarning(gui));
+            renderHeader(shapeRenderer, spriteBatch, fontShader, font, drawStartX, drawStartY, drawWidth, trashTexture, warningTexture, pathRenderer.getColor(), title, checkWarning(pathGui));
 
             spriteBatch.setShader(fontShader);
 
@@ -140,8 +140,8 @@ public class TrajectoryItem extends AbstractGuiItem implements PathChangeListene
 
     }
 
-    private boolean checkWarning(Gui gui) {
-        TrajectoryItem lastTrajectoryItem = gui.getLastPath();
+    private boolean checkWarning(PathGui pathGui) {
+        TrajectoryItem lastTrajectoryItem = pathGui.getLastPath();
         if (lastTrajectoryItem != null) {
             List<Pose2d> lastPose2dList = lastTrajectoryItem.getPathRenderer().getPoint2DList();
             Pose2d lastPoint = lastPose2dList.get(lastPose2dList.size() - 1);
