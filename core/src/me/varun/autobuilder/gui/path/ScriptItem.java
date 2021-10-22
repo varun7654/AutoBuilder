@@ -2,7 +2,7 @@ package me.varun.autobuilder.gui.path;
 
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
-import com.badlogic.gdx.graphics.g2d.SpriteBatch;
+import com.badlogic.gdx.graphics.g2d.PolygonSpriteBatch;
 import com.badlogic.gdx.graphics.glutils.ShaderProgram;
 import me.varun.autobuilder.AutoBuilder;
 import me.varun.autobuilder.events.scroll.InputEventThrower;
@@ -42,7 +42,7 @@ public class ScriptItem extends AbstractGuiItem implements TextChangeListener {
     }
 
     @Override
-    public int render(@NotNull ShapeDrawer shapeRenderer, @NotNull SpriteBatch spriteBatch, int drawStartX, int drawStartY, int drawWidth, PathGui pathGui) {
+    public int render(@NotNull ShapeDrawer shapeRenderer, @NotNull PolygonSpriteBatch spriteBatch, int drawStartX, int drawStartY, int drawWidth, PathGui pathGui) {
         super.render(shapeRenderer, spriteBatch, drawStartX, drawStartY, drawWidth, pathGui);
         if (isClosed()) {
             renderHeader(shapeRenderer, spriteBatch, fontShader, font, drawStartX, drawStartY, drawWidth, trashTexture, warningTexture, LIGHT_BLUE, "Script", error);
@@ -68,6 +68,11 @@ public class ScriptItem extends AbstractGuiItem implements TextChangeListener {
     public void onTextChange(String text, TextBox textBox) {
 
         error = !Parser.execute(text, AutoBuilder.getConfig().getScriptMethods());
+
+    }
+
+    @Override
+    public void onTextBoxClick(String text, TextBox textBox) {
 
     }
 

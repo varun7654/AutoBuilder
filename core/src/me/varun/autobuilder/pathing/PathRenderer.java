@@ -369,6 +369,9 @@ public class PathRenderer implements MovablePointEventHandler, Serializable {
         this.velocityEnd = velocityEnd;
     }
 
+    public int getSelectionPoint() {
+        return selectionPointIndex;
+    }
     public enum PointChange {
         NONE, LAST, OTHER, REMOVAL, ADDITION
     }

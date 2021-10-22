@@ -5,7 +5,7 @@ import com.badlogic.gdx.Input;
 import com.badlogic.gdx.graphics.Camera;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
-import com.badlogic.gdx.graphics.g2d.SpriteBatch;
+import com.badlogic.gdx.graphics.g2d.PolygonSpriteBatch;
 import com.badlogic.gdx.graphics.glutils.ShaderProgram;
 import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.math.Vector2;
@@ -79,7 +79,7 @@ public class PathGui extends InputEventListener {
 
     }
 
-    public void render(@NotNull ShapeDrawer shapeRenderer, @NotNull SpriteBatch spriteBatch, @NotNull Camera camera) {
+    public void render(@NotNull ShapeDrawer shapeRenderer, @NotNull PolygonSpriteBatch spriteBatch, @NotNull Camera camera) {
         shapeRenderer.setColor(Color.WHITE);
         RoundedShapeRenderer.roundedRect(shapeRenderer, panelX, panelY, panelWidth, panelHeight, 5);
 
@@ -100,14 +100,14 @@ public class PathGui extends InputEventListener {
             AbstractGuiItem guiItem = guiItems.get(i);
             int newYPos = yPos;
 
-            if (!(draggingElement == null) && !elementDrawn && newYPos < Gdx.graphics.getHeight() - Gdx.input.getY()) {
+            if (draggingElement != null && !elementDrawn && newYPos < Gdx.graphics.getHeight() - Gdx.input.getY()) {
                 newYPos = yPos = yPos - 10 - draggingElement.render(shapeRenderer, spriteBatch, Gdx.input.getX() - (panelWidth - 20) / 2,
                         (Gdx.graphics.getHeight() - Gdx.input.getY()) + 20, panelWidth - 20, this);
                 newDraggingElementIndex = i;
                 elementDrawn = true;
             }
 
-            if (!(guiItem == draggingElement)) {
+            if (guiItem != draggingElement) {
                 newYPos = yPos - 10 - guiItem.render(shapeRenderer, spriteBatch, panelX + 10, yPos, panelWidth - 20, this);
             }
 
@@ -123,7 +123,7 @@ public class PathGui extends InputEventListener {
             yPos = newYPos;
         }
 
-        if (!(draggingElement == null) && !elementDrawn) {
+        if (draggingElement != null && !elementDrawn) {
             draggingElement.render(shapeRenderer, spriteBatch, Gdx.input.getX() - (panelWidth - 20) / 2,
                     (Gdx.graphics.getHeight() - Gdx.input.getY()) + 20, panelWidth - 20, this);
             newDraggingElementIndex = guiItems.size();

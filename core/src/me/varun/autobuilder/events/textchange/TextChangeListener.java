@@ -10,4 +10,12 @@ public interface TextChangeListener {
      * @param textBox textbox that called this
      */
     void onTextChange(String text, TextBox textBox);
+
+    /**
+     * Fired when text in a textbox is clicked
+     *
+     * @param text    text in the textbox
+     * @param textBox textbox that called this
+     */
+    void onTextBoxClick(String text, TextBox textBox);
 }

@@ -4,13 +4,13 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
-import com.badlogic.gdx.graphics.g2d.SpriteBatch;
+import com.badlogic.gdx.graphics.g2d.PolygonSpriteBatch;
 import com.badlogic.gdx.graphics.glutils.ShaderProgram;
 import me.varun.autobuilder.CameraHandler;
 import me.varun.autobuilder.UndoHandler;
 import me.varun.autobuilder.events.pathchange.PathChangeListener;
 import me.varun.autobuilder.events.scroll.InputEventThrower;
-import me.varun.autobuilder.events.textchange.TextPositionChangeListener;
+import me.varun.autobuilder.events.textchange.NumberTextboxChangeListener;
 import me.varun.autobuilder.gui.elements.CheckBox;
 import me.varun.autobuilder.gui.elements.NumberTextBox;
 import me.varun.autobuilder.pathing.MovablePointRenderer;
@@ -25,7 +25,7 @@ import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.List;
 
-public class TrajectoryItem extends AbstractGuiItem implements PathChangeListener, TextPositionChangeListener {
+public class TrajectoryItem extends AbstractGuiItem implements PathChangeListener, NumberTextboxChangeListener {
     private static final DecimalFormat df = new DecimalFormat();
 
     static {
@@ -88,7 +88,7 @@ public class TrajectoryItem extends AbstractGuiItem implements PathChangeListene
 
 
     @Override
-    public int render(@NotNull ShapeDrawer shapeRenderer, @NotNull SpriteBatch spriteBatch, int drawStartX, int drawStartY, int drawWidth, PathGui pathGui) {
+    public int render(@NotNull ShapeDrawer shapeRenderer, @NotNull PolygonSpriteBatch spriteBatch, int drawStartX, int drawStartY, int drawWidth, PathGui pathGui) {
         super.render(shapeRenderer, spriteBatch, drawStartX, drawStartY, drawWidth, pathGui);
         String title;
         if (pathRenderer.getTrajectory() != null) {
@@ -105,6 +105,10 @@ public class TrajectoryItem extends AbstractGuiItem implements PathChangeListene
             renderHeader(shapeRenderer, spriteBatch, fontShader, font, drawStartX, drawStartY, drawWidth, trashTexture, warningTexture, pathRenderer.getColor(), title, checkWarning(pathGui));
 
             spriteBatch.setShader(fontShader);
+
+            if(pathRenderer.getSelectionPoint() >= 0 ){
+                RoundedShapeRenderer.roundedRect(shapeRenderer,drawStartX + 5 ,drawStartY - 42 - (pathRenderer.getSelectionPoint() + 1 )*30, drawWidth - 5,31,3, Color.DARK_GRAY);
+            }
 
             font.setColor(Color.BLACK);
             for (int i = 0; i < textBoxes.size(); i++) {
@@ -223,6 +227,16 @@ public class TrajectoryItem extends AbstractGuiItem implements PathChangeListene
 
         } catch (NumberFormatException ignored) {
         }
+
+    }
+
+    @Override
+    public void onTextBoxClick(String text, int row, int column, NumberTextBox numberTextBox) {
+        if (numberTextBox == startVelocityTextBox || numberTextBox == endVelocityTextBox) {
+            return;
+        }
+
+        cameraHandler.ensureOnScreen(pathRenderer.getPointList().get(row).getRenderPos3());;
 
     }
 

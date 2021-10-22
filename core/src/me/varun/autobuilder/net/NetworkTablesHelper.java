@@ -7,8 +7,8 @@ import edu.wpi.first.networktables.NetworkTableInstance;
 import me.varun.autobuilder.gui.path.AbstractGuiItem;
 import me.varun.autobuilder.gui.notification.Notification;
 import me.varun.autobuilder.gui.notification.NotificationHandler;
-import me.varun.autobuilder.serialization.Autonomous;
-import me.varun.autobuilder.serialization.GuiSerializer;
+import me.varun.autobuilder.serialization.path.Autonomous;
+import me.varun.autobuilder.serialization.path.GuiSerializer;
 
 import java.io.IOException;
 import java.util.ArrayList;

@@ -4,20 +4,20 @@ import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.glutils.ShaderProgram;
 import me.varun.autobuilder.UndoHandler;
 import me.varun.autobuilder.events.scroll.InputEventThrower;
-import me.varun.autobuilder.events.textchange.TextPositionChangeListener;
+import me.varun.autobuilder.events.textchange.NumberTextboxChangeListener;
 import org.jetbrains.annotations.NotNull;
 
 public class NumberTextBox extends TextBox {
     @NotNull
-    private final TextPositionChangeListener textPositionChangeListener;
+    private final NumberTextboxChangeListener numberTextboxChangeListener;
     private final int row;
     private final int column;
     private final UndoHandler undoHandler = UndoHandler.getInstance();
 
     public NumberTextBox(@NotNull String text, @NotNull ShaderProgram fontShader, @NotNull BitmapFont font,
-                         @NotNull InputEventThrower eventThrower, @NotNull TextPositionChangeListener textPositionChangeListener, int row, int column) {
+                         @NotNull InputEventThrower eventThrower, @NotNull NumberTextboxChangeListener numberTextboxChangeListener, int row, int column) {
         super(text, fontShader, font, eventThrower, false, null);
-        this.textPositionChangeListener = textPositionChangeListener;
+        this.numberTextboxChangeListener = numberTextboxChangeListener;
         this.row = row;
         this.column = column;
     }
@@ -31,7 +31,13 @@ public class NumberTextBox extends TextBox {
 
     @Override
     protected void fireTextChangeEvent() {
-        textPositionChangeListener.onTextChange(text, row, column, this);
+        numberTextboxChangeListener.onTextChange(text, row, column, this);
+        undoHandler.somethingChanged();
+    }
+
+    @Override
+    protected void fireTextBoxClickEvent() {
+        numberTextboxChangeListener.onTextBoxClick(text, row, column, this);
         undoHandler.somethingChanged();
     }
 }

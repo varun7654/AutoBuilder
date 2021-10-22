@@ -10,7 +10,7 @@ import me.varun.autobuilder.gui.path.PathGui;
 import me.varun.autobuilder.gui.path.ScriptItem;
 import me.varun.autobuilder.gui.path.TrajectoryItem;
 import me.varun.autobuilder.gui.path.AbstractGuiItem;
-import me.varun.autobuilder.serialization.*;
+import me.varun.autobuilder.serialization.path.*;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;

@@ -5,7 +5,7 @@ import com.badlogic.gdx.Input;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
-import com.badlogic.gdx.graphics.g2d.SpriteBatch;
+import com.badlogic.gdx.graphics.g2d.PolygonSpriteBatch;
 import com.badlogic.gdx.graphics.glutils.ShaderProgram;
 import com.badlogic.gdx.utils.Disposable;
 import me.varun.autobuilder.util.RoundedShapeRenderer;
@@ -37,7 +37,7 @@ public abstract class AbstractGuiItem implements Disposable {
 
     abstract public void dispose();
 
-    public int render(@NotNull ShapeDrawer shapeRenderer, @NotNull SpriteBatch spriteBatch, int drawStartX, int drawStartY, int drawWidth, PathGui pathGui) {
+    public int render(@NotNull ShapeDrawer shapeRenderer, @NotNull PolygonSpriteBatch spriteBatch, int drawStartX, int drawStartY, int drawWidth, PathGui pathGui) {
         if (Gdx.input.isButtonJustPressed(Input.Buttons.LEFT)) {
             if (isMouseOver(drawStartX + drawWidth - 45, drawStartY - 40, drawWidth - 5, 40)) {
                 pathGui.guiItemsDeletions.add(this);
@@ -49,7 +49,7 @@ public abstract class AbstractGuiItem implements Disposable {
         return 40;
     }
 
-    public void renderHeader(ShapeDrawer shapeRenderer, SpriteBatch spriteBatch, ShaderProgram fontShader,
+    public void renderHeader(ShapeDrawer shapeRenderer, @NotNull PolygonSpriteBatch spriteBatch, ShaderProgram fontShader,
                              BitmapFont font, float drawStartX, float drawStartY, float drawWidth,
                              Texture trashTexture, Texture warningTexture, Color headerColor, String headerText, boolean warning) {
         shapeRenderer.setColor(headerColor);

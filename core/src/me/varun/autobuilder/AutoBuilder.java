@@ -8,7 +8,7 @@ import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
-import com.badlogic.gdx.graphics.g2d.SpriteBatch;
+import com.badlogic.gdx.graphics.g2d.PolygonSpriteBatch;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.graphics.glutils.ShaderProgram;
 import com.badlogic.gdx.math.Vector3;
@@ -16,16 +16,17 @@ import com.badlogic.gdx.utils.viewport.ExtendViewport;
 import com.badlogic.gdx.utils.viewport.ScreenViewport;
 import com.badlogic.gdx.utils.viewport.Viewport;
 import me.varun.autobuilder.events.scroll.InputEventThrower;
+import me.varun.autobuilder.gui.path.AbstractGuiItem;
 import me.varun.autobuilder.gui.path.PathGui;
 import me.varun.autobuilder.gui.path.TrajectoryItem;
-import me.varun.autobuilder.gui.path.AbstractGuiItem;
+import me.varun.autobuilder.gui.shooter.ShooterGui;
 import me.varun.autobuilder.net.NetworkTablesHelper;
 import me.varun.autobuilder.net.Serializer;
 import me.varun.autobuilder.pathing.PathRenderer;
 import me.varun.autobuilder.pathing.PathRenderer.PointChange;
 import me.varun.autobuilder.pathing.PointRenderer;
-import me.varun.autobuilder.serialization.Autonomous;
-import me.varun.autobuilder.serialization.GuiSerializer;
+import me.varun.autobuilder.serialization.path.Autonomous;
+import me.varun.autobuilder.serialization.path.GuiSerializer;
 import me.varun.autobuilder.wpi.math.geometry.Pose2d;
 import me.varun.autobuilder.wpi.math.trajectory.constraint.CentripetalAccelerationConstraint;
 import me.varun.autobuilder.wpi.math.trajectory.constraint.TrajectoryConstraint;
@@ -69,15 +70,17 @@ public class AutoBuilder extends ApplicationAdapter {
     @NotNull PointRenderer origin;
     @NotNull ExecutorService pathingService = Executors.newFixedThreadPool(1);
     @NotNull PathGui pathGui;
+    @NotNull ShooterGui shooterGui;
     @NotNull InputEventThrower inputEventThrower = new InputEventThrower();
     @NotNull UndoHandler undoHandler = UndoHandler.getInstance();
-    NetworkTablesHelper networkTables = NetworkTablesHelper.getInstance();
-    private SpriteBatch batch;
-    private SpriteBatch hudBatch;
-    private Texture field;
-    private ShapeDrawer shapeRenderer;
-    private ShapeDrawer hudShapeRenderer;
-    private static Config config;
+    @NotNull NetworkTablesHelper networkTables = NetworkTablesHelper.getInstance();
+    @NotNull private PolygonSpriteBatch batch;
+    @NotNull private PolygonSpriteBatch hudBatch;
+    @NotNull private Texture field;
+    @NotNull private ShapeDrawer shapeRenderer;
+    @NotNull private ShapeDrawer hudShapeRenderer;
+    @NotNull private static Config config;
+    @NotNull private Texture whiteTexture;
 
     public static void handleCrash(Exception e) {
         e.printStackTrace();
@@ -120,15 +123,16 @@ public class AutoBuilder extends ApplicationAdapter {
         }
 
 
-        networkTables.start();
+        //networkTables.start();
 
         Gdx.app.getInput().setInputProcessor(inputEventThrower);
 
-        hudBatch = new SpriteBatch();
-        hudShapeRenderer = new ShapeDrawer(hudBatch, new TextureRegion(new Texture(Gdx.files.internal("white.png"))));
+        whiteTexture = new Texture(Gdx.files.internal("white.png"));
+        hudBatch = new PolygonSpriteBatch();
+        hudShapeRenderer = new ShapeDrawer(hudBatch, new TextureRegion(whiteTexture));
 
-        batch = new SpriteBatch();
-        shapeRenderer = new ShapeDrawer(batch, new TextureRegion(new Texture(Gdx.files.internal("white.png"))));
+        batch = new PolygonSpriteBatch();
+        shapeRenderer = new ShapeDrawer(batch, new TextureRegion(whiteTexture));
 
         field = new Texture(Gdx.files.internal("field21.png"), true);
         field.setFilter(Texture.TextureFilter.MipMap, Texture.TextureFilter.Nearest);
@@ -170,6 +174,7 @@ public class AutoBuilder extends ApplicationAdapter {
         }
 
         pathGui = new PathGui(hudViewport, font, fontShader, inputEventThrower, pathingService, cameraHandler);
+        shooterGui = new ShooterGui(hudViewport, font, fontShader, inputEventThrower, cameraHandler);
 
         File file = new File(Gdx.files.getExternalStoragePath() + "/AppData/Roaming/AutoBuilder/data.json");
         file.getParentFile().mkdirs();
@@ -211,7 +216,8 @@ public class AutoBuilder extends ApplicationAdapter {
 
         //Initialize our camera for the batch
         batch.setProjectionMatrix(cam.combined);
-        shapeRenderer.setPixelSize(cam.zoom/8);
+
+        shapeRenderer.setPixelSize(Math.max(cam.zoom / 8, 0.01f));
 
         //Draw the image
         batch.begin();
@@ -249,6 +255,7 @@ public class AutoBuilder extends ApplicationAdapter {
 
 
         pathGui.render(hudShapeRenderer, hudBatch, hudCam);
+        shooterGui.render(hudShapeRenderer, hudBatch, hudCam);
 
         hudBatch.end();
 
@@ -300,7 +307,8 @@ public class AutoBuilder extends ApplicationAdapter {
             }
         }
         boolean onGui = pathGui.update();
-        somethingMoved = somethingMoved || onGui;
+        onGui = onGui | shooterGui.update();
+        somethingMoved = somethingMoved | onGui;
 
         lastMousePos.set(mousePos);
         cameraHandler.update(somethingMoved, onGui);
@@ -314,6 +322,8 @@ public class AutoBuilder extends ApplicationAdapter {
         hudBatch.dispose();
         font.dispose();
         pathGui.dispose();
+        whiteTexture.dispose();
+        shooterGui.dispose();
     }
 
 
@@ -323,6 +333,7 @@ public class AutoBuilder extends ApplicationAdapter {
         viewport.update(width, height);
 
         pathGui.updateScreen(width, height);
+        shooterGui.updateScreen(width, height);
     }
 
     @Override

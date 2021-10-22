@@ -1,4 +1,4 @@
-package me.varun.autobuilder.serialization;
+package me.varun.autobuilder.serialization.path;
 
 import me.varun.autobuilder.gui.path.ScriptItem;
 import me.varun.autobuilder.gui.path.TrajectoryItem;

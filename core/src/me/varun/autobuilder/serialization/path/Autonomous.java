@@ -1,4 +1,4 @@
-package me.varun.autobuilder.serialization;
+package me.varun.autobuilder.serialization.path;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;

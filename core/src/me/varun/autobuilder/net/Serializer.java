@@ -2,7 +2,7 @@ package me.varun.autobuilder.net;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
-import me.varun.autobuilder.serialization.Autonomous;
+import me.varun.autobuilder.serialization.path.Autonomous;
 
 import java.io.File;
 import java.io.IOException;

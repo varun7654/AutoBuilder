@@ -9,13 +9,15 @@ import java.util.ArrayList;
 public class InputEventThrower implements InputProcessor {
 
     @NotNull ArrayList<InputEventListener> eventHandlers = new ArrayList<>();
+    @NotNull ArrayList<InputEventListener> eventHandlersAdditions = new ArrayList<>();
+    @NotNull ArrayList<InputEventListener> eventHandlersDeletions = new ArrayList<>();
 
     public void register(@NotNull InputEventListener eventHandler) {
-        eventHandlers.add(eventHandler);
+        eventHandlersAdditions.add(eventHandler);
     }
 
-    public boolean unRegister(@NotNull InputEventListener eventHandler) {
-        return eventHandlers.remove(eventHandler);
+    public void unRegister(@NotNull InputEventListener eventHandler) {
+        eventHandlersDeletions.add(eventHandler);
     }
 
     @Override
@@ -30,6 +32,10 @@ public class InputEventThrower implements InputProcessor {
 
     @Override
     public boolean keyTyped(char character) {
+        eventHandlers.addAll(eventHandlersAdditions);
+        eventHandlers.removeAll(eventHandlersDeletions);
+        eventHandlersAdditions.clear();
+        eventHandlersDeletions.clear();
         try {
             for (InputEventListener eventHandler : eventHandlers) {
                 eventHandler.onKeyType(character);
@@ -63,6 +69,10 @@ public class InputEventThrower implements InputProcessor {
 
     @Override
     public boolean scrolled(float amountX, float amountY) {
+        eventHandlers.addAll(eventHandlersAdditions);
+        eventHandlers.removeAll(eventHandlersDeletions);
+        eventHandlersAdditions.clear();
+        eventHandlersDeletions.clear();
         try {
             for (InputEventListener eventHandler : eventHandlers) {
                 eventHandler.onScroll(amountX, amountY);
