@@ -127,7 +127,7 @@ public class AutoBuilder extends ApplicationAdapter {
         }
 
 
-        //networkTables.start();
+        networkTables.start();
 
         Gdx.app.getInput().setInputProcessor(inputEventThrower);
 

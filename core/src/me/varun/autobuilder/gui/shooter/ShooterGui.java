@@ -163,6 +163,34 @@ public class ShooterGui extends InputEventListener implements NumberTextboxChang
 
         float hudXOffset;
         float hudYOffset;
+
+        sortedShooterConfigs.clear();
+        sortedShooterConfigs.addAll(shooterConfig.getShooterConfigs());
+        Collections.sort(sortedShooterConfigs);
+
+        //The popout text part
+        double distance = networkTablesHelper.getDistance();
+        int index = Collections.binarySearch(sortedShooterConfigs, new ShooterPreset(0,0, distance));
+        if(index < 0 ){ //Convert the binary search index into an actual index
+            index = -(index + 1);
+        }
+        ShooterPreset interpolatedShooterPreset = new ShooterPreset(0, 0,0);
+        double percentIn = 0;
+        if(sortedShooterConfigs.size() > 0) {
+            if (sortedShooterConfigs.get(0).getDistance() >= distance) {
+                interpolatedShooterPreset = sortedShooterConfigs.get(0);
+                percentIn = 0;
+                index = 1;
+            } else if (sortedShooterConfigs.get(sortedShooterConfigs.size() - 1).getDistance() < distance) {
+                interpolatedShooterPreset = sortedShooterConfigs.get(sortedShooterConfigs.size() - 1);
+                percentIn = 0;
+            } else {
+                //One of the above 2 if statements will true if there is only 1 element in the list
+                percentIn = (distance - sortedShooterConfigs.get(index - 1).getDistance()) /
+                        (sortedShooterConfigs.get(index).getDistance() - sortedShooterConfigs.get(index - 1).getDistance());
+                interpolatedShooterPreset = interpolateShooterPreset(sortedShooterConfigs.get(index - 1), sortedShooterConfigs.get(index), percentIn);
+            }
+        }
         if(panelOpen){
             shapeDrawer.setColor(LIGHT_GREY);
             RoundedShapeRenderer.roundedRect(shapeDrawer, panelX, panelY, panelWidth, panelHeight, 5);
@@ -171,10 +199,6 @@ public class ShooterGui extends InputEventListener implements NumberTextboxChang
             font.getData().setScale(0.5f);
             font.draw(spriteBatch,"Shooter Config", panelX + 10, panelY + panelHeight - 15);
             spriteBatch.setShader(null);
-
-            sortedShooterConfigs.clear();
-            sortedShooterConfigs.addAll(shooterConfig.getShooterConfigs());
-            Collections.sort(sortedShooterConfigs);
 
             Rectangle scissors = new Rectangle();
             ScissorStack.calculateScissors(camera, spriteBatch.getTransformMatrix(), clipBounds, scissors);
@@ -218,28 +242,7 @@ public class ShooterGui extends InputEventListener implements NumberTextboxChang
                 }
                 if(!clickedOnTextBoxThisFrame) Collections.sort(shooterConfig.getShooterConfigs());
             }
-            //The popout text part
-            double distance = networkTablesHelper.getDistance();
-            int index = Collections.binarySearch(sortedShooterConfigs, new ShooterPreset(0,0, distance));
-            if(index < 0 ){ //Convert the binary search index into an actual index
-                index = -(index + 1);
-            }
-            ShooterPreset interpolatedShooterPreset;
-            double percentIn;
-            if(sortedShooterConfigs.size() > 0){
-                if(sortedShooterConfigs.get(0).getDistance() >= distance){
-                    interpolatedShooterPreset = sortedShooterConfigs.get(0);
-                    percentIn = 0;
-                    index = 1;
-                } else if(sortedShooterConfigs.get(sortedShooterConfigs.size()-1).getDistance() < distance){
-                    interpolatedShooterPreset = sortedShooterConfigs.get(sortedShooterConfigs.size()-1);
-                    percentIn = 0;
-                } else {
-                    //One of the above 2 if statements will true if there is only 1 element in the list
-                    percentIn = (distance - sortedShooterConfigs.get(index - 1).getDistance())/
-                            (sortedShooterConfigs.get(index).getDistance() - sortedShooterConfigs.get(index - 1).getDistance());
-                    interpolatedShooterPreset = interpolateShooterPreset(sortedShooterConfigs.get(index - 1), sortedShooterConfigs.get(index), percentIn);
-                }
+            if(sortedShooterConfigs.size() >0){
 
                 float[] vertices = {
                         panelX, (float) (panelY + panelHeight + smoothScrollPos - (index - 1 + percentIn) * 27) - 14.5f, //Bottom left corner
@@ -257,7 +260,7 @@ public class ShooterGui extends InputEventListener implements NumberTextboxChang
                 spriteBatch.setShader(fontShader);
                 font.getData().setScale(0.3f);
                 font.setColor(Color.WHITE);
-                font.draw(spriteBatch,df.format(interpolatedShooterPreset.getFlywheelSpeed()) + " rpm \n" + df.format(interpolatedShooterPreset.getHoodEjectAngle()) + " °",
+                font.draw(spriteBatch,df.format(interpolatedShooterPreset.getFlywheelSpeed()) + " rpm \n" + df.format(interpolatedShooterPreset.getHoodEjectAngle()) + "°",
                         panelX+panelWidth+20,
                         (float) (panelY + panelHeight + smoothScrollPos - (index - 1 + percentIn) * 27) - 14.5f);
                 spriteBatch.setShader(null);
@@ -297,9 +300,26 @@ public class ShooterGui extends InputEventListener implements NumberTextboxChang
         font.setColor(Color.WHITE);
         font.draw(spriteBatch, "dist:" + df.format(networkTablesHelper.getDistance()), hudXOffset+4 + 165*2, hudYOffset+27);
 
-        spriteBatch.setShader(null);
 
-        if(lastUpdateId == networkTablesHelper.getShooterConfigStatusId() || networkTablesHelper.getShooterConfigStatus() != 1){
+
+        Color rpmColor = new Color().fromHsv((float) (Math.abs((networkTablesHelper.getShooterRPM()- interpolatedShooterPreset.getFlywheelSpeed())/1000) * 246 + 113), 0.6f, 1f);
+        rpmColor.a = 0.95f;
+        RoundedShapeRenderer.roundedRect(shapeDrawer, hudXOffset, hudYOffset - 35,160, 30, 3, rpmColor);
+        spriteBatch.setShader(fontShader);
+        font.getData().setScale(0.45f);
+        font.setColor(Color.WHITE);
+        font.draw(spriteBatch, "rpm:" + df.format(networkTablesHelper.getShooterRPM()), hudXOffset+4, hudYOffset+27-35);
+
+        Color hoodAngleColor = new Color().fromHsv((float) (Math.abs((networkTablesHelper.getLimelightHorizontalOffset() - interpolatedShooterPreset.getHoodEjectAngle())/30) * 246 + 113), 0.6f, 1f);
+        hoodAngleColor.a = 0.95f;
+        RoundedShapeRenderer.roundedRect(shapeDrawer, hudXOffset + 165, hudYOffset -35 ,160, 30, 3, hoodAngleColor);
+        font.setColor(Color.WHITE);
+        font.draw(spriteBatch, "hood:" + df.format(networkTablesHelper.getHoodAngle()), hudXOffset+4 + 165, hudYOffset+27 -35);
+
+        spriteBatch.setShader(null);
+        int currId = (int) networkTablesHelper.getShooterConfigStatusId();
+        int statusId = (int) networkTablesHelper.getShooterConfigStatus();
+        if(lastUpdateId == currId || statusId != 1){
             shapeDrawer.setColor(Color.BLACK);
             shapeDrawer.arc(panelX + panelWidth - 20, panelY + 20,10, (float) -((System.currentTimeMillis()/300d) % (Math.PI * 2)), (float) (Math.PI*3)/2, 4);
         }
