@@ -16,7 +16,7 @@ import me.varun.autobuilder.UndoHandler;
 import me.varun.autobuilder.events.scroll.InputEventListener;
 import me.varun.autobuilder.events.scroll.InputEventThrower;
 import me.varun.autobuilder.gui.notification.NotificationHandler;
-import me.varun.autobuilder.util.MathUntil;
+import me.varun.autobuilder.util.MathUtil;
 import me.varun.autobuilder.util.RoundedShapeRenderer;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -147,7 +147,7 @@ public class PathGui extends InputEventListener {
         }
         guiItemsDeletions.clear();
 
-        scrollPos = MathUntil.clamp(scrollPos, 0, maxScroll);
+        scrollPos = MathUtil.clamp(scrollPos, 0, maxScroll);
         smoothScrollPos = (float) (smoothScrollPos + (scrollPos - smoothScrollPos) / Math.max(1, 0.05 / Gdx.graphics.getDeltaTime()));
 
         boolean onGui = false;
@@ -170,7 +170,7 @@ public class PathGui extends InputEventListener {
                 mouseDownPos.y = Gdx.input.getY();
                 draggingElement = null;
             } else if (Gdx.input.isButtonPressed(Input.Buttons.LEFT)) {
-                if (MathUntil.len2(mouseDownPos, Gdx.input.getX(), Gdx.input.getY()) > 100) {
+                if (MathUtil.len2(mouseDownPos, Gdx.input.getX(), Gdx.input.getY()) > 100) {
                     dragging = true;
                 }
             } else {

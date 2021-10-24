@@ -1,7 +1,5 @@
 package me.varun.autobuilder.gui.path;
 
-import com.badlogic.gdx.Gdx;
-import com.badlogic.gdx.Input;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.PolygonSpriteBatch;
@@ -130,7 +128,7 @@ public class TrajectoryItem extends AbstractGuiItem implements PathChangeListene
             checkBox.setX(drawStartX + drawWidth - 35);
             checkBox.setY(drawStartY - (40 + (pose2dList.size() + 2) * 30) - 35);
             checkBox.checkHover();
-            if (Gdx.input.isButtonJustPressed(Input.Buttons.LEFT) && checkBox.checkClick()) {
+            if (checkBox.checkClick()) {
                 pathRenderer.setReversed(!pathRenderer.isReversed());
                 pathRenderer.updatePath(false);
                 UndoHandler.getInstance().somethingChanged();
@@ -181,6 +179,7 @@ public class TrajectoryItem extends AbstractGuiItem implements PathChangeListene
 
     @Override
     public void onTextChange(String text, int row, int column, NumberTextBox numberTextBox) {
+        UndoHandler.getInstance().somethingChanged();
         if (numberTextBox == startVelocityTextBox) {
             try {
                 float parsedNumber = Float.parseFloat(text);
@@ -231,13 +230,13 @@ public class TrajectoryItem extends AbstractGuiItem implements PathChangeListene
     }
 
     @Override
-    public void onTextBoxClick(String text, int row, int column, NumberTextBox numberTextBox) {
+    public String onTextBoxClick(String text, int row, int column, NumberTextBox numberTextBox) {
         if (numberTextBox == startVelocityTextBox || numberTextBox == endVelocityTextBox) {
-            return;
+            return text;
         }
 
         cameraHandler.ensureOnScreen(pathRenderer.getPointList().get(row).getRenderPos3());;
-
+        return text;
     }
 
     @Override

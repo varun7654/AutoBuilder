@@ -16,6 +16,7 @@ public interface TextChangeListener {
      *
      * @param text    text in the textbox
      * @param textBox textbox that called this
+     * @return text to set in the textbox
      */
-    void onTextBoxClick(String text, TextBox textBox);
+    String onTextBoxClick(String text, TextBox textBox);
 }

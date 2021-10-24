@@ -2,7 +2,7 @@ package me.varun.autobuilder.util;
 
 import com.badlogic.gdx.math.Vector2;
 
-public class MathUntil {
+public class MathUtil {
     public static float clamp(float val, float min, float max) {
         return Math.max(min, Math.min(max, val));
     }

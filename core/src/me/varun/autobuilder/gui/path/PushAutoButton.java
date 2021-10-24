@@ -14,10 +14,8 @@ public class PushAutoButton extends AbstractGuiButton {
         super(x, y, width, height, new Texture(Gdx.files.internal("upload-icon.png"), true));
     }
 
-    @Override
     public boolean checkClick(@NotNull PathGui pathGui) {
-        if (super.checkClick(pathGui)) {
-
+        if (super.checkClick()) {
             networkTables.pushData(pathGui.guiItems);
             return true;
         }

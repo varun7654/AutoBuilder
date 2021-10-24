@@ -7,6 +7,7 @@ import edu.wpi.first.networktables.NetworkTableInstance;
 import me.varun.autobuilder.gui.path.AbstractGuiItem;
 import me.varun.autobuilder.gui.notification.Notification;
 import me.varun.autobuilder.gui.notification.NotificationHandler;
+import me.varun.autobuilder.gui.shooter.ShooterConfig;
 import me.varun.autobuilder.serialization.path.Autonomous;
 import me.varun.autobuilder.serialization.path.GuiSerializer;
 
@@ -14,7 +15,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-public class NetworkTablesHelper {
+public final class NetworkTablesHelper {
 
     private static final float INCHES_PER_METER = 39.3700787f;
     static NetworkTablesHelper networkTablesInstance = new NetworkTablesHelper();
@@ -26,10 +27,24 @@ public class NetworkTablesHelper {
     NetworkTableEntry xPos = position.getEntry("x");
     NetworkTableEntry yPos = position.getEntry("y");
     NetworkTableEntry enabledTable = table.getEntry("enabled");
+
     NetworkTableEntry processingTable = table.getEntry("processing");
+    NetworkTableEntry processingIdTable = table.getEntry("processingid");
+    NetworkTableEntry shooterConfigStatusIdEntry = inst.getTable("limelightgui").getEntry("shooterconfigStatusId");
+
+    NetworkTableEntry limelightForcedOn = inst.getTable("limelightgui").getEntry("forceledon");
+    NetworkTableEntry limelightCameraTargetHeightOffset = inst.getTable("limelightgui").getEntry("CameraTargetHeightOffset");
+
+    NetworkTableEntry shooterConfigEntry = inst.getTable("limelightgui").getEntry("shooterconfig");
+    NetworkTableEntry shooterConfigStatusEntry = inst.getTable("limelightgui").getEntry("shooterconfigStatus");
+
+    NetworkTableEntry LimelightCameraYAngle = inst.getTable("limelightgui").getEntry("CameraYAngle");
+    NetworkTable limelightTable = inst.getTable("limelight");
+    NetworkTable shooterTable = inst.getTable("shooter");
+
 
     private boolean enabled = false;
-    private double processing = 0;
+    private double lastProcessingId = 0;
 
     private NetworkTablesHelper() {
 
@@ -90,21 +105,83 @@ public class NetworkTablesHelper {
             }
 
             //Check for the roborio processing notification
-            if(processingTable.getDouble(0) != processing){
-                processing = processingTable.getDouble(0);
-                if(processing == 1){
+            if(processingIdTable.getDouble(0) != lastProcessingId){
+                lastProcessingId = processingIdTable.getDouble(0);
+                if(processingTable.getDouble(0) == 1){
                     NotificationHandler.addNotification(new Notification(Color.CORAL, "The Roborio has started deserializing the auto", 1500));
-                } else if (processing == 2){
+                } else if (lastProcessingId == 2){
                     NotificationHandler.addNotification(new Notification(LIGHT_GREEN, "The Roborio has finished deserializing the auto", 1500));
                 } else {
-                    NotificationHandler.addNotification(new Notification(LIGHT_GREEN, "The Roborio has set: " + processing, 1500));
+                    NotificationHandler.addNotification(new Notification(LIGHT_GREEN, "The Roborio has set: " + processingTable.getDouble(0), 1500));
                 }
             }
-
-
         }
-
     }
+
+
+    public void setLimelightForcedOn(boolean forcedOn){
+        limelightForcedOn.setBoolean(forcedOn);
+    }
+
+    public boolean isTargetVisiable(){
+        if(limelightTable.getEntry("tv").getDouble(0) == 1){
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    public void setShooterConfig(ShooterConfig shooterConfig){
+        try {
+            this.shooterConfigEntry.setString(Serializer.serializeToString(shooterConfig));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public double getShooterConfigStatusId(){
+        return shooterConfigStatusIdEntry.getDouble(-1);
+    }
+
+    public double getShooterConfigStatus(){
+        return shooterConfigStatusEntry.getDouble(-1);
+    }
+
+    /**
+     * @return Horizontal Offset From Crosshair To Target (LL1: -27 degrees to 27 degrees | LL2: -29.8 to 29.8 degrees)
+     */
+    public double getLimelightHorizontalOffset(){
+        return limelightTable.getEntry("tx").getDouble(0);
+    }
+
+    /**
+     * @return Vertical Offset From Crosshair To Target (LL1: -20.5 degrees to 20.5 degrees | LL2: -24.85 to 24.85 degrees)
+     */
+    public double getLimelightVerticalOffset(){
+        return limelightTable.getEntry("ty").getDouble(0);
+    }
+
+    /**
+     * @see <a href="https://docs.limelightvision.io/en/latest/cs_estimating_distance.html">...</a>
+     * @return Distance from the limelight to the target in cm
+     */
+    public double getDistance(){
+        if(isTargetVisiable()){
+            return  (limelightCameraTargetHeightOffset.getDouble(0)) /
+                    Math.tan(Math.toRadians(LimelightCameraYAngle.getDouble(0) + getLimelightVerticalOffset()));
+        } else {
+            return (System.currentTimeMillis()/50d) % 300;
+        }
+    }
+
+    public double getShooterRPM(){
+        return shooterTable.getEntry("rpm").getDouble(-1);
+    }
+
+    public double getHoodAngle(){
+        return shooterTable.getEntry("hoodangle").getDouble(-1);
+    }
+
 
     public ArrayList<Float[]> getRobotPositions() {
         return robotPositions;

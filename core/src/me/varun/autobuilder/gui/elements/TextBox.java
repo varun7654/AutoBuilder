@@ -7,7 +7,6 @@ import com.badlogic.gdx.graphics.g2d.Batch;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.GlyphLayout;
 import com.badlogic.gdx.graphics.glutils.ShaderProgram;
-import me.varun.autobuilder.UndoHandler;
 import me.varun.autobuilder.events.scroll.InputEventListener;
 import me.varun.autobuilder.events.scroll.InputEventThrower;
 import me.varun.autobuilder.events.textchange.TextChangeListener;
@@ -70,11 +69,11 @@ public class TextBox extends InputEventListener {
         font.getData().setScale((drawHeight - 2) / 64f);
 
         if (Gdx.input.isButtonJustPressed(Input.Buttons.LEFT)) {
-
             if (Gdx.input.getX() > drawStartX && Gdx.input.getX() < drawStartX + drawWidth
                     && Gdx.graphics.getHeight() - Gdx.input.getY() > drawStartY - getHeight(drawWidth, drawHeight)
                     && Gdx.graphics.getHeight() - Gdx.input.getY() < drawStartY) {
                 selected = true;
+                text = fireTextBoxClickEvent();
 
                 //Checking where we click and setting the mouse cursor to the right pos (Y pos)
                 int relativeMouseY = (int) ((drawStartY - (font.getData().xHeight) - 4) - (Gdx.graphics.getHeight() - Gdx.input.getY()));
@@ -117,7 +116,6 @@ public class TextBox extends InputEventListener {
 
                 flashing = true;
                 nextFlashChange = Calendar.getInstance().getTimeInMillis() + 500;
-                fireTextBoxClickEvent();
             } else {
                 selected = false;
             }
@@ -230,12 +228,11 @@ public class TextBox extends InputEventListener {
     protected void fireTextChangeEvent() {
         assert textChangeListener != null;
         textChangeListener.onTextChange(text, this);
-        UndoHandler.getInstance().somethingChanged();
     }
 
-    protected void fireTextBoxClickEvent() {
+    protected String fireTextBoxClickEvent() {
         assert textChangeListener != null;
-        textChangeListener.onTextBoxClick(text, this);
+        return textChangeListener.onTextBoxClick(text, this);
     }
 
     public float getHeight(float drawWidth, float drawHeight) {

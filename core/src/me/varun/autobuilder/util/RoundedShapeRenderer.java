@@ -18,10 +18,10 @@ public class RoundedShapeRenderer {
         drawer.filledRectangle(x, y + radius, radius, height - 2 * radius);
 
         // Four arches, clockwise too
-        drawer.filledCircle(x + radius, y + radius, radius);
-        drawer.filledCircle(x + width - radius, y + radius, radius);
-        drawer.filledCircle(x + width - radius, y + height - radius, radius);
-        drawer.filledCircle(x + radius, y + height - radius, radius);
+        drawer.sector(x + radius, y + radius, radius, (float) Math.PI, (float) Math.PI/2);
+        drawer.sector(x + width - radius, y + radius, radius, (float) (3 * Math.PI)/2, (float) Math.PI/2);
+        drawer.sector(x + width - radius, y + height - radius, radius, (float) 0, (float) Math.PI/2);
+        drawer.sector(x + radius, y + height - radius, radius, (float) Math.PI/2, (float) Math.PI/2);
     }
 
     public static void roundedRect(ShapeDrawer drawer, float x, float y, float width, float height, float radius, Color color) {
@@ -35,9 +35,10 @@ public class RoundedShapeRenderer {
         drawer.filledRectangle(x, y + radius, radius, height - 2 * radius, color);
 
         // Four arches, clockwise too
-        drawer.filledCircle(x + radius, y + radius, radius, color);
-        drawer.filledCircle(x + width - radius, y + radius, radius, color);
-        drawer.filledCircle(x + width - radius, y + height - radius, radius, color);
-        drawer.filledCircle(x + radius, y + height - radius, radius, color);
+        drawer.setColor(color);
+        drawer.sector(x + radius, y + radius, radius, (float) Math.PI, (float) Math.PI/2);
+        drawer.sector(x + width - radius, y + radius, radius, (float) (3 * Math.PI)/2, (float) Math.PI/2);
+        drawer.sector(x + width - radius, y + height - radius, radius, (float) 0, (float) Math.PI/2);
+        drawer.sector(x + radius, y + height - radius, radius, (float) Math.PI/2, (float) Math.PI/2);
     }
 }

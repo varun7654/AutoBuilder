@@ -1,24 +1,24 @@
 package me.varun.autobuilder.gui.elements;
 
 import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.Input;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.Batch;
 import com.badlogic.gdx.utils.Disposable;
-import me.varun.autobuilder.gui.path.PathGui;
 import me.varun.autobuilder.util.RoundedShapeRenderer;
 import org.jetbrains.annotations.NotNull;
 import space.earlygrey.shapedrawer.ShapeDrawer;
 
 public abstract class AbstractGuiButton implements Disposable {
     private final @NotNull Texture texture;
-    private int x;
-    private int y;
-    private int width;
-    private int height;
+    private float x;
+    private float y;
+    private float width;
+    private float height;
     private boolean hovering;
 
-    public AbstractGuiButton(int x, int y, int width, int height, @NotNull Texture texture) {
+    public AbstractGuiButton(float x, float y, float width, float height, @NotNull Texture texture) {
         this.texture = texture;
         this.x = x;
         this.y = y;
@@ -28,12 +28,11 @@ public abstract class AbstractGuiButton implements Disposable {
 
     }
 
-    public boolean checkClick(PathGui pathGui) {
-        return this.hovering;
-    }
-
     public boolean checkClick() {
-        return hovering;
+        if(Gdx.input.isButtonJustPressed(Input.Buttons.LEFT)){
+            return hovering;
+        }
+        return false;
     }
 
 
@@ -67,35 +66,35 @@ public abstract class AbstractGuiButton implements Disposable {
 
     }
 
-    public int getX() {
+    public float getX() {
         return x;
     }
 
-    public void setX(int x) {
+    public void setX(float x) {
         this.x = x;
     }
 
-    public int getY() {
+    public float getY() {
         return y;
     }
 
-    public void setY(int y) {
+    public void setY(float y) {
         this.y = y;
     }
 
-    public int getWidth() {
+    public float getWidth() {
         return width;
     }
 
-    public void setWidth(int width) {
+    public void setWidth(float width) {
         this.width = width;
     }
 
-    public int getHeight() {
+    public float getHeight() {
         return height;
     }
 
-    public void setHeight(int height) {
+    public void setHeight(float height) {
         this.height = height;
     }
 

@@ -72,8 +72,8 @@ public class ScriptItem extends AbstractGuiItem implements TextChangeListener {
     }
 
     @Override
-    public void onTextBoxClick(String text, TextBox textBox) {
-
+    public String onTextBoxClick(String text, TextBox textBox) {
+        return text;
     }
 
     @Override

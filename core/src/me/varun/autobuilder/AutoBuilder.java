@@ -19,6 +19,7 @@ import me.varun.autobuilder.events.scroll.InputEventThrower;
 import me.varun.autobuilder.gui.path.AbstractGuiItem;
 import me.varun.autobuilder.gui.path.PathGui;
 import me.varun.autobuilder.gui.path.TrajectoryItem;
+import me.varun.autobuilder.gui.shooter.ShooterConfig;
 import me.varun.autobuilder.gui.shooter.ShooterGui;
 import me.varun.autobuilder.net.NetworkTablesHelper;
 import me.varun.autobuilder.net.Serializer;
@@ -37,6 +38,7 @@ import java.io.File;
 import java.io.IOException;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -90,6 +92,8 @@ public class AutoBuilder extends ApplicationAdapter {
 
     @Override
     public void create() {
+        Gdx.graphics.setForegroundFPS(Gdx.graphics.getDisplayMode().refreshRate);
+
         File configFile = new File(Gdx.files.getExternalStoragePath() + "/AppData/Roaming/AutoBuilder/config.json");
         configFile.getParentFile().mkdirs();
         try {
@@ -160,8 +164,8 @@ public class AutoBuilder extends ApplicationAdapter {
         preferences.flush();
 
         //TODO: Looks like the texture is messed up and it makes it look really ugly
-        Texture texture = new Texture(Gdx.files.internal("font/arial.png"), true);
-        texture.setFilter(Texture.TextureFilter.MipMap, Texture.TextureFilter.Linear);
+        Texture texture = new Texture(Gdx.files.internal("font/arial.png"), false);
+        texture.setFilter(Texture.TextureFilter.Linear, Texture.TextureFilter.Linear);
 
         //texture.setAnisotropicFilter(8);
 
@@ -174,17 +178,29 @@ public class AutoBuilder extends ApplicationAdapter {
         }
 
         pathGui = new PathGui(hudViewport, font, fontShader, inputEventThrower, pathingService, cameraHandler);
-        shooterGui = new ShooterGui(hudViewport, font, fontShader, inputEventThrower, cameraHandler);
 
-        File file = new File(Gdx.files.getExternalStoragePath() + "/AppData/Roaming/AutoBuilder/data.json");
-        file.getParentFile().mkdirs();
+
+        File pathFile = new File(Gdx.files.getExternalStoragePath() + "/AppData/Roaming/AutoBuilder/data.json");
+        pathFile.getParentFile().mkdirs();
 
         try {
-            Autonomous autonomous = Serializer.deserializeAutoFromFile(file);
+            Autonomous autonomous = Serializer.deserializeAutoFromFile(pathFile);
             undoHandler.restoreState(autonomous, pathGui, fontShader, font, inputEventThrower, cameraHandler);
         } catch (IOException e) {
             e.printStackTrace();
         }
+
+        File shooterConfigFile = new File(Gdx.files.getExternalStoragePath() + "/AppData/Roaming/AutoBuilder/shooterconfig.json");
+        shooterConfigFile.getParentFile().mkdirs();
+
+        try{
+            ShooterConfig shooterConfig = (ShooterConfig) Serializer.deserializeFromFile(shooterConfigFile, ShooterConfig.class);
+            shooterGui = new ShooterGui(hudViewport, font, fontShader, inputEventThrower, cameraHandler, shooterConfig);
+        } catch (IOException e) {
+            e.printStackTrace();
+            shooterGui = new ShooterGui(hudViewport, font, fontShader, inputEventThrower, cameraHandler);
+        }
+
 
         undoHandler.somethingChanged();
 
@@ -206,8 +222,13 @@ public class AutoBuilder extends ApplicationAdapter {
 
     {
         df = new DecimalFormat();
-        df.setMaximumFractionDigits(5);
+        df.setMaximumFractionDigits(4);
+        df.setMinimumFractionDigits(4);
     }
+
+    double[] frameTimes = new double[144 * 2];
+    int frameTimePos = 0;
+
 
     private void draw() {
         //Clear everything
@@ -249,7 +270,10 @@ public class AutoBuilder extends ApplicationAdapter {
 
         font.getData().setScale(0.2f);
         font.setColor(Color.WHITE);
-        font.draw(hudBatch, "FPS: " + Gdx.graphics.getFramesPerSecond() + ", " + df.format(Gdx.graphics.getDeltaTime()* 1000) + " ms", 0, 12);
+        frameTimes[frameTimePos] = Gdx.graphics.getDeltaTime()* 1000;
+        frameTimePos++;
+        if(frameTimePos == frameTimes.length) frameTimePos = 0;
+        font.draw(hudBatch, "FPS: " + Gdx.graphics.getFramesPerSecond() + ", " + df.format(Gdx.graphics.getDeltaTime()* 1000) + " ms Peak: " + df.format(Arrays.stream(frameTimes).max().getAsDouble()) + " ms Avg: " + df.format(Arrays.stream(frameTimes).average().getAsDouble()) + " ms", 0, 12);
 
         hudBatch.setShader(null);
 
@@ -341,6 +365,7 @@ public class AutoBuilder extends ApplicationAdapter {
         super.pause();
         File file = new File(Gdx.files.getExternalStoragePath() + "/AppData/Roaming/AutoBuilder/data.json");
         File configFile = new File(Gdx.files.getExternalStoragePath() + "/AppData/Roaming/AutoBuilder/config.json");
+        File shooterConfig = new File(Gdx.files.getExternalStoragePath() + "/AppData/Roaming/AutoBuilder/shooterconfig.json");
         file.getParentFile().mkdirs();
         configFile.getParentFile().mkdirs();
 
@@ -348,6 +373,8 @@ public class AutoBuilder extends ApplicationAdapter {
             Serializer.serializeToFile(GuiSerializer.serializeAutonomous(pathGui.guiItems), file);
             configFile.createNewFile();
             Serializer.serializeToFile(config, configFile);
+            shooterConfig.createNewFile();
+            Serializer.serializeToFile(shooterGui.getShooterConfig(), shooterConfig);
         } catch (IOException e) {
             e.printStackTrace();
         }

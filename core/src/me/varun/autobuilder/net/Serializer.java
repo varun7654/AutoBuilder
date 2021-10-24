@@ -10,7 +10,7 @@ import java.io.IOException;
 public class Serializer {
     static ObjectMapper objectMapper = new ObjectMapper();
 
-    public static String serializeToString(Autonomous obj) throws IOException {
+    public static String serializeToString(Object obj) throws IOException {
         objectMapper.configure(SerializationFeature.INDENT_OUTPUT, false);
         return objectMapper.writeValueAsString(obj);
     }
@@ -24,7 +24,7 @@ public class Serializer {
         return objectMapper.readValue(file, Autonomous.class);
     }
 
-    public static Object deserialize(String object, Class serializableObject) throws IOException {
+    public static Object deserialize(String object, Class<?> serializableObject) throws IOException {
         return objectMapper.readValue(object, serializableObject);
     }
 
@@ -32,7 +32,7 @@ public class Serializer {
         return objectMapper.readValue(object, Autonomous.class);
     }
 
-    public static Object deserializeFromFile(File file, Class serializableObject) throws IOException {
+    public static Object deserializeFromFile(File file, Class<?> serializableObject) throws IOException {
         return objectMapper.readValue(file, serializableObject);
     }
 

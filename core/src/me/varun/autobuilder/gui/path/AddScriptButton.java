@@ -26,9 +26,8 @@ public class AddScriptButton extends AbstractGuiButton {
         this.inputEventThrower = inputEventThrower;
     }
 
-    @Override
     public boolean checkClick(@NotNull PathGui pathGui) {
-        if (super.checkClick(pathGui)) {
+        if (super.checkClick()){
             pathGui.guiItems.add(new ScriptItem(fontShader, font, inputEventThrower));
             UndoHandler.getInstance().somethingChanged();
             return true;

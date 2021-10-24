@@ -32,12 +32,10 @@ public class NumberTextBox extends TextBox {
     @Override
     protected void fireTextChangeEvent() {
         numberTextboxChangeListener.onTextChange(text, row, column, this);
-        undoHandler.somethingChanged();
     }
 
     @Override
-    protected void fireTextBoxClickEvent() {
-        numberTextboxChangeListener.onTextBoxClick(text, row, column, this);
-        undoHandler.somethingChanged();
+    protected String fireTextBoxClickEvent() {
+        return numberTextboxChangeListener.onTextBoxClick(text, row, column, this);
     }
 }

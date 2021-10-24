@@ -7,7 +7,7 @@ import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.math.Vector3;
 import me.varun.autobuilder.events.scroll.InputEventListener;
 import me.varun.autobuilder.events.scroll.InputEventThrower;
-import me.varun.autobuilder.util.MathUntil;
+import me.varun.autobuilder.util.MathUtil;
 import org.jetbrains.annotations.NotNull;
 
 public class CameraHandler extends InputEventListener {
@@ -98,7 +98,7 @@ public class CameraHandler extends InputEventListener {
         } else if (amountY == -1) {
             zoom = zoom * 0.8f;
         }
-        MathUntil.clamp(zoom, 0.2, 10);
+        MathUtil.clamp(zoom, 0.2, 10);
         zoomMousePos.set(Gdx.input.getX(), Gdx.input.getY());
     }
 

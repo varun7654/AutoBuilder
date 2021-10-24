@@ -11,9 +11,8 @@ public class CheckBox extends AbstractGuiButton {
         CHECKMARK_TEXTURE.setFilter(Texture.TextureFilter.MipMap, Texture.TextureFilter.Linear);
     }
 
-    public CheckBox(int x, int y, int width, int height) {
+    public CheckBox(float x, float y, float width, float height) {
         super(x, y, width, height, CHECKMARK_TEXTURE);
-
     }
 
     @Override

@@ -20,6 +20,7 @@ public interface NumberTextboxChangeListener {
      * @param row           row specified when creating the object
      * @param column        column specified when creating the object
      * @param numberTextBox object that called this
+     * @return text to set in the textbox
      */
-    void onTextBoxClick(String text, int row, int column, NumberTextBox numberTextBox);
+    String onTextBoxClick(String text, int row, int column, NumberTextBox numberTextBox);
 }

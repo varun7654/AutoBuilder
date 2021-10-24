@@ -23,7 +23,7 @@ public class ShooterPreset implements Comparable<ShooterPreset> {
 	}
 
 	@JsonProperty
-	public double getFlyWheelSpeed(){
+	public double getFlywheelSpeed(){
 		return flywheelSpeed;
 	}
 
