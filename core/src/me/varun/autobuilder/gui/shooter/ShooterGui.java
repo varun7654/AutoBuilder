@@ -61,7 +61,7 @@ public class ShooterGui extends InputEventListener implements NumberTextboxChang
 
     private final NetworkTablesHelper networkTablesHelper = NetworkTablesHelper.getInstance();
 
-    private final static Texture TRASH_TEXTURE= new Texture(Gdx.files.internal("trash.png"), true);
+    private final static Texture TRASH_TEXTURE = new Texture(Gdx.files.internal("trash.png"), true);
     static {
         TRASH_TEXTURE.setFilter(Texture.TextureFilter.MipMap, Texture.TextureFilter.Nearest);
     }
@@ -106,10 +106,15 @@ public class ShooterGui extends InputEventListener implements NumberTextboxChang
     /**
      * @return returns true if the gui is just opening
      */
-    public boolean update(){
+    public boolean update(boolean otherGuiOpen){
+        if(otherGuiOpen){
+            panelOpen = false;
+            return false;
+        }
+
         openIcon.checkHover();
         if(Gdx.input.isButtonJustPressed(Input.Buttons.LEFT)){
-            if(openIcon.checkClick()){
+            if(openIcon.checkClick() && !panelOpen){
                 panelOpen = true;
                 scrollPos = 0;
                 smoothScrollPos = 0;
@@ -302,7 +307,7 @@ public class ShooterGui extends InputEventListener implements NumberTextboxChang
 
 
 
-        Color rpmColor = new Color().fromHsv((float) (Math.abs((networkTablesHelper.getShooterRPM()- interpolatedShooterPreset.getFlywheelSpeed())/1000) * 246 + 113), 0.6f, 1f);
+        Color rpmColor = new Color().fromHsv((float) (Math.abs((networkTablesHelper.getShooterRPM()- interpolatedShooterPreset.getFlywheelSpeed())/6000) * 246 + 113), 0.6f, 1f);
         rpmColor.a = 0.95f;
         RoundedShapeRenderer.roundedRect(shapeDrawer, hudXOffset, hudYOffset - 35,160, 30, 3, rpmColor);
         spriteBatch.setShader(fontShader);

@@ -19,6 +19,7 @@ import me.varun.autobuilder.events.scroll.InputEventThrower;
 import me.varun.autobuilder.gui.path.AbstractGuiItem;
 import me.varun.autobuilder.gui.path.PathGui;
 import me.varun.autobuilder.gui.path.TrajectoryItem;
+import me.varun.autobuilder.gui.settings.SettingsGui;
 import me.varun.autobuilder.gui.shooter.ShooterConfig;
 import me.varun.autobuilder.gui.shooter.ShooterGui;
 import me.varun.autobuilder.net.NetworkTablesHelper;
@@ -83,6 +84,7 @@ public class AutoBuilder extends ApplicationAdapter {
     @NotNull private ShapeDrawer hudShapeRenderer;
     @NotNull private static Config config;
     @NotNull private Texture whiteTexture;
+    @NotNull SettingsGui settingsGui;
 
     public static void handleCrash(Exception e) {
         e.printStackTrace();
@@ -138,8 +140,8 @@ public class AutoBuilder extends ApplicationAdapter {
         batch = new PolygonSpriteBatch();
         shapeRenderer = new ShapeDrawer(batch, new TextureRegion(whiteTexture));
 
-        field = new Texture(Gdx.files.internal("field21.png"), true);
-        field.setFilter(Texture.TextureFilter.MipMap, Texture.TextureFilter.Nearest);
+        field = new Texture(Gdx.files.internal("field21.png"), false);
+        field.setFilter(Texture.TextureFilter.Linear, Texture.TextureFilter.Nearest);
 
         cam = new OrthographicCamera(Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
         cam.position.x = Gdx.graphics.getWidth() / 2f;
@@ -164,13 +166,11 @@ public class AutoBuilder extends ApplicationAdapter {
         preferences.flush();
 
         //TODO: Looks like the texture is messed up and it makes it look really ugly
-        Texture texture = new Texture(Gdx.files.internal("font/arial.png"), false);
-        texture.setFilter(Texture.TextureFilter.Linear, Texture.TextureFilter.Linear);
-
-        //texture.setAnisotropicFilter(8);
+        Texture fontTexture = new Texture(Gdx.files.internal("font/arial.png"), false);
+        fontTexture.setFilter(Texture.TextureFilter.Linear, Texture.TextureFilter.Linear);
 
 
-        font = new BitmapFont(Gdx.files.internal("font/arial.fnt"), new TextureRegion(texture), false);
+        font = new BitmapFont(Gdx.files.internal("font/arial.fnt"), new TextureRegion(fontTexture), false);
 
         fontShader = new ShaderProgram(Gdx.files.internal("font/font.vert"), Gdx.files.internal("font/font.frag"));
         if (!fontShader.isCompiled()) {
@@ -200,6 +200,8 @@ public class AutoBuilder extends ApplicationAdapter {
             e.printStackTrace();
             shooterGui = new ShooterGui(hudViewport, font, fontShader, inputEventThrower, cameraHandler);
         }
+
+        settingsGui = new SettingsGui();
 
 
         undoHandler.somethingChanged();
@@ -237,12 +239,12 @@ public class AutoBuilder extends ApplicationAdapter {
 
         //Initialize our camera for the batch
         batch.setProjectionMatrix(cam.combined);
-
         shapeRenderer.setPixelSize(Math.max(cam.zoom / 8, 0.01f));
 
         //Draw the image
         batch.begin();
         batch.draw(field, -422f, -589f);
+        batch.flush();
 
         //Draw all the paths
         origin.draw(shapeRenderer, cam);
@@ -280,11 +282,14 @@ public class AutoBuilder extends ApplicationAdapter {
 
         pathGui.render(hudShapeRenderer, hudBatch, hudCam);
         shooterGui.render(hudShapeRenderer, hudBatch, hudCam);
+        settingsGui.render(hudShapeRenderer, hudBatch, hudCam);
 
         hudBatch.end();
 
-
     }
+
+    boolean shooterGuiOpen;
+    boolean settingsGuiOpen;
 
     private void update() {
         undoHandler.update(pathGui, fontShader, font, inputEventThrower, cameraHandler);
@@ -331,7 +336,11 @@ public class AutoBuilder extends ApplicationAdapter {
             }
         }
         boolean onGui = pathGui.update();
-        onGui = onGui | shooterGui.update();
+        shooterGuiOpen =  shooterGui.update(settingsGuiOpen);
+        settingsGuiOpen = settingsGui.update(shooterGuiOpen);
+
+        onGui = onGui | shooterGuiOpen;
+        onGui = onGui | settingsGuiOpen;
         somethingMoved = somethingMoved | onGui;
 
         lastMousePos.set(mousePos);
