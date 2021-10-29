@@ -161,9 +161,9 @@ public class ShooterGui extends InputEventListener implements NumberTextboxChang
 
     ArrayList<ShooterPreset> sortedShooterConfigs = new ArrayList<>();
 
-    public void render(ShapeDrawer shapeDrawer, Batch spriteBatch, Camera camera) {
+    public void render(ShapeDrawer shapeDrawer, Batch spriteBatch, Camera camera, boolean otherGuiOpen) {
         clickedOnTextBoxThisFrame = false;
-        openIcon.render(shapeDrawer, spriteBatch);
+        if(!otherGuiOpen) openIcon.render(shapeDrawer, spriteBatch);
         spriteBatch.flush();
 
         float hudXOffset;

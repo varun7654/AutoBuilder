@@ -101,31 +101,8 @@ public class AutoBuilder extends ApplicationAdapter {
         try {
             config = (Config) Serializer.deserializeFromFile(configFile, Config.class);
         } catch (IOException e) {
-            ArrayList<String> methods = new ArrayList<>();
-            methods.add("print");
-            methods.add("deployIntake");
-            methods.add("undeployIntake");
-            methods.add("intakeOn");
-            methods.add("intakeOff");
-            methods.add("intakeReverse");
-            methods.add("snailOn");
-            methods.add("snailOff");
-            methods.add("snailReverse");
-            methods.add("frontActive");
-            methods.add("frontInactive");
-            methods.add("frontReverse");
-            methods.add("visionIdle");
-            methods.add("visionWin");
-            methods.add("visionAim");
-            methods.add("setShooterSpeed");
-            methods.add("fireShooter");
-            methods.add("stopFiringShooter");
-            methods.add("shootBalls");
-            methods.add("turnOnIntakeTrack");
-            methods.add("turnOffIntakeTrack");
-
-            config = new Config(methods);
-            e.printStackTrace();
+            Gdx.app.error("Failed to init config", "The Config Failed to init exiting!" , e);
+            Gdx.app.exit();
         }
 
 
@@ -180,7 +157,7 @@ public class AutoBuilder extends ApplicationAdapter {
         pathGui = new PathGui(hudViewport, font, fontShader, inputEventThrower, pathingService, cameraHandler);
 
 
-        File pathFile = new File(Gdx.files.getExternalStoragePath() + "/AppData/Roaming/AutoBuilder/data.json");
+        File pathFile = new File(config.getAutoDirectory().getPath() + config.getSelectedAuto());
         pathFile.getParentFile().mkdirs();
 
         try {
@@ -190,7 +167,7 @@ public class AutoBuilder extends ApplicationAdapter {
             e.printStackTrace();
         }
 
-        File shooterConfigFile = new File(Gdx.files.getExternalStoragePath() + "/AppData/Roaming/AutoBuilder/shooterconfig.json");
+        File shooterConfigFile = new File(config.getAutoDirectory().getPath() + config.getSelectedShooterConfig());
         shooterConfigFile.getParentFile().mkdirs();
 
         try{
@@ -201,7 +178,7 @@ public class AutoBuilder extends ApplicationAdapter {
             shooterGui = new ShooterGui(hudViewport, font, fontShader, inputEventThrower, cameraHandler);
         }
 
-        settingsGui = new SettingsGui();
+        settingsGui = new SettingsGui(hudViewport, font, fontShader, inputEventThrower, cameraHandler);
 
 
         undoHandler.somethingChanged();
@@ -281,8 +258,8 @@ public class AutoBuilder extends ApplicationAdapter {
 
 
         pathGui.render(hudShapeRenderer, hudBatch, hudCam);
-        shooterGui.render(hudShapeRenderer, hudBatch, hudCam);
-        settingsGui.render(hudShapeRenderer, hudBatch, hudCam);
+        shooterGui.render(hudShapeRenderer, hudBatch, hudCam, settingsGuiOpen);
+        settingsGui.render(hudShapeRenderer, hudBatch, hudCam, shooterGuiOpen);
 
         hudBatch.end();
 
