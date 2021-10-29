@@ -170,7 +170,7 @@ public final class NetworkTablesHelper {
             return  (limelightCameraTargetHeightOffset.getDouble(0)) /
                     Math.tan(Math.toRadians(LimelightCameraYAngle.getDouble(0) + getLimelightVerticalOffset()));
         } else {
-            return -1;
+            return (System.currentTimeMillis() /50d) % 300 ;
         }
     }
 

@@ -21,7 +21,7 @@ public class SettingsGui {
     private Rectangle clipBounds;
 
     public void render(@NotNull ShapeDrawer shapeRenderer, @NotNull PolygonSpriteBatch spriteBatch, @NotNull Camera camera) {
-        settingsIcon.render(shapeRenderer,spriteBatch);
+        //settingsIcon.render(shapeRenderer,spriteBatch);
     }
 
     public boolean update(boolean otherGuiOpen){

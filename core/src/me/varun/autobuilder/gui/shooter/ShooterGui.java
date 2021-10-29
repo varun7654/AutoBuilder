@@ -98,6 +98,7 @@ public class ShooterGui extends InputEventListener implements NumberTextboxChang
         }
 
         networkTablesHelper.setShooterConfig(shooterConfig);
+        updateSortedList();
 
         checkBox = new CheckBox(panelX, panelY, 30, 30); //temp positions
         networkTablesHelper.setLimelightForcedOn(false);
@@ -168,10 +169,6 @@ public class ShooterGui extends InputEventListener implements NumberTextboxChang
 
         float hudXOffset;
         float hudYOffset;
-
-        sortedShooterConfigs.clear();
-        sortedShooterConfigs.addAll(shooterConfig.getShooterConfigs());
-        Collections.sort(sortedShooterConfigs);
 
         //The popout text part
         double distance = networkTablesHelper.getDistance();
@@ -371,12 +368,14 @@ public class ShooterGui extends InputEventListener implements NumberTextboxChang
                 textBoxes.add(new NumberTextBox("", fontShader,font,inputEventThrower,this, shooterConfig.getShooterConfigs().size(),0));
                 textBoxes.add(new NumberTextBox("", fontShader,font,inputEventThrower,this, shooterConfig.getShooterConfigs().size(),1));
                 textBoxes.add(new NumberTextBox("", fontShader,font,inputEventThrower,this, shooterConfig.getShooterConfigs().size(),2));
+                updateSortedList();
 
 
             } else {
                 switch (column) {
                     case 0:
                         shooterConfig.getShooterConfigs().get(row).setDistance(parsedNumber);
+                        updateSortedList();
                         break;
                     case 1:
                         shooterConfig.getShooterConfigs().get(row).setFlywheelSpeed(parsedNumber);
@@ -415,6 +414,12 @@ public class ShooterGui extends InputEventListener implements NumberTextboxChang
             default:
                 return text;
         }
+    }
+
+    public void updateSortedList(){
+        sortedShooterConfigs.clear();
+        sortedShooterConfigs.addAll(shooterConfig.getShooterConfigs());
+        Collections.sort(sortedShooterConfigs);
     }
 
     public ShooterConfig getShooterConfig() {
