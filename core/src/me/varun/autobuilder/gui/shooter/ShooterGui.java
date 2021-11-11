@@ -107,12 +107,7 @@ public class ShooterGui extends InputEventListener implements NumberTextboxChang
     /**
      * @return returns true if the gui is just opening
      */
-    public boolean update(boolean otherGuiOpen){
-        if(otherGuiOpen){
-            panelOpen = false;
-            return false;
-        }
-
+    public boolean update(){
         openIcon.checkHover();
         if(Gdx.input.isButtonJustPressed(Input.Buttons.LEFT)){
             if(openIcon.checkClick() && !panelOpen){
@@ -238,10 +233,12 @@ public class ShooterGui extends InputEventListener implements NumberTextboxChang
                     if(indexToDelete>= 0 && indexToDelete < shooterConfig.getShooterConfigs().size()){
                         shooterConfig.getShooterConfigs().remove(indexToDelete);
                         for (int i = 0; i < 3; i++) { //Delete text boxes we no longer need
+                            textBoxes.get(textBoxes.size()-1).dispose();
                             textBoxes.remove(textBoxes.size()-1);
                         }
                     }
                 }
+                //Sort if we're not currently editing a textbox
                 if(!clickedOnTextBoxThisFrame) Collections.sort(shooterConfig.getShooterConfigs());
             }
             if(sortedShooterConfigs.size() >0){
@@ -257,7 +254,6 @@ public class ShooterGui extends InputEventListener implements NumberTextboxChang
                 LIGHT_BLUE.a = 0.8f;
                 shapeDrawer.setColor(LIGHT_BLUE);
                 shapeDrawer.filledPolygon(vertices);
-                //shapeDrawer.filledRectangle(panelX, (float) (panelY + panelHeight + smoothScrollPos - (index - 1 + percentIn) * 27) - 12.5f, panelWidth+100, 4);
 
                 spriteBatch.setShader(fontShader);
                 font.getData().setScale(0.3f);
@@ -276,12 +272,11 @@ public class ShooterGui extends InputEventListener implements NumberTextboxChang
             hudYOffset = panelY + panelHeight - 30;
 
         } else {
-
             hudXOffset = 10;
             hudYOffset = panelY + panelHeight - 30;
         }
 
-
+        //Render the HUD
         Color txColor = new Color().fromHsv((float) (Math.abs(networkTablesHelper.getLimelightHorizontalOffset()/30) * 246 + 113), 0.6f, 1f);
         txColor.a = 0.95f;
         RoundedShapeRenderer.roundedRect(shapeDrawer, hudXOffset, hudYOffset,160, 30, 3, txColor);
