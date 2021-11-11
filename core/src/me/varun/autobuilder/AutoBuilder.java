@@ -19,7 +19,6 @@ import me.varun.autobuilder.events.scroll.InputEventThrower;
 import me.varun.autobuilder.gui.path.AbstractGuiItem;
 import me.varun.autobuilder.gui.path.PathGui;
 import me.varun.autobuilder.gui.path.TrajectoryItem;
-import me.varun.autobuilder.gui.settings.SettingsGui;
 import me.varun.autobuilder.gui.shooter.ShooterConfig;
 import me.varun.autobuilder.gui.shooter.ShooterGui;
 import me.varun.autobuilder.net.NetworkTablesHelper;
@@ -84,7 +83,6 @@ public class AutoBuilder extends ApplicationAdapter {
     @NotNull private ShapeDrawer hudShapeRenderer;
     @NotNull private static Config config;
     @NotNull private Texture whiteTexture;
-    @NotNull SettingsGui settingsGui;
 
     public static void handleCrash(Exception e) {
         e.printStackTrace();
@@ -178,8 +176,6 @@ public class AutoBuilder extends ApplicationAdapter {
             shooterGui = new ShooterGui(hudViewport, font, fontShader, inputEventThrower, cameraHandler);
         }
 
-        settingsGui = new SettingsGui(hudViewport, font, fontShader, inputEventThrower, cameraHandler);
-
 
         undoHandler.somethingChanged();
 
@@ -258,15 +254,10 @@ public class AutoBuilder extends ApplicationAdapter {
 
 
         pathGui.render(hudShapeRenderer, hudBatch, hudCam);
-        shooterGui.render(hudShapeRenderer, hudBatch, hudCam, settingsGuiOpen);
-        settingsGui.render(hudShapeRenderer, hudBatch, hudCam, shooterGuiOpen);
-
+        shooterGui.render(hudShapeRenderer, hudBatch, hudCam);
         hudBatch.end();
 
     }
-
-    boolean shooterGuiOpen;
-    boolean settingsGuiOpen;
 
     private void update() {
         undoHandler.update(pathGui, fontShader, font, inputEventThrower, cameraHandler);
@@ -313,11 +304,7 @@ public class AutoBuilder extends ApplicationAdapter {
             }
         }
         boolean onGui = pathGui.update();
-        shooterGuiOpen =  shooterGui.update(settingsGuiOpen);
-        settingsGuiOpen = settingsGui.update(shooterGuiOpen);
-
-        onGui = onGui | shooterGuiOpen;
-        onGui = onGui | settingsGuiOpen;
+        onGui = onGui | shooterGui.update();
         somethingMoved = somethingMoved | onGui;
 
         lastMousePos.set(mousePos);
