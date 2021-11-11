@@ -11,12 +11,12 @@ public class Serializer {
     static ObjectMapper objectMapper = new ObjectMapper();
 
     public static String serializeToString(Object obj) throws IOException {
-        objectMapper.configure(SerializationFeature.INDENT_OUTPUT, false);
+        objectMapper.configure(SerializationFeature.INDENT_OUTPUT, true);
         return objectMapper.writeValueAsString(obj);
     }
 
     public static void serializeToFile(Object obj, File file) throws IOException {
-        objectMapper.configure(SerializationFeature.INDENT_OUTPUT, false);
+        objectMapper.configure(SerializationFeature.INDENT_OUTPUT, true);
         objectMapper.writeValue(file, obj);
     }
 
