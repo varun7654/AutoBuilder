@@ -16,7 +16,7 @@ public class PushAutoButton extends AbstractGuiButton {
 
     public boolean checkClick(@NotNull PathGui pathGui) {
         if (super.checkClick()) {
-            networkTables.pushData(pathGui.guiItems);
+            networkTables.pushAutoData(pathGui.guiItems);
             return true;
         }
         return false;

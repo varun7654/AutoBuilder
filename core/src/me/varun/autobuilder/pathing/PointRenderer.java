@@ -5,6 +5,7 @@ import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.math.Vector3;
 import me.varun.autobuilder.AutoBuilder;
+import me.varun.autobuilder.Config;
 import org.jetbrains.annotations.NotNull;
 import space.earlygrey.shapedrawer.ShapeDrawer;
 
@@ -13,6 +14,8 @@ public class PointRenderer {
     protected float x;
     protected float y;
     protected Color color;
+
+    Config config = AutoBuilder.getConfig();
 
     public PointRenderer(float x, float y, Color color, float radius) {
         this.x = x;
@@ -41,7 +44,7 @@ public class PointRenderer {
     }
 
     public void draw(@NotNull ShapeDrawer shape, @NotNull OrthographicCamera camera) {
-        shape.filledCircle(x * AutoBuilder.POINT_SCALE_FACTOR, y * AutoBuilder.POINT_SCALE_FACTOR, radius, color);
+        shape.filledCircle(x * config.getPointScaleFactor(), y * config.getPointScaleFactor(), radius, color);
     }
 
 
@@ -89,11 +92,11 @@ public class PointRenderer {
     }
 
     public @NotNull Vector3 getRenderPos3() {
-        return new Vector3(x * AutoBuilder.POINT_SCALE_FACTOR, y * AutoBuilder.POINT_SCALE_FACTOR, 0);
+        return new Vector3(x * config.getPointScaleFactor(), y * config.getPointScaleFactor(), 0);
     }
 
     public @NotNull Vector2 getRenderPos2() {
-        return new Vector2(x * AutoBuilder.POINT_SCALE_FACTOR, y * AutoBuilder.POINT_SCALE_FACTOR);
+        return new Vector2(x * config.getPointScaleFactor(), y * config.getPointScaleFactor());
     }
 
     @Override

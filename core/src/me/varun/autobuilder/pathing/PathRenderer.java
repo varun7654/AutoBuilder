@@ -6,6 +6,8 @@ import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.math.Vector3;
+import me.varun.autobuilder.AutoBuilder;
+import me.varun.autobuilder.Config;
 import me.varun.autobuilder.UndoHandler;
 import me.varun.autobuilder.events.movablepoint.MovablePointEventHandler;
 import me.varun.autobuilder.events.movablepoint.PointClickEvent;
@@ -51,6 +53,8 @@ public class PathRenderer implements MovablePointEventHandler, Serializable {
     private float velocityStart = 0;
     private float velocityEnd = 0;
 
+    Config config = AutoBuilder.getConfig();
+
     public PathRenderer(@NotNull Color color, @NotNull List<Pose2d> pointList, @NotNull ExecutorService executorService, float velocityStart, float velocityEnd) {
         this.color = color;
         this.point2DList = pointList;
@@ -84,8 +88,8 @@ public class PathRenderer implements MovablePointEventHandler, Serializable {
             color[1] = (float) (0.9 * (speed / maxVelocityMetersPerSecond) + 0.1);
             Color speedColor = new Color().fromHsv(color);
             speedColor.set(speedColor.r, speedColor.g, speedColor.b, 1);
-            renderer.line((float) prev.getX() * POINT_SCALE_FACTOR, (float) prev.getY() * POINT_SCALE_FACTOR,
-                    (float) cur.getX() * POINT_SCALE_FACTOR, (float) cur.getY() * POINT_SCALE_FACTOR, speedColor, LINE_THICKNESS);
+            renderer.line((float) prev.getX() * config.getPointScaleFactor(), (float) prev.getY() * config.getPointScaleFactor(),
+                    (float) cur.getX() * config.getPointScaleFactor(), (float) cur.getY() * config.getPointScaleFactor(), speedColor, LINE_THICKNESS);
         }
 
         if (rotationPoint != null) {
@@ -95,10 +99,10 @@ public class PathRenderer implements MovablePointEventHandler, Serializable {
 
             Vector2 origin = pointRenderList.get(selectionPointIndex).getRenderPos2();
 
-            Vector2 leftTop = new Vector2(origin).add(-(ROBOT_WIDTH / 2) * POINT_SCALE_FACTOR, (ROBOT_HEIGHT / 2) * POINT_SCALE_FACTOR);
-            Vector2 rightTop = new Vector2(origin).add((ROBOT_WIDTH / 2) * POINT_SCALE_FACTOR, (ROBOT_HEIGHT / 2) * POINT_SCALE_FACTOR);
-            Vector2 leftBottom = new Vector2(origin).add(-(ROBOT_WIDTH / 2) * POINT_SCALE_FACTOR, -(ROBOT_HEIGHT / 2) * POINT_SCALE_FACTOR);
-            Vector2 rightBottom = new Vector2(origin).add((ROBOT_WIDTH / 2) * POINT_SCALE_FACTOR, -(ROBOT_HEIGHT / 2) * POINT_SCALE_FACTOR);
+            Vector2 leftTop = new Vector2(origin).add(-(config.getRobotWidth() / 2) * config.getPointScaleFactor(), (config.getRobotLength() / 2) * config.getPointScaleFactor());
+            Vector2 rightTop = new Vector2(origin).add((config.getRobotWidth() / 2) * config.getPointScaleFactor(), (config.getRobotLength() / 2) * config.getPointScaleFactor());
+            Vector2 leftBottom = new Vector2(origin).add(-(config.getRobotWidth() / 2) * config.getPointScaleFactor(), -(config.getRobotLength() / 2) * config.getPointScaleFactor());
+            Vector2 rightBottom = new Vector2(origin).add((config.getRobotWidth() / 2) * config.getPointScaleFactor(), -(config.getRobotLength() / 2) * config.getPointScaleFactor());
 
             leftTop.rotateAroundRad(origin, rotation);
             rightTop.rotateAroundRad(origin, rotation);
@@ -137,7 +141,7 @@ public class PathRenderer implements MovablePointEventHandler, Serializable {
             MovablePointRenderer pointRenderer = pointRenderList.get(0);
             if (!attachedToPrevPath && Gdx.app.getInput().isButtonJustPressed(Input.Buttons.LEFT) &&
                     Math.abs(pointRenderer.getPos2().sub((float) prevLastPoint.getX(), (float) prevLastPoint.getY()).len2())
-                            < Math.pow((20 / POINT_SCALE_FACTOR * cam.zoom), 2)) {
+                            < Math.pow((20 / config.getPointScaleFactor() * cam.zoom), 2)) {
                 attachedToPrevPath = true;
             }
 
@@ -193,8 +197,8 @@ public class PathRenderer implements MovablePointEventHandler, Serializable {
         if (Gdx.app.getInput().isButtonJustPressed(Input.Buttons.RIGHT)) {
             for (double i = 0; i < trajectory.getTotalTimeSeconds(); i += 0.01) {
                 Pose2d cur = trajectory.sample(i).poseMeters;
-                double diffX = cur.getX() - mousePos.x / POINT_SCALE_FACTOR;
-                double diffY = cur.getY() - mousePos.y / POINT_SCALE_FACTOR;
+                double diffX = cur.getX() - mousePos.x / config.getPointScaleFactor();
+                double diffY = cur.getY() - mousePos.y / config.getPointScaleFactor();
 
                 if (currentIndexPos + 1 < point2DList.size() && point2DList.get(currentIndexPos + 1).getTranslation().getDistance(cur.getTranslation()) < 0.1) {
                     currentIndexPos++;

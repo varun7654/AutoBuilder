@@ -157,9 +157,9 @@ public class ShooterGui extends InputEventListener implements NumberTextboxChang
 
     ArrayList<ShooterPreset> sortedShooterConfigs = new ArrayList<>();
 
-    public void render(ShapeDrawer shapeDrawer, Batch spriteBatch, Camera camera, boolean otherGuiOpen) {
+    public void render(ShapeDrawer shapeDrawer, Batch spriteBatch, Camera camera) {
+        if(!panelOpen) openIcon.render(shapeDrawer, spriteBatch);
         clickedOnTextBoxThisFrame = false;
-        if(!otherGuiOpen) openIcon.render(shapeDrawer, spriteBatch);
         spriteBatch.flush();
 
         float hudXOffset;
@@ -316,7 +316,7 @@ public class ShooterGui extends InputEventListener implements NumberTextboxChang
         spriteBatch.setShader(null);
         int currId = (int) networkTablesHelper.getShooterConfigStatusId();
         int statusId = (int) networkTablesHelper.getShooterConfigStatus();
-        if(lastUpdateId == currId || statusId != 1){
+        if((lastUpdateId == currId || statusId != 1) && networkTablesHelper.isConnected()){
             shapeDrawer.setColor(Color.BLACK);
             shapeDrawer.arc(panelX + panelWidth - 20, panelY + 20,10, (float) -((System.currentTimeMillis()/300d) % (Math.PI * 2)), (float) (Math.PI*3)/2, 4);
         }
@@ -348,6 +348,7 @@ public class ShooterGui extends InputEventListener implements NumberTextboxChang
         try{
             double parsedNumber = Double.parseDouble(text);
             if(row == shooterConfig.getShooterConfigs().size()){
+                //We are editing the blank row at the end and need to add a new row
                 switch (column) {
                     case 0:
                         shooterConfig.getShooterConfigs().add(new ShooterPreset(0, 0, parsedNumber));

@@ -4,6 +4,7 @@ import com.badlogic.gdx.graphics.Color;
 import edu.wpi.first.networktables.NetworkTable;
 import edu.wpi.first.networktables.NetworkTableEntry;
 import edu.wpi.first.networktables.NetworkTableInstance;
+import me.varun.autobuilder.AutoBuilder;
 import me.varun.autobuilder.gui.path.AbstractGuiItem;
 import me.varun.autobuilder.gui.notification.Notification;
 import me.varun.autobuilder.gui.notification.NotificationHandler;
@@ -55,7 +56,7 @@ public final class NetworkTablesHelper {
     }
 
     public void start() {
-        inst.startClientTeam(3476);  // where TEAM=190, 294, etc, or use inst.startClient("hostname") or similar
+        inst.startClientTeam(AutoBuilder.getConfig().getTeamNumber());  // where TEAM=190, 294, etc, or use inst.startClient("hostname") or similar
         //inst.startDSClient();  // recommended if running on DS computer; this gets the robot IP from the DS
     }
 
@@ -63,7 +64,7 @@ public final class NetworkTablesHelper {
     private static final Color LIGHT_GREEN = Color.valueOf("8FEC8F");
 
 
-    public void pushData(List<AbstractGuiItem> guiItemList) {
+    public void pushAutoData(List<AbstractGuiItem> guiItemList) {
 
         if (inst.isConnected()) {
             try {
@@ -76,7 +77,6 @@ public final class NetworkTablesHelper {
 
             } catch (IOException | ClassNotFoundException e) {
                 e.printStackTrace();
-                System.exit(-1);
                 NotificationHandler.addNotification(new Notification(Color.RED, "Auto Failed to Upload", 2000 ));
             }
         } else {
@@ -182,8 +182,11 @@ public final class NetworkTablesHelper {
         return shooterTable.getEntry("hoodangle").getDouble(-1);
     }
 
-
     public ArrayList<Float[]> getRobotPositions() {
         return robotPositions;
+    }
+
+    public boolean isConnected(){
+        return inst.isConnected();
     }
 }

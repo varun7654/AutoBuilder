@@ -6,7 +6,6 @@ import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.math.Vector3;
-import me.varun.autobuilder.AutoBuilder;
 import me.varun.autobuilder.UndoHandler;
 import me.varun.autobuilder.events.movablepoint.MovablePointEventHandler;
 import me.varun.autobuilder.events.movablepoint.PointClickEvent;
@@ -49,9 +48,9 @@ public class MovablePointRenderer extends PointRenderer {
 
 
         if (Gdx.input.isButtonPressed(Input.Buttons.LEFT)) {
-            if (pressed && !(new Vector3(lastMousePos).sub(mousePos).len2() == 0) && (dragStarted || (new Vector3(startPress).sub(mousePos).len2() > Math.pow(10 * camera.zoom, 2)))) {
+            if (pressed && new Vector3(lastMousePos).sub(mousePos).len2() != 0 && (dragStarted || (new Vector3(startPress).sub(mousePos).len2() > Math.pow(10 * camera.zoom, 2)))) {
                 dragStarted = true;
-                Vector2 newPos = new Vector2(mousePos.x / AutoBuilder.POINT_SCALE_FACTOR, mousePos.y / AutoBuilder.POINT_SCALE_FACTOR);
+                Vector2 newPos = new Vector2(mousePos.x / config.getPointScaleFactor(), mousePos.y / config.getPointScaleFactor());
                 PointMoveEvent event = new PointMoveEvent(this.getPos2(), newPos, this);
                 eventHandler.onPointMove(event);
                 this.setPosition(event.getNewPos());

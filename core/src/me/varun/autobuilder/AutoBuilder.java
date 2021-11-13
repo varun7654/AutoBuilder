@@ -2,7 +2,6 @@ package me.varun.autobuilder;
 
 import com.badlogic.gdx.ApplicationAdapter;
 import com.badlogic.gdx.Gdx;
-import com.badlogic.gdx.Preferences;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.OrthographicCamera;
@@ -28,6 +27,7 @@ import me.varun.autobuilder.pathing.PathRenderer.PointChange;
 import me.varun.autobuilder.pathing.PointRenderer;
 import me.varun.autobuilder.serialization.path.Autonomous;
 import me.varun.autobuilder.serialization.path.GuiSerializer;
+import me.varun.autobuilder.util.OsUtil;
 import me.varun.autobuilder.wpi.math.geometry.Pose2d;
 import me.varun.autobuilder.wpi.math.trajectory.constraint.CentripetalAccelerationConstraint;
 import me.varun.autobuilder.wpi.math.trajectory.constraint.TrajectoryConstraint;
@@ -43,12 +43,10 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 public class AutoBuilder extends ApplicationAdapter {
-    public static final float POINT_SCALE_FACTOR = 129.7007874015748f; //153.719228856023f; 2020 field
     public static final float LINE_THICKNESS = 4;
     public static final float POINT_SIZE = 8;
 
-    public static final float ROBOT_WIDTH = 36.3375f * 0.0254f;
-    public static final float ROBOT_HEIGHT = 36.1875f * 0.0254f;
+
     public static BitmapFont font;
     public static ShaderProgram fontShader;
     public static ArrayList<TrajectoryConstraint> trajectoryConstraints = new ArrayList<>();
@@ -68,7 +66,6 @@ public class AutoBuilder extends ApplicationAdapter {
     @NotNull CameraHandler cameraHandler;
     @NotNull Viewport hudViewport;
     @NotNull OrthographicCamera hudCam;
-    @NotNull Preferences preferences;
     @NotNull PointRenderer origin;
     @NotNull ExecutorService pathingService = Executors.newFixedThreadPool(1);
     @NotNull PathGui pathGui;
@@ -83,6 +80,7 @@ public class AutoBuilder extends ApplicationAdapter {
     @NotNull private ShapeDrawer hudShapeRenderer;
     @NotNull private static Config config;
     @NotNull private Texture whiteTexture;
+    @NotNull public static final String USER_DIRECTORY = OsUtil.getUserConfigDirectory("AutoBuilder");
 
     public static void handleCrash(Exception e) {
         e.printStackTrace();
@@ -94,13 +92,13 @@ public class AutoBuilder extends ApplicationAdapter {
     public void create() {
         Gdx.graphics.setForegroundFPS(Gdx.graphics.getDisplayMode().refreshRate);
 
-        File configFile = new File(Gdx.files.getExternalStoragePath() + "/AppData/Roaming/AutoBuilder/config.json");
+        File configFile = new File(USER_DIRECTORY + "/config.json");
         configFile.getParentFile().mkdirs();
         try {
+            configFile.createNewFile();
             config = (Config) Serializer.deserializeFromFile(configFile, Config.class);
         } catch (IOException e) {
-            Gdx.app.error("Failed to init config", "The Config Failed to init exiting!" , e);
-            Gdx.app.exit();
+            config = new Config(null,null, null, null, null, null,null, null,null);
         }
 
 
@@ -133,12 +131,7 @@ public class AutoBuilder extends ApplicationAdapter {
         hudCam.position.y = Gdx.graphics.getHeight() / 2f;
         hudViewport = new ScreenViewport(hudCam);
 
-        preferences = Gdx.app.getPreferences("me.varun.autobuilder.prefs");
-
-        origin = new PointRenderer(preferences.getFloat("ORIGIN_POINT_X", 0), preferences.getFloat("ORIGIN_POINT_Y", 0),
-                Color.ORANGE, POINT_SIZE);
-
-        preferences.flush();
+        origin = new PointRenderer(0, 0, Color.ORANGE, POINT_SIZE);
 
         //TODO: Looks like the texture is messed up and it makes it look really ugly
         Texture fontTexture = new Texture(Gdx.files.internal("font/arial.png"), false);
@@ -155,7 +148,7 @@ public class AutoBuilder extends ApplicationAdapter {
         pathGui = new PathGui(hudViewport, font, fontShader, inputEventThrower, pathingService, cameraHandler);
 
 
-        File pathFile = new File(config.getAutoDirectory().getPath() + config.getSelectedAuto());
+        File pathFile = new File(USER_DIRECTORY +  "/" + config.getSelectedAuto());
         pathFile.getParentFile().mkdirs();
 
         try {
@@ -165,7 +158,7 @@ public class AutoBuilder extends ApplicationAdapter {
             e.printStackTrace();
         }
 
-        File shooterConfigFile = new File(config.getAutoDirectory().getPath() + config.getSelectedShooterConfig());
+        File shooterConfigFile = new File(USER_DIRECTORY +  "/" + config.getSelectedShooterConfig());
         shooterConfigFile.getParentFile().mkdirs();
 
         try{
@@ -216,7 +209,7 @@ public class AutoBuilder extends ApplicationAdapter {
 
         //Draw the image
         batch.begin();
-        batch.draw(field, -422f, -589f);
+        batch.draw(field, config.getOriginX(), config.getOriginY());
         batch.flush();
 
         //Draw all the paths
@@ -232,7 +225,8 @@ public class AutoBuilder extends ApplicationAdapter {
         for (int i = 0; i < networkTables.getRobotPositions().size() - 1; i++) {
             Float[] pos1 = networkTables.getRobotPositions().get(i);
             Float[] pos2 = networkTables.getRobotPositions().get(i + 1);
-            shapeRenderer.line(pos1[0] * POINT_SCALE_FACTOR, pos1[1] * POINT_SCALE_FACTOR, pos2[0] * POINT_SCALE_FACTOR, pos2[1] * POINT_SCALE_FACTOR, Color.WHITE, LINE_THICKNESS);
+            shapeRenderer.line(pos1[0] * config.getPointScaleFactor(), pos1[1] * config.getPointScaleFactor(),
+                    pos2[0] * config.getPointScaleFactor(), pos2[1] * config.getPointScaleFactor(), Color.WHITE, LINE_THICKNESS);
         }
 
         batch.end();
@@ -243,6 +237,7 @@ public class AutoBuilder extends ApplicationAdapter {
         hudBatch.begin();
         hudBatch.setShader(fontShader);
 
+        //Fps overlay
         font.getData().setScale(0.2f);
         font.setColor(Color.WHITE);
         frameTimes[frameTimePos] = Gdx.graphics.getDeltaTime()* 1000;
@@ -336,14 +331,14 @@ public class AutoBuilder extends ApplicationAdapter {
     @Override
     public void pause() {
         super.pause();
-        File file = new File(Gdx.files.getExternalStoragePath() + "/AppData/Roaming/AutoBuilder/data.json");
-        File configFile = new File(Gdx.files.getExternalStoragePath() + "/AppData/Roaming/AutoBuilder/config.json");
-        File shooterConfig = new File(Gdx.files.getExternalStoragePath() + "/AppData/Roaming/AutoBuilder/shooterconfig.json");
-        file.getParentFile().mkdirs();
+        File autoFile = new File(USER_DIRECTORY + "/" + config.getSelectedAuto());
+        File configFile = new File(USER_DIRECTORY + "/config.json");
+        File shooterConfig = new File(USER_DIRECTORY + "/" + config.getSelectedShooterConfig());
+        autoFile.getParentFile().mkdirs();
         configFile.getParentFile().mkdirs();
 
         try {
-            Serializer.serializeToFile(GuiSerializer.serializeAutonomous(pathGui.guiItems), file);
+            Serializer.serializeToFile(GuiSerializer.serializeAutonomous(pathGui.guiItems), autoFile);
             configFile.createNewFile();
             Serializer.serializeToFile(config, configFile);
             shooterConfig.createNewFile();
