@@ -98,7 +98,7 @@ public class CameraHandler extends InputEventListener {
         } else if (amountY == -1) {
             zoom = zoom * 0.8f;
         }
-        MathUtil.clamp(zoom, 0.2, 10);
+        zoom = MathUtil.clamp(zoom, 0.2f, 10f);
         zoomMousePos.set(Gdx.input.getX(), Gdx.input.getY());
     }
 
