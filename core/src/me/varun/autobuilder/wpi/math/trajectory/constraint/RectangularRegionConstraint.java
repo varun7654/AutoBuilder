@@ -4,14 +4,16 @@
 
 package me.varun.autobuilder.wpi.math.trajectory.constraint;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import me.varun.autobuilder.wpi.math.geometry.Pose2d;
 import me.varun.autobuilder.wpi.math.geometry.Translation2d;
 
 /** Enforces a particular constraint only within a rectangular region. */
 public class RectangularRegionConstraint implements TrajectoryConstraint {
-  private final Translation2d m_bottomLeftPoint;
-  private final Translation2d m_topRightPoint;
-  private final TrajectoryConstraint m_constraint;
+  @JsonProperty("bottomLeftPoint") private final Translation2d m_bottomLeftPoint;
+  @JsonProperty("topRightPoint") private final Translation2d m_topRightPoint;
+  @JsonProperty("constraint") private final TrajectoryConstraint m_constraint;
 
   /**
    * Constructs a new RectangularRegionConstraint.
@@ -22,8 +24,11 @@ public class RectangularRegionConstraint implements TrajectoryConstraint {
    *     constraint.
    * @param constraint The constraint to enforce when the robot is within the region.
    */
+  @JsonCreator
   public RectangularRegionConstraint(
-      Translation2d bottomLeftPoint, Translation2d topRightPoint, TrajectoryConstraint constraint) {
+         @JsonProperty("bottomLeftPoint")Translation2d bottomLeftPoint,
+         @JsonProperty("topRightPoint") Translation2d topRightPoint,
+         @JsonProperty("constraint") TrajectoryConstraint constraint) {
     m_bottomLeftPoint = bottomLeftPoint;
     m_topRightPoint = topRightPoint;
     m_constraint = constraint;

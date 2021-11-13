@@ -4,12 +4,14 @@
 
 package me.varun.autobuilder.wpi.math.trajectory.constraint;
 
-import static me.varun.autobuilder.wpi.util.ErrorMessages.requireNonNullParam;
-
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import me.varun.autobuilder.wpi.math.controller.SimpleMotorFeedforward;
 import me.varun.autobuilder.wpi.math.geometry.Pose2d;
 import me.varun.autobuilder.wpi.math.kinematics.ChassisSpeeds;
 import me.varun.autobuilder.wpi.math.kinematics.DifferentialDriveKinematics;
+
+import static me.varun.autobuilder.wpi.util.ErrorMessages.requireNonNullParam;
 
 /**
  * A class that enforces constraints on differential drive voltage expenditure based on the motor
@@ -18,9 +20,9 @@ import me.varun.autobuilder.wpi.math.kinematics.DifferentialDriveKinematics;
  * voltage.
  */
 public class DifferentialDriveVoltageConstraint implements TrajectoryConstraint {
-  private final SimpleMotorFeedforward m_feedforward;
-  private final DifferentialDriveKinematics m_kinematics;
-  private final double m_maxVoltage;
+  @JsonProperty("feedforward") private final SimpleMotorFeedforward m_feedforward;
+  @JsonProperty("kinematics") private final DifferentialDriveKinematics m_kinematics;
+  @JsonProperty("maxVoltage") private final double m_maxVoltage;
 
   /**
    * Creates a new DifferentialDriveVoltageConstraint.
@@ -31,10 +33,11 @@ public class DifferentialDriveVoltageConstraint implements TrajectoryConstraint 
    *     be somewhat less than the nominal battery voltage (12V) to account for "voltage sag" due to
    *     current draw.
    */
+  @JsonCreator
   public DifferentialDriveVoltageConstraint(
-      SimpleMotorFeedforward feedforward,
-      DifferentialDriveKinematics kinematics,
-      double maxVoltage) {
+      @JsonProperty("feedforward") SimpleMotorFeedforward feedforward,
+      @JsonProperty("kinematics") DifferentialDriveKinematics kinematics,
+      @JsonProperty("maxVoltage") double maxVoltage) {
     m_feedforward =
         requireNonNullParam(feedforward, "feedforward", "DifferentialDriveVoltageConstraint");
     m_kinematics =

@@ -4,6 +4,8 @@
 
 package me.varun.autobuilder.wpi.math.trajectory.constraint;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import me.varun.autobuilder.wpi.math.geometry.Pose2d;
 import me.varun.autobuilder.wpi.math.kinematics.ChassisSpeeds;
 import me.varun.autobuilder.wpi.math.kinematics.MecanumDriveKinematics;
@@ -14,8 +16,8 @@ import me.varun.autobuilder.wpi.math.kinematics.MecanumDriveKinematics;
  * drivetrain stay below a certain limit.
  */
 public class MecanumDriveKinematicsConstraint implements TrajectoryConstraint {
-  private final double m_maxSpeedMetersPerSecond;
-  private final MecanumDriveKinematics m_kinematics;
+  @JsonProperty("maxSpeedMetersPerSecond") private final double m_maxSpeedMetersPerSecond;
+  @JsonProperty("kinematics") private final MecanumDriveKinematics m_kinematics;
 
   /**
    * Constructs a mecanum drive kinematics constraint.
@@ -23,8 +25,10 @@ public class MecanumDriveKinematicsConstraint implements TrajectoryConstraint {
    * @param kinematics Mecanum drive kinematics.
    * @param maxSpeedMetersPerSecond The max speed that a side of the robot can travel at.
    */
+  @JsonCreator
   public MecanumDriveKinematicsConstraint(
-      final MecanumDriveKinematics kinematics, double maxSpeedMetersPerSecond) {
+          @JsonProperty("maxSpeedMetersPerSecond") final MecanumDriveKinematics kinematics,
+          @JsonProperty("kinematics") double maxSpeedMetersPerSecond) {
     m_maxSpeedMetersPerSecond = maxSpeedMetersPerSecond;
     m_kinematics = kinematics;
   }

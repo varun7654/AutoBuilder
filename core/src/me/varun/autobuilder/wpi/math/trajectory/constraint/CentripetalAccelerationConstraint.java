@@ -4,6 +4,8 @@
 
 package me.varun.autobuilder.wpi.math.trajectory.constraint;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import me.varun.autobuilder.wpi.math.geometry.Pose2d;
 
 /**
@@ -15,14 +17,15 @@ import me.varun.autobuilder.wpi.math.geometry.Pose2d;
  * around tight turns, making it easier to track trajectories with sharp turns.
  */
 public class CentripetalAccelerationConstraint implements TrajectoryConstraint {
-  private final double m_maxCentripetalAccelerationMetersPerSecondSq;
+  @JsonProperty("maxCentripetalAccelerationMetersPerSecondSq") private final double m_maxCentripetalAccelerationMetersPerSecondSq;
 
   /**
    * Constructs a centripetal acceleration constraint.
    *
    * @param maxCentripetalAccelerationMetersPerSecondSq The max centripetal acceleration.
    */
-  public CentripetalAccelerationConstraint(double maxCentripetalAccelerationMetersPerSecondSq) {
+  @JsonCreator
+  public CentripetalAccelerationConstraint(@JsonProperty("maxCentripetalAccelerationMetersPerSecondSq") double maxCentripetalAccelerationMetersPerSecondSq) {
     m_maxCentripetalAccelerationMetersPerSecondSq = maxCentripetalAccelerationMetersPerSecondSq;
   }
 

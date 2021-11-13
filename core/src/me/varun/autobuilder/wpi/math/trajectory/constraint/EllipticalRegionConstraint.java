@@ -4,15 +4,17 @@
 
 package me.varun.autobuilder.wpi.math.trajectory.constraint;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import me.varun.autobuilder.wpi.math.geometry.Pose2d;
 import me.varun.autobuilder.wpi.math.geometry.Rotation2d;
 import me.varun.autobuilder.wpi.math.geometry.Translation2d;
 
 /** Enforces a particular constraint only within an elliptical region. */
 public class EllipticalRegionConstraint implements TrajectoryConstraint {
-  private final Translation2d m_center;
-  private final Translation2d m_radii;
-  private final TrajectoryConstraint m_constraint;
+  @JsonProperty("center") private final Translation2d m_center;
+  @JsonProperty("radii") private final Translation2d m_radii;
+  @JsonProperty("constraint") private final TrajectoryConstraint m_constraint;
 
   /**
    * Constructs a new EllipticalRegionConstraint.
@@ -24,6 +26,7 @@ public class EllipticalRegionConstraint implements TrajectoryConstraint {
    * @param constraint The constraint to enforce when the robot is within the region.
    */
   @SuppressWarnings("ParameterName")
+  @JsonCreator
   public EllipticalRegionConstraint(
       Translation2d center,
       double xWidth,
@@ -37,10 +40,12 @@ public class EllipticalRegionConstraint implements TrajectoryConstraint {
 
   @Override
   public double getMaxVelocityMetersPerSecond(
-      Pose2d poseMeters, double curvatureRadPerMeter, double velocityMetersPerSecond) {
+          @JsonProperty("center") Pose2d poseMeters,
+          @JsonProperty("radii") double curvatureRadPerMeter,
+          @JsonProperty("constraint") double velocityMetersPerSecond) {
     if (isPoseInRegion(poseMeters)) {
       return m_constraint.getMaxVelocityMetersPerSecond(
-          poseMeters, curvatureRadPerMeter, velocityMetersPerSecond);
+              poseMeters, curvatureRadPerMeter, velocityMetersPerSecond);
     } else {
       return Double.POSITIVE_INFINITY;
     }

@@ -1,4 +1,4 @@
-package me.varun.autobuilder;
+package me.varun.autobuilder.config;
 
 
 import com.fasterxml.jackson.annotation.JsonCreator;
@@ -21,6 +21,7 @@ public class Config {
     private float pointScaleFactor;
     private float originX;
     private float originY;
+    PathingConfig pathingConfig;
 
     @JsonCreator
     public Config(@JsonProperty(value = "scriptMethods") List<String> scriptMethods,
@@ -31,7 +32,8 @@ public class Config {
                   @JsonProperty(value = "robotWidth") Float robotWidth,
                   @JsonProperty(value = "pointScaleFactor") Float pointScaleFactor,
                   @JsonProperty(value = "originX") Float originX,
-                  @JsonProperty(value = "originY") Float originY){
+                  @JsonProperty(value = "originY") Float originY,
+                  @JsonProperty(value = "pathingConfig") PathingConfig pathingConfig){
         if(this.scriptMethods == null){
             this.scriptMethods = new ArrayList<>();
             this.scriptMethods.addAll(List.of("print", "deployIntake", "undeployIntake", "intakeOn", "intakeOff", "intakeReverse", "snailOn", "snailOff", "snailReverse", "frontActive", "frontInactive", "frontReverse", "visionIdle", "visionWin", "visionAim", "setShooterSpeed", "fireShooter", "stopFiringShooter", "shootBalls", "turnOnIntakeTrack", "turnOffIntakeTrack"));
@@ -39,7 +41,7 @@ public class Config {
             this.scriptMethods = scriptMethods;
         }
 
-        this.selectedAutoFile = shooterConfig == null ? "data.json" : selectedAuto;
+        this.selectedAutoFile = shooterConfig == null ? "auto.json" : selectedAuto;
         this.shooterConfigFile = shooterConfig == null ? "shooterconfig.json" : shooterConfig;
         this.teamNumber = teamNumber == null ? 3476 : teamNumber;
         this.robotLength = robotLength == null ? 0.9191625f : robotLength;
@@ -47,7 +49,11 @@ public class Config {
         this.pointScaleFactor = pointScaleFactor == null ? 129.7007874015748f : pointScaleFactor;
         this.originX = originX == null ? -422f : originX;
         this.originY = originY == null ? -589f : originY;
+        this.pathingConfig = pathingConfig == null ? new PathingConfig() : pathingConfig;
+    }
 
+    public Config(){
+        this(null, null, null, null, null, null, null, null, null, null);
     }
 
     @JsonProperty("scriptMethods")
@@ -94,8 +100,13 @@ public class Config {
         return originY;
     }
 
+    @JsonProperty("pathingConfig")
+    public PathingConfig getPathingConfig(){
+        return pathingConfig;
+    }
+
     @JsonProperty("readMe") @JsonFormat(shape = JsonFormat.Shape.STRING)
-    public String getReadMe(){
+    private String getReadMe(){
         return "the scriptMethods contains the list of valid methods that will be allowed in the script block. " +
                 "print, sleep, shootBalls, and setShooterSpeed are currently hardcoded to allow for error checking on the arguments. " +
                 "You to edit them you will need to clone & compile the code. You can find them at src/me/varun/autobuilder/scripting/parser. " +

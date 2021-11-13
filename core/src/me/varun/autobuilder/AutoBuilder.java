@@ -14,6 +14,7 @@ import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.utils.viewport.ExtendViewport;
 import com.badlogic.gdx.utils.viewport.ScreenViewport;
 import com.badlogic.gdx.utils.viewport.Viewport;
+import me.varun.autobuilder.config.Config;
 import me.varun.autobuilder.events.scroll.InputEventThrower;
 import me.varun.autobuilder.gui.path.AbstractGuiItem;
 import me.varun.autobuilder.gui.path.PathGui;
@@ -98,7 +99,8 @@ public class AutoBuilder extends ApplicationAdapter {
             configFile.createNewFile();
             config = (Config) Serializer.deserializeFromFile(configFile, Config.class);
         } catch (IOException e) {
-            config = new Config(null,null, null, null, null, null,null, null,null);
+            e.printStackTrace();
+            config = new Config();
         }
 
 

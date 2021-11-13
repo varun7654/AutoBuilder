@@ -4,8 +4,26 @@
 
 package me.varun.autobuilder.wpi.math.trajectory.constraint;
 
+import com.fasterxml.jackson.annotation.JsonAutoDetect;
+import com.fasterxml.jackson.annotation.JsonSubTypes;
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import me.varun.autobuilder.wpi.math.geometry.Pose2d;
 
+
+@JsonAutoDetect(fieldVisibility = JsonAutoDetect.Visibility.ANY, creatorVisibility = JsonAutoDetect.Visibility.ANY)
+@JsonTypeInfo(use = JsonTypeInfo.Id.NAME,
+        include = JsonTypeInfo.As.PROPERTY,
+        property = "type")
+@JsonSubTypes({
+        @JsonSubTypes.Type(CentripetalAccelerationConstraint.class),
+        @JsonSubTypes.Type(DifferentialDriveKinematicsConstraint.class),
+        @JsonSubTypes.Type(DifferentialDriveVoltageConstraint.class),
+        @JsonSubTypes.Type(EllipticalRegionConstraint.class),
+        @JsonSubTypes.Type(MaxVelocityConstraint.class),
+        @JsonSubTypes.Type(MecanumDriveKinematicsConstraint.class),
+        @JsonSubTypes.Type(RectangularRegionConstraint.class),
+        @JsonSubTypes.Type(SwerveDriveKinematicsConstraint.class)
+})
 /**
  * An interface for defining user-defined velocity and acceleration constraints while generating
  * trajectories.

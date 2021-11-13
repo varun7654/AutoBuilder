@@ -4,6 +4,8 @@
 
 package me.varun.autobuilder.wpi.math.trajectory.constraint;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import me.varun.autobuilder.wpi.math.geometry.Pose2d;
 import me.varun.autobuilder.wpi.math.kinematics.ChassisSpeeds;
 import me.varun.autobuilder.wpi.math.kinematics.SwerveDriveKinematics;
@@ -14,8 +16,8 @@ import me.varun.autobuilder.wpi.math.kinematics.SwerveDriveKinematics;
  * stay below a certain limit.
  */
 public class SwerveDriveKinematicsConstraint implements TrajectoryConstraint {
-  private final double m_maxSpeedMetersPerSecond;
-  private final SwerveDriveKinematics m_kinematics;
+  @JsonProperty("kinematics") private final double m_maxSpeedMetersPerSecond;
+  @JsonProperty("maxSpeedMetersPerSecond") private final SwerveDriveKinematics m_kinematics;
 
   /**
    * Constructs a swerve drive kinematics constraint.
@@ -23,8 +25,9 @@ public class SwerveDriveKinematicsConstraint implements TrajectoryConstraint {
    * @param kinematics Swerve drive kinematics.
    * @param maxSpeedMetersPerSecond The max speed that a side of the robot can travel at.
    */
-  public SwerveDriveKinematicsConstraint(
-      final SwerveDriveKinematics kinematics, double maxSpeedMetersPerSecond) {
+  @JsonCreator
+  public SwerveDriveKinematicsConstraint(@JsonProperty("kinematics") final SwerveDriveKinematics kinematics,
+                                         @JsonProperty("maxSpeedMetersPerSecond") double maxSpeedMetersPerSecond) {
     m_maxSpeedMetersPerSecond = maxSpeedMetersPerSecond;
     m_kinematics = kinematics;
   }

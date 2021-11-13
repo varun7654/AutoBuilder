@@ -4,6 +4,8 @@
 
 package me.varun.autobuilder.wpi.math.trajectory.constraint;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import me.varun.autobuilder.wpi.math.geometry.Pose2d;
 
 /**
@@ -12,14 +14,15 @@ import me.varun.autobuilder.wpi.math.geometry.Pose2d;
  * region.
  */
 public class MaxVelocityConstraint implements TrajectoryConstraint {
-  private final double m_maxVelocity;
+  @JsonProperty("maxVelocity") private final double m_maxVelocity;
 
   /**
    * Constructs a new MaxVelocityConstraint.
    *
    * @param maxVelocityMetersPerSecond The max velocity.
    */
-  public MaxVelocityConstraint(double maxVelocityMetersPerSecond) {
+  @JsonCreator
+  public MaxVelocityConstraint(@JsonProperty("maxVelocity") double maxVelocityMetersPerSecond) {
     m_maxVelocity = maxVelocityMetersPerSecond;
   }
 
