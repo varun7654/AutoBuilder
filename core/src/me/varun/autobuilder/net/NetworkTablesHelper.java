@@ -97,7 +97,7 @@ public final class NetworkTablesHelper {
                 float x = (float) xPos.getDouble(0);
                 float y = (float) yPos.getDouble(0);
                 if (robotPositions.size() < 1 || (robotPositions.get(robotPositions.size() - 1)[0] != x || robotPositions.get(robotPositions.size() - 1)[1] != y)) {
-                    robotPositions.add(new Float[]{x / INCHES_PER_METER, y / INCHES_PER_METER});
+                    robotPositions.add(new Float[]{x, y});
                 }
 
             } else {
