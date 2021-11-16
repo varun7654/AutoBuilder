@@ -21,6 +21,8 @@ public class PathingConfig {
         if(trajectoryConstraints == null){
             this.trajectoryConstraints = new ArrayList<>();
             this.trajectoryConstraints.add(new CentripetalAccelerationConstraint(80 * 0.0254));
+        } else {
+            this.trajectoryConstraints = trajectoryConstraints;
         }
     }
     @JsonCreator
