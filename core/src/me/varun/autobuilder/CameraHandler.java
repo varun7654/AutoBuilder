@@ -49,7 +49,7 @@ public class CameraHandler extends InputEventListener {
 
         /*
         Basically we're getting the world coordinates of the mouse before we zoom and after we zoom. We then find the
-        difference between these 2 points and move the camera by that difference. This is so that that the item that is
+        difference between these 2 points and move the camera by that difference. This is so that the item that is
         under the mouse cursor doesn't move as the camera zooms in and out.
         */
 
