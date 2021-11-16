@@ -4,13 +4,16 @@
 
 package me.varun.autobuilder.wpi.math.kinematics;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import me.varun.autobuilder.wpi.math.MathSharedStore;
 import me.varun.autobuilder.wpi.math.MathUsageId;
 import me.varun.autobuilder.wpi.math.geometry.Rotation2d;
 import me.varun.autobuilder.wpi.math.geometry.Translation2d;
+import org.ejml.simple.SimpleMatrix;
+
 import java.util.Arrays;
 import java.util.Collections;
-import org.ejml.simple.SimpleMatrix;
 
 /**
  * Helper class that converts a chassis velocity (dx, dy, and dtheta components) into individual
@@ -37,6 +40,7 @@ public class SwerveDriveKinematics {
   private final SimpleMatrix m_forwardKinematics;
 
   private final int m_numModules;
+  @JsonProperty("wheelsMeters")
   private final Translation2d[] m_modules;
   private Translation2d m_prevCoR = new Translation2d();
 
@@ -48,7 +52,8 @@ public class SwerveDriveKinematics {
    *
    * @param wheelsMeters The locations of the wheels relative to the physical center of the robot.
    */
-  public SwerveDriveKinematics(Translation2d... wheelsMeters) {
+  @JsonCreator
+  public SwerveDriveKinematics(@JsonProperty("wheelsMeters") Translation2d... wheelsMeters) {
     if (wheelsMeters.length < 2) {
       throw new IllegalArgumentException("A swerve drive requires at least two modules");
     }

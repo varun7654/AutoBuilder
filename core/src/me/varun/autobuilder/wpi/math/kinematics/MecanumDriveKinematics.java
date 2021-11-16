@@ -4,6 +4,8 @@
 
 package me.varun.autobuilder.wpi.math.kinematics;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import me.varun.autobuilder.wpi.math.MathSharedStore;
 import me.varun.autobuilder.wpi.math.MathUsageId;
 import me.varun.autobuilder.wpi.math.geometry.Translation2d;
@@ -33,9 +35,13 @@ public class MecanumDriveKinematics {
   private final SimpleMatrix m_inverseKinematics;
   private final SimpleMatrix m_forwardKinematics;
 
+  @JsonProperty("frontLeftWheelMeters")
   private final Translation2d m_frontLeftWheelMeters;
+  @JsonProperty("frontRightWheelMeters")
   private final Translation2d m_frontRightWheelMeters;
+  @JsonProperty("rearLeftWheelMeters")
   private final Translation2d m_rearLeftWheelMeters;
+  @JsonProperty("rearRightWheelMeters")
   private final Translation2d m_rearRightWheelMeters;
 
   private Translation2d m_prevCoR = new Translation2d();
@@ -52,11 +58,11 @@ public class MecanumDriveKinematics {
    * @param rearRightWheelMeters The location of the rear-right wheel relative to the physical
    *     center of the robot.
    */
-  public MecanumDriveKinematics(
-      Translation2d frontLeftWheelMeters,
-      Translation2d frontRightWheelMeters,
-      Translation2d rearLeftWheelMeters,
-      Translation2d rearRightWheelMeters) {
+  @JsonCreator
+  public MecanumDriveKinematics(@JsonProperty("frontLeftWheelMeters") Translation2d frontLeftWheelMeters,
+                                @JsonProperty("frontRightWheelMeters") Translation2d frontRightWheelMeters,
+                                @JsonProperty("rearLeftWheelMeters") Translation2d rearLeftWheelMeters,
+                                @JsonProperty("rearRightWheelMeters") Translation2d rearRightWheelMeters) {
     m_frontLeftWheelMeters = frontLeftWheelMeters;
     m_frontRightWheelMeters = frontRightWheelMeters;
     m_rearLeftWheelMeters = rearLeftWheelMeters;

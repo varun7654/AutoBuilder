@@ -16,8 +16,8 @@ import me.varun.autobuilder.wpi.math.kinematics.SwerveDriveKinematics;
  * stay below a certain limit.
  */
 public class SwerveDriveKinematicsConstraint implements TrajectoryConstraint {
-  @JsonProperty("kinematics") private final double m_maxSpeedMetersPerSecond;
-  @JsonProperty("maxSpeedMetersPerSecond") private final SwerveDriveKinematics m_kinematics;
+  @JsonProperty("maxSpeedMetersPerSecond") private final double m_maxSpeedMetersPerSecond;
+  @JsonProperty("kinematics") private final SwerveDriveKinematics m_kinematics;
 
   /**
    * Constructs a swerve drive kinematics constraint.

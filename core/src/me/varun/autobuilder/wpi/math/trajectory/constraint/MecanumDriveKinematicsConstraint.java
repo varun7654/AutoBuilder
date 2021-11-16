@@ -27,8 +27,8 @@ public class MecanumDriveKinematicsConstraint implements TrajectoryConstraint {
    */
   @JsonCreator
   public MecanumDriveKinematicsConstraint(
-          @JsonProperty("maxSpeedMetersPerSecond") final MecanumDriveKinematics kinematics,
-          @JsonProperty("kinematics") double maxSpeedMetersPerSecond) {
+          @JsonProperty("kinematics") final MecanumDriveKinematics kinematics,
+          @JsonProperty("maxSpeedMetersPerSecond") double maxSpeedMetersPerSecond) {
     m_maxSpeedMetersPerSecond = maxSpeedMetersPerSecond;
     m_kinematics = kinematics;
   }

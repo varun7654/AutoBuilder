@@ -27,8 +27,8 @@ public class DifferentialDriveKinematicsConstraint implements TrajectoryConstrai
    */
   @JsonCreator
   public DifferentialDriveKinematicsConstraint(
-          @JsonProperty("maxSpeedMetersPerSecond") final DifferentialDriveKinematics kinematics,
-          @JsonProperty("kinematics") double maxSpeedMetersPerSecond) {
+          @JsonProperty("kinematics") final DifferentialDriveKinematics kinematics,
+          @JsonProperty("maxSpeedMetersPerSecond") double maxSpeedMetersPerSecond) {
     m_maxSpeedMetersPerSecond = maxSpeedMetersPerSecond;
     m_kinematics = kinematics;
   }

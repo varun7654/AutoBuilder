@@ -4,6 +4,8 @@
 
 package me.varun.autobuilder.wpi.math.controller;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import me.varun.autobuilder.wpi.math.Matrix;
 import me.varun.autobuilder.wpi.math.Nat;
 import me.varun.autobuilder.wpi.math.system.plant.LinearSystemId;
@@ -11,8 +13,11 @@ import me.varun.autobuilder.wpi.math.system.plant.LinearSystemId;
 /** A helper class that computes feedforward outputs for a simple permanent-magnet DC motor. */
 @SuppressWarnings("MemberName")
 public class SimpleMotorFeedforward {
+  @JsonProperty("ks")
   public final double ks;
+  @JsonProperty("kv")
   public final double kv;
+  @JsonProperty("ka")
   public final double ka;
 
   /**
@@ -23,7 +28,10 @@ public class SimpleMotorFeedforward {
    * @param kv The velocity gain.
    * @param ka The acceleration gain.
    */
-  public SimpleMotorFeedforward(double ks, double kv, double ka) {
+  @JsonCreator
+  public SimpleMotorFeedforward(@JsonProperty("ks") double ks,
+                                @JsonProperty("kv") double kv,
+                                @JsonProperty("ka") double ka) {
     this.ks = ks;
     this.kv = kv;
     this.ka = ka;

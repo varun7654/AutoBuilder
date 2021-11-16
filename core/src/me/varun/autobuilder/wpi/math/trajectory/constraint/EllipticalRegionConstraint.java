@@ -26,7 +26,6 @@ public class EllipticalRegionConstraint implements TrajectoryConstraint {
    * @param constraint The constraint to enforce when the robot is within the region.
    */
   @SuppressWarnings("ParameterName")
-  @JsonCreator
   public EllipticalRegionConstraint(
       Translation2d center,
       double xWidth,
@@ -38,11 +37,17 @@ public class EllipticalRegionConstraint implements TrajectoryConstraint {
     m_constraint = constraint;
   }
 
+  @JsonCreator
+  public EllipticalRegionConstraint(@JsonProperty("center") Translation2d center,
+                                    @JsonProperty("radii") Translation2d radii,
+                                    @JsonProperty("constraint") TrajectoryConstraint constraint) {
+    m_center = center;
+    m_radii = radii;
+    m_constraint = constraint;
+  }
+
   @Override
-  public double getMaxVelocityMetersPerSecond(
-          @JsonProperty("center") Pose2d poseMeters,
-          @JsonProperty("radii") double curvatureRadPerMeter,
-          @JsonProperty("constraint") double velocityMetersPerSecond) {
+  public double getMaxVelocityMetersPerSecond(Pose2d poseMeters, double curvatureRadPerMeter, double velocityMetersPerSecond) {
     if (isPoseInRegion(poseMeters)) {
       return m_constraint.getMaxVelocityMetersPerSecond(
               poseMeters, curvatureRadPerMeter, velocityMetersPerSecond);
@@ -50,6 +55,8 @@ public class EllipticalRegionConstraint implements TrajectoryConstraint {
       return Double.POSITIVE_INFINITY;
     }
   }
+
+
 
   @Override
   public MinMax getMinMaxAccelerationMetersPerSecondSq(

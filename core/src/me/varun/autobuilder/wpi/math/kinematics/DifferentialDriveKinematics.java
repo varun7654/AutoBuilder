@@ -4,6 +4,8 @@
 
 package me.varun.autobuilder.wpi.math.kinematics;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import me.varun.autobuilder.wpi.math.MathSharedStore;
 import me.varun.autobuilder.wpi.math.MathUsageId;
 
@@ -17,6 +19,7 @@ import me.varun.autobuilder.wpi.math.MathUsageId;
  */
 @SuppressWarnings("MemberName")
 public class DifferentialDriveKinematics {
+  @JsonProperty("trackWidthMeters")
   public final double trackWidthMeters;
 
   /**
@@ -26,7 +29,8 @@ public class DifferentialDriveKinematics {
    *     between the left wheels and right wheels. However, the empirical value may be larger than
    *     the physical measured value due to scrubbing effects.
    */
-  public DifferentialDriveKinematics(double trackWidthMeters) {
+  @JsonCreator
+  public DifferentialDriveKinematics(@JsonProperty("trackWidthMeters") double trackWidthMeters) {
     this.trackWidthMeters = trackWidthMeters;
     MathSharedStore.reportUsage(MathUsageId.kKinematics_DifferentialDrive, 1);
   }
