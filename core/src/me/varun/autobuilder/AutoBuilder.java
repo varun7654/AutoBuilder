@@ -19,8 +19,6 @@ import me.varun.autobuilder.events.scroll.InputEventThrower;
 import me.varun.autobuilder.gui.path.AbstractGuiItem;
 import me.varun.autobuilder.gui.path.PathGui;
 import me.varun.autobuilder.gui.path.TrajectoryItem;
-import me.varun.autobuilder.gui.shooter.ShooterConfig;
-import me.varun.autobuilder.gui.shooter.ShooterGui;
 import me.varun.autobuilder.net.NetworkTablesHelper;
 import me.varun.autobuilder.net.Serializer;
 import me.varun.autobuilder.pathing.PathRenderer;
@@ -70,7 +68,6 @@ public class AutoBuilder extends ApplicationAdapter {
     @NotNull PointRenderer origin;
     @NotNull ExecutorService pathingService = Executors.newFixedThreadPool(1);
     @NotNull PathGui pathGui;
-    @NotNull ShooterGui shooterGui;
     @NotNull InputEventThrower inputEventThrower = new InputEventThrower();
     @NotNull UndoHandler undoHandler = UndoHandler.getInstance();
     @NotNull NetworkTablesHelper networkTables = NetworkTablesHelper.getInstance();
@@ -160,18 +157,6 @@ public class AutoBuilder extends ApplicationAdapter {
             e.printStackTrace();
         }
 
-        File shooterConfigFile = new File(USER_DIRECTORY +  "/" + config.getSelectedShooterConfig());
-        shooterConfigFile.getParentFile().mkdirs();
-
-        try{
-            ShooterConfig shooterConfig = (ShooterConfig) Serializer.deserializeFromFile(shooterConfigFile, ShooterConfig.class);
-            shooterGui = new ShooterGui(hudViewport, font, fontShader, inputEventThrower, cameraHandler, shooterConfig);
-        } catch (IOException e) {
-            e.printStackTrace();
-            shooterGui = new ShooterGui(hudViewport, font, fontShader, inputEventThrower, cameraHandler);
-        }
-
-
         undoHandler.somethingChanged();
 
     }
@@ -251,7 +236,6 @@ public class AutoBuilder extends ApplicationAdapter {
 
 
         pathGui.render(hudShapeRenderer, hudBatch, hudCam);
-        shooterGui.render(hudShapeRenderer, hudBatch, hudCam);
         hudBatch.end();
 
     }
@@ -301,7 +285,6 @@ public class AutoBuilder extends ApplicationAdapter {
             }
         }
         boolean onGui = pathGui.update();
-        onGui = onGui | shooterGui.update();
         somethingMoved = somethingMoved | onGui;
 
         lastMousePos.set(mousePos);
@@ -317,7 +300,6 @@ public class AutoBuilder extends ApplicationAdapter {
         font.dispose();
         pathGui.dispose();
         whiteTexture.dispose();
-        shooterGui.dispose();
     }
 
 
@@ -327,7 +309,6 @@ public class AutoBuilder extends ApplicationAdapter {
         viewport.update(width, height);
 
         pathGui.updateScreen(width, height);
-        shooterGui.updateScreen(width, height);
     }
 
     @Override
@@ -335,7 +316,6 @@ public class AutoBuilder extends ApplicationAdapter {
         super.pause();
         File autoFile = new File(USER_DIRECTORY + "/" + config.getSelectedAuto());
         File configFile = new File(USER_DIRECTORY + "/config.json");
-        File shooterConfig = new File(USER_DIRECTORY + "/" + config.getSelectedShooterConfig());
         autoFile.getParentFile().mkdirs();
         configFile.getParentFile().mkdirs();
 
@@ -343,8 +323,6 @@ public class AutoBuilder extends ApplicationAdapter {
             Serializer.serializeToFile(GuiSerializer.serializeAutonomous(pathGui.guiItems), autoFile);
             configFile.createNewFile();
             Serializer.serializeToFile(config, configFile);
-            shooterConfig.createNewFile();
-            Serializer.serializeToFile(shooterGui.getShooterConfig(), shooterConfig);
         } catch (IOException e) {
             e.printStackTrace();
         }

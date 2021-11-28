@@ -26,7 +26,6 @@ public class Config {
     @JsonCreator
     public Config(@JsonProperty(value = "scriptMethods") List<String> scriptMethods,
                   @JsonProperty(value = "selectedAuto") String selectedAuto,
-                  @JsonProperty(value = "selectedShooterConfig") String shooterConfig,
                   @JsonProperty(value = "teamNumber") Integer teamNumber,
                   @JsonProperty(value = "robotLength") Float robotLength,
                   @JsonProperty(value = "robotWidth") Float robotWidth,
@@ -41,8 +40,7 @@ public class Config {
             this.scriptMethods = scriptMethods;
         }
 
-        this.selectedAutoFile = shooterConfig == null ? "auto.json" : selectedAuto;
-        this.shooterConfigFile = shooterConfig == null ? "shooterconfig.json" : shooterConfig;
+        this.selectedAutoFile = selectedAuto == null ? "auto.json" : selectedAuto;
         this.teamNumber = teamNumber == null ? 3476 : teamNumber;
         this.robotLength = robotLength == null ? 0.9191625f : robotLength;
         this.robotWidth = robotWidth == null ? 0.9229725f : robotWidth;
@@ -53,7 +51,7 @@ public class Config {
     }
 
     public Config(){
-        this(null, null, null, null, null, null, null, null, null, null);
+        this(null, null, null, null, null, null, null, null, null);
     }
 
     @JsonProperty("scriptMethods")
@@ -64,11 +62,6 @@ public class Config {
     @JsonProperty("selectedAuto")
     public String getSelectedAuto(){
         return selectedAutoFile;
-    }
-
-    @JsonProperty("selectedShooterConfig")
-    public String getSelectedShooterConfig(){
-        return shooterConfigFile;
     }
 
     @JsonProperty("teamNumber")
@@ -90,6 +83,7 @@ public class Config {
     public float getPointScaleFactor(){
         return pointScaleFactor;
     }
+
     @JsonProperty("originX")
     public float getOriginX(){
         return originX;
@@ -110,7 +104,7 @@ public class Config {
         return "the scriptMethods contains the list of valid methods that will be allowed in the script block. " +
                 "print, sleep, shootBalls, and setShooterSpeed are currently hardcoded to allow for error checking on the arguments. " +
                 "You to edit them you will need to clone & compile the code. You can find them at src/me/varun/autobuilder/scripting/parser. " +
-                "selectedAuto & selectedShooterConfig point to the files that the code will read to get and save data. " +
+                "selectedAuto point to the files that the code will read to get and save data. " +
                 "The team number is used for connect to your robot though network tables. " +
                 "The robot length and width are in meters and is used to draw the blue box when clicking on a point. " +
                 "The point scale factor is calculated by getting the (length and pixels of the field in the image)/(length of the field in meters). " +
