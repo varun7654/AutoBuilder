@@ -2,8 +2,13 @@ package me.varun.autobuilder.config;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import me.varun.autobuilder.wpi.math.trajectory.constraint.CentripetalAccelerationConstraint;
-import me.varun.autobuilder.wpi.math.trajectory.constraint.TrajectoryConstraint;
+import me.varun.autobuilder.wpi.math.controller.SimpleMotorFeedforward;
+import me.varun.autobuilder.wpi.math.geometry.Rotation2d;
+import me.varun.autobuilder.wpi.math.geometry.Translation2d;
+import me.varun.autobuilder.wpi.math.kinematics.DifferentialDriveKinematics;
+import me.varun.autobuilder.wpi.math.kinematics.MecanumDriveKinematics;
+import me.varun.autobuilder.wpi.math.kinematics.SwerveDriveKinematics;
+import me.varun.autobuilder.wpi.math.trajectory.constraint.*;
 
 import java.util.ArrayList;
 
@@ -21,6 +26,13 @@ public class PathingConfig {
         if(trajectoryConstraints == null){
             this.trajectoryConstraints = new ArrayList<>();
             this.trajectoryConstraints.add(new CentripetalAccelerationConstraint(80 * 0.0254));
+            this.trajectoryConstraints.add(new DifferentialDriveVoltageConstraint(new SimpleMotorFeedforward(5,1), new DifferentialDriveKinematics(0.93), 10));
+            this.trajectoryConstraints.add(new DifferentialDriveKinematicsConstraint(new DifferentialDriveKinematics(0.93), 2));
+            this.trajectoryConstraints.add(new EllipticalRegionConstraint(new Translation2d(20,25), 0.5, 0.5, Rotation2d.fromDegrees(45), new MaxVelocityConstraint(0.5)));
+            this.trajectoryConstraints.add(new MaxVelocityConstraint(2));
+            this.trajectoryConstraints.add(new MecanumDriveKinematicsConstraint(new MecanumDriveKinematics(new Translation2d(-0.5,0.5), new Translation2d(0.5,0.5), new Translation2d(-0.5,0.5), new Translation2d(-0.5,-0.5)), 2));
+            this.trajectoryConstraints.add(new RectangularRegionConstraint(new Translation2d(0,0), new Translation2d(20,20), new MaxVelocityConstraint(2)));
+            this.trajectoryConstraints.add(new SwerveDriveKinematicsConstraint(new SwerveDriveKinematics(new Translation2d(-0.5,0.5), new Translation2d(0.5,0.5), new Translation2d(-0.5,0.5), new Translation2d(-0.5,-0.5)), 2));
         } else {
             this.trajectoryConstraints = trajectoryConstraints;
         }
