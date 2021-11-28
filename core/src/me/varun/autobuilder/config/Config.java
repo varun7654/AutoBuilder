@@ -14,7 +14,6 @@ import java.util.List;
 public class Config {
     private List<String> scriptMethods;
     private String selectedAutoFile;
-    private String shooterConfigFile;
     private int teamNumber;
     private float robotLength;
     private float robotWidth;
@@ -33,9 +32,9 @@ public class Config {
                   @JsonProperty(value = "originX") Float originX,
                   @JsonProperty(value = "originY") Float originY,
                   @JsonProperty(value = "pathingConfig") PathingConfig pathingConfig){
-        if(this.scriptMethods == null){
+        if(scriptMethods == null){
             this.scriptMethods = new ArrayList<>();
-            this.scriptMethods.addAll(List.of("print", "deployIntake", "undeployIntake", "intakeOn", "intakeOff", "intakeReverse", "snailOn", "snailOff", "snailReverse", "frontActive", "frontInactive", "frontReverse", "visionIdle", "visionWin", "visionAim", "setShooterSpeed", "fireShooter", "stopFiringShooter", "shootBalls", "turnOnIntakeTrack", "turnOffIntakeTrack"));
+            this.scriptMethods.addAll(List.of("print", "sleep"));
         } else {
             this.scriptMethods = scriptMethods;
         }
@@ -102,7 +101,7 @@ public class Config {
     @JsonProperty("readMe") @JsonFormat(shape = JsonFormat.Shape.STRING)
     private String getReadMe(){
         return "the scriptMethods contains the list of valid methods that will be allowed in the script block. " +
-                "print, sleep, shootBalls, and setShooterSpeed are currently hardcoded to allow for error checking on the arguments. " +
+                "print and sleep are currently hardcoded to allow for error checking on the arguments. " +
                 "You to edit them you will need to clone & compile the code. You can find them at src/me/varun/autobuilder/scripting/parser. " +
                 "selectedAuto point to the files that the code will read to get and save data. " +
                 "The team number is used for connect to your robot though network tables. " +

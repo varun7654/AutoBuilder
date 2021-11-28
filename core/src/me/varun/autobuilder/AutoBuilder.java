@@ -93,7 +93,6 @@ public class AutoBuilder extends ApplicationAdapter {
         File configFile = new File(USER_DIRECTORY + "/config.json");
         configFile.getParentFile().mkdirs();
         try {
-            configFile.createNewFile();
             config = (Config) Serializer.deserializeFromFile(configFile, Config.class);
         } catch (IOException e) {
             e.printStackTrace();
