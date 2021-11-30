@@ -1,13 +1,16 @@
 package me.varun.autobuilder.serialization.path;
 
+import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import me.varun.autobuilder.wpi.math.geometry.Pose2d;
 import me.varun.autobuilder.wpi.math.trajectory.Trajectory;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
-
+@JsonAutoDetect(getterVisibility = JsonAutoDetect.Visibility.NONE)
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class TrajectoryAutonomousStep extends AbstractAutonomousStep {
     private final List<Trajectory.State> states;
     private final List<Pose2d> pose2DList;
