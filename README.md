@@ -11,13 +11,15 @@ A gui tool that makes desigining and testing autos easier
 5. Real-time feedback. The path that your robot drives will be visible in the gui. Use this too see where things are going wrong and quickly fix them.
 
 
-# Building
-Follow these intructions: https://libgdx.com/dev/setup/
-(You can skip the generating a project step)
+## Want more info? Take a look at our wiki!
+[About](https://github.com/FRC3476/AutoBuilder/wiki/About)
 
-## Get Compiled builds
-1. Click Actions at the top of the page or visit this link: https://github.com/FRC3476/AutoBuilder/actions
-2. Find the latest (closest to the top) action and click on the bold title next to it
-3. At the bottom, there should be a text that says Artifacts, with a size next to it
-4. Click the bold text labeled "Artifacts" to download a zip containing the built jar
-5. You should now be able to just double click the jar and run it!
+[Building this project](https://github.com/FRC3476/AutoBuilder/wiki/Building-this-project)
+
+[How this project works](https://github.com/FRC3476/AutoBuilder/wiki/How-this-project-works)
+
+[Integrating this project into your robot code](https://github.com/FRC3476/AutoBuilder/wiki/Integrating-this-project-into-your-robot-code)
+
+[Set up the GUI](https://github.com/FRC3476/AutoBuilder/wiki/Set-up-the-GUI)
+
+[Controls ](https://github.com/FRC3476/AutoBuilder/wiki/Controls)
