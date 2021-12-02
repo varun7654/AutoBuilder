@@ -242,12 +242,18 @@ public class AutoBuilder extends ApplicationAdapter {
     }
 
     ClosePoint lastSelectedPoint = null;
+    boolean somethingMoved = false;
     private void update() {
         undoHandler.update(pathGui, fontShader, font, inputEventThrower, cameraHandler);
+
+        boolean onGui = pathGui.update();
+        lastMousePos.set(mousePos);
+        cameraHandler.update(somethingMoved, onGui);
+
         mousePos.set(Gdx.input.getX(), Gdx.input.getY(), 0);
         cam.unproject(mousePos);
 
-        boolean somethingMoved = false;
+        //somethingMoved = false;
 
 //        PathRenderer lastPathRender = null;
 //        PointChange lastPointChange = PointChange.NONE;
@@ -291,6 +297,7 @@ public class AutoBuilder extends ApplicationAdapter {
 
         boolean pointAdded = false;
         if(Gdx.app.getInput().isButtonJustPressed(Input.Buttons.RIGHT) || Gdx.app.getInput().isButtonJustPressed(Input.Buttons.LEFT)) {
+            removeLastSelectedPoint();
             System.out.println("maxDistance: " + maxDistance);
             ArrayList<ClosePoint> closePoints = new ArrayList<>();
             for (AbstractGuiItem guiItem : pathGui.guiItems) {
@@ -307,11 +314,16 @@ public class AutoBuilder extends ApplicationAdapter {
                 if(Gdx.app.getInput().isButtonJustPressed(Input.Buttons.RIGHT)){
                     closestPoint.parentPathRenderer.deletePoint(closestPoint);
                     pointAdded = true;
+                    somethingMoved = false;
                 } else {
+                    closestPoint.parentPathRenderer.selectPoint(closestPoint, cam, mousePos, lastMousePos);
                     lastSelectedPoint = closestPoint;
+                    somethingMoved = true;
                 }
-
             }
+        } else if (lastSelectedPoint != null && Gdx.app.getInput().isButtonPressed(Input.Buttons.LEFT)) {
+            lastSelectedPoint.parentPathRenderer.updatePoint(cam, mousePos, lastMousePos);
+            somethingMoved = true;
         }
 
         ArrayList<CloseTrajectoryPoint> closeTrajectoryPoints = new ArrayList<>();
@@ -320,27 +332,30 @@ public class AutoBuilder extends ApplicationAdapter {
                 PathRenderer pathRenderer = ((TrajectoryItem) guiItem).getPathRenderer();
                 closeTrajectoryPoints.addAll(pathRenderer.getCloseTrajectoryPoints(maxDistance, mousePos));
             }
+        }
 
-            Collections.sort(closeTrajectoryPoints);
+        Collections.sort(closeTrajectoryPoints);
 
-            if(closeTrajectoryPoints.size() > 0) {
-                CloseTrajectoryPoint closeTrajectoryPoint = closeTrajectoryPoints.get(0);
-                if(Gdx.app.getInput().isButtonJustPressed(Input.Buttons.RIGHT) && !pointAdded) {
-                    closeTrajectoryPoint.parentPathRenderer.addPoint(closeTrajectoryPoint);
-                }
-                closeTrajectoryPoint.parentPathRenderer.setRobotPathPreviewPoint(closeTrajectoryPoint);
+        if(closeTrajectoryPoints.size() > 0) {
+            CloseTrajectoryPoint closeTrajectoryPoint = closeTrajectoryPoints.get(0);
+            if(Gdx.app.getInput().isButtonJustPressed(Input.Buttons.RIGHT) && !pointAdded) {
+                closeTrajectoryPoint.parentPathRenderer.addPoint(closeTrajectoryPoint);
+                removeLastSelectedPoint();
             }
+            closeTrajectoryPoint.parentPathRenderer.setRobotPathPreviewPoint(closeTrajectoryPoint);
+            somethingMoved = false;
         }
 
 
 
-        boolean onGui = pathGui.update();
-        somethingMoved = somethingMoved | onGui;
-
-        lastMousePos.set(mousePos);
-        cameraHandler.update(somethingMoved, onGui);
-
         networkTables.updateRobotPath();
+    }
+
+    public void removeLastSelectedPoint(){
+        if(lastSelectedPoint != null) {
+            lastSelectedPoint.parentPathRenderer.removeSelection();
+            lastSelectedPoint = null;
+        }
     }
 
     @Override

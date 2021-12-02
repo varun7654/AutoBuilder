@@ -258,6 +258,26 @@ public class PathRenderer implements MovablePointEventHandler, Serializable {
         UndoHandler.getInstance().somethingChanged();
     }
 
+    public void selectPoint(ClosePoint closePoint, OrthographicCamera camera, Vector3 mousePos, Vector3 lastMousePos) {
+        selectionPointIndex = closePoint.index;
+        Rotation2d rotation = point2DList.get(selectionPointIndex).getRotation();
+
+        MovablePointRenderer point = pointRenderList.get(selectionPointIndex);
+        point.update(camera, mousePos, lastMousePos);
+    }
+
+    public void updatePoint(OrthographicCamera camera, Vector3 mousePos, Vector3 lastMousePos){
+        if(selectionPointIndex != -1){
+            MovablePointRenderer point = pointRenderList.get(selectionPointIndex);
+            point.update(camera, mousePos, lastMousePos);
+            if (rotationPoint != null){
+                rotationPoint.update(camera, mousePos, lastMousePos);
+            }
+
+        }
+
+    }
+
     public void setRobotPathPreviewPoint(CloseTrajectoryPoint closePoint) {
         this.robotPreviewTime = closePoint.pointTime;
     }
@@ -303,20 +323,6 @@ public class PathRenderer implements MovablePointEventHandler, Serializable {
                 float xPos = (float) (event.getPos().x + rotation.getCos() * 1);
                 float yPos = (float) (event.getPos().y + rotation.getSin() * 1);
                 rotationPoint = new MovablePointRenderer(xPos, yPos, Color.GREEN, POINT_SIZE, this);
-            }
-            if (event.isRightClick() && !pointDeleted) {
-                if (point2DList.size() > 2) {
-                    int removeIndex = pointRenderList.indexOf(event.getPoint());
-                    if (selectionPointIndex > removeIndex) {
-                        selectionPointIndex--;
-                    } else if (selectionPointIndex == removeIndex) {
-                        removeSelection();
-                    }
-                    pointRenderList.remove(removeIndex);
-                    point2DList.remove(removeIndex);
-                    pointDeleted = true;
-                } else pointDeleted = true;
-
             }
         }
 
@@ -471,10 +477,10 @@ public class PathRenderer implements MovablePointEventHandler, Serializable {
 
         renderer.setColor(getColor());
         renderer.line(leftTop, rightTop, LINE_THICKNESS);
-        renderer.line(rightTop, rightBottom, LINE_THICKNESS);
         renderer.line(rightBottom, leftBottom, LINE_THICKNESS);
+        renderer.line(leftBottom, leftTop, LINE_THICKNESS);
 
         renderer.setColor(Color.WHITE);
-        renderer.line(leftBottom, leftTop, LINE_THICKNESS);
+        renderer.line(rightTop, rightBottom, LINE_THICKNESS);
     }
 }
