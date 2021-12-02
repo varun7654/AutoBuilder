@@ -11,7 +11,11 @@ public class Parser {
         TRY_PARSE_LIST = new ArrayList<>();
         TRY_PARSE_LIST.add((Integer::parseInt));
         TRY_PARSE_LIST.add(Double::parseDouble);
-        //TRY_PARSE_LIST.add(Boolean::parseBoolean);
+        TRY_PARSE_LIST.add(s -> {
+            if(s.equalsIgnoreCase("true")) return true;
+            else if(s.equalsIgnoreCase("false")) return false;
+            throw new IllegalArgumentException();
+        });
         TRY_PARSE_LIST.add(String::valueOf);
     }
 
