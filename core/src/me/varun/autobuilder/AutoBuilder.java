@@ -2,6 +2,7 @@ package me.varun.autobuilder;
 
 import com.badlogic.gdx.ApplicationAdapter;
 import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.Input;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.OrthographicCamera;
@@ -22,12 +23,12 @@ import me.varun.autobuilder.gui.path.TrajectoryItem;
 import me.varun.autobuilder.net.NetworkTablesHelper;
 import me.varun.autobuilder.net.Serializer;
 import me.varun.autobuilder.pathing.PathRenderer;
-import me.varun.autobuilder.pathing.PathRenderer.PointChange;
 import me.varun.autobuilder.pathing.PointRenderer;
+import me.varun.autobuilder.pathing.pointclicks.ClosePoint;
+import me.varun.autobuilder.pathing.pointclicks.CloseTrajectoryPoint;
 import me.varun.autobuilder.serialization.path.Autonomous;
 import me.varun.autobuilder.serialization.path.GuiSerializer;
 import me.varun.autobuilder.util.OsUtil;
-import me.varun.autobuilder.wpi.math.geometry.Pose2d;
 import me.varun.autobuilder.wpi.math.trajectory.constraint.CentripetalAccelerationConstraint;
 import me.varun.autobuilder.wpi.math.trajectory.constraint.TrajectoryConstraint;
 import org.jetbrains.annotations.NotNull;
@@ -38,6 +39,7 @@ import java.io.IOException;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -100,7 +102,7 @@ public class AutoBuilder extends ApplicationAdapter {
         }
 
 
-        networkTables.start();
+        //networkTables.start();
 
         Gdx.app.getInput().setInputProcessor(inputEventThrower);
 
@@ -239,6 +241,7 @@ public class AutoBuilder extends ApplicationAdapter {
 
     }
 
+    ClosePoint lastSelectedPoint = null;
     private void update() {
         undoHandler.update(pathGui, fontShader, font, inputEventThrower, cameraHandler);
         mousePos.set(Gdx.input.getX(), Gdx.input.getY(), 0);
@@ -246,43 +249,91 @@ public class AutoBuilder extends ApplicationAdapter {
 
         boolean somethingMoved = false;
 
-        PathRenderer lastPathRender = null;
-        PointChange lastPointChange = PointChange.NONE;
-        boolean pointDeleted = false;
-        for (AbstractGuiItem guiItem : pathGui.guiItems) {
-            if (guiItem instanceof TrajectoryItem) {
-                PathRenderer pathRenderer = ((TrajectoryItem) guiItem).getPathRenderer();
-                //It's ok if lastPose2d is null if PointChange != LAST
-                Pose2d lastPose2d = null;
-                if (lastPointChange == PointChange.LAST) {
-                    lastPose2d = lastPathRender.getPoint2DList().get(lastPathRender.getPoint2DList().size() - 1);
-                }
-                lastPointChange = pathRenderer.update(cam, mousePos, lastMousePos, lastPointChange, lastPose2d, somethingMoved);
+//        PathRenderer lastPathRender = null;
+//        PointChange lastPointChange = PointChange.NONE;
+//        boolean pointDeleted = false;
+//        for (AbstractGuiItem guiItem : pathGui.guiItems) {
+//            if (guiItem instanceof TrajectoryItem) {
+//                PathRenderer pathRenderer = ((TrajectoryItem) guiItem).getPathRenderer();
+//                //It's ok if lastPose2d is null if PointChange != LAST
+//                Pose2d lastPose2d = null;
+//                if (lastPointChange == PointChange.LAST) {
+//                    lastPose2d = lastPathRender.getPoint2DList().get(lastPathRender.getPoint2DList().size() - 1);
+//                }
+//                lastPointChange = pathRenderer.update(cam, mousePos, lastMousePos, lastPointChange, lastPose2d, somethingMoved);
+//
+//                if (lastPointChange != PointChange.NONE) {
+//                    somethingMoved = true;
+//                }
+//
+//                if (lastPointChange == PointChange.REMOVAL) {
+//                    pointDeleted = true;
+//                }
+//
+//                lastPathRender = pathRenderer;
+//            }
+//        }
+//
+//        //Don't add points if we've just deleted one
+//        if (!pointDeleted) {
+//            boolean pointAdded = false;
+//            for (AbstractGuiItem guiItem : pathGui.guiItems) {
+//                if (guiItem instanceof TrajectoryItem) {
+//                    PathRenderer pathRenderer = ((TrajectoryItem) guiItem).getPathRenderer();
+//                    if (!pointAdded && PointChange.ADDITION == pathRenderer.addPoints(mousePos)) {
+//                        pointAdded = true;
+//                    }
+//                }
+//            }
+//        }
 
-                if (lastPointChange != PointChange.NONE) {
-                    somethingMoved = true;
-                }
+        float maxDistance = (float) Math.pow(20 * cam.zoom, 2);
 
-                if (lastPointChange == PointChange.REMOVAL) {
-                    pointDeleted = true;
-                }
-
-                lastPathRender = pathRenderer;
-            }
-        }
-
-        //Don't add points if we've just deleted one
-        if (!pointDeleted) {
-            boolean pointAdded = false;
+        boolean pointAdded = false;
+        if(Gdx.app.getInput().isButtonJustPressed(Input.Buttons.RIGHT) || Gdx.app.getInput().isButtonJustPressed(Input.Buttons.LEFT)) {
+            System.out.println("maxDistance: " + maxDistance);
+            ArrayList<ClosePoint> closePoints = new ArrayList<>();
             for (AbstractGuiItem guiItem : pathGui.guiItems) {
                 if (guiItem instanceof TrajectoryItem) {
                     PathRenderer pathRenderer = ((TrajectoryItem) guiItem).getPathRenderer();
-                    if (!pointAdded && PointChange.ADDITION == pathRenderer.addPoints(mousePos)) {
-                        pointAdded = true;
-                    }
+                    closePoints.addAll(pathRenderer.getClosePoints(maxDistance, mousePos));
                 }
             }
+            Collections.sort(closePoints);
+            System.out.println(closePoints);
+
+            if(closePoints.size() > 0) {
+                ClosePoint closestPoint = closePoints.get(0);
+                if(Gdx.app.getInput().isButtonJustPressed(Input.Buttons.RIGHT)){
+                    closestPoint.parentPathRenderer.deletePoint(closestPoint);
+                    pointAdded = true;
+                } else {
+                    lastSelectedPoint = closestPoint;
+                }
+
+            }
         }
+
+        ArrayList<CloseTrajectoryPoint> closeTrajectoryPoints = new ArrayList<>();
+        for (AbstractGuiItem guiItem : pathGui.guiItems) {
+            if (guiItem instanceof TrajectoryItem) {
+                PathRenderer pathRenderer = ((TrajectoryItem) guiItem).getPathRenderer();
+                closeTrajectoryPoints.addAll(pathRenderer.getCloseTrajectoryPoints(maxDistance, mousePos));
+            }
+
+            Collections.sort(closeTrajectoryPoints);
+
+            if(closeTrajectoryPoints.size() > 0) {
+                CloseTrajectoryPoint closeTrajectoryPoint = closeTrajectoryPoints.get(0);
+                if(Gdx.app.getInput().isButtonJustPressed(Input.Buttons.RIGHT) && !pointAdded) {
+                    closeTrajectoryPoint.parentPathRenderer.addPoint(closeTrajectoryPoint);
+                }
+                closeTrajectoryPoint.parentPathRenderer.setRobotPathPreviewPoint(closeTrajectoryPoint);
+            }
+        }
+
+
+
         boolean onGui = pathGui.update();
         somethingMoved = somethingMoved | onGui;
 
