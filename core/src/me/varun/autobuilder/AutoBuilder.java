@@ -32,6 +32,7 @@ import me.varun.autobuilder.util.OsUtil;
 import me.varun.autobuilder.wpi.math.trajectory.constraint.CentripetalAccelerationConstraint;
 import me.varun.autobuilder.wpi.math.trajectory.constraint.TrajectoryConstraint;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import space.earlygrey.shapedrawer.ShapeDrawer;
 
 import java.io.File;
@@ -241,7 +242,7 @@ public class AutoBuilder extends ApplicationAdapter {
 
     }
 
-    ClosePoint lastSelectedPoint = null;
+    @Nullable ClosePoint lastSelectedPoint = null;
     boolean somethingMoved = false;
     private void update() {
         undoHandler.update(pathGui, fontShader, font, inputEventThrower, cameraHandler);
@@ -254,6 +255,7 @@ public class AutoBuilder extends ApplicationAdapter {
         cam.unproject(mousePos);
 
         //somethingMoved = false;
+
 
 //        PathRenderer lastPathRender = null;
 //        PointChange lastPointChange = PointChange.NONE;
@@ -297,8 +299,7 @@ public class AutoBuilder extends ApplicationAdapter {
 
         boolean pointAdded = false;
         if(Gdx.app.getInput().isButtonJustPressed(Input.Buttons.RIGHT) || Gdx.app.getInput().isButtonJustPressed(Input.Buttons.LEFT)) {
-            removeLastSelectedPoint();
-            System.out.println("maxDistance: " + maxDistance);
+            if (lastSelectedPoint != null && !lastSelectedPoint.parentPathRenderer.isTouchingRotationPoint(mousePos, maxDistance)) removeLastSelectedPoint();
             ArrayList<ClosePoint> closePoints = new ArrayList<>();
             for (AbstractGuiItem guiItem : pathGui.guiItems) {
                 if (guiItem instanceof TrajectoryItem) {
@@ -321,9 +322,11 @@ public class AutoBuilder extends ApplicationAdapter {
                     somethingMoved = true;
                 }
             }
-        } else if (lastSelectedPoint != null && Gdx.app.getInput().isButtonPressed(Input.Buttons.LEFT)) {
+        } else if (lastSelectedPoint != null) {
             lastSelectedPoint.parentPathRenderer.updatePoint(cam, mousePos, lastMousePos);
             somethingMoved = true;
+        } else {
+            somethingMoved = false;
         }
 
         ArrayList<CloseTrajectoryPoint> closeTrajectoryPoints = new ArrayList<>();
@@ -343,7 +346,6 @@ public class AutoBuilder extends ApplicationAdapter {
                 removeLastSelectedPoint();
             }
             closeTrajectoryPoint.parentPathRenderer.setRobotPathPreviewPoint(closeTrajectoryPoint);
-            somethingMoved = false;
         }
 
 

@@ -258,6 +258,11 @@ public class PathRenderer implements MovablePointEventHandler, Serializable {
         UndoHandler.getInstance().somethingChanged();
     }
 
+    public boolean isTouchingRotationPoint(Vector3 mousePos, float maxDistance2) {
+        if (rotationPoint == null) return false;
+        return rotationPoint.getRenderPos3().dst2(mousePos) < maxDistance2;
+    }
+
     public void selectPoint(ClosePoint closePoint, OrthographicCamera camera, Vector3 mousePos, Vector3 lastMousePos) {
         selectionPointIndex = closePoint.index;
         Rotation2d rotation = point2DList.get(selectionPointIndex).getRotation();
