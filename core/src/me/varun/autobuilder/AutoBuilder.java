@@ -299,34 +299,35 @@ public class AutoBuilder extends ApplicationAdapter {
 
         boolean pointAdded = false;
         if(Gdx.app.getInput().isButtonJustPressed(Input.Buttons.RIGHT) || Gdx.app.getInput().isButtonJustPressed(Input.Buttons.LEFT)) {
-            if (lastSelectedPoint != null && !lastSelectedPoint.parentPathRenderer.isTouchingRotationPoint(mousePos, maxDistance)) removeLastSelectedPoint();
-            ArrayList<ClosePoint> closePoints = new ArrayList<>();
-            for (AbstractGuiItem guiItem : pathGui.guiItems) {
-                if (guiItem instanceof TrajectoryItem) {
-                    PathRenderer pathRenderer = ((TrajectoryItem) guiItem).getPathRenderer();
-                    closePoints.addAll(pathRenderer.getClosePoints(maxDistance, mousePos));
-                }
-            }
-            Collections.sort(closePoints);
-            System.out.println(closePoints);
+            if (lastSelectedPoint == null || !lastSelectedPoint.parentPathRenderer.isTouchingRotationPoint(mousePos, maxDistance)){
+                removeLastSelectedPoint();
 
-            if(closePoints.size() > 0) {
-                ClosePoint closestPoint = closePoints.get(0);
-                if(Gdx.app.getInput().isButtonJustPressed(Input.Buttons.RIGHT)){
-                    closestPoint.parentPathRenderer.deletePoint(closestPoint);
-                    pointAdded = true;
-                    somethingMoved = false;
-                } else {
-                    closestPoint.parentPathRenderer.selectPoint(closestPoint, cam, mousePos, lastMousePos);
-                    lastSelectedPoint = closestPoint;
-                    somethingMoved = true;
+                ArrayList<ClosePoint> closePoints = new ArrayList<>();
+                for (AbstractGuiItem guiItem : pathGui.guiItems) {
+                    if (guiItem instanceof TrajectoryItem) {
+                        PathRenderer pathRenderer = ((TrajectoryItem) guiItem).getPathRenderer();
+                        closePoints.addAll(pathRenderer.getClosePoints(maxDistance, mousePos));
+                    }
+                }
+                Collections.sort(closePoints);
+
+                if(closePoints.size() > 0) {
+                    ClosePoint closestPoint = closePoints.get(0);
+                    if(Gdx.app.getInput().isButtonJustPressed(Input.Buttons.RIGHT)){
+                        closestPoint.parentPathRenderer.deletePoint(closestPoint);
+                        pointAdded = true;
+                        somethingMoved = false;
+                    } else {
+                        closestPoint.parentPathRenderer.selectPoint(closestPoint, cam, mousePos, lastMousePos, pathGui.guiItems);
+                        lastSelectedPoint = closestPoint;
+                        somethingMoved = true;
+                    }
                 }
             }
-        } else if (lastSelectedPoint != null) {
+        }
+        if (lastSelectedPoint != null) {
             lastSelectedPoint.parentPathRenderer.updatePoint(cam, mousePos, lastMousePos);
-            somethingMoved = true;
-        } else {
-            somethingMoved = false;
+            somethingMoved = Gdx.input.isButtonJustPressed(Input.Buttons.LEFT);
         }
 
         ArrayList<CloseTrajectoryPoint> closeTrajectoryPoints = new ArrayList<>();

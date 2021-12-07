@@ -13,6 +13,8 @@ import me.varun.autobuilder.events.movablepoint.MovablePointEventHandler;
 import me.varun.autobuilder.events.movablepoint.PointClickEvent;
 import me.varun.autobuilder.events.movablepoint.PointMoveEvent;
 import me.varun.autobuilder.events.pathchange.PathChangeListener;
+import me.varun.autobuilder.gui.path.AbstractGuiItem;
+import me.varun.autobuilder.gui.path.TrajectoryItem;
 import me.varun.autobuilder.pathing.pointclicks.ClosePoint;
 import me.varun.autobuilder.pathing.pointclicks.CloseTrajectoryPoint;
 import me.varun.autobuilder.util.MathUtil;
@@ -56,6 +58,8 @@ public class PathRenderer implements MovablePointEventHandler, Serializable {
     private float velocityStart = 0;
     private float velocityEnd = 0;
     private float robotPreviewTime = -1;
+    @Nullable private PathRenderer attachedPath;
+    private boolean isAttachedPathEnd;
 
     Config config = AutoBuilder.getConfig();
 
@@ -198,7 +202,6 @@ public class PathRenderer implements MovablePointEventHandler, Serializable {
         for (int i = 0; i < pointRenderList.size(); i++) {
             PointRenderer pointRenderer = pointRenderList.get(i);
             float distanceToMouse2 = pointRenderer.getRenderPos3().dst2(mousePos);
-            System.out.println(distanceToMouse2);
             if (distanceToMouse2 < maxDistance2) {
                 closePoints.add(new ClosePoint(distanceToMouse2, this, i));
             }
@@ -263,24 +266,81 @@ public class PathRenderer implements MovablePointEventHandler, Serializable {
         return rotationPoint.getRenderPos3().dst2(mousePos) < maxDistance2;
     }
 
-    public void selectPoint(ClosePoint closePoint, OrthographicCamera camera, Vector3 mousePos, Vector3 lastMousePos) {
+    public void selectPoint(ClosePoint closePoint, OrthographicCamera camera, Vector3 mousePos, Vector3 lastMousePos, List<AbstractGuiItem> itemList) {
         selectionPointIndex = closePoint.index;
-        Rotation2d rotation = point2DList.get(selectionPointIndex).getRotation();
+        attachedPath = null;
+
+        //get the path renderer of the previous/next path if needed
+        if(selectionPointIndex == 0){ //Get previous path
+            PathRenderer lastPathRenderer = null;
+            for (AbstractGuiItem item : itemList) {
+                if(item instanceof TrajectoryItem){
+                    TrajectoryItem trajectoryItem = (TrajectoryItem) item;
+                    if(trajectoryItem.getPathRenderer() == this){
+                        attachedPath = lastPathRenderer;
+                        break;
+                    }
+                    lastPathRenderer = trajectoryItem.getPathRenderer();
+                }
+            }
+            isAttachedPathEnd = true;
+        } else if(selectionPointIndex == point2DList.size() - 1){
+            boolean foundMyself = false;
+            for (AbstractGuiItem item : itemList) {
+                if(item instanceof TrajectoryItem){
+                    TrajectoryItem trajectoryItem = (TrajectoryItem) item;
+                    if(trajectoryItem.getPathRenderer() == this){
+                        foundMyself = true;
+                    } else if(foundMyself){
+                        attachedPath = trajectoryItem.getPathRenderer();
+                        break;
+                    }
+                }
+            }
+            isAttachedPathEnd = false;
+        }
+
+        if(attachedPath != null){
+            MovablePointRenderer selectedPoint = pointRenderList.get(selectionPointIndex);
+            Pose2d otherPathPose2d;
+            if(isAttachedPathEnd){
+                otherPathPose2d = attachedPath.point2DList.get(attachedPath.point2DList.size() - 1);
+            } else {
+                otherPathPose2d = attachedPath.point2DList.get(0);
+            }
+
+            if(!(Math.abs(selectedPoint.getPos2().sub((float) otherPathPose2d.getX(), (float) otherPathPose2d.getY()).len2())
+                    < Math.pow((20 / config.getPointScaleFactor() * camera.zoom), 2))){
+                attachedPath = null;
+                System.out.println("Not close enough to other path");
+            }
+        }
+
 
         MovablePointRenderer point = pointRenderList.get(selectionPointIndex);
         point.update(camera, mousePos, lastMousePos);
+
     }
 
-    public void updatePoint(OrthographicCamera camera, Vector3 mousePos, Vector3 lastMousePos){
+    public void updatePoint(OrthographicCamera camera, Vector3 mousePos, Vector3 lastMousePos) {
         if(selectionPointIndex != -1){
-            MovablePointRenderer point = pointRenderList.get(selectionPointIndex);
-            point.update(camera, mousePos, lastMousePos);
+            MovablePointRenderer selectedPoint = pointRenderList.get(selectionPointIndex);
+            selectedPoint.update(camera, mousePos, lastMousePos);
             if (rotationPoint != null){
                 rotationPoint.update(camera, mousePos, lastMousePos);
             }
 
+            if(attachedPath != null){
+                if(isAttachedPathEnd){
+                    attachedPath.point2DList.set(attachedPath.point2DList.size() - 1, point2DList.get(selectionPointIndex));
+                    attachedPath.pointRenderList.get(attachedPath.pointRenderList.size() - 1).setPosition(selectedPoint.getPos2());
+                } else {
+                    attachedPath.point2DList.set(0, point2DList.get(selectionPointIndex));
+                    attachedPath.pointRenderList.get(0).setPosition(selectedPoint.getPos2());
+                }
+                attachedPath.updatePath();
+            }
         }
-
     }
 
     public void setRobotPathPreviewPoint(CloseTrajectoryPoint closePoint) {
@@ -330,8 +390,6 @@ public class PathRenderer implements MovablePointEventHandler, Serializable {
                 rotationPoint = new MovablePointRenderer(xPos, yPos, Color.GREEN, POINT_SIZE, this);
             }
         }
-
-        updatePath();
     }
 
 
@@ -407,6 +465,7 @@ public class PathRenderer implements MovablePointEventHandler, Serializable {
         selectionPointIndex = -1;
         rotationPoint = null;
         highlightPoint = null;
+
     }
 
     public @NotNull Color getColor() {
