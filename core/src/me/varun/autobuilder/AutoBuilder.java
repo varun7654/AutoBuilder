@@ -3,10 +3,7 @@ package me.varun.autobuilder;
 import com.badlogic.gdx.ApplicationAdapter;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
-import com.badlogic.gdx.graphics.Color;
-import com.badlogic.gdx.graphics.GL20;
-import com.badlogic.gdx.graphics.OrthographicCamera;
-import com.badlogic.gdx.graphics.Texture;
+import com.badlogic.gdx.graphics.*;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.PolygonSpriteBatch;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
@@ -61,8 +58,8 @@ public class AutoBuilder extends ApplicationAdapter {
         trajectoryConstraints.add(new CentripetalAccelerationConstraint(80 * 0.0254));
     }
 
-    private final Vector3 mousePos = new Vector3();
-    private final Vector3 lastMousePos = new Vector3();
+    @NotNull private final Vector3 mousePos = new Vector3();
+    @NotNull private final Vector3 lastMousePos = new Vector3();
     @NotNull OrthographicCamera cam;
     @NotNull Viewport viewport;
     @NotNull CameraHandler cameraHandler;
@@ -107,12 +104,18 @@ public class AutoBuilder extends ApplicationAdapter {
 
         Gdx.app.getInput().setInputProcessor(inputEventThrower);
 
-        whiteTexture = new Texture(Gdx.files.internal("white.png"));
+        Pixmap pixmap = new Pixmap(1, 1, Pixmap.Format.RGBA8888);
+        pixmap.setColor(Color.WHITE);
+        pixmap.drawPixel(0, 0);
+        whiteTexture = new Texture(pixmap); //remember to dispose of later
+        pixmap.dispose();
+        TextureRegion region = new TextureRegion(whiteTexture, 0, 0, 1, 1);
+        
         hudBatch = new PolygonSpriteBatch();
-        hudShapeRenderer = new ShapeDrawer(hudBatch, new TextureRegion(whiteTexture));
+        hudShapeRenderer = new ShapeDrawer(hudBatch, region);
 
         batch = new PolygonSpriteBatch();
-        shapeRenderer = new ShapeDrawer(batch, new TextureRegion(whiteTexture));
+        shapeRenderer = new ShapeDrawer(batch, region);
 
         field = new Texture(Gdx.files.internal("field21.png"), false);
         field.setFilter(Texture.TextureFilter.Linear, Texture.TextureFilter.Nearest);

@@ -1,7 +1,5 @@
 package me.varun.autobuilder.pathing;
 
-import com.badlogic.gdx.Gdx;
-import com.badlogic.gdx.Input;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.math.Vector2;
@@ -39,21 +37,18 @@ import java.util.concurrent.ExecutorService;
 import static me.varun.autobuilder.AutoBuilder.*;
 
 public class PathRenderer implements MovablePointEventHandler, Serializable {
-    private @NotNull
-    final Color color;
-    private final @NotNull List<Pose2d> point2DList;
-    private final @NotNull List<MovablePointRenderer> pointRenderList;
-    private final @NotNull ExecutorService executorService;
+    @NotNull private final Color color;
+    @NotNull private final List<Pose2d> point2DList;
+    @NotNull private final List<MovablePointRenderer> pointRenderList;
+    @NotNull private final ExecutorService executorService;
     @Nullable PathChangeListener pathChangeListener;
     boolean pointDeleted;
-    boolean attachedToPrevPath = false;
     CompletableFuture<Trajectory> completableFutureTrajectory;
-    private @Nullable Trajectory trajectory;
+    Config config = AutoBuilder.getConfig();
+    @Nullable private Trajectory trajectory;
     private boolean reversed = false;
-    @Nullable
-    private MovablePointRenderer rotationPoint;
-    @Nullable
-    private PointRenderer highlightPoint;
+    @Nullable private MovablePointRenderer rotationPoint;
+    @Nullable private PointRenderer highlightPoint;
     private int selectionPointIndex = -1;
     private float velocityStart = 0;
     private float velocityEnd = 0;
@@ -61,9 +56,13 @@ public class PathRenderer implements MovablePointEventHandler, Serializable {
     @Nullable private PathRenderer attachedPath;
     private boolean isAttachedPathEnd;
 
-    Config config = AutoBuilder.getConfig();
+    @NotNull Vector2 lastPointLeft = new Vector2();
+    @NotNull Vector2 lastPointRight = new Vector2();
+    @NotNull Vector2 nextPointLeft = new Vector2();
+    @NotNull Vector2 nextPointRight = new Vector2();
 
-    public PathRenderer(@NotNull Color color, @NotNull List<Pose2d> pointList, @NotNull ExecutorService executorService, float velocityStart, float velocityEnd) {
+    public PathRenderer(@NotNull Color color, @NotNull List<Pose2d> pointList, @NotNull ExecutorService executorService,
+                        float velocityStart, float velocityEnd) {
         this.color = color;
         this.point2DList = pointList;
 
@@ -87,8 +86,19 @@ public class PathRenderer implements MovablePointEventHandler, Serializable {
 
     public void render(@NotNull ShapeDrawer renderer, @NotNull OrthographicCamera cam) {
         if (trajectory == null) return;
+
+        lastPointLeft.set(0, -LINE_THICKNESS / 2);
+        lastPointRight.set(0, LINE_THICKNESS / 2);
+
+        lastPointLeft.rotateRad((float) trajectory.sample(0).poseMeters.getRotation().getRadians());
+        lastPointRight.rotateRad((float) trajectory.sample(0).poseMeters.getRotation().getRadians());
+
+        lastPointLeft.add((float) trajectory.sample(0).poseMeters.getTranslation().getX() * config.getPointScaleFactor(),
+                (float) trajectory.sample(0).poseMeters.getTranslation().getY() * config.getPointScaleFactor());
+        lastPointRight.add((float) trajectory.sample(0).poseMeters.getTranslation().getX() * config.getPointScaleFactor(),
+                (float) trajectory.sample(0).poseMeters.getTranslation().getY() * config.getPointScaleFactor());
+
         for (double i = 0.01; i < trajectory.getTotalTimeSeconds(); i += 0.01) {
-            Pose2d prev = trajectory.sample(i - 0.01).poseMeters;
             Pose2d cur = trajectory.sample(i).poseMeters;
             double speed = Math.abs(trajectory.sample(i).velocityMetersPerSecond);
             float[] color = new float[3];
@@ -96,8 +106,27 @@ public class PathRenderer implements MovablePointEventHandler, Serializable {
             color[1] = (float) (0.9 * (speed / maxVelocityMetersPerSecond) + 0.1);
             Color speedColor = new Color().fromHsv(color);
             speedColor.set(speedColor.r, speedColor.g, speedColor.b, 1);
-            renderer.line((float) prev.getX() * config.getPointScaleFactor(), (float) prev.getY() * config.getPointScaleFactor(),
-                    (float) cur.getX() * config.getPointScaleFactor(), (float) cur.getY() * config.getPointScaleFactor(), speedColor, LINE_THICKNESS);
+            nextPointLeft.set(0, -LINE_THICKNESS / 2);
+            nextPointRight.set(0, LINE_THICKNESS / 2);
+
+            nextPointLeft.rotateRad((float) cur.getRotation().getRadians());
+            nextPointRight.rotateRad((float) cur.getRotation().getRadians());
+
+            nextPointLeft.add((float) cur.getTranslation().getX() * config.getPointScaleFactor(),
+                    (float) cur.getTranslation().getY() * config.getPointScaleFactor());
+            nextPointRight.add((float) cur.getTranslation().getX() * config.getPointScaleFactor(),
+                    (float) cur.getTranslation().getY() * config.getPointScaleFactor());
+
+            renderer.setColor(speedColor);
+            renderer.filledPolygon(new float[]{
+                    lastPointLeft.x, lastPointLeft.y,
+                    lastPointRight.x, lastPointRight.y,
+                    nextPointRight.x, nextPointRight.y,
+                    nextPointLeft.x, nextPointLeft.y
+            });
+
+            lastPointLeft.set(nextPointLeft);
+            lastPointRight.set(nextPointRight);
         }
 
         if (rotationPoint != null) {
@@ -132,65 +161,6 @@ public class PathRenderer implements MovablePointEventHandler, Serializable {
         robotPreviewTime = -1;
     }
 
-    public @NotNull PointChange update(@NotNull OrthographicCamera cam, @NotNull Vector3 mousePos, @NotNull Vector3 lastMousePos,
-                                       @NotNull PointChange prevPointChange, @Nullable Pose2d prevLastPoint, boolean somethingMoved) {
-        pointDeleted = false;
-
-        if (prevPointChange == PointChange.LAST) {
-            assert prevLastPoint != null;
-            MovablePointRenderer pointRenderer = pointRenderList.get(0);
-            if (!attachedToPrevPath && Gdx.app.getInput().isButtonJustPressed(Input.Buttons.LEFT) &&
-                    Math.abs(pointRenderer.getPos2().sub((float) prevLastPoint.getX(), (float) prevLastPoint.getY()).len2())
-                            < Math.pow((20 / config.getPointScaleFactor() * cam.zoom), 2)) {
-                attachedToPrevPath = true;
-            }
-
-            if (attachedToPrevPath) {
-                pointRenderer.setPosition((float) prevLastPoint.getX(), (float) prevLastPoint.getY());
-                point2DList.set(0, prevLastPoint);
-                updatePath();
-                removeSelection();
-            }
-            return PointChange.OTHER;
-
-        } else {
-            attachedToPrevPath = false;
-        }
-
-        if (somethingMoved) {
-            removeSelection();
-            return PointChange.NONE;
-        }
-
-        if (rotationPoint != null) {
-            if (rotationPoint.update(cam, new Vector3(mousePos), new Vector3(lastMousePos))) {
-                if (selectionPointIndex == pointRenderList.size() - 1) return PointChange.LAST;
-                else return PointChange.OTHER;
-            }
-        }
-
-        if (Gdx.app.getInput().isButtonJustPressed(Input.Buttons.RIGHT) || Gdx.app.getInput().isButtonJustPressed(Input.Buttons.LEFT)) {
-            removeSelection();
-        }
-
-        ArrayList<MovablePointRenderer> tempPointRenderList = new ArrayList<>(pointRenderList);
-        for (int i = 0; i < tempPointRenderList.size(); i++) {
-            MovablePointRenderer pointRenderer = tempPointRenderList.get(i);
-            if (pointRenderer.update(cam, new Vector3(mousePos), new Vector3(lastMousePos))) {
-                if (tempPointRenderList.size() - 1 == i) return PointChange.LAST;
-                else return PointChange.OTHER;
-            }
-        }
-
-
-        if (pointDeleted) {
-            UndoHandler.getInstance().somethingChanged();
-            return PointChange.REMOVAL;
-        }
-
-        return PointChange.NONE;
-    }
-
     /**
      * Get points that are close to the mouse position and returns a list of them.
      * @param maxDistance2 The maximum distance to the mouse position squared.
@@ -222,7 +192,7 @@ public class PathRenderer implements MovablePointEventHandler, Serializable {
                 Vector3 renderVector = MathUtil.toRenderVector3(trajectory.sample(i).poseMeters);
 
                 if (currentIndexPos + 1 < point2DList.size() &&
-                        MathUtil.toRenderVector3(point2DList.get(currentIndexPos + 1)).dst2(mousePos) < 0.05f) {
+                        MathUtil.toRenderVector3(point2DList.get(currentIndexPos + 1)).dst2(renderVector) < 2f) {
                     currentIndexPos++;
                 }
 
@@ -316,10 +286,8 @@ public class PathRenderer implements MovablePointEventHandler, Serializable {
             }
         }
 
-
         MovablePointRenderer point = pointRenderList.get(selectionPointIndex);
         point.update(camera, mousePos, lastMousePos);
-
     }
 
     public void updatePoint(OrthographicCamera camera, Vector3 mousePos, Vector3 lastMousePos) {
@@ -345,37 +313,6 @@ public class PathRenderer implements MovablePointEventHandler, Serializable {
 
     public void setRobotPathPreviewPoint(CloseTrajectoryPoint closePoint) {
         this.robotPreviewTime = closePoint.pointTime;
-    }
-
-
-
-    public @NotNull PointChange addPoints(@NotNull Vector3 mousePos) {
-        if (trajectory == null) return PointChange.NONE;
-        int currentIndexPos = 0;
-        if (Gdx.app.getInput().isButtonJustPressed(Input.Buttons.RIGHT)) {
-            for (double i = 0; i < trajectory.getTotalTimeSeconds(); i += 0.01) {
-                Pose2d cur = trajectory.sample(i).poseMeters;
-                double diffX = cur.getX() - mousePos.x / config.getPointScaleFactor();
-                double diffY = cur.getY() - mousePos.y / config.getPointScaleFactor();
-
-                if (currentIndexPos + 1 < point2DList.size() && point2DList.get(currentIndexPos + 1).getTranslation().getDistance(cur.getTranslation()) < 0.1) {
-                    currentIndexPos++;
-                }
-
-                if (Math.abs(diffX) < .1 && Math.abs(diffY) < .1) {
-                    System.out.println(currentIndexPos);
-                    point2DList.add(currentIndexPos + 1, cur);
-                    pointRenderList.add(currentIndexPos + 1, new MovablePointRenderer((float) cur.getX(), (float) cur.getY(), color, POINT_SIZE, this));
-                    if (selectionPointIndex > currentIndexPos) selectionPointIndex++;
-                    updatePath();
-                    UndoHandler.getInstance().somethingChanged();
-                    return PointChange.ADDITION;
-                }
-
-
-            }
-        }
-        return PointChange.NONE;
     }
 
     @Override
@@ -427,7 +364,8 @@ public class PathRenderer implements MovablePointEventHandler, Serializable {
         //trajectory = TrajectoryGenerator.generateTrajectory(point2DList, TRAJECTORY_CONSTRAINTS);
         //System.out.println(trajectory.getTotalTimeSeconds());
         completableFutureTrajectory = CompletableFuture.supplyAsync(() -> {
-            TrajectoryConfig trajectoryConfig = new TrajectoryConfig(maxVelocityMetersPerSecond, maxAccelerationMetersPerSecondSq);
+            TrajectoryConfig trajectoryConfig = new TrajectoryConfig(maxVelocityMetersPerSecond,
+                    maxAccelerationMetersPerSecondSq);
             for (TrajectoryConstraint trajectoryConstraint : trajectoryConstraints) {
                 trajectoryConfig.addConstraint(trajectoryConstraint);
             }
@@ -435,7 +373,7 @@ public class PathRenderer implements MovablePointEventHandler, Serializable {
             trajectoryConfig.setStartVelocity(velocityStart);
             trajectoryConfig.setEndVelocity(velocityEnd);
             return trajectory = TrajectoryGenerator.generateTrajectory(point2DList, trajectoryConfig);
-        });
+        }, executorService);
 
 
         if (updateListener && pathChangeListener != null) pathChangeListener.onPathChange();
@@ -518,9 +456,6 @@ public class PathRenderer implements MovablePointEventHandler, Serializable {
 
     public int getSelectionPoint() {
         return selectionPointIndex;
-    }
-    public enum PointChange {
-        NONE, LAST, OTHER, REMOVAL, ADDITION
     }
 
     /**
