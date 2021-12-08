@@ -26,8 +26,6 @@ import me.varun.autobuilder.pathing.pointclicks.CloseTrajectoryPoint;
 import me.varun.autobuilder.serialization.path.Autonomous;
 import me.varun.autobuilder.serialization.path.GuiSerializer;
 import me.varun.autobuilder.util.OsUtil;
-import me.varun.autobuilder.wpi.math.trajectory.constraint.CentripetalAccelerationConstraint;
-import me.varun.autobuilder.wpi.math.trajectory.constraint.TrajectoryConstraint;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import space.earlygrey.shapedrawer.ShapeDrawer;
@@ -48,15 +46,6 @@ public class AutoBuilder extends ApplicationAdapter {
 
     public static BitmapFont font;
     public static ShaderProgram fontShader;
-    public static ArrayList<TrajectoryConstraint> trajectoryConstraints = new ArrayList<>();
-    public static double maxVelocityMetersPerSecond;
-    public static double maxAccelerationMetersPerSecondSq;
-
-    static {
-        maxVelocityMetersPerSecond = 80 * .0254;
-        maxAccelerationMetersPerSecondSq = 140 * 0.0254;
-        trajectoryConstraints.add(new CentripetalAccelerationConstraint(80 * 0.0254));
-    }
 
     @NotNull private final Vector3 mousePos = new Vector3();
     @NotNull private final Vector3 lastMousePos = new Vector3();
@@ -172,8 +161,6 @@ public class AutoBuilder extends ApplicationAdapter {
         } catch (Exception e) {
             handleCrash(e);
         }
-
-
     }
 
     DecimalFormat df;
@@ -254,47 +241,6 @@ public class AutoBuilder extends ApplicationAdapter {
 
         mousePos.set(Gdx.input.getX(), Gdx.input.getY(), 0);
         cam.unproject(mousePos);
-
-        //somethingMoved = false;
-
-
-//        PathRenderer lastPathRender = null;
-//        PointChange lastPointChange = PointChange.NONE;
-//        boolean pointDeleted = false;
-//        for (AbstractGuiItem guiItem : pathGui.guiItems) {
-//            if (guiItem instanceof TrajectoryItem) {
-//                PathRenderer pathRenderer = ((TrajectoryItem) guiItem).getPathRenderer();
-//                //It's ok if lastPose2d is null if PointChange != LAST
-//                Pose2d lastPose2d = null;
-//                if (lastPointChange == PointChange.LAST) {
-//                    lastPose2d = lastPathRender.getPoint2DList().get(lastPathRender.getPoint2DList().size() - 1);
-//                }
-//                lastPointChange = pathRenderer.update(cam, mousePos, lastMousePos, lastPointChange, lastPose2d, somethingMoved);
-//
-//                if (lastPointChange != PointChange.NONE) {
-//                    somethingMoved = true;
-//                }
-//
-//                if (lastPointChange == PointChange.REMOVAL) {
-//                    pointDeleted = true;
-//                }
-//
-//                lastPathRender = pathRenderer;
-//            }
-//        }
-//
-//        //Don't add points if we've just deleted one
-//        if (!pointDeleted) {
-//            boolean pointAdded = false;
-//            for (AbstractGuiItem guiItem : pathGui.guiItems) {
-//                if (guiItem instanceof TrajectoryItem) {
-//                    PathRenderer pathRenderer = ((TrajectoryItem) guiItem).getPathRenderer();
-//                    if (!pointAdded && PointChange.ADDITION == pathRenderer.addPoints(mousePos)) {
-//                        pointAdded = true;
-//                    }
-//                }
-//            }
-//        }
 
         float maxDistance = (float) Math.pow(20 * cam.zoom, 2);
 
@@ -395,10 +341,9 @@ public class AutoBuilder extends ApplicationAdapter {
         } catch (IOException e) {
             e.printStackTrace();
         }
-
     }
 
-    public static Config getConfig(){
+    public static @NotNull Config getConfig() {
         return config;
     }
 }
