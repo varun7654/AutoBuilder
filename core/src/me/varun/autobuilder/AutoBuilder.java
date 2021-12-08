@@ -99,8 +99,7 @@ public class AutoBuilder extends ApplicationAdapter {
             config = new Config();
         }
 
-
-        //networkTables.start();
+        networkTables.start();
 
         Gdx.app.getInput().setInputProcessor(inputEventThrower);
 
@@ -163,7 +162,6 @@ public class AutoBuilder extends ApplicationAdapter {
         }
 
         undoHandler.somethingChanged();
-
     }
 
     @Override
