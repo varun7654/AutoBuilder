@@ -103,7 +103,7 @@ public class PathRenderer implements MovablePointEventHandler, Serializable {
             double speed = Math.abs(trajectory.sample(i).velocityMetersPerSecond);
             float[] color = new float[3];
             this.color.toHsv(color);
-            color[1] = (float) (0.9 * (speed / maxVelocityMetersPerSecond) + 0.1);
+            color[1] = (float) (0.9 * (speed / getConfig().getPathingConfig().maxVelocityMetersPerSecond) + 0.1);
             Color speedColor = new Color().fromHsv(color);
             speedColor.set(speedColor.r, speedColor.g, speedColor.b, 1);
             nextPointLeft.set(0, -LINE_THICKNESS / 2);
