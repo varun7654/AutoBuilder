@@ -364,9 +364,9 @@ public class PathRenderer implements MovablePointEventHandler, Serializable {
         //trajectory = TrajectoryGenerator.generateTrajectory(point2DList, TRAJECTORY_CONSTRAINTS);
         //System.out.println(trajectory.getTotalTimeSeconds());
         completableFutureTrajectory = CompletableFuture.supplyAsync(() -> {
-            TrajectoryConfig trajectoryConfig = new TrajectoryConfig(maxVelocityMetersPerSecond,
-                    maxAccelerationMetersPerSecondSq);
-            for (TrajectoryConstraint trajectoryConstraint : trajectoryConstraints) {
+            TrajectoryConfig trajectoryConfig = new TrajectoryConfig(config.getPathingConfig().maxVelocityMetersPerSecond,
+                    config.getPathingConfig().maxAccelerationMetersPerSecondSq);
+            for (TrajectoryConstraint trajectoryConstraint : config.getPathingConfig().trajectoryConstraints) {
                 trajectoryConfig.addConstraint(trajectoryConstraint);
             }
             trajectoryConfig.setReversed(isReversed());
