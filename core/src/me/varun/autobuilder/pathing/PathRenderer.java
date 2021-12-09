@@ -1,18 +1,21 @@
 package me.varun.autobuilder.pathing;
 
-import com.badlogic.gdx.Gdx;
-import com.badlogic.gdx.Input;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.math.Vector3;
 import me.varun.autobuilder.AutoBuilder;
-import me.varun.autobuilder.config.Config;
 import me.varun.autobuilder.UndoHandler;
+import me.varun.autobuilder.config.Config;
 import me.varun.autobuilder.events.movablepoint.MovablePointEventHandler;
 import me.varun.autobuilder.events.movablepoint.PointClickEvent;
 import me.varun.autobuilder.events.movablepoint.PointMoveEvent;
 import me.varun.autobuilder.events.pathchange.PathChangeListener;
+import me.varun.autobuilder.gui.path.AbstractGuiItem;
+import me.varun.autobuilder.gui.path.TrajectoryItem;
+import me.varun.autobuilder.pathing.pointclicks.ClosePoint;
+import me.varun.autobuilder.pathing.pointclicks.CloseTrajectoryPoint;
+import me.varun.autobuilder.util.MathUtil;
 import me.varun.autobuilder.wpi.math.geometry.Pose2d;
 import me.varun.autobuilder.wpi.math.geometry.Rotation2d;
 import me.varun.autobuilder.wpi.math.geometry.Translation2d;
@@ -34,28 +37,32 @@ import java.util.concurrent.ExecutorService;
 import static me.varun.autobuilder.AutoBuilder.*;
 
 public class PathRenderer implements MovablePointEventHandler, Serializable {
-    private @NotNull
-    final Color color;
-    private final @NotNull List<Pose2d> point2DList;
-    private final @NotNull List<MovablePointRenderer> pointRenderList;
-    private final @NotNull ExecutorService executorService;
+    @NotNull private final Color color;
+    @NotNull private final List<Pose2d> point2DList;
+    @NotNull private final List<MovablePointRenderer> pointRenderList;
+    @NotNull private final ExecutorService executorService;
     @Nullable PathChangeListener pathChangeListener;
     boolean pointDeleted;
-    boolean attachedToPrevPath = false;
     CompletableFuture<Trajectory> completableFutureTrajectory;
-    private @Nullable Trajectory trajectory;
+    Config config = AutoBuilder.getConfig();
+    @Nullable private Trajectory trajectory;
     private boolean reversed = false;
-    @Nullable
-    private MovablePointRenderer rotationPoint;
-    @Nullable
-    private PointRenderer highlightPoint;
+    @Nullable private MovablePointRenderer rotationPoint;
+    @Nullable private PointRenderer highlightPoint;
     private int selectionPointIndex = -1;
     private float velocityStart = 0;
     private float velocityEnd = 0;
+    private float robotPreviewTime = -1;
+    @Nullable private PathRenderer attachedPath;
+    private boolean isAttachedPathEnd;
 
-    Config config = AutoBuilder.getConfig();
+    @NotNull Vector2 lastPointLeft = new Vector2();
+    @NotNull Vector2 lastPointRight = new Vector2();
+    @NotNull Vector2 nextPointLeft = new Vector2();
+    @NotNull Vector2 nextPointRight = new Vector2();
 
-    public PathRenderer(@NotNull Color color, @NotNull List<Pose2d> pointList, @NotNull ExecutorService executorService, float velocityStart, float velocityEnd) {
+    public PathRenderer(@NotNull Color color, @NotNull List<Pose2d> pointList, @NotNull ExecutorService executorService,
+                        float velocityStart, float velocityEnd) {
         this.color = color;
         this.point2DList = pointList;
 
@@ -79,145 +86,283 @@ public class PathRenderer implements MovablePointEventHandler, Serializable {
 
     public void render(@NotNull ShapeDrawer renderer, @NotNull OrthographicCamera cam) {
         if (trajectory == null) return;
+
+        //Get the first 2 points of the line at t = 0
+        lastPointLeft.set(0, -LINE_THICKNESS / 2);
+        lastPointRight.set(0, LINE_THICKNESS / 2);
+
+        lastPointLeft.rotateRad((float) trajectory.sample(0).poseMeters.getRotation().getRadians());
+        lastPointRight.rotateRad((float) trajectory.sample(0).poseMeters.getRotation().getRadians());
+
+        lastPointLeft.add((float) trajectory.sample(0).poseMeters.getTranslation().getX() * config.getPointScaleFactor(),
+                (float) trajectory.sample(0).poseMeters.getTranslation().getY() * config.getPointScaleFactor());
+        lastPointRight.add((float) trajectory.sample(0).poseMeters.getTranslation().getX() * config.getPointScaleFactor(),
+                (float) trajectory.sample(0).poseMeters.getTranslation().getY() * config.getPointScaleFactor());
+
         for (double i = 0.01; i < trajectory.getTotalTimeSeconds(); i += 0.01) {
-            Pose2d prev = trajectory.sample(i - 0.01).poseMeters;
             Pose2d cur = trajectory.sample(i).poseMeters;
+
+            //Use the speed of the path to determine its saturation
             double speed = Math.abs(trajectory.sample(i).velocityMetersPerSecond);
             float[] color = new float[3];
             this.color.toHsv(color);
-            color[1] = (float) (0.9 * (speed / maxVelocityMetersPerSecond) + 0.1);
+            color[1] = (float) (0.9 * (speed / getConfig().getPathingConfig().maxVelocityMetersPerSecond) + 0.1);
             Color speedColor = new Color().fromHsv(color);
             speedColor.set(speedColor.r, speedColor.g, speedColor.b, 1);
-            renderer.line((float) prev.getX() * config.getPointScaleFactor(), (float) prev.getY() * config.getPointScaleFactor(),
-                    (float) cur.getX() * config.getPointScaleFactor(), (float) cur.getY() * config.getPointScaleFactor(), speedColor, LINE_THICKNESS);
+
+            //Get the 2 points of the line at the current time
+            nextPointLeft.set(0, -LINE_THICKNESS / 2);
+            nextPointRight.set(0, LINE_THICKNESS / 2);
+
+            nextPointLeft.rotateRad((float) cur.getRotation().getRadians());
+            nextPointRight.rotateRad((float) cur.getRotation().getRadians());
+
+            nextPointLeft.add((float) cur.getTranslation().getX() * config.getPointScaleFactor(),
+                    (float) cur.getTranslation().getY() * config.getPointScaleFactor());
+            nextPointRight.add((float) cur.getTranslation().getX() * config.getPointScaleFactor(),
+                    (float) cur.getTranslation().getY() * config.getPointScaleFactor());
+
+            //Render the line
+            renderer.setColor(speedColor);
+            renderer.filledPolygon(new float[]{
+                    lastPointLeft.x, lastPointLeft.y,
+                    lastPointRight.x, lastPointRight.y,
+                    nextPointRight.x, nextPointRight.y,
+                    nextPointLeft.x, nextPointLeft.y
+            });
+
+            lastPointLeft.set(nextPointLeft);
+            lastPointRight.set(nextPointRight);
         }
 
         if (rotationPoint != null) {
             renderer.line(pointRenderList.get(selectionPointIndex).getRenderPos2(), rotationPoint.getRenderPos2(), LINE_THICKNESS);
             rotationPoint.draw(renderer, cam);
-            float rotation = (float) point2DList.get(selectionPointIndex).getRotation().getRadians();
 
+            float rotation = (float) point2DList.get(selectionPointIndex).getRotation().getRadians();
             Vector2 origin = pointRenderList.get(selectionPointIndex).getRenderPos2();
 
-            Vector2 leftTop = new Vector2(origin).add(-(config.getRobotWidth() / 2) * config.getPointScaleFactor(), (config.getRobotLength() / 2) * config.getPointScaleFactor());
-            Vector2 rightTop = new Vector2(origin).add((config.getRobotWidth() / 2) * config.getPointScaleFactor(), (config.getRobotLength() / 2) * config.getPointScaleFactor());
-            Vector2 leftBottom = new Vector2(origin).add(-(config.getRobotWidth() / 2) * config.getPointScaleFactor(), -(config.getRobotLength() / 2) * config.getPointScaleFactor());
-            Vector2 rightBottom = new Vector2(origin).add((config.getRobotWidth() / 2) * config.getPointScaleFactor(), -(config.getRobotLength() / 2) * config.getPointScaleFactor());
+            renderRobotBoundingBox(origin, rotation, renderer);
+        } else if (robotPreviewTime >= 0) {
+            Pose2d hoverPose = trajectory.sample(robotPreviewTime).poseMeters;
+            float rotation = (float) hoverPose.getRotation().getRadians();
+            Vector2 origin = MathUtil.toRenderVector2(hoverPose);
 
-            leftTop.rotateAroundRad(origin, rotation);
-            rightTop.rotateAroundRad(origin, rotation);
-            leftBottom.rotateAroundRad(origin, rotation);
-            rightBottom.rotateAroundRad(origin, rotation);
-
-            renderer.setColor(Color.BLUE);
-
-            renderer.line(leftTop, rightTop, LINE_THICKNESS);
-            renderer.line(rightTop, rightBottom, LINE_THICKNESS);
-            renderer.line(rightBottom, leftBottom, LINE_THICKNESS);
-            renderer.line(leftBottom, leftTop, LINE_THICKNESS);
-
+            renderRobotBoundingBox(origin, rotation, renderer);
         }
 
         for (int i = 0; i < pointRenderList.size(); i++) {
             PointRenderer pointRenderer = pointRenderList.get(i);
 
             if (i == selectionPointIndex) {
-                if (highlightPoint == null)
+                if (highlightPoint == null) {
                     highlightPoint = new PointRenderer(pointRenderer.getPos2(), Color.WHITE, POINT_SIZE * 1.4f);
-                else highlightPoint.setPosition(pointRenderer.getPos2());
+                } else {
+                    highlightPoint.setPosition(pointRenderer.getPos2());
+                }
 
                 highlightPoint.draw(renderer, cam);
             }
             pointRenderer.draw(renderer, cam);
         }
+
+        //Reset the robot preview time so that it won't be visible in the next frame. (Requires that it is set again)
+        robotPreviewTime = -1;
     }
 
-    public @NotNull PointChange update(@NotNull OrthographicCamera cam, @NotNull Vector3 mousePos, @NotNull Vector3 lastMousePos,
-                                       @NotNull PointChange prevPointChange, @Nullable Pose2d prevLastPoint, boolean somethingMoved) {
-        pointDeleted = false;
-
-        if (prevPointChange == PointChange.LAST) {
-            assert prevLastPoint != null;
-            MovablePointRenderer pointRenderer = pointRenderList.get(0);
-            if (!attachedToPrevPath && Gdx.app.getInput().isButtonJustPressed(Input.Buttons.LEFT) &&
-                    Math.abs(pointRenderer.getPos2().sub((float) prevLastPoint.getX(), (float) prevLastPoint.getY()).len2())
-                            < Math.pow((20 / config.getPointScaleFactor() * cam.zoom), 2)) {
-                attachedToPrevPath = true;
-            }
-
-            if (attachedToPrevPath) {
-                pointRenderer.setPosition((float) prevLastPoint.getX(), (float) prevLastPoint.getY());
-                point2DList.set(0, prevLastPoint);
-                updatePath();
-                removeSelection();
-            }
-            return PointChange.OTHER;
-
-        } else {
-            attachedToPrevPath = false;
-        }
-
-        if (somethingMoved) {
-            removeSelection();
-            return PointChange.NONE;
-        }
-
-        if (rotationPoint != null) {
-            if (rotationPoint.update(cam, new Vector3(mousePos), new Vector3(lastMousePos))) {
-                if (selectionPointIndex == pointRenderList.size() - 1) return PointChange.LAST;
-                else return PointChange.OTHER;
+    /**
+     * Get points that are close to the mouse position and returns a list of them.
+     *
+     * @param maxDistance2 The maximum distance to the mouse position squared.
+     * @param mousePos     The current mouse position.
+     * @return List of all points that are close to the mouse position.
+     */
+    public @NotNull ArrayList<ClosePoint> getClosePoints(float maxDistance2, Vector3 mousePos) {
+        ArrayList<ClosePoint> closePoints = new ArrayList<>();
+        for (int i = 0; i < pointRenderList.size(); i++) {
+            PointRenderer pointRenderer = pointRenderList.get(i);
+            float distanceToMouse2 = pointRenderer.getRenderPos3().dst2(mousePos);
+            if (distanceToMouse2 < maxDistance2) {
+                closePoints.add(new ClosePoint(distanceToMouse2, this, i));
             }
         }
-
-        if (Gdx.app.getInput().isButtonJustPressed(Input.Buttons.RIGHT) || Gdx.app.getInput().isButtonJustPressed(Input.Buttons.LEFT)) {
-            removeSelection();
-        }
-
-        ArrayList<MovablePointRenderer> tempPointRenderList = new ArrayList<>(pointRenderList);
-        for (int i = 0; i < tempPointRenderList.size(); i++) {
-            MovablePointRenderer pointRenderer = tempPointRenderList.get(i);
-            if (pointRenderer.update(cam, new Vector3(mousePos), new Vector3(lastMousePos))) {
-                if (tempPointRenderList.size() - 1 == i) return PointChange.LAST;
-                else return PointChange.OTHER;
-            }
-        }
-
-
-        if (pointDeleted) {
-            UndoHandler.getInstance().somethingChanged();
-            return PointChange.REMOVAL;
-        }
-
-        return PointChange.NONE;
+        return closePoints;
     }
 
-    public @NotNull PointChange addPoints(@NotNull Vector3 mousePos) {
-        if (trajectory == null) return PointChange.NONE;
-        int currentIndexPos = 0;
-        if (Gdx.app.getInput().isButtonJustPressed(Input.Buttons.RIGHT)) {
-            for (double i = 0; i < trajectory.getTotalTimeSeconds(); i += 0.01) {
-                Pose2d cur = trajectory.sample(i).poseMeters;
-                double diffX = cur.getX() - mousePos.x / config.getPointScaleFactor();
-                double diffY = cur.getY() - mousePos.y / config.getPointScaleFactor();
+    /**
+     * Get a list of all points that are close to the mouse position.
+     * @param maxDistance2 The maximum distance to the mouse position squared.
+     * @return List of all points on the trajectory that are close to the mouse position.
+     */
+    public @NotNull ArrayList<CloseTrajectoryPoint> getCloseTrajectoryPoints(float maxDistance2, Vector3 mousePos) {
+        if(trajectory != null){
+            ArrayList<CloseTrajectoryPoint> closePoints = new ArrayList<>();
+            int currentIndexPos = 0;
+            for (float i = 0; i < trajectory.getTotalTimeSeconds(); i += 0.01f) {
+                Vector3 renderVector = MathUtil.toRenderVector3(trajectory.sample(i).poseMeters);
 
-                if (currentIndexPos + 1 < point2DList.size() && point2DList.get(currentIndexPos + 1).getTranslation().getDistance(cur.getTranslation()) < 0.1) {
+                if (currentIndexPos + 1 < point2DList.size() &&
+                        MathUtil.toRenderVector3(point2DList.get(currentIndexPos + 1)).dst2(renderVector) < 2f) {
                     currentIndexPos++;
                 }
 
-                if (Math.abs(diffX) < .1 && Math.abs(diffY) < .1) {
-                    System.out.println(currentIndexPos);
-                    point2DList.add(currentIndexPos + 1, cur);
-                    pointRenderList.add(currentIndexPos + 1, new MovablePointRenderer((float) cur.getX(), (float) cur.getY(), color, POINT_SIZE, this));
-                    if (selectionPointIndex > currentIndexPos) selectionPointIndex++;
-                    updatePath();
-                    UndoHandler.getInstance().somethingChanged();
-                    return PointChange.ADDITION;
+                float distanceToMouse2 = renderVector.dst2(mousePos);
+                if (distanceToMouse2 < maxDistance2) {
+                    closePoints.add(new CloseTrajectoryPoint(distanceToMouse2, this, currentIndexPos, i));
                 }
+            }
+            return closePoints;
+        }
+        return new ArrayList<>();
+    }
 
+    /**
+     * Delete a point
+     *
+     * @param closePoint object that was created by {@link PathRenderer#getClosePoints(float, Vector3)}
+     */
+    public void deletePoint(ClosePoint closePoint) {
+        if (point2DList.size() > 2) {
+            if (selectionPointIndex > closePoint.index) {
+                selectionPointIndex--;
+            } else if (selectionPointIndex == closePoint.index) {
+                removeSelection();
+            }
+            pointRenderList.remove(closePoint.index);
+            point2DList.remove(closePoint.index);
+            pointDeleted = true;
+            updatePath();
+        }
+    }
 
+    /**
+     * Add a point
+     *
+     * @param closePoint object that was created by {@link PathRenderer#getCloseTrajectoryPoints(float, Vector3)}
+     */
+    public void addPoint(CloseTrajectoryPoint closePoint) {
+        assert trajectory != null;
+        Pose2d newPoint = trajectory.sample(closePoint.pointTime).poseMeters;
+        point2DList.add(closePoint.prevPointIndex + 1, newPoint);
+        pointRenderList.add(closePoint.prevPointIndex + 1,
+                new MovablePointRenderer((float) newPoint.getX(), (float) newPoint.getY(), color, POINT_SIZE, this));
+        if (selectionPointIndex > closePoint.prevPointIndex) selectionPointIndex++;
+        updatePath();
+        UndoHandler.getInstance().somethingChanged();
+    }
+
+    /**
+     * @param mousePos     current mouse position
+     * @param maxDistance2 the maximum distance to the mouse position squared
+     * @return True if the rotation point is being touched.
+     */
+    public boolean isTouchingRotationPoint(Vector3 mousePos, float maxDistance2) {
+        if (rotationPoint == null) return false;
+        return rotationPoint.getRenderPos3().dst2(mousePos) < maxDistance2;
+    }
+
+    /**
+     * @param closePoint   object that was created by {@link PathRenderer#getClosePoints(float, Vector3)}
+     * @param camera       the camera
+     * @param mousePos     the current mouse position
+     * @param lastMousePos the last mouse position
+     * @param itemList     the list of gui items that contains all the path items
+     */
+    public void selectPoint(@NotNull ClosePoint closePoint, @NotNull OrthographicCamera camera, @NotNull Vector3 mousePos,
+                            @NotNull Vector3 lastMousePos, @NotNull List<AbstractGuiItem> itemList) {
+        selectionPointIndex = closePoint.index;
+        attachedPath = null;
+
+        //get the path renderer of the previous/next path if needed
+        if (selectionPointIndex == 0) {
+            //We clicked on the first point, so we need to get the path renderer of the previous path
+            PathRenderer lastPathRenderer = null;
+            for (AbstractGuiItem item : itemList) {
+                if (item instanceof TrajectoryItem) {
+                    TrajectoryItem trajectoryItem = (TrajectoryItem) item;
+                    if (trajectoryItem.getPathRenderer() == this) {
+                        attachedPath = lastPathRenderer;
+                        break;
+                    }
+                    lastPathRenderer = trajectoryItem.getPathRenderer();
+                }
+            }
+            isAttachedPathEnd = true;
+        } else if (selectionPointIndex == point2DList.size() - 1) {
+            //We clicked on the last point, so we need to get the path renderer of the next path
+            boolean foundMyself = false;
+            for (AbstractGuiItem item : itemList) {
+                if (item instanceof TrajectoryItem) {
+                    TrajectoryItem trajectoryItem = (TrajectoryItem) item;
+                    if (trajectoryItem.getPathRenderer() == this) {
+                        foundMyself = true;
+                    } else if (foundMyself) {
+                        attachedPath = trajectoryItem.getPathRenderer();
+                        break;
+                    }
+                }
+            }
+            isAttachedPathEnd = false;
+        }
+
+        if (attachedPath != null) {
+            MovablePointRenderer selectedPoint = pointRenderList.get(selectionPointIndex);
+            Pose2d otherPathPose2d;
+            if (isAttachedPathEnd) {
+                otherPathPose2d = attachedPath.point2DList.get(attachedPath.point2DList.size() - 1);
+            } else {
+                otherPathPose2d = attachedPath.point2DList.get(0);
+            }
+
+            if (!(Math.abs(selectedPoint.getPos2().sub((float) otherPathPose2d.getX(), (float) otherPathPose2d.getY()).len2())
+                    < Math.pow((20 / config.getPointScaleFactor() * camera.zoom), 2))) {
+                attachedPath = null;
+                System.out.println("Not close enough to other path");
             }
         }
-        return PointChange.NONE;
+
+        MovablePointRenderer point = pointRenderList.get(selectionPointIndex);
+        point.update(camera, mousePos, lastMousePos);
+    }
+
+    /**
+     * Update the point that is selected. This should be called every frame.
+     *
+     * @param camera       the camera
+     * @param mousePos     the current mouse position
+     * @param lastMousePos the last mouse position
+     */
+    public void updatePoint(OrthographicCamera camera, Vector3 mousePos, Vector3 lastMousePos) {
+        if (selectionPointIndex != -1) {
+            MovablePointRenderer selectedPoint = pointRenderList.get(selectionPointIndex);
+            selectedPoint.update(camera, mousePos, lastMousePos);
+            if (rotationPoint != null) {
+                rotationPoint.update(camera, mousePos, lastMousePos);
+            }
+
+            //update the attached path if needed
+            if (attachedPath != null) {
+                if (isAttachedPathEnd) {
+                    attachedPath.point2DList.set(attachedPath.point2DList.size() - 1, point2DList.get(selectionPointIndex));
+                    attachedPath.pointRenderList.get(attachedPath.pointRenderList.size() - 1)
+                            .setPosition(selectedPoint.getPos2());
+                } else {
+                    attachedPath.point2DList.set(0, point2DList.get(selectionPointIndex));
+                    attachedPath.pointRenderList.get(0).setPosition(selectedPoint.getPos2());
+                }
+                attachedPath.updatePath();
+            }
+        }
+    }
+
+    /**
+     * Sets the time on the trajectory that the robot pose preview should be shown. This should be called every frame when it will
+     * be shown.
+     *
+     * @param closePoint
+     */
+    public void setRobotPathPreviewPoint(CloseTrajectoryPoint closePoint) {
+        this.robotPreviewTime = closePoint.pointTime;
     }
 
     @Override
@@ -231,23 +376,7 @@ public class PathRenderer implements MovablePointEventHandler, Serializable {
                 float yPos = (float) (event.getPos().y + rotation.getSin() * 1);
                 rotationPoint = new MovablePointRenderer(xPos, yPos, Color.GREEN, POINT_SIZE, this);
             }
-            if (event.isRightClick() && !pointDeleted) {
-                if (point2DList.size() > 2) {
-                    int removeIndex = pointRenderList.indexOf(event.getPoint());
-                    if (selectionPointIndex > removeIndex) {
-                        selectionPointIndex--;
-                    } else if (selectionPointIndex == removeIndex) {
-                        removeSelection();
-                    }
-                    pointRenderList.remove(removeIndex);
-                    point2DList.remove(removeIndex);
-                    pointDeleted = true;
-                } else pointDeleted = true;
-
-            }
         }
-
-        updatePath();
     }
 
 
@@ -282,18 +411,18 @@ public class PathRenderer implements MovablePointEventHandler, Serializable {
     }
 
     public void updatePath(boolean updateListener) {
-        //trajectory = TrajectoryGenerator.generateTrajectory(point2DList, TRAJECTORY_CONSTRAINTS);
-        //System.out.println(trajectory.getTotalTimeSeconds());
+        // Generate the new path on another thread
         completableFutureTrajectory = CompletableFuture.supplyAsync(() -> {
-            TrajectoryConfig trajectoryConfig = new TrajectoryConfig(maxVelocityMetersPerSecond, maxAccelerationMetersPerSecondSq);
-            for (TrajectoryConstraint trajectoryConstraint : trajectoryConstraints) {
+            TrajectoryConfig trajectoryConfig = new TrajectoryConfig(config.getPathingConfig().maxVelocityMetersPerSecond,
+                    config.getPathingConfig().maxAccelerationMetersPerSecondSq);
+            for (TrajectoryConstraint trajectoryConstraint : config.getPathingConfig().trajectoryConstraints) {
                 trajectoryConfig.addConstraint(trajectoryConstraint);
             }
             trajectoryConfig.setReversed(isReversed());
             trajectoryConfig.setStartVelocity(velocityStart);
             trajectoryConfig.setEndVelocity(velocityEnd);
             return trajectory = TrajectoryGenerator.generateTrajectory(point2DList, trajectoryConfig);
-        });
+        }, executorService);
 
 
         if (updateListener && pathChangeListener != null) pathChangeListener.onPathChange();
@@ -323,6 +452,7 @@ public class PathRenderer implements MovablePointEventHandler, Serializable {
         selectionPointIndex = -1;
         rotationPoint = null;
         highlightPoint = null;
+
     }
 
     public @NotNull Color getColor() {
@@ -376,7 +506,31 @@ public class PathRenderer implements MovablePointEventHandler, Serializable {
     public int getSelectionPoint() {
         return selectionPointIndex;
     }
-    public enum PointChange {
-        NONE, LAST, OTHER, REMOVAL, ADDITION
+
+    /**
+     * Draws the bounding box of the robot preview
+     *
+     * @param origin   Origin of the point (in pixels)
+     * @param rotation Rotation of the point (in radians)
+     * @param renderer shapeDrawer
+     */
+    public void renderRobotBoundingBox(Vector2 origin, float rotation, @NotNull ShapeDrawer renderer){
+        Vector2 leftTop = new Vector2(origin).add(-(config.getRobotWidth() / 2) * config.getPointScaleFactor(), (config.getRobotLength() / 2) * config.getPointScaleFactor());
+        Vector2 rightTop = new Vector2(origin).add((config.getRobotWidth() / 2) * config.getPointScaleFactor(), (config.getRobotLength() / 2) * config.getPointScaleFactor());
+        Vector2 leftBottom = new Vector2(origin).add(-(config.getRobotWidth() / 2) * config.getPointScaleFactor(), -(config.getRobotLength() / 2) * config.getPointScaleFactor());
+        Vector2 rightBottom = new Vector2(origin).add((config.getRobotWidth() / 2) * config.getPointScaleFactor(), -(config.getRobotLength() / 2) * config.getPointScaleFactor());
+
+        leftTop.rotateAroundRad(origin, rotation);
+        rightTop.rotateAroundRad(origin, rotation);
+        leftBottom.rotateAroundRad(origin, rotation);
+        rightBottom.rotateAroundRad(origin, rotation);
+
+        renderer.setColor(getColor());
+        renderer.line(leftTop, rightTop, LINE_THICKNESS);
+        renderer.line(rightBottom, leftBottom, LINE_THICKNESS);
+        renderer.line(leftBottom, leftTop, LINE_THICKNESS);
+
+        renderer.setColor(Color.WHITE);
+        renderer.line(rightTop, rightBottom, LINE_THICKNESS);
     }
 }

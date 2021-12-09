@@ -27,7 +27,6 @@ public class MathUtil {
         return ((x - vec.x) * (x - vec.x)) + ((y - vec.y) * (y - vec.y));
     }
 
-
     public static Vector2 toRenderVector2(Pose2d poseMeters) {
         return new Vector2((float) poseMeters.getTranslation().getX() * AutoBuilder.getConfig().getPointScaleFactor(),
                 (float) poseMeters.getTranslation().getY() * AutoBuilder.getConfig().getPointScaleFactor());
@@ -54,5 +53,4 @@ public class MathUtil {
     public void addThing(double a, double b) {
         System.out.println(a+b);
     }
-
 }

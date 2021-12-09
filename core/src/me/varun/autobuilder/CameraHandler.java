@@ -70,8 +70,10 @@ public class CameraHandler extends InputEventListener {
         targetX -= zoomXChange;
         targetY -= zoomYChange;
         cam.update();
-        if (Gdx.input.isButtonJustPressed(Input.Buttons.LEFT) && !moving) {
+        if (Gdx.input.isButtonJustPressed(Input.Buttons.LEFT) && !(moving | onGui)) {
             mouseHeldLastFrame = true;
+        } else if (moving){
+            mouseHeldLastFrame = false;
         }
 
         if (mouseHeldLastFrame && Gdx.input.isButtonPressed(Input.Buttons.LEFT)) { //Left mouse button down. Drag Camera around
