@@ -87,6 +87,7 @@ public class PathRenderer implements MovablePointEventHandler, Serializable {
     public void render(@NotNull ShapeDrawer renderer, @NotNull OrthographicCamera cam) {
         if (trajectory == null) return;
 
+        //Get the first 2 points of the line at t = 0
         lastPointLeft.set(0, -LINE_THICKNESS / 2);
         lastPointRight.set(0, LINE_THICKNESS / 2);
 
@@ -100,12 +101,16 @@ public class PathRenderer implements MovablePointEventHandler, Serializable {
 
         for (double i = 0.01; i < trajectory.getTotalTimeSeconds(); i += 0.01) {
             Pose2d cur = trajectory.sample(i).poseMeters;
+
+            //Use the speed of the path to determine it's saturation
             double speed = Math.abs(trajectory.sample(i).velocityMetersPerSecond);
             float[] color = new float[3];
             this.color.toHsv(color);
             color[1] = (float) (0.9 * (speed / getConfig().getPathingConfig().maxVelocityMetersPerSecond) + 0.1);
             Color speedColor = new Color().fromHsv(color);
             speedColor.set(speedColor.r, speedColor.g, speedColor.b, 1);
+
+            //Get the 2 points of the line at the current time
             nextPointLeft.set(0, -LINE_THICKNESS / 2);
             nextPointRight.set(0, LINE_THICKNESS / 2);
 
@@ -117,6 +122,7 @@ public class PathRenderer implements MovablePointEventHandler, Serializable {
             nextPointRight.add((float) cur.getTranslation().getX() * config.getPointScaleFactor(),
                     (float) cur.getTranslation().getY() * config.getPointScaleFactor());
 
+            //Render the line
             renderer.setColor(speedColor);
             renderer.filledPolygon(new float[]{
                     lastPointLeft.x, lastPointLeft.y,
@@ -157,7 +163,9 @@ public class PathRenderer implements MovablePointEventHandler, Serializable {
             }
             pointRenderer.draw(renderer, cam);
         }
-
+        
+        //Reset the robot preview time so that it won't be visable in the next frame. 
+        //(Requires that it is set again)
         robotPreviewTime = -1;
     }
 
