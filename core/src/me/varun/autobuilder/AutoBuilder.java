@@ -2,10 +2,8 @@ package me.varun.autobuilder;
 
 import com.badlogic.gdx.ApplicationAdapter;
 import com.badlogic.gdx.Gdx;
-import com.badlogic.gdx.graphics.Color;
-import com.badlogic.gdx.graphics.GL20;
-import com.badlogic.gdx.graphics.OrthographicCamera;
-import com.badlogic.gdx.graphics.Texture;
+import com.badlogic.gdx.Input;
+import com.badlogic.gdx.graphics.*;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.PolygonSpriteBatch;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
@@ -22,15 +20,14 @@ import me.varun.autobuilder.gui.path.TrajectoryItem;
 import me.varun.autobuilder.net.NetworkTablesHelper;
 import me.varun.autobuilder.net.Serializer;
 import me.varun.autobuilder.pathing.PathRenderer;
-import me.varun.autobuilder.pathing.PathRenderer.PointChange;
 import me.varun.autobuilder.pathing.PointRenderer;
+import me.varun.autobuilder.pathing.pointclicks.ClosePoint;
+import me.varun.autobuilder.pathing.pointclicks.CloseTrajectoryPoint;
 import me.varun.autobuilder.serialization.path.Autonomous;
 import me.varun.autobuilder.serialization.path.GuiSerializer;
 import me.varun.autobuilder.util.OsUtil;
-import me.varun.autobuilder.wpi.math.geometry.Pose2d;
-import me.varun.autobuilder.wpi.math.trajectory.constraint.CentripetalAccelerationConstraint;
-import me.varun.autobuilder.wpi.math.trajectory.constraint.TrajectoryConstraint;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import space.earlygrey.shapedrawer.ShapeDrawer;
 
 import java.io.File;
@@ -38,6 +35,7 @@ import java.io.IOException;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -48,18 +46,9 @@ public class AutoBuilder extends ApplicationAdapter {
 
     public static BitmapFont font;
     public static ShaderProgram fontShader;
-    public static ArrayList<TrajectoryConstraint> trajectoryConstraints = new ArrayList<>();
-    public static double maxVelocityMetersPerSecond;
-    public static double maxAccelerationMetersPerSecondSq;
 
-    static {
-        maxVelocityMetersPerSecond = 80 * .0254;
-        maxAccelerationMetersPerSecondSq = 140 * 0.0254;
-        trajectoryConstraints.add(new CentripetalAccelerationConstraint(80 * 0.0254));
-    }
-
-    private final Vector3 mousePos = new Vector3();
-    private final Vector3 lastMousePos = new Vector3();
+    @NotNull private final Vector3 mousePos = new Vector3();
+    @NotNull private final Vector3 lastMousePos = new Vector3();
     @NotNull OrthographicCamera cam;
     @NotNull Viewport viewport;
     @NotNull CameraHandler cameraHandler;
@@ -99,17 +88,22 @@ public class AutoBuilder extends ApplicationAdapter {
             config = new Config();
         }
 
-
         networkTables.start();
 
         Gdx.app.getInput().setInputProcessor(inputEventThrower);
 
-        whiteTexture = new Texture(Gdx.files.internal("white.png"));
+        Pixmap pixmap = new Pixmap(1, 1, Pixmap.Format.RGBA8888);
+        pixmap.setColor(Color.WHITE);
+        pixmap.drawPixel(0, 0);
+        whiteTexture = new Texture(pixmap); //remember to dispose of later
+        pixmap.dispose();
+        TextureRegion region = new TextureRegion(whiteTexture, 0, 0, 1, 1);
+        
         hudBatch = new PolygonSpriteBatch();
-        hudShapeRenderer = new ShapeDrawer(hudBatch, new TextureRegion(whiteTexture));
+        hudShapeRenderer = new ShapeDrawer(hudBatch, region);
 
         batch = new PolygonSpriteBatch();
-        shapeRenderer = new ShapeDrawer(batch, new TextureRegion(whiteTexture));
+        shapeRenderer = new ShapeDrawer(batch, region);
 
         field = new Texture(Gdx.files.internal("field21.png"), false);
         field.setFilter(Texture.TextureFilter.Linear, Texture.TextureFilter.Nearest);
@@ -157,7 +151,6 @@ public class AutoBuilder extends ApplicationAdapter {
         }
 
         undoHandler.somethingChanged();
-
     }
 
     @Override
@@ -168,8 +161,6 @@ public class AutoBuilder extends ApplicationAdapter {
         } catch (Exception e) {
             handleCrash(e);
         }
-
-
     }
 
     DecimalFormat df;
@@ -239,57 +230,88 @@ public class AutoBuilder extends ApplicationAdapter {
 
     }
 
+    @Nullable ClosePoint lastSelectedPoint = null;
+    boolean somethingMoved = false;
     private void update() {
         undoHandler.update(pathGui, fontShader, font, inputEventThrower, cameraHandler);
+
+        boolean onGui = pathGui.update();
+        lastMousePos.set(mousePos);
+        cameraHandler.update(somethingMoved, onGui);
+
         mousePos.set(Gdx.input.getX(), Gdx.input.getY(), 0);
         cam.unproject(mousePos);
 
-        boolean somethingMoved = false;
+        //Figure out the max distance a point can be from the mouse
+        float maxDistance = (float) Math.pow(20 * cam.zoom, 2);
 
-        PathRenderer lastPathRender = null;
-        PointChange lastPointChange = PointChange.NONE;
-        boolean pointDeleted = false;
-        for (AbstractGuiItem guiItem : pathGui.guiItems) {
-            if (guiItem instanceof TrajectoryItem) {
-                PathRenderer pathRenderer = ((TrajectoryItem) guiItem).getPathRenderer();
-                //It's ok if lastPose2d is null if PointChange != LAST
-                Pose2d lastPose2d = null;
-                if (lastPointChange == PointChange.LAST) {
-                    lastPose2d = lastPathRender.getPoint2DList().get(lastPathRender.getPoint2DList().size() - 1);
+        boolean pointAdded = false;
+        //Check if we need to delete/add a point
+        if(Gdx.app.getInput().isButtonJustPressed(Input.Buttons.RIGHT) || Gdx.app.getInput().isButtonJustPressed(Input.Buttons.LEFT)) {
+            if (lastSelectedPoint == null || !lastSelectedPoint.parentPathRenderer.isTouchingRotationPoint(mousePos, maxDistance)) {
+                removeLastSelectedPoint();
+
+                //Get all close points and find the closest one.
+                ArrayList<ClosePoint> closePoints = new ArrayList<>();
+                for (AbstractGuiItem guiItem : pathGui.guiItems) {
+                    if (guiItem instanceof TrajectoryItem) {
+                        PathRenderer pathRenderer = ((TrajectoryItem) guiItem).getPathRenderer();
+                        closePoints.addAll(pathRenderer.getClosePoints(maxDistance, mousePos));
+                    }
                 }
-                lastPointChange = pathRenderer.update(cam, mousePos, lastMousePos, lastPointChange, lastPose2d, somethingMoved);
+                Collections.sort(closePoints);
 
-                if (lastPointChange != PointChange.NONE) {
-                    somethingMoved = true;
-                }
-
-                if (lastPointChange == PointChange.REMOVAL) {
-                    pointDeleted = true;
-                }
-
-                lastPathRender = pathRenderer;
-            }
-        }
-
-        //Don't add points if we've just deleted one
-        if (!pointDeleted) {
-            boolean pointAdded = false;
-            for (AbstractGuiItem guiItem : pathGui.guiItems) {
-                if (guiItem instanceof TrajectoryItem) {
-                    PathRenderer pathRenderer = ((TrajectoryItem) guiItem).getPathRenderer();
-                    if (!pointAdded && PointChange.ADDITION == pathRenderer.addPoints(mousePos)) {
+                //If we have a close point, select it/delete it
+                if(closePoints.size() > 0) {
+                    ClosePoint closestPoint = closePoints.get(0);
+                    if(Gdx.app.getInput().isButtonJustPressed(Input.Buttons.RIGHT)){
+                        closestPoint.parentPathRenderer.deletePoint(closestPoint);
                         pointAdded = true;
+                        somethingMoved = false;
+                    } else {
+                        closestPoint.parentPathRenderer.selectPoint(closestPoint, cam, mousePos, lastMousePos, pathGui.guiItems);
+                        lastSelectedPoint = closestPoint;
+                        somethingMoved = true;
                     }
                 }
             }
         }
-        boolean onGui = pathGui.update();
-        somethingMoved = somethingMoved | onGui;
+        //If we have a selected point, update it every frame
+        if (lastSelectedPoint != null) {
+            lastSelectedPoint.parentPathRenderer.updatePoint(cam, mousePos, lastMousePos);
+            somethingMoved = Gdx.input.isButtonJustPressed(Input.Buttons.LEFT);
+        }
 
-        lastMousePos.set(mousePos);
-        cameraHandler.update(somethingMoved, onGui);
+        //Get all close points on all the trajectories and find the closest one.
+        ArrayList<CloseTrajectoryPoint> closeTrajectoryPoints = new ArrayList<>();
+        for (AbstractGuiItem guiItem : pathGui.guiItems) {
+            if (guiItem instanceof TrajectoryItem) {
+                PathRenderer pathRenderer = ((TrajectoryItem) guiItem).getPathRenderer();
+                closeTrajectoryPoints.addAll(pathRenderer.getCloseTrajectoryPoints(maxDistance, mousePos));
+            }
+        }
+        Collections.sort(closeTrajectoryPoints);
+
+        if(closeTrajectoryPoints.size() > 0) {
+            //We're hovering over a trajectory
+            CloseTrajectoryPoint closeTrajectoryPoint = closeTrajectoryPoints.get(0);
+            if(Gdx.app.getInput().isButtonJustPressed(Input.Buttons.RIGHT) && !pointAdded) {
+                //Should we add a point?
+                closeTrajectoryPoint.parentPathRenderer.addPoint(closeTrajectoryPoint);
+                removeLastSelectedPoint();
+            }
+            //Render the path preview
+            closeTrajectoryPoint.parentPathRenderer.setRobotPathPreviewPoint(closeTrajectoryPoint);
+        }
 
         networkTables.updateRobotPath();
+    }
+
+    public void removeLastSelectedPoint(){
+        if(lastSelectedPoint != null) {
+            lastSelectedPoint.parentPathRenderer.removeSelection();
+            lastSelectedPoint = null;
+        }
     }
 
     @Override
@@ -325,10 +347,9 @@ public class AutoBuilder extends ApplicationAdapter {
         } catch (IOException e) {
             e.printStackTrace();
         }
-
     }
 
-    public static Config getConfig(){
+    public static @NotNull Config getConfig() {
         return config;
     }
 }

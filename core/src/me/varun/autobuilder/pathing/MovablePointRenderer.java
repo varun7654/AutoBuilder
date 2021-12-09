@@ -30,6 +30,11 @@ public class MovablePointRenderer extends PointRenderer {
         this.eventHandler = eventHandler;
     }
 
+    public MovablePointRenderer(@NotNull Vector2 pos, @NotNull Color color, float radius, @NotNull MovablePointEventHandler eventHandler) {
+        super(pos, color, radius);
+        this.eventHandler = eventHandler;
+    }
+
     public boolean update(@NotNull OrthographicCamera camera, @NotNull Vector3 mousePos, @NotNull Vector3 lastMousePos) {
         Vector3 mouseDiff = new Vector3(mousePos).sub(this.getRenderPos3());
 
