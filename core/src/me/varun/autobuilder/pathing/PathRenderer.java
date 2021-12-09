@@ -102,7 +102,7 @@ public class PathRenderer implements MovablePointEventHandler, Serializable {
         for (double i = 0.01; i < trajectory.getTotalTimeSeconds(); i += 0.01) {
             Pose2d cur = trajectory.sample(i).poseMeters;
 
-            //Use the speed of the path to determine it's saturation
+            //Use the speed of the path to determine its saturation
             double speed = Math.abs(trajectory.sample(i).velocityMetersPerSecond);
             float[] color = new float[3];
             this.color.toHsv(color);
@@ -155,24 +155,26 @@ public class PathRenderer implements MovablePointEventHandler, Serializable {
             PointRenderer pointRenderer = pointRenderList.get(i);
 
             if (i == selectionPointIndex) {
-                if (highlightPoint == null)
+                if (highlightPoint == null) {
                     highlightPoint = new PointRenderer(pointRenderer.getPos2(), Color.WHITE, POINT_SIZE * 1.4f);
-                else highlightPoint.setPosition(pointRenderer.getPos2());
+                } else {
+                    highlightPoint.setPosition(pointRenderer.getPos2());
+                }
 
                 highlightPoint.draw(renderer, cam);
             }
             pointRenderer.draw(renderer, cam);
         }
-        
-        //Reset the robot preview time so that it won't be visable in the next frame. 
-        //(Requires that it is set again)
+
+        //Reset the robot preview time so that it won't be visible in the next frame. (Requires that it is set again)
         robotPreviewTime = -1;
     }
 
     /**
      * Get points that are close to the mouse position and returns a list of them.
+     *
      * @param maxDistance2 The maximum distance to the mouse position squared.
-     * @param mousePos
+     * @param mousePos     The current mouse position.
      * @return List of all points that are close to the mouse position.
      */
     public @NotNull ArrayList<ClosePoint> getClosePoints(float maxDistance2, Vector3 mousePos) {
@@ -214,6 +216,11 @@ public class PathRenderer implements MovablePointEventHandler, Serializable {
         return new ArrayList<>();
     }
 
+    /**
+     * Delete a point
+     *
+     * @param closePoint object that was created by {@link PathRenderer#getClosePoints(float, Vector3)}
+     */
     public void deletePoint(ClosePoint closePoint) {
         if (point2DList.size() > 2) {
             if (selectionPointIndex > closePoint.index) {
@@ -228,33 +235,52 @@ public class PathRenderer implements MovablePointEventHandler, Serializable {
         }
     }
 
+    /**
+     * Add a point
+     *
+     * @param closePoint object that was created by {@link PathRenderer#getCloseTrajectoryPoints(float, Vector3)}
+     */
     public void addPoint(CloseTrajectoryPoint closePoint) {
-        System.out.println("Adding point after " + closePoint.prevPointIndex);
         assert trajectory != null;
         Pose2d newPoint = trajectory.sample(closePoint.pointTime).poseMeters;
         point2DList.add(closePoint.prevPointIndex + 1, newPoint);
-        pointRenderList.add(closePoint.prevPointIndex + 1, new MovablePointRenderer((float) newPoint.getX(), (float) newPoint.getY(), color, POINT_SIZE, this));
+        pointRenderList.add(closePoint.prevPointIndex + 1,
+                new MovablePointRenderer((float) newPoint.getX(), (float) newPoint.getY(), color, POINT_SIZE, this));
         if (selectionPointIndex > closePoint.prevPointIndex) selectionPointIndex++;
         updatePath();
         UndoHandler.getInstance().somethingChanged();
     }
 
+    /**
+     * @param mousePos     current mouse position
+     * @param maxDistance2 the maximum distance to the mouse position squared
+     * @return True if the rotation point is being touched.
+     */
     public boolean isTouchingRotationPoint(Vector3 mousePos, float maxDistance2) {
         if (rotationPoint == null) return false;
         return rotationPoint.getRenderPos3().dst2(mousePos) < maxDistance2;
     }
 
-    public void selectPoint(ClosePoint closePoint, OrthographicCamera camera, Vector3 mousePos, Vector3 lastMousePos, List<AbstractGuiItem> itemList) {
+    /**
+     * @param closePoint   object that was created by {@link PathRenderer#getClosePoints(float, Vector3)}
+     * @param camera       the camera
+     * @param mousePos     the current mouse position
+     * @param lastMousePos the last mouse position
+     * @param itemList     the list of gui items that contains all the path items
+     */
+    public void selectPoint(@NotNull ClosePoint closePoint, @NotNull OrthographicCamera camera, @NotNull Vector3 mousePos,
+                            @NotNull Vector3 lastMousePos, @NotNull List<AbstractGuiItem> itemList) {
         selectionPointIndex = closePoint.index;
         attachedPath = null;
 
         //get the path renderer of the previous/next path if needed
-        if(selectionPointIndex == 0){ //Get previous path
+        if (selectionPointIndex == 0) {
+            //We clicked on the first point, so we need to get the path renderer of the previous path
             PathRenderer lastPathRenderer = null;
             for (AbstractGuiItem item : itemList) {
-                if(item instanceof TrajectoryItem){
+                if (item instanceof TrajectoryItem) {
                     TrajectoryItem trajectoryItem = (TrajectoryItem) item;
-                    if(trajectoryItem.getPathRenderer() == this){
+                    if (trajectoryItem.getPathRenderer() == this) {
                         attachedPath = lastPathRenderer;
                         break;
                     }
@@ -262,14 +288,15 @@ public class PathRenderer implements MovablePointEventHandler, Serializable {
                 }
             }
             isAttachedPathEnd = true;
-        } else if(selectionPointIndex == point2DList.size() - 1){
+        } else if (selectionPointIndex == point2DList.size() - 1) {
+            //We clicked on the last point, so we need to get the path renderer of the next path
             boolean foundMyself = false;
             for (AbstractGuiItem item : itemList) {
-                if(item instanceof TrajectoryItem){
+                if (item instanceof TrajectoryItem) {
                     TrajectoryItem trajectoryItem = (TrajectoryItem) item;
-                    if(trajectoryItem.getPathRenderer() == this){
+                    if (trajectoryItem.getPathRenderer() == this) {
                         foundMyself = true;
-                    } else if(foundMyself){
+                    } else if (foundMyself) {
                         attachedPath = trajectoryItem.getPathRenderer();
                         break;
                     }
@@ -278,17 +305,17 @@ public class PathRenderer implements MovablePointEventHandler, Serializable {
             isAttachedPathEnd = false;
         }
 
-        if(attachedPath != null){
+        if (attachedPath != null) {
             MovablePointRenderer selectedPoint = pointRenderList.get(selectionPointIndex);
             Pose2d otherPathPose2d;
-            if(isAttachedPathEnd){
+            if (isAttachedPathEnd) {
                 otherPathPose2d = attachedPath.point2DList.get(attachedPath.point2DList.size() - 1);
             } else {
                 otherPathPose2d = attachedPath.point2DList.get(0);
             }
 
-            if(!(Math.abs(selectedPoint.getPos2().sub((float) otherPathPose2d.getX(), (float) otherPathPose2d.getY()).len2())
-                    < Math.pow((20 / config.getPointScaleFactor() * camera.zoom), 2))){
+            if (!(Math.abs(selectedPoint.getPos2().sub((float) otherPathPose2d.getX(), (float) otherPathPose2d.getY()).len2())
+                    < Math.pow((20 / config.getPointScaleFactor() * camera.zoom), 2))) {
                 attachedPath = null;
                 System.out.println("Not close enough to other path");
             }
@@ -298,18 +325,27 @@ public class PathRenderer implements MovablePointEventHandler, Serializable {
         point.update(camera, mousePos, lastMousePos);
     }
 
+    /**
+     * Update the point that is selected. This should be called every frame.
+     *
+     * @param camera       the camera
+     * @param mousePos     the current mouse position
+     * @param lastMousePos the last mouse position
+     */
     public void updatePoint(OrthographicCamera camera, Vector3 mousePos, Vector3 lastMousePos) {
-        if(selectionPointIndex != -1){
+        if (selectionPointIndex != -1) {
             MovablePointRenderer selectedPoint = pointRenderList.get(selectionPointIndex);
             selectedPoint.update(camera, mousePos, lastMousePos);
-            if (rotationPoint != null){
+            if (rotationPoint != null) {
                 rotationPoint.update(camera, mousePos, lastMousePos);
             }
 
-            if(attachedPath != null){
-                if(isAttachedPathEnd){
+            //update the attached path if needed
+            if (attachedPath != null) {
+                if (isAttachedPathEnd) {
                     attachedPath.point2DList.set(attachedPath.point2DList.size() - 1, point2DList.get(selectionPointIndex));
-                    attachedPath.pointRenderList.get(attachedPath.pointRenderList.size() - 1).setPosition(selectedPoint.getPos2());
+                    attachedPath.pointRenderList.get(attachedPath.pointRenderList.size() - 1)
+                            .setPosition(selectedPoint.getPos2());
                 } else {
                     attachedPath.point2DList.set(0, point2DList.get(selectionPointIndex));
                     attachedPath.pointRenderList.get(0).setPosition(selectedPoint.getPos2());
@@ -319,6 +355,12 @@ public class PathRenderer implements MovablePointEventHandler, Serializable {
         }
     }
 
+    /**
+     * Sets the time on the trajectory that the robot pose preview should be shown. This should be called every frame when it will
+     * be shown.
+     *
+     * @param closePoint
+     */
     public void setRobotPathPreviewPoint(CloseTrajectoryPoint closePoint) {
         this.robotPreviewTime = closePoint.pointTime;
     }
@@ -369,8 +411,7 @@ public class PathRenderer implements MovablePointEventHandler, Serializable {
     }
 
     public void updatePath(boolean updateListener) {
-        //trajectory = TrajectoryGenerator.generateTrajectory(point2DList, TRAJECTORY_CONSTRAINTS);
-        //System.out.println(trajectory.getTotalTimeSeconds());
+        // Generate the new path on another thread
         completableFutureTrajectory = CompletableFuture.supplyAsync(() -> {
             TrajectoryConfig trajectoryConfig = new TrajectoryConfig(config.getPathingConfig().maxVelocityMetersPerSecond,
                     config.getPathingConfig().maxAccelerationMetersPerSecondSq);
@@ -467,7 +508,9 @@ public class PathRenderer implements MovablePointEventHandler, Serializable {
     }
 
     /**
-     * @param origin Origin of the point (in pixels)
+     * Draws the bounding box of the robot preview
+     *
+     * @param origin   Origin of the point (in pixels)
      * @param rotation Rotation of the point (in radians)
      * @param renderer shapeDrawer
      */
