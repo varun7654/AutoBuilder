@@ -14,7 +14,7 @@ public class DesktopLauncher {
 		config.foregroundFPS = 60;
 		config.backgroundFPS = config.foregroundFPS/2;
 		config.vSyncEnabled = false;
-		config.forceExit = false;
+		config.forceExit = true;
 		new LwjglApplication(new AutoBuilder(), config);
 	}
 }
