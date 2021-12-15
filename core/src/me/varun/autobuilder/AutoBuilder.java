@@ -17,6 +17,7 @@ import me.varun.autobuilder.events.scroll.InputEventThrower;
 import me.varun.autobuilder.gui.path.AbstractGuiItem;
 import me.varun.autobuilder.gui.path.PathGui;
 import me.varun.autobuilder.gui.path.TrajectoryItem;
+import me.varun.autobuilder.gui.textrendering.FontsHandler;
 import me.varun.autobuilder.net.NetworkTablesHelper;
 import me.varun.autobuilder.net.Serializer;
 import me.varun.autobuilder.pathing.PathRenderer;
@@ -90,6 +91,8 @@ public class AutoBuilder extends ApplicationAdapter {
 
         networkTables.start();
 
+        FontsHandler.updateFonts();
+
         Gdx.app.getInput().setInputProcessor(inputEventThrower);
 
         Pixmap pixmap = new Pixmap(1, 1, Pixmap.Format.RGBA8888);
@@ -98,7 +101,7 @@ public class AutoBuilder extends ApplicationAdapter {
         whiteTexture = new Texture(pixmap); //remember to dispose of later
         pixmap.dispose();
         TextureRegion region = new TextureRegion(whiteTexture, 0, 0, 1, 1);
-        
+
         hudBatch = new PolygonSpriteBatch();
         hudShapeRenderer = new ShapeDrawer(hudBatch, region);
 
@@ -326,6 +329,8 @@ public class AutoBuilder extends ApplicationAdapter {
 
     @Override
     public void resize(int width, int height) {
+        FontsHandler.updateFonts();
+        
         hudViewport.update(width, height, true);
         viewport.update(width, height);
 
