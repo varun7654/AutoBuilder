@@ -31,10 +31,6 @@ public class FontsHandler {
         fontSizes.add(12);
     }
 
-    public enum Fonts {
-        JETBRAINS_MONO
-    }
-
     static HashMap<Integer, HashMap<String, BitmapFont>> fonts = new HashMap<>();
 
     public static void updateFonts() {
@@ -60,7 +56,7 @@ public class FontsHandler {
         }
     }
 
-    public static BitmapFont getFont(@NotNull Fonts font, boolean bold, boolean italic, int fontSize) {
+    public static BitmapFont getFont(@NotNull Font font, boolean bold, boolean italic, int fontSize) {
         return fonts.get(fontSize).get(font.toString() + (bold ? "Bold" : "") + (italic ? "Italic" : ""));
     }
 }
