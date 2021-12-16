@@ -17,7 +17,7 @@ import me.varun.autobuilder.events.scroll.InputEventThrower;
 import me.varun.autobuilder.gui.path.AbstractGuiItem;
 import me.varun.autobuilder.gui.path.PathGui;
 import me.varun.autobuilder.gui.path.TrajectoryItem;
-import me.varun.autobuilder.gui.textrendering.FontsHandler;
+import me.varun.autobuilder.gui.textrendering.FontHandler;
 import me.varun.autobuilder.net.NetworkTablesHelper;
 import me.varun.autobuilder.net.Serializer;
 import me.varun.autobuilder.pathing.PathRenderer;
@@ -91,7 +91,7 @@ public class AutoBuilder extends ApplicationAdapter {
 
         networkTables.start();
 
-        FontsHandler.updateFonts();
+        FontHandler.updateFonts();
 
         Gdx.app.getInput().setInputProcessor(inputEventThrower);
 
@@ -329,7 +329,7 @@ public class AutoBuilder extends ApplicationAdapter {
 
     @Override
     public void resize(int width, int height) {
-        FontsHandler.updateFonts();
+        FontHandler.updateFonts();
         
         hudViewport.update(width, height, true);
         viewport.update(width, height);

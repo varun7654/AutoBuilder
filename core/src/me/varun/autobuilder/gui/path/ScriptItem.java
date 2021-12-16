@@ -16,9 +16,6 @@ import space.earlygrey.shapedrawer.ShapeDrawer;
 public class ScriptItem extends AbstractGuiItem implements TextChangeListener {
     private static final Color LIGHT_BLUE = Color.valueOf("86CDF9");
 
-    static {
-    }
-
     private final ShaderProgram fontShader;
     private final BitmapFont font;
     TextBox textBox;
