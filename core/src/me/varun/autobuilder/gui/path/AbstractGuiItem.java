@@ -10,6 +10,7 @@ import com.badlogic.gdx.graphics.glutils.ShaderProgram;
 import com.badlogic.gdx.utils.Disposable;
 import me.varun.autobuilder.gui.textrendering.FontRenderer;
 import me.varun.autobuilder.gui.textrendering.Fonts;
+import me.varun.autobuilder.gui.textrendering.TextBlock;
 import me.varun.autobuilder.gui.textrendering.TextComponent;
 import me.varun.autobuilder.util.RoundedShapeRenderer;
 import org.jetbrains.annotations.NotNull;
@@ -64,11 +65,8 @@ public abstract class AbstractGuiItem implements Disposable {
         font.getData().setScale(0.6f);
         font.setColor(Color.WHITE);
         //font.draw(spriteBatch, headerText, drawStartX + 5, drawStartY - 5);
-        FontRenderer.renderText(spriteBatch, drawStartX + 5, drawStartY - 5, Fonts.ROBOTO, 36,
-                new TextComponent("wii\n").setColor(Color.GOLD).setItalic(true).setBold(true),
-                new TextComponent("epic\n").setColor(Color.GREEN).setItalic(true),
-                new TextComponent("epic part 2").setColor(Color.CORAL).setItalic(true),
-                new TextComponent(headerText).setBold(true).setColor(Color.BLUE));
+        FontRenderer.renderText(spriteBatch, drawStartX + 5, drawStartY - 5, new TextBlock(Fonts.ROBOTO, 36,
+                new TextComponent(headerText).setColor(Color.WHITE)));
         spriteBatch.setShader(null);
         spriteBatch.draw(trashTexture, drawStartX + drawWidth - 45, drawStartY - 38,
                 trashTexture.getWidth() * (36f / trashTexture.getHeight()), 36);

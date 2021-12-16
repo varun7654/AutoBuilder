@@ -10,12 +10,12 @@ public class FontRenderer {
     public static void renderText(Batch batch, float x, float y, Fonts font, int fontSize,
                                   TextComponent... textComponents) {
         TextBlock textBlock = new TextBlock(font, fontSize, textComponents);
-        renderText(batch, x, y, font, fontSize, textBlock);
+        renderText(batch, x, y, textBlock);
     }
 
-    public static void renderText(Batch batch, float x, float y, Fonts font, int fontSize, TextBlock textBlock) {
+    public static void renderText(Batch batch, float x, float y, TextBlock textBlock) {
         for (RenderableTextComponent renderableTextComponent : textBlock.getRenderableTextComponents()) {
-            BitmapFont fontToUse = renderableTextComponent.getBitmapFont(font, fontSize);
+            BitmapFont fontToUse = renderableTextComponent.getBitmapFont(textBlock.getFont(), textBlock.getSize());
             fontToUse.setColor(renderableTextComponent.color);
             fontToUse.draw(batch, renderableTextComponent.text, renderableTextComponent.x + x, renderableTextComponent.y + y);
         }

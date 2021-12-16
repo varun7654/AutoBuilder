@@ -13,7 +13,7 @@ public class TextBlock {
     float wrapWidth;
     private int size;
     private TextComponent[] textComponents;
-    float lineSpacing = 1.5f;
+    float lineSpacing = 2f;
 
     private ArrayList<RenderableTextComponent> renderableTextComponents = new ArrayList<>();
 
@@ -47,6 +47,7 @@ public class TextBlock {
         float x = 0, y = 0;
         float componentStartX = 0, componentStartY = 0;
         boolean textWrapped = false;
+        boolean foundValidWhitespace = false;
 
         for (int i = 0; i < textComponents.length; i++) {
             StringBuilder sb = new StringBuilder();
@@ -56,7 +57,6 @@ public class TextBlock {
             FreeTypeBitmapFontData fontData = textComponent.getFontData(font, size);
             char[] chars = textComponent.getText().toCharArray();
             for (int j = 0; j < chars.length; j++) {
-                assert sb != null;
                 char c = chars[j];
                 @Nullable BitmapFont.Glyph glyph = fontData.getGlyph(c);
                 if (glyph != null) {
@@ -73,7 +73,12 @@ public class TextBlock {
                     sb = new StringBuilder();
                     componentStartX = x;
                     componentStartY = y;
-                    lastWhiteSpaceIndex = j;
+                    lastWhiteSpaceIndex = j + 1; //Skip the newline character
+                    j++;
+
+                    foundValidWhitespace = false;
+
+                    continue;
                 } else if (Character.isWhitespace(c)) {
                     if (textWrapped) {
                         if (glyph != null) {
@@ -81,6 +86,7 @@ public class TextBlock {
                         }
                     } else {
                         sb.append(textComponent.getText(), lastWhiteSpaceIndex, j);
+                        foundValidWhitespace = true;
                     }
                     lastWhiteSpaceIndex = j;
                 } else {
@@ -91,30 +97,50 @@ public class TextBlock {
                 }
 
                 if (x > wrapWidth) {
-                    j = lastWhiteSpaceIndex;
+                    if (foundValidWhitespace) {
+                        j = lastWhiteSpaceIndex;
 
-                    renderableTextComponents.add(new RenderableTextComponent(sb.toString(), componentStartX, componentStartY,
-                            textComponent.isBold, textComponent.isItalic, textComponent.isUnderlined,
-                            textComponent.isStrikethrough, textComponent.color));
+                        renderableTextComponents.add(new RenderableTextComponent(sb.toString(), componentStartX, componentStartY,
+                                textComponent.isBold, textComponent.isItalic, textComponent.isUnderlined,
+                                textComponent.isStrikethrough, textComponent.color));
 
-                    x = 0;
-                    y += fontData.lineHeight * lineSpacing;
-                    componentStartX = x;
-                    componentStartY = y;
-                    textWrapped = true;
-                    sb = null;
+                        x = 0;
+                        y -= fontData.xHeight * lineSpacing;
+
+                        componentStartX = x;
+                        componentStartY = y;
+                        textWrapped = true;
+                        foundValidWhitespace = false;
+                        sb = new StringBuilder();
+                    } else {
+                        sb.append(textComponent.getText(), lastWhiteSpaceIndex, j);
+                        renderableTextComponents.add(new RenderableTextComponent(sb.toString(), componentStartX, componentStartY,
+                                textComponent.isBold, textComponent.isItalic, textComponent.isUnderlined,
+                                textComponent.isStrikethrough, textComponent.color));
+                        x = 0;
+                        y -= fontData.xHeight * lineSpacing;
+
+                        sb = new StringBuilder();
+                        componentStartX = x;
+                        componentStartY = y;
+                        lastWhiteSpaceIndex = j;
+                    }
                 }
             }
-            if (sb != null) {
-                if (chars.length > lastWhiteSpaceIndex) {
-                    sb.append(textComponent.getText(), lastWhiteSpaceIndex, chars.length);
-                }
+            if (chars.length > lastWhiteSpaceIndex) {
+                sb.append(textComponent.getText(), lastWhiteSpaceIndex, chars.length);
+            }
+
+            if (!sb.toString().isBlank()) {
                 renderableTextComponents.add(new RenderableTextComponent(sb.toString(), componentStartX, componentStartY,
                         textComponent.isBold, textComponent.isItalic, textComponent.isUnderlined,
                         textComponent.isStrikethrough, textComponent.color));
                 componentStartX = x;
                 componentStartY = y;
             }
+
+            foundValidWhitespace = true;
+            textWrapped = false;
         }
 
         dirty = false;
