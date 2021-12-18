@@ -4,9 +4,7 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
 import com.badlogic.gdx.graphics.Camera;
 import com.badlogic.gdx.graphics.Color;
-import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.PolygonSpriteBatch;
-import com.badlogic.gdx.graphics.glutils.ShaderProgram;
 import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.scenes.scene2d.utils.ScissorStack;
@@ -30,8 +28,6 @@ import java.util.concurrent.ExecutorService;
 public class PathGui extends InputEventListener {
     final @NotNull ExecutorService executorService;
     private final @NotNull Viewport viewport;
-    private final @NotNull BitmapFont font;
-    private final @NotNull ShaderProgram fontShader;
     public @NotNull List<AbstractGuiItem> guiItems = new ArrayList<>();
     public ArrayList<AbstractGuiItem> guiItemsDeletions = new ArrayList<>();
     @NotNull AddPathButton addPathButton;
@@ -59,15 +55,13 @@ public class PathGui extends InputEventListener {
 
     NotificationHandler notificationHandler = new NotificationHandler();
 
-    public PathGui(@NotNull Viewport viewport, @NotNull BitmapFont font, @NotNull ShaderProgram fontShader,
-                   @NotNull InputEventThrower eventThrower, @NotNull ExecutorService executorService, @NotNull CameraHandler cameraHandler) {
+    public PathGui(@NotNull Viewport viewport, @NotNull InputEventThrower eventThrower,
+                   @NotNull ExecutorService executorService, @NotNull CameraHandler cameraHandler) {
         this.viewport = viewport;
-        this.font = font;
-        this.fontShader = fontShader;
 
 
-        addPathButton = new AddPathButton(0, 0, 40, 40, fontShader, font, eventThrower, cameraHandler);
-        addScriptButton = new AddScriptButton(0, 0, 40, 40, fontShader, font, eventThrower);
+        addPathButton = new AddPathButton(0, 0, 40, 40, eventThrower, cameraHandler);
+        addScriptButton = new AddScriptButton(0, 0, 40, 40, eventThrower);
         pushAutoButton = new PushAutoButton(0, 0, 40, 40);
 
         updateScreen(Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
@@ -134,7 +128,7 @@ public class PathGui extends InputEventListener {
             ScissorStack.popScissors();
         }
 
-        notificationHandler.processNotification(shapeRenderer, spriteBatch, font, fontShader);
+        notificationHandler.processNotification(shapeRenderer, spriteBatch);
 
         maxScroll = Math.max(0, -(yPos - (int) smoothScrollPos - 10));
         //System.out.println(maxScroll);

@@ -3,9 +3,9 @@ package me.varun.autobuilder.gui.notification;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.g2d.Batch;
-import com.badlogic.gdx.graphics.g2d.BitmapFont;
-import com.badlogic.gdx.graphics.g2d.GlyphLayout;
-import com.badlogic.gdx.graphics.glutils.ShaderProgram;
+import me.varun.autobuilder.gui.textrendering.FontRenderer;
+import me.varun.autobuilder.gui.textrendering.Fonts;
+import me.varun.autobuilder.gui.textrendering.TextComponent;
 import me.varun.autobuilder.util.RoundedShapeRenderer;
 import space.earlygrey.shapedrawer.ShapeDrawer;
 
@@ -40,18 +40,15 @@ public class Notification {
                 '}';
     }
 
-    public boolean tick(ShapeDrawer drawer, Batch batch, BitmapFont font, ShaderProgram fontShader){
+    public boolean tick(ShapeDrawer drawer, Batch batch) {
         long now = System.currentTimeMillis();
-        float renderHeight = (Gdx.graphics.getHeight()) + Math.min(Math.min((float) (now - creationTime) / ANIMATE_IN_OUT_TIME, (float) (deleteTime - now) / ANIMATE_IN_OUT_TIME), 1) * (-50);
-        RoundedShapeRenderer.roundedRect(drawer, Gdx.graphics.getWidth()/2f - (700/2f), renderHeight, 700, 40, 5, color);
+        float renderHeight = (Gdx.graphics.getHeight()) + Math.min(
+                Math.min((float) (now - creationTime) / ANIMATE_IN_OUT_TIME, (float) (deleteTime - now) / ANIMATE_IN_OUT_TIME),
+                1) * (-50);
+        RoundedShapeRenderer.roundedRect(drawer, Gdx.graphics.getWidth() / 2f - (700 / 2f), renderHeight, 700, 40, 5, color);
 
-        batch.setShader(fontShader);
-        batch.setColor(Color.WHITE);
-        font.getData().setScale(27 / 64f);
-        GlyphLayout glyphLayout = new GlyphLayout();
-        glyphLayout.setText(font, text, Color.WHITE, 700, 1, false);
-        font.draw(batch, glyphLayout, Gdx.graphics.getWidth()/2f - (700/2f), renderHeight+30);
-        batch.setShader(null);
+        FontRenderer.renderText(batch, Gdx.graphics.getWidth() / 2f - (700 / 2f), renderHeight + 30, Fonts.ROBOTO, 36,
+                new TextComponent(text).setColor(Color.WHITE));
 
         return deleteTime < now;
     }

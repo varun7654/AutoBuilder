@@ -1,9 +1,7 @@
 package me.varun.autobuilder.gui.path;
 
 import com.badlogic.gdx.graphics.Color;
-import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.PolygonSpriteBatch;
-import com.badlogic.gdx.graphics.glutils.ShaderProgram;
 import me.varun.autobuilder.AutoBuilder;
 import me.varun.autobuilder.events.scroll.InputEventThrower;
 import me.varun.autobuilder.events.textchange.TextChangeListener;
@@ -16,22 +14,14 @@ import space.earlygrey.shapedrawer.ShapeDrawer;
 public class ScriptItem extends AbstractGuiItem implements TextChangeListener {
     private static final Color LIGHT_BLUE = Color.valueOf("86CDF9");
 
-    private final ShaderProgram fontShader;
-    private final BitmapFont font;
     TextBox textBox;
     boolean error = true;
 
-    public ScriptItem(@NotNull ShaderProgram fontShader, @NotNull BitmapFont font, @NotNull InputEventThrower inputEventThrower) {
-        this.fontShader = fontShader;
-        this.font = font;
-
+    public ScriptItem(@NotNull InputEventThrower inputEventThrower) {
         textBox = new TextBox("", inputEventThrower, true, this, 22);
     }
 
-    public ScriptItem(@NotNull ShaderProgram fontShader, @NotNull BitmapFont font, @NotNull InputEventThrower inputEventThrower,
-                      String text, boolean closed, boolean valid) {
-        this.fontShader = fontShader;
-        this.font = font;
+    public ScriptItem(@NotNull InputEventThrower inputEventThrower, String text, boolean closed, boolean valid) {
 
         textBox = new TextBox(text, inputEventThrower, true, this, 22);
         error = !valid;
@@ -42,7 +32,7 @@ public class ScriptItem extends AbstractGuiItem implements TextChangeListener {
     public int render(@NotNull ShapeDrawer shapeRenderer, @NotNull PolygonSpriteBatch spriteBatch, int drawStartX, int drawStartY, int drawWidth, PathGui pathGui) {
         super.render(shapeRenderer, spriteBatch, drawStartX, drawStartY, drawWidth, pathGui);
         if (isClosed()) {
-            renderHeader(shapeRenderer, spriteBatch, font, drawStartX, drawStartY, drawWidth, trashTexture, warningTexture,
+            renderHeader(shapeRenderer, spriteBatch, drawStartX, drawStartY, drawWidth, trashTexture, warningTexture,
                     LIGHT_BLUE, "Script", error);
             return 40;
         } else {
@@ -52,7 +42,7 @@ public class ScriptItem extends AbstractGuiItem implements TextChangeListener {
                     2);
 
             textBox.draw(shapeRenderer, spriteBatch, drawStartX + 10, drawStartY - 43, drawWidth - 15);
-            renderHeader(shapeRenderer, spriteBatch, font, drawStartX, drawStartY, drawWidth, trashTexture, warningTexture,
+            renderHeader(shapeRenderer, spriteBatch, drawStartX, drawStartY, drawWidth, trashTexture, warningTexture,
                     LIGHT_BLUE, "Script", error);
 
             return height + 40;

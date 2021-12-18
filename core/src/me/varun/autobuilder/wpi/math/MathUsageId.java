@@ -4,6 +4,7 @@
 
 package me.varun.autobuilder.wpi.math;
 
+@SuppressWarnings("EnumClass")
 public enum MathUsageId {
   kKinematics_DifferentialDrive,
   kKinematics_MecanumDrive,

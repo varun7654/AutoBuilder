@@ -40,23 +40,19 @@ public class Font implements Disposable {
     }
 
     public FreeTypeBitmapFontData getFontData(int fontSize) {
-        if (fontData.containsKey(fontSize)) {
-            return fontData.get(fontSize);
-        } else {
+        if (!fontData.containsKey(fontSize)) {
             generateFont(fontSize);
-            return fontData.get(fontSize);
             //throw new IllegalArgumentException("Font size " + fontSize + " not found");
         }
+        return fontData.get(fontSize);
     }
 
     public BitmapFont getFont(int fontSize) {
-        if (font.containsKey(fontSize)) {
-            return font.get(fontSize);
-        } else {
+        if (!font.containsKey(fontSize)) {
             generateFont(fontSize);
-            return font.get(fontSize);
             //throw new IllegalArgumentException("Font size " + fontSize + " not found");
         }
+        return font.get(fontSize);
     }
 
 }

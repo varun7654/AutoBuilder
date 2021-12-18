@@ -1,8 +1,6 @@
 package me.varun.autobuilder.gui.notification;
 
 import com.badlogic.gdx.graphics.g2d.Batch;
-import com.badlogic.gdx.graphics.g2d.BitmapFont;
-import com.badlogic.gdx.graphics.glutils.ShaderProgram;
 import space.earlygrey.shapedrawer.ShapeDrawer;
 
 import java.util.ArrayList;
@@ -15,10 +13,10 @@ public class NotificationHandler {
     }
 
     ArrayList<Notification> notificationsToDelete = new ArrayList<>();
-     public void processNotification(ShapeDrawer drawer, Batch batch, BitmapFont font, ShaderProgram fontShader){
+     public void processNotification(ShapeDrawer drawer, Batch batch) {
          notificationsToDelete.clear();
          for (Notification notification : notifications) {
-             if (notification.tick(drawer, batch, font, fontShader)) {
+             if (notification.tick(drawer, batch)) {
                  notificationsToDelete.add(notification);
              }
          }

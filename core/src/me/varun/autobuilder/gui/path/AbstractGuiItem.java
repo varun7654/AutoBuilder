@@ -4,7 +4,6 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.Texture;
-import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.PolygonSpriteBatch;
 import com.badlogic.gdx.utils.Disposable;
 import me.varun.autobuilder.gui.textrendering.FontRenderer;
@@ -38,7 +37,7 @@ public abstract class AbstractGuiItem implements Disposable {
         this.closed = closed;
     }
 
-    private TextBlock headerTextBlock = new TextBlock(Fonts.ROBOTO, 36, 250,
+    private final TextBlock headerTextBlock = new TextBlock(Fonts.ROBOTO, 36, 250,
             new TextComponent("headerText").setColor(Color.WHITE));
 
     @Override
@@ -57,16 +56,12 @@ public abstract class AbstractGuiItem implements Disposable {
         return 40;
     }
 
-    public void renderHeader(ShapeDrawer shapeRenderer, @NotNull PolygonSpriteBatch spriteBatch, BitmapFont font,
-                             float drawStartX, float drawStartY, float drawWidth, Texture trashTexture, Texture warningTexture,
+    public void renderHeader(ShapeDrawer shapeRenderer, @NotNull PolygonSpriteBatch spriteBatch, float drawStartX,
+                             float drawStartY, float drawWidth, Texture trashTexture, Texture warningTexture,
                              Color headerColor, String headerText, boolean warning) {
         shapeRenderer.setColor(headerColor);
-        //System.out.println(headerColor);
         RoundedShapeRenderer.roundedRect(shapeRenderer, drawStartX, drawStartY - 40, drawWidth, 40, 2, headerColor);
 
-        font.getData().setScale(0.6f);
-        font.setColor(Color.WHITE);
-        //font.draw(spriteBatch, headerText, drawStartX + 5, drawStartY - 5);
         headerTextBlock.setTextInComponent(0, headerText);
         FontRenderer.renderText(spriteBatch, drawStartX + 5, drawStartY - 31, headerTextBlock);
         spriteBatch.draw(trashTexture, drawStartX + drawWidth - 45, drawStartY - 38,

@@ -4,10 +4,8 @@ import com.badlogic.gdx.ApplicationAdapter;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
 import com.badlogic.gdx.graphics.*;
-import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.PolygonSpriteBatch;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
-import com.badlogic.gdx.graphics.glutils.ShaderProgram;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.utils.viewport.ExtendViewport;
 import com.badlogic.gdx.utils.viewport.ScreenViewport;
@@ -44,10 +42,6 @@ public class AutoBuilder extends ApplicationAdapter {
     public static final float LINE_THICKNESS = 4;
     public static final float POINT_SIZE = 8;
 
-
-    public static BitmapFont font;
-    public static ShaderProgram fontShader;
-
     @NotNull private final Vector3 mousePos = new Vector3();
     @NotNull private final Vector3 lastMousePos = new Vector3();
     @NotNull OrthographicCamera cam;
@@ -69,8 +63,6 @@ public class AutoBuilder extends ApplicationAdapter {
     @NotNull private static Config config;
     @NotNull private Texture whiteTexture;
     @NotNull public static final String USER_DIRECTORY = OsUtil.getUserConfigDirectory("AutoBuilder");
-    private PolygonSpriteBatch batch2;
-    private BitmapFont font2;
 
     public static void handleCrash(Exception e) {
         e.printStackTrace();
@@ -91,7 +83,7 @@ public class AutoBuilder extends ApplicationAdapter {
             config = new Config();
         }
 
-        //Tables.start();
+        networkTables.start();
 
         FontHandler.updateFonts();
 
@@ -134,15 +126,7 @@ public class AutoBuilder extends ApplicationAdapter {
         Texture fontTexture = new Texture(Gdx.files.internal("font/arial.png"), false);
         fontTexture.setFilter(Texture.TextureFilter.Linear, Texture.TextureFilter.Linear);
 
-
-        font = new BitmapFont(Gdx.files.internal("font/arial.fnt"), new TextureRegion(fontTexture), false);
-
-        fontShader = new ShaderProgram(Gdx.files.internal("font/font.vert"), Gdx.files.internal("font/font.frag"));
-        if (!fontShader.isCompiled()) {
-            Gdx.app.error("fontShader", "compilation failed:\n" + fontShader.getLog());
-        }
-
-        pathGui = new PathGui(hudViewport, font, fontShader, inputEventThrower, pathingService, cameraHandler);
+        pathGui = new PathGui(hudViewport, inputEventThrower, pathingService, cameraHandler);
 
 
         File pathFile = new File(USER_DIRECTORY +  "/" + config.getSelectedAuto());
@@ -150,7 +134,7 @@ public class AutoBuilder extends ApplicationAdapter {
 
         try {
             Autonomous autonomous = Serializer.deserializeAutoFromFile(pathFile);
-            undoHandler.restoreState(autonomous, pathGui, fontShader, font, inputEventThrower, cameraHandler);
+            undoHandler.restoreState(autonomous, pathGui, inputEventThrower, cameraHandler);
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -221,8 +205,6 @@ public class AutoBuilder extends ApplicationAdapter {
         hudBatch.setShader(null);
 
         //Fps overlay
-        font.getData().setScale(0.2f);
-        font.setColor(Color.WHITE);
         frameTimes[frameTimePos] = Gdx.graphics.getDeltaTime() * 1000;
         frameTimePos++;
         if (frameTimePos == frameTimes.length) frameTimePos = 0;
@@ -242,7 +224,7 @@ public class AutoBuilder extends ApplicationAdapter {
     @Nullable ClosePoint lastSelectedPoint = null;
     boolean somethingMoved = false;
     private void update() {
-        undoHandler.update(pathGui, fontShader, font, inputEventThrower, cameraHandler);
+        undoHandler.update(pathGui, inputEventThrower, cameraHandler);
 
         boolean onGui = pathGui.update();
         lastMousePos.set(mousePos);
@@ -327,7 +309,6 @@ public class AutoBuilder extends ApplicationAdapter {
     public void dispose() {
         batch.dispose();
         hudBatch.dispose();
-        font.dispose();
         pathGui.dispose();
         whiteTexture.dispose();
     }
@@ -336,7 +317,7 @@ public class AutoBuilder extends ApplicationAdapter {
     @Override
     public void resize(int width, int height) {
         hudViewport.update(width, height, true);
-        //viewport.update(width, height);
+        viewport.update(width, height, true);
 
         pathGui.updateScreen(width, height);
     }
