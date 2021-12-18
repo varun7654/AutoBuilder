@@ -2,13 +2,14 @@ package me.varun.autobuilder.gui.textrendering;
 
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.freetype.FreeTypeFontGenerator.FreeTypeBitmapFontData;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
 public class FontHandler {
-    private static final HashMap<Fonts, FontFamily> FONT_FAMILY_MAP = new HashMap<>();
+    @NotNull private static final HashMap<Fonts, FontFamily> FONT_FAMILY_MAP = new HashMap<>();
 
     static {
         FONT_FAMILY_MAP.put(Fonts.ROBOTO, new FontFamily(Fonts.ROBOTO, "roboto/Roboto-Regular.ttf",
@@ -22,7 +23,7 @@ public class FontHandler {
                 "mono/JetBrainsMono-BoldItalic.ttf"));
     }
 
-    private static final List<Integer> fontSizes;
+    @NotNull private static final List<Integer> fontSizes;
 
     static {
         fontSizes = new ArrayList<>();
@@ -45,19 +46,19 @@ public class FontHandler {
         }
     }
 
-    public static FontFamily getFontFamily(Fonts font) {
+    public static @NotNull FontFamily getFontFamily(@NotNull Fonts font) {
         return FONT_FAMILY_MAP.get(font);
     }
 
-    public static Font getFont(Fonts font, boolean bold, boolean italic) {
+    public static @NotNull Font getFont(@NotNull Fonts font, boolean bold, boolean italic) {
         return FONT_FAMILY_MAP.get(font).getFont(bold, italic);
     }
 
-    public static BitmapFont getFont(Fonts font, boolean bold, boolean italic, int size) {
+    public static @NotNull BitmapFont getFont(@NotNull Fonts font, boolean bold, boolean italic, int size) {
         return FONT_FAMILY_MAP.get(font).getFont(bold, italic).getFont(size);
     }
 
-    public static FreeTypeBitmapFontData getFontData(Fonts font, boolean bold, boolean italic, int size) {
+    public static @NotNull FreeTypeBitmapFontData getFontData(@NotNull Fonts font, boolean bold, boolean italic, int size) {
         return FONT_FAMILY_MAP.get(font).getFont(bold, italic).getFontData(size);
     }
 }

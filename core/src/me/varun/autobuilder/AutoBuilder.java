@@ -122,10 +122,6 @@ public class AutoBuilder extends ApplicationAdapter {
 
         origin = new PointRenderer(0, 0, Color.ORANGE, POINT_SIZE);
 
-        //TODO: Looks like the texture is messed up and it makes it look really ugly
-        Texture fontTexture = new Texture(Gdx.files.internal("font/arial.png"), false);
-        fontTexture.setFilter(Texture.TextureFilter.Linear, Texture.TextureFilter.Linear);
-
         pathGui = new PathGui(hudViewport, inputEventThrower, pathingService, cameraHandler);
 
 

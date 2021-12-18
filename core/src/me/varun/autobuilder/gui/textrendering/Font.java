@@ -6,15 +6,16 @@ import com.badlogic.gdx.graphics.g2d.freetype.FreeTypeFontGenerator;
 import com.badlogic.gdx.graphics.g2d.freetype.FreeTypeFontGenerator.FreeTypeBitmapFontData;
 import com.badlogic.gdx.graphics.g2d.freetype.FreeTypeFontGenerator.FreeTypeFontParameter;
 import com.badlogic.gdx.utils.Disposable;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.HashMap;
 
 public class Font implements Disposable {
-    private final String fontPath;
-    private final HashMap<Integer, FreeTypeBitmapFontData> fontData = new HashMap<>();
-    private final HashMap<Integer, BitmapFont> font = new HashMap<>();
+    private @NotNull final String fontPath;
+    private @NotNull final HashMap<Integer, FreeTypeBitmapFontData> fontData = new HashMap<>();
+    private @NotNull final HashMap<Integer, BitmapFont> font = new HashMap<>();
 
-    public Font(final String fontPath) {
+    public Font(final @NotNull String fontPath) {
         this.fontPath = fontPath;
     }
 
@@ -35,7 +36,7 @@ public class Font implements Disposable {
         fontData.clear();
     }
 
-    public String getFontPath() {
+    public @NotNull String getFontPath() {
         return fontPath;
     }
 

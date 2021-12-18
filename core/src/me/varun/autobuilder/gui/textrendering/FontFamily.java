@@ -1,16 +1,18 @@
 package me.varun.autobuilder.gui.textrendering;
 
 import com.badlogic.gdx.utils.Disposable;
+import org.jetbrains.annotations.NotNull;
 
 public class FontFamily implements Disposable {
 
-    public final Font boldFont;
-    public final Font italicFont;
-    public final Font regularFont;
-    public final Font boldItalicFont;
-    public final Fonts font;
+    @NotNull public final Font boldFont;
+    @NotNull public final Font italicFont;
+    @NotNull public final Font regularFont;
+    @NotNull public final Font boldItalicFont;
+    @NotNull public final Fonts font;
 
-    public FontFamily(Fonts font, Font regularFont, Font boldFont, Font italicFont, Font boldItalicFont) {
+    public FontFamily(@NotNull Fonts font, @NotNull Font regularFont, @NotNull Font boldFont, @NotNull Font italicFont,
+                      @NotNull Font boldItalicFont) {
         this.font = font;
         this.boldFont = boldFont;
         this.italicFont = italicFont;
@@ -18,7 +20,8 @@ public class FontFamily implements Disposable {
         this.boldItalicFont = boldItalicFont;
     }
 
-    public FontFamily(Fonts font, String regularFont, String boldFont, String italicFont, String boldItalicFont) {
+    public FontFamily(@NotNull Fonts font, @NotNull String regularFont, @NotNull String boldFont, @NotNull String italicFont,
+                      @NotNull String boldItalicFont) {
         this.font = font;
         this.boldFont = new Font(boldFont);
         this.italicFont = new Font(italicFont);

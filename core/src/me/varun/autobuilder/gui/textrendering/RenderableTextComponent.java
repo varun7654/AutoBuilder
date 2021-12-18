@@ -4,10 +4,11 @@ package me.varun.autobuilder.gui.textrendering;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.freetype.FreeTypeFontGenerator;
+import org.jetbrains.annotations.NotNull;
 
 public class RenderableTextComponent {
-    public RenderableTextComponent(String text, float x, float y, boolean isBold, boolean isItalic, boolean isUnderlined,
-                                   boolean isStrikethrough, Color color, int size, Fonts font) {
+    public RenderableTextComponent(@NotNull String text, float x, float y, boolean isBold, boolean isItalic, boolean isUnderlined,
+                                   boolean isStrikethrough, @NotNull Color color, int size, @NotNull Fonts font) {
         this.text = text;
         this.x = x;
         this.y = y;
@@ -20,16 +21,16 @@ public class RenderableTextComponent {
         this.font = font;
     }
 
-    final String text;
+    @NotNull final String text;
     final float x;
     final float y;
     final boolean isBold;
     final boolean isItalic;
     final boolean isUnderlined;
     final boolean isStrikethrough;
-    final Color color;
+    @NotNull final Color color;
     final int size;
-    final Fonts font;
+    @NotNull final Fonts font;
 
     public BitmapFont getBitmapFont() {
         return FontHandler.getFont(font, isBold, isItalic, size);
