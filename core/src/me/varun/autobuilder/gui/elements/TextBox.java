@@ -4,12 +4,14 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.g2d.Batch;
-import com.badlogic.gdx.graphics.g2d.BitmapFont;
-import com.badlogic.gdx.graphics.g2d.GlyphLayout;
-import com.badlogic.gdx.graphics.glutils.ShaderProgram;
+import com.badlogic.gdx.math.Vector2;
 import me.varun.autobuilder.events.scroll.InputEventListener;
 import me.varun.autobuilder.events.scroll.InputEventThrower;
 import me.varun.autobuilder.events.textchange.TextChangeListener;
+import me.varun.autobuilder.gui.textrendering.FontRenderer;
+import me.varun.autobuilder.gui.textrendering.Fonts;
+import me.varun.autobuilder.gui.textrendering.TextBlock;
+import me.varun.autobuilder.gui.textrendering.TextComponent;
 import me.varun.autobuilder.util.RoundedShapeRenderer;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -34,85 +36,43 @@ can't press up arrow to go up a line
  */
 public class TextBox extends InputEventListener {
     @NotNull
-    private final ShaderProgram fontShader;
-    @NotNull
-    private final BitmapFont font;
-    @NotNull
     private final InputEventThrower eventThrower;
     private final boolean wrapText;
     @Nullable
     private final TextChangeListener textChangeListener;
-    @NotNull
-    private final GlyphLayout glyphLayout = new GlyphLayout();
     @NotNull
     protected String text;
     private boolean selected = false;
     private long nextFlashChange = 0;
     private boolean flashing = false;
     private int selectedPos = 0;
+    private final int fontSize;
+    TextBlock textBlock;
 
-    public TextBox(@NotNull String text, @NotNull ShaderProgram fontShader, @NotNull BitmapFont font,
-                   @NotNull InputEventThrower eventThrower, boolean wrapText, @Nullable TextChangeListener textChangeListener) {
+    public TextBox(@NotNull String text, @NotNull InputEventThrower eventThrower, boolean wrapText,
+                   @Nullable TextChangeListener textChangeListener, int fontSize) {
         this.text = text;
-        this.fontShader = fontShader;
-        this.font = font;
         this.eventThrower = eventThrower;
         this.wrapText = wrapText;
         this.textChangeListener = textChangeListener;
+        this.fontSize = fontSize;
+        textBlock = new TextBlock(Fonts.JETBRAINS_MONO, fontSize, 350,
+                new TextComponent(text).setColor(Color.BLACK));
         eventThrower.register(this);
     }
 
 
     //TODO: Fix Text Going outside the box and the entire cringe that this class is
     public void draw(@NotNull ShapeDrawer shapeRenderer, @NotNull Batch spriteBatch, float drawStartX,
-                     float drawStartY, float drawWidth, float drawHeight) {
-        font.getData().setScale((drawHeight - 2) / 64f);
-
+                     float drawStartY, float drawWidth) {
         if (Gdx.input.isButtonJustPressed(Input.Buttons.LEFT)) {
             if (Gdx.input.getX() > drawStartX && Gdx.input.getX() < drawStartX + drawWidth
-                    && Gdx.graphics.getHeight() - Gdx.input.getY() > drawStartY - getHeight(drawWidth, drawHeight)
+                    && Gdx.graphics.getHeight() - Gdx.input.getY() > drawStartY - getHeight()
                     && Gdx.graphics.getHeight() - Gdx.input.getY() < drawStartY) {
                 selected = true;
                 text = fireTextBoxClickEvent();
 
-                //Checking where we click and setting the mouse cursor to the right pos (Y pos)
-                int relativeMouseY = (int) ((drawStartY - (font.getData().xHeight) - 4) - (Gdx.graphics.getHeight() - Gdx.input.getY()));
-                int row = (int) Math.floor(relativeMouseY / font.getData().xHeight);
-
-
-                //Checking where we click and setting the mouse cursor to the right pos (X pos)
-                float relativeMousePos = Gdx.input.getX() - drawStartX - 4;
-                selectedPos = -1;
-                if (relativeMousePos < 0) {
-                    selectedPos = 0;
-                } else {
-                    float lastTextPos = 0;
-                    for (int i = 0; i < (text + " ").length(); i++) {
-                        glyphLayout.setText(font, (text + " "), 0, i, Color.BLACK, drawWidth - 8, -1, wrapText, null);
-                        if (relativeMousePos < glyphLayout.width && glyphLayout.height > (font.getData().xHeight * row) + 4) {
-                            if (glyphLayout.width - relativeMousePos > relativeMousePos - lastTextPos) {
-                                selectedPos = i - 1;
-                            } else {
-                                selectedPos = i;
-                            }
-
-                            break;
-                        }
-                        lastTextPos = glyphLayout.width;
-                    }
-                    if (selectedPos == -1) {
-                        if (text.length() > 0) {
-                            if (glyphLayout.width - relativeMousePos > relativeMousePos - lastTextPos) {
-                                selectedPos = text.length() - 1;
-                            } else {
-                                selectedPos = text.length();
-                            }
-                        } else {
-                            selectedPos = 0;
-                        }
-
-                    }
-                }
+                //TODO: Find where the mouse clicked and set the selectedPos to that
 
                 flashing = true;
                 nextFlashChange = Calendar.getInstance().getTimeInMillis() + 500;
@@ -167,30 +127,29 @@ public class TextBox extends InputEventListener {
             }
         }
 
-        glyphLayout.setText(font, text, 0, text.length(), Color.BLACK, drawWidth - 8, -1, wrapText, null);
-        shapeRenderer.setColor(Color.WHITE);
-        RoundedShapeRenderer.roundedRect(shapeRenderer, drawStartX, drawStartY - glyphLayout.height - 8, drawWidth, glyphLayout.height + 8, 2);
+        textBlock.setTextInComponent(0, text);
 
+        textBlock.setLineSpacing(2);
 
-        spriteBatch.setShader(fontShader);
-        font.draw(spriteBatch, text, drawStartX + 4, drawStartY - 4, drawWidth - 8, -1, wrapText);
+        RoundedShapeRenderer.roundedRect(shapeRenderer, drawStartX, drawStartY - textBlock.getHeight(), drawWidth,
+                textBlock.getHeight() + 8, 2, Color.WHITE);
+
+        FontRenderer.renderText(spriteBatch, drawStartX + 4, drawStartY - textBlock.getDefaultSize() + 4, textBlock);
 
         if (selected && flashing) {
-            glyphLayout.setText(font, text, 0, selectedPos, Color.BLACK, drawWidth - 8, -1, wrapText, null);
-            float cursorRenderPosY = glyphLayout.height;
-            float cursorRenderPosX = 0;
-            for (int i = 0; i < text.length(); i++) {
-                glyphLayout.setText(font, text, i, selectedPos, Color.BLACK, drawWidth - 8, -1, wrapText, null);
-                if (glyphLayout.height <= font.getData().xHeight * 2) {
-                    cursorRenderPosX = glyphLayout.width;
-                    break;
-                }
-
+            textBlock.updateIfDirty();
+            if (selectedPos >= 0 && textBlock.getRenderableTextComponents().size() > 0) {
+                Vector2 cursorPos = textBlock.getPositionOfIndex(selectedPos);
+                FontRenderer.renderText(spriteBatch, drawStartX + 1 + cursorPos.x,
+                        drawStartY + textBlock.getDefaultSize() - textBlock.getDefaultLineSpacingSize() + 5 + cursorPos.y,
+                        Fonts.JETBRAINS_MONO, fontSize, new TextComponent("|").setColor(Color.BLACK));
+            } else {
+                FontRenderer.renderText(spriteBatch, drawStartX + 1,
+                        drawStartY + textBlock.getDefaultSize() - textBlock.getDefaultLineSpacingSize() + 5,
+                        Fonts.JETBRAINS_MONO, fontSize, new TextComponent("|").setColor(Color.BLACK));
             }
-            font.draw(spriteBatch, "|", drawStartX + 4 + cursorRenderPosX, drawStartY + 4 + font.getData().xHeight - cursorRenderPosY);
-        }
 
-        spriteBatch.setShader(null);
+        }
     }
 
     public void dispose() {
@@ -235,10 +194,8 @@ public class TextBox extends InputEventListener {
         return textChangeListener.onTextBoxClick(text, this);
     }
 
-    public float getHeight(float drawWidth, float drawHeight) {
-        font.getData().setScale((drawHeight - 2) / 64f);
-        glyphLayout.setText(font, text, 0, text.length(), Color.BLACK, drawWidth - 8, -1, wrapText, null);
-        return glyphLayout.height + 8;
+    public float getHeight() {
+        return textBlock.getHeight() + 8;
     }
 
     public @NotNull String getText() {
@@ -247,6 +204,7 @@ public class TextBox extends InputEventListener {
 
     /**
      * NOTE: If the textbox is selected the value that is set in this function will be ignored
+     *
      * @param text text to set
      */
     public  void setText(@NotNull String text) {

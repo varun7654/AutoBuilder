@@ -6,7 +6,6 @@ import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.PolygonSpriteBatch;
-import com.badlogic.gdx.graphics.glutils.ShaderProgram;
 import com.badlogic.gdx.utils.Disposable;
 import me.varun.autobuilder.gui.textrendering.FontRenderer;
 import me.varun.autobuilder.gui.textrendering.Fonts;
@@ -39,10 +38,14 @@ public abstract class AbstractGuiItem implements Disposable {
         this.closed = closed;
     }
 
+    private TextBlock headerTextBlock = new TextBlock(Fonts.ROBOTO, 36, 250,
+            new TextComponent("headerText").setColor(Color.WHITE));
+
     @Override
     abstract public void dispose();
 
-    public int render(@NotNull ShapeDrawer shapeRenderer, @NotNull PolygonSpriteBatch spriteBatch, int drawStartX, int drawStartY, int drawWidth, PathGui pathGui) {
+    public int render(@NotNull ShapeDrawer shapeRenderer, @NotNull PolygonSpriteBatch spriteBatch, int drawStartX,
+                      int drawStartY, int drawWidth, PathGui pathGui) {
         if (Gdx.input.isButtonJustPressed(Input.Buttons.LEFT)) {
             if (isMouseOver(drawStartX + drawWidth - 45, drawStartY - 40, drawWidth - 5, 40)) {
                 pathGui.guiItemsDeletions.add(this);
@@ -54,20 +57,18 @@ public abstract class AbstractGuiItem implements Disposable {
         return 40;
     }
 
-    public void renderHeader(ShapeDrawer shapeRenderer, @NotNull PolygonSpriteBatch spriteBatch, ShaderProgram fontShader,
-                             BitmapFont font, float drawStartX, float drawStartY, float drawWidth,
-                             Texture trashTexture, Texture warningTexture, Color headerColor, String headerText, boolean warning) {
+    public void renderHeader(ShapeDrawer shapeRenderer, @NotNull PolygonSpriteBatch spriteBatch, BitmapFont font,
+                             float drawStartX, float drawStartY, float drawWidth, Texture trashTexture, Texture warningTexture,
+                             Color headerColor, String headerText, boolean warning) {
         shapeRenderer.setColor(headerColor);
         //System.out.println(headerColor);
         RoundedShapeRenderer.roundedRect(shapeRenderer, drawStartX, drawStartY - 40, drawWidth, 40, 2, headerColor);
 
-        spriteBatch.setShader(fontShader);
         font.getData().setScale(0.6f);
         font.setColor(Color.WHITE);
         //font.draw(spriteBatch, headerText, drawStartX + 5, drawStartY - 5);
-        FontRenderer.renderText(spriteBatch, drawStartX + 5, drawStartY - 5, new TextBlock(Fonts.ROBOTO, 36,
-                new TextComponent(headerText).setColor(Color.WHITE)));
-        spriteBatch.setShader(null);
+        headerTextBlock.setTextInComponent(0, headerText);
+        FontRenderer.renderText(spriteBatch, drawStartX + 5, drawStartY - 31, headerTextBlock);
         spriteBatch.draw(trashTexture, drawStartX + drawWidth - 45, drawStartY - 38,
                 trashTexture.getWidth() * (36f / trashTexture.getHeight()), 36);
         if (warning) {

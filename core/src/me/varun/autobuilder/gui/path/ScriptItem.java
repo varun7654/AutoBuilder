@@ -25,7 +25,7 @@ public class ScriptItem extends AbstractGuiItem implements TextChangeListener {
         this.fontShader = fontShader;
         this.font = font;
 
-        textBox = new TextBox("", fontShader, font, inputEventThrower, true, this);
+        textBox = new TextBox("", inputEventThrower, true, this, 22);
     }
 
     public ScriptItem(@NotNull ShaderProgram fontShader, @NotNull BitmapFont font, @NotNull InputEventThrower inputEventThrower,
@@ -33,7 +33,7 @@ public class ScriptItem extends AbstractGuiItem implements TextChangeListener {
         this.fontShader = fontShader;
         this.font = font;
 
-        textBox = new TextBox(text, fontShader, font, inputEventThrower, true, this);
+        textBox = new TextBox(text, inputEventThrower, true, this, 22);
         error = !valid;
         this.setClosed(closed);
     }
@@ -42,19 +42,18 @@ public class ScriptItem extends AbstractGuiItem implements TextChangeListener {
     public int render(@NotNull ShapeDrawer shapeRenderer, @NotNull PolygonSpriteBatch spriteBatch, int drawStartX, int drawStartY, int drawWidth, PathGui pathGui) {
         super.render(shapeRenderer, spriteBatch, drawStartX, drawStartY, drawWidth, pathGui);
         if (isClosed()) {
-            renderHeader(shapeRenderer, spriteBatch, fontShader, font, drawStartX, drawStartY, drawWidth, trashTexture, warningTexture, LIGHT_BLUE, "Script", error);
+            renderHeader(shapeRenderer, spriteBatch, font, drawStartX, drawStartY, drawWidth, trashTexture, warningTexture,
+                    LIGHT_BLUE, "Script", error);
             return 40;
         } else {
-            int height = (int) (textBox.getHeight(drawWidth - 15, 20) + 8);
+            int height = (int) (textBox.getHeight() + 8);
             shapeRenderer.setColor(LIGHT_GREY);
-            RoundedShapeRenderer.roundedRect(shapeRenderer, drawStartX + 5, (drawStartY - 40) - height, drawWidth - 5, height + 5, 2);
+            RoundedShapeRenderer.roundedRect(shapeRenderer, drawStartX + 5, (drawStartY - 40) - height, drawWidth - 5, height + 5,
+                    2);
 
-            renderHeader(shapeRenderer, spriteBatch, fontShader, font, drawStartX, drawStartY, drawWidth, trashTexture, warningTexture, LIGHT_BLUE, "Script", error);
-
-            spriteBatch.setShader(fontShader);
-            font.setColor(Color.BLACK);
-            textBox.draw(shapeRenderer, spriteBatch, drawStartX + 10, drawStartY - 43, drawWidth - 15, 20);
-            spriteBatch.setShader(null);
+            textBox.draw(shapeRenderer, spriteBatch, drawStartX + 10, drawStartY - 43, drawWidth - 15);
+            renderHeader(shapeRenderer, spriteBatch, font, drawStartX, drawStartY, drawWidth, trashTexture, warningTexture,
+                    LIGHT_BLUE, "Script", error);
 
             return height + 40;
         }

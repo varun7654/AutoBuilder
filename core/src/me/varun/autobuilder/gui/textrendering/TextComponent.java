@@ -4,6 +4,9 @@ import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.freetype.FreeTypeFontGenerator.FreeTypeBitmapFontData;
 
+import java.util.Optional;
+import java.util.OptionalInt;
+
 public class TextComponent {
     public String text;
     public boolean isBold = false;
@@ -12,6 +15,8 @@ public class TextComponent {
     public boolean isUnderlined = false;
     public boolean isObfuscated = false;
     public Color color = Color.WHITE;
+    public OptionalInt size = OptionalInt.empty();
+    public Optional<Fonts> font = Optional.empty();
 
     public TextComponent(String text, Color color) {
         this.text = text;
@@ -107,6 +112,15 @@ public class TextComponent {
     }
 
     public FreeTypeBitmapFontData getFontData(Fonts font, int size) {
-        return FontHandler.getFontData(font, isBold, isItalic, size);
+        return FontHandler.getFontData(this.font.orElse(font), isBold, isItalic, this.size.orElse(size));
+    }
+
+    public TextComponent setSize(int size) {
+        this.size = OptionalInt.of(size);
+        return this;
+    }
+
+    public OptionalInt getSize() {
+        return size;
     }
 }

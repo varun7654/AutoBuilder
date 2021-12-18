@@ -17,7 +17,7 @@ import me.varun.autobuilder.events.scroll.InputEventThrower;
 import me.varun.autobuilder.gui.path.AbstractGuiItem;
 import me.varun.autobuilder.gui.path.PathGui;
 import me.varun.autobuilder.gui.path.TrajectoryItem;
-import me.varun.autobuilder.gui.textrendering.FontHandler;
+import me.varun.autobuilder.gui.textrendering.*;
 import me.varun.autobuilder.net.NetworkTablesHelper;
 import me.varun.autobuilder.net.Serializer;
 import me.varun.autobuilder.pathing.PathRenderer;
@@ -69,6 +69,8 @@ public class AutoBuilder extends ApplicationAdapter {
     @NotNull private static Config config;
     @NotNull private Texture whiteTexture;
     @NotNull public static final String USER_DIRECTORY = OsUtil.getUserConfigDirectory("AutoBuilder");
+    private PolygonSpriteBatch batch2;
+    private BitmapFont font2;
 
     public static void handleCrash(Exception e) {
         e.printStackTrace();
@@ -89,7 +91,7 @@ public class AutoBuilder extends ApplicationAdapter {
             config = new Config();
         }
 
-        networkTables.start();
+        //Tables.start();
 
         FontHandler.updateFonts();
 
@@ -206,7 +208,8 @@ public class AutoBuilder extends ApplicationAdapter {
             Float[] pos1 = networkTables.getRobotPositions().get(i);
             Float[] pos2 = networkTables.getRobotPositions().get(i + 1);
             shapeRenderer.line(pos1[0] * config.getPointScaleFactor(), pos1[1] * config.getPointScaleFactor(),
-                    pos2[0] * config.getPointScaleFactor(), pos2[1] * config.getPointScaleFactor(), Color.WHITE, LINE_THICKNESS);
+                    pos2[0] * config.getPointScaleFactor(), pos2[1] * config.getPointScaleFactor(), Color.WHITE,
+                    LINE_THICKNESS);
         }
 
         batch.end();
@@ -215,18 +218,21 @@ public class AutoBuilder extends ApplicationAdapter {
         hudBatch.setProjectionMatrix(hudCam.combined);
 
         hudBatch.begin();
-        hudBatch.setShader(fontShader);
+        hudBatch.setShader(null);
 
         //Fps overlay
         font.getData().setScale(0.2f);
         font.setColor(Color.WHITE);
-        frameTimes[frameTimePos] = Gdx.graphics.getDeltaTime()* 1000;
+        frameTimes[frameTimePos] = Gdx.graphics.getDeltaTime() * 1000;
         frameTimePos++;
-        if(frameTimePos == frameTimes.length) frameTimePos = 0;
-        font.draw(hudBatch, "FPS: " + Gdx.graphics.getFramesPerSecond() + ", " + df.format(Gdx.graphics.getDeltaTime()* 1000) + " ms Peak: " + df.format(Arrays.stream(frameTimes).max().getAsDouble()) + " ms Avg: " + df.format(Arrays.stream(frameTimes).average().getAsDouble()) + " ms", 0, 12);
-
-        hudBatch.setShader(null);
-
+        if (frameTimePos == frameTimes.length) frameTimePos = 0;
+        FontRenderer.renderText(hudBatch, 0, 0, new TextBlock(Fonts.ROBOTO, 16,
+                new TextComponent(Integer.toString(Gdx.graphics.getFramesPerSecond())).setBold(true),
+                new TextComponent(" FPS Peak: ").setBold(false),
+                new TextComponent(df.format(Arrays.stream(frameTimes).max().getAsDouble())).setBold(true),
+                new TextComponent(" ms Avg: ").setBold(false),
+                new TextComponent(df.format(Arrays.stream(frameTimes).average().getAsDouble())).setBold(true),
+                new TextComponent(" ms").setBold(false)));
 
         pathGui.render(hudShapeRenderer, hudBatch, hudCam);
         hudBatch.end();
@@ -329,10 +335,8 @@ public class AutoBuilder extends ApplicationAdapter {
 
     @Override
     public void resize(int width, int height) {
-        FontHandler.updateFonts();
-        
         hudViewport.update(width, height, true);
-        viewport.update(width, height);
+        //viewport.update(width, height);
 
         pathGui.updateScreen(width, height);
     }

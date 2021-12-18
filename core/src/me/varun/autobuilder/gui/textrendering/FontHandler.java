@@ -26,9 +26,10 @@ public class FontHandler {
 
     static {
         fontSizes = new ArrayList<>();
-        fontSizes.add(8);
         fontSizes.add(36);
+        fontSizes.add(22);
         fontSizes.add(12);
+        fontSizes.add(16);
     }
 
 
