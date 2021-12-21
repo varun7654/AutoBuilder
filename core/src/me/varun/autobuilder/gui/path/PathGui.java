@@ -27,6 +27,8 @@ import java.util.List;
 import java.util.Random;
 import java.util.concurrent.ExecutorService;
 
+import static java.awt.Color.HSBtoRGB;
+
 public class PathGui extends InputEventListener {
     final @NotNull ExecutorService executorService;
     private final @NotNull Viewport viewport;
@@ -223,19 +225,14 @@ public class PathGui extends InputEventListener {
             scrollPos = scrollPos + amountY * 80;
         }
     }
+
+
     Random random = new Random();
     public @NotNull Color getNextColor() {
-        float[] colorHsv = new float[3];
-        color.toHsv(colorHsv);
-        colorHsv[0] = (colorHsv[0] + 37) % 360;
-        Color color = new Color();
-        this.color = color.fromHsv(random.nextInt(255), 1, 1);
-        this.color.set(color.r, color.g, color.b, 1);
-        System.out.println(color);
-        return color;
+        java.awt.Color colorJava = new java.awt.Color(HSBtoRGB(random.nextFloat(), 1, 1));
+        return new Color(colorJava.getRed() / 255f, colorJava.getGreen() / 255f, colorJava.getBlue() / 255f, 1);
     }
-
-
+    
     public @Nullable TrajectoryItem getLastPath() {
         return lastPath;
     }
