@@ -9,6 +9,9 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 
+/**
+ * A text block is a collection of TextComponent objects.
+ */
 public class TextBlock {
     @NotNull private Fonts defaultFont;
     private boolean dirty = true;
@@ -55,7 +58,7 @@ public class TextBlock {
     }
 
     /**
-     * Updates the text block. Convert the {@link  TextComponent}s into the {@link RenderableTextComponent}s that are used to
+     * Updates the text block. Converts the {@link  TextComponent}s into the {@link RenderableTextComponent}s that are used to
      * render
      */
     public void update() {
@@ -84,8 +87,7 @@ public class TextBlock {
 
                 if (c == '\n') { // Explicit line break
                     sb.append(component.getText(), lastWhiteSpaceIndex, j); // Add all the remaining characters to the buffer
-                    if (fontData.xHeight > largestFontSize) { // One final check to see if the current font size is larger than
-                        // the largest recorded font size on this line
+                    if (fontData.xHeight > largestFontSize) { // One final check to see if the current font size is larger than the largest recorded font size on this line
                         largestFontSize = fontData.xHeight;
                     }
 
@@ -141,8 +143,7 @@ public class TextBlock {
                         textWrapped = true; // Set to true because we implicitly wrapped the text at the last whitespace
                         foundValidWhitespace = false; // Reset the found valid whitespace because we are starting a new line
                         sb = new StringBuilder(); // Reset the buffer
-                    } else { // If there is no space on this line we can't wrap the text at a space. We have to wrap the text
-                        // at the end of the line in the middle of a word
+                    } else { // If there is no space on this line we can't wrap the text at a space. We have to wrap the text at the end of the line in the middle of a word
                         sb.append(component.getText(), lastWhiteSpaceIndex, j); // Add the text from the last whitespace to the
                         // current index to the buffer
 
@@ -169,8 +170,7 @@ public class TextBlock {
             // We reached the end of the textComponent. Add the remaining text to a renderable text component
             if (chars.length > lastWhiteSpaceIndex) { // If there is text left that still needs to be added to the buffer
                 sb.append(component.getText(), lastWhiteSpaceIndex,
-                        chars.length); // Add the text from the last whitespace to the
-                // current index to the buffer
+                        chars.length); // Add the text from the last whitespace to the current index to the buffer
 
                 if (fontData.xHeight > largestFontSize) { // One last check to see if the current font size is the
                     // largest font size in the line. If it is, we use it as the largest font size for the line
@@ -190,8 +190,7 @@ public class TextBlock {
             foundValidWhitespace = true; // Set to true because it's easier to just allow the text to wrap at the end of a
             // component than to try and wrap at a point inside the previous component.
 
-            textWrapped = false; // Set to false because the text has not wrapped yet (text wrapping can only happen inside of
-            // the loop)
+            textWrapped = false; // Set to false because the text has not wrapped yet (text wrapping can only happen inside the loop)
         }
 
         dirty = false;
@@ -200,7 +199,7 @@ public class TextBlock {
     /**
      * @return the default font for this textBlock
      */
-    public Fonts getDefaultFont() {
+    public @NotNull Fonts getDefaultFont() {
         return defaultFont;
     }
 
@@ -343,8 +342,8 @@ public class TextBlock {
                     }
                 }
 
-                getPositionOfIndexCache.put(index,
-                        new Vector2(renderableTextComponent.x + positionOffset, renderableTextComponent.y));
+                getPositionOfIndexCache.put(index, new Vector2(renderableTextComponent.x + positionOffset,
+                        renderableTextComponent.y));
                 return getPositionOfIndexCache.get(index);
             } else {
                 currentIndex += text.length();

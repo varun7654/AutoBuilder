@@ -8,6 +8,10 @@ import org.jetbrains.annotations.NotNull;
 import java.util.Optional;
 import java.util.OptionalInt;
 
+/**
+ * Represents a part of a textblock that has the same styling throughout it. To change the styling within a textblock, you will
+ * need to create a new TextComponent for each part that contains different styling.
+ */
 @SuppressWarnings("OptionalUsedAsFieldOrParameterType")
 public class TextComponent {
     @NotNull public String text;
@@ -20,15 +24,29 @@ public class TextComponent {
     @NotNull public OptionalInt size = OptionalInt.empty();
     @NotNull public Optional<Fonts> font = Optional.empty();
 
+    /**
+     * @param text  the text of this component.
+     * @param color the color of this component.
+     */
     public TextComponent(@NotNull String text, @NotNull Color color) {
         this.text = text;
         this.color = color;
     }
 
+    /**
+     * @param text the text of this component.
+     */
     public TextComponent(@NotNull String text) {
         this.text = text;
     }
 
+    /**
+     * @param text            the text of this component.
+     * @param isBold          set if the font is bold.
+     * @param isItalic        set if the font is italic.
+     * @param isStrikethrough set if the font is strikethrough.
+     * @param isUnderlined    set if the font is underlined.
+     */
     public TextComponent(@NotNull String text, boolean isBold, boolean isItalic, boolean isStrikethrough, boolean isUnderlined,
                          boolean isObfuscated, @NotNull Color color) {
         this.text = text;

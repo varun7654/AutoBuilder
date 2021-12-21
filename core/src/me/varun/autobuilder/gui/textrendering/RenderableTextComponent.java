@@ -6,6 +6,10 @@ import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.freetype.FreeTypeFontGenerator;
 import org.jetbrains.annotations.NotNull;
 
+/**
+ * A class that represents a text component that can be rendered. Each renderable text component must only be one line and may not
+ * span multiple lines.
+ */
 public class RenderableTextComponent {
     public RenderableTextComponent(@NotNull String text, float x, float y, boolean isBold, boolean isItalic, boolean isUnderlined,
                                    boolean isStrikethrough, @NotNull Color color, int size, @NotNull Fonts font) {

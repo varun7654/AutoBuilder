@@ -66,7 +66,7 @@ public class AutoBuilder extends ApplicationAdapter {
 
     public static void handleCrash(Exception e) {
         e.printStackTrace();
-        System.out.println("Oops Something went wrong during fame " + Gdx.graphics.getFrameId());
+        System.out.println("Something went wrong during fame " + Gdx.graphics.getFrameId());
         Gdx.app.exit();
     }
 
@@ -83,7 +83,7 @@ public class AutoBuilder extends ApplicationAdapter {
             config = new Config();
         }
 
-        networkTables.start();
+        //networkTables.start();
 
         FontHandler.updateFonts();
 
@@ -204,12 +204,12 @@ public class AutoBuilder extends ApplicationAdapter {
         frameTimes[frameTimePos] = Gdx.graphics.getDeltaTime() * 1000;
         frameTimePos++;
         if (frameTimePos == frameTimes.length) frameTimePos = 0;
-        FontRenderer.renderText(hudBatch, 0, 0, new TextBlock(Fonts.ROBOTO, 16,
+        FontRenderer.renderText(hudBatch, 4, 4, new TextBlock(Fonts.ROBOTO, 12,
                 new TextComponent(Integer.toString(Gdx.graphics.getFramesPerSecond())).setBold(true),
-                new TextComponent(" FPS Peak: ").setBold(false),
-                new TextComponent(df.format(Arrays.stream(frameTimes).max().getAsDouble())).setBold(true),
-                new TextComponent(" ms Avg: ").setBold(false),
-                new TextComponent(df.format(Arrays.stream(frameTimes).average().getAsDouble())).setBold(true),
+                new TextComponent(" FPS, Peak: ").setBold(false),
+                new TextComponent(df.format(Arrays.stream(frameTimes).max().orElseThrow())).setBold(true),
+                new TextComponent(" ms, Avg: ").setBold(false),
+                new TextComponent(df.format(Arrays.stream(frameTimes).average().orElseThrow())).setBold(true),
                 new TextComponent(" ms").setBold(false)));
 
         pathGui.render(hudShapeRenderer, hudBatch, hudCam);
