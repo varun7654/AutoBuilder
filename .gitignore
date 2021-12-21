@@ -17,20 +17,6 @@ gwt-unitCache/
 www-test/
 .gwt-tmp/
 
-## Android Studio and Intellij and Android in general
-/android/libs/armeabi/
-/android/libs/armeabi-v7a/
-/android/libs/arm64-v8a/
-/android/libs/x86/
-/android/libs/x86_64/
-/android/gen/
-.idea/
-*.ipr
-*.iws
-*.iml
-/android/out/
-com_crashlytics_export_strings.xml
-
 ## Eclipse
 
 .classpath
@@ -113,3 +99,4 @@ Thumbs.db
 /ios/xcode/native/
 /ios/IOSLauncher.app
 /ios/IOSLauncher.app.dSYM
+.idea/discord.xml
