@@ -11,7 +11,7 @@ import com.badlogic.gdx.utils.viewport.ExtendViewport;
 import com.badlogic.gdx.utils.viewport.ScreenViewport;
 import com.badlogic.gdx.utils.viewport.Viewport;
 import me.varun.autobuilder.config.Config;
-import me.varun.autobuilder.events.scroll.InputEventThrower;
+import me.varun.autobuilder.events.input.InputEventThrower;
 import me.varun.autobuilder.gui.path.AbstractGuiItem;
 import me.varun.autobuilder.gui.path.PathGui;
 import me.varun.autobuilder.gui.path.TrajectoryItem;
@@ -64,6 +64,12 @@ public class AutoBuilder extends ApplicationAdapter {
     @NotNull private Texture whiteTexture;
     @NotNull public static final String USER_DIRECTORY = OsUtil.getUserConfigDirectory("AutoBuilder");
 
+
+    /**
+     * Try to save data and exit the program.
+     *
+     * @param e The exception that caused the program to crash.
+     */
     public static void handleCrash(Exception e) {
         e.printStackTrace();
         System.out.println("Something went wrong during fame " + Gdx.graphics.getFrameId());

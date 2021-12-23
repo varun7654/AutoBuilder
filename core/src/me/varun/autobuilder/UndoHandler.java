@@ -3,7 +3,7 @@ package me.varun.autobuilder;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
 import com.badlogic.gdx.graphics.Color;
-import me.varun.autobuilder.events.scroll.InputEventThrower;
+import me.varun.autobuilder.events.input.InputEventThrower;
 import me.varun.autobuilder.gui.path.AbstractGuiItem;
 import me.varun.autobuilder.gui.path.PathGui;
 import me.varun.autobuilder.gui.path.ScriptItem;

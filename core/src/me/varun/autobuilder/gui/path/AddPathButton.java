@@ -4,7 +4,7 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Texture;
 import me.varun.autobuilder.CameraHandler;
 import me.varun.autobuilder.UndoHandler;
-import me.varun.autobuilder.events.scroll.InputEventThrower;
+import me.varun.autobuilder.events.input.InputEventThrower;
 import me.varun.autobuilder.gui.elements.AbstractGuiButton;
 import org.jetbrains.annotations.NotNull;
 

@@ -1,8 +1,8 @@
 package me.varun.autobuilder.gui.elements;
 
 import me.varun.autobuilder.UndoHandler;
-import me.varun.autobuilder.events.scroll.InputEventThrower;
-import me.varun.autobuilder.events.textchange.NumberTextboxChangeListener;
+import me.varun.autobuilder.events.input.InputEventThrower;
+import me.varun.autobuilder.events.input.NumberTextboxChangeListener;
 import org.jetbrains.annotations.NotNull;
 
 public class NumberTextBox extends TextBox {

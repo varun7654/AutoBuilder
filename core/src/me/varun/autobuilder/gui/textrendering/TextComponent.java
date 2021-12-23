@@ -190,4 +190,19 @@ public class TextComponent {
     public @NotNull OptionalInt getSize() {
         return size;
     }
+
+    @Override
+    public String toString() {
+        return "TextComponent{" +
+                "text='" + text + '\'' +
+                ", isBold=" + isBold +
+                ", isItalic=" + isItalic +
+                ", isStrikethrough=" + isStrikethrough +
+                ", isUnderlined=" + isUnderlined +
+                ", isObfuscated=" + isObfuscated +
+                ", color=" + color +
+                ", size=" + size +
+                ", font=" + font +
+                '}';
+    }
 }

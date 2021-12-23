@@ -1,4 +1,4 @@
-package me.varun.autobuilder.events.textchange;
+package me.varun.autobuilder.events.input;
 
 import me.varun.autobuilder.gui.elements.TextBox;
 

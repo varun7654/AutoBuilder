@@ -2,12 +2,13 @@ package me.varun.autobuilder.gui.elements;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
+import com.badlogic.gdx.Input.Keys;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.g2d.Batch;
 import com.badlogic.gdx.math.Vector2;
-import me.varun.autobuilder.events.scroll.InputEventListener;
-import me.varun.autobuilder.events.scroll.InputEventThrower;
-import me.varun.autobuilder.events.textchange.TextChangeListener;
+import me.varun.autobuilder.events.input.InputEventListener;
+import me.varun.autobuilder.events.input.InputEventThrower;
+import me.varun.autobuilder.events.input.TextChangeListener;
 import me.varun.autobuilder.gui.textrendering.FontRenderer;
 import me.varun.autobuilder.gui.textrendering.Fonts;
 import me.varun.autobuilder.gui.textrendering.TextBlock;
@@ -22,7 +23,8 @@ import java.awt.datatransfer.Clipboard;
 import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.UnsupportedFlavorException;
 import java.io.IOException;
-import java.util.Calendar;
+import java.util.HashMap;
+import java.util.Map;
 
 
 /*
@@ -48,6 +50,14 @@ public class TextBox extends InputEventListener {
     private int selectedPos = 0;
     private final int fontSize;
     TextBlock textBlock;
+    private final TextBlock cursorTextBlock;
+    private float xPos = -1;
+
+    Map<Integer, Boolean> keyPressedMap = new HashMap<>();
+    Map<Integer, Long> nextKeyPressTimeMap = new HashMap<>();
+
+    private static final long KEY_PRESS_DELAY = 50;
+    private static final long INITIAL_KEY_PRESS_DELAY = 400;
 
     public TextBox(@NotNull String text, @NotNull InputEventThrower eventThrower, boolean wrapText,
                    @Nullable TextChangeListener textChangeListener, int fontSize) {
@@ -56,8 +66,8 @@ public class TextBox extends InputEventListener {
         this.wrapText = wrapText;
         this.textChangeListener = textChangeListener;
         this.fontSize = fontSize;
-        textBlock = new TextBlock(Fonts.JETBRAINS_MONO, fontSize, 350,
-                new TextComponent(text).setColor(Color.BLACK));
+        textBlock = new TextBlock(Fonts.JETBRAINS_MONO, fontSize, 350, new TextComponent(text).setColor(Color.BLACK));
+        cursorTextBlock = new TextBlock(Fonts.JETBRAINS_MONO, fontSize, new TextComponent("|").setColor(Color.BLACK));
         eventThrower.register(this);
     }
 
@@ -65,6 +75,7 @@ public class TextBox extends InputEventListener {
     //TODO: Fix Text Going outside the box and the entire cringe that this class is
     public void draw(@NotNull ShapeDrawer shapeRenderer, @NotNull Batch spriteBatch, float drawStartX,
                      float drawStartY, float drawWidth) {
+        textBlock.update();
         if (Gdx.input.isButtonJustPressed(Input.Buttons.LEFT)) {
             if (Gdx.input.getX() > drawStartX && Gdx.input.getX() < drawStartX + drawWidth
                     && Gdx.graphics.getHeight() - Gdx.input.getY() > drawStartY - getHeight()
@@ -72,40 +83,68 @@ public class TextBox extends InputEventListener {
                 selected = true;
                 text = fireTextBoxClickEvent();
 
-                //TODO: Find where the mouse clicked and set the selectedPos to that
+                //drawStartX + 4, drawStartY - textBlock.getDefaultSize() + 4
+                Vector2 mousePos = new Vector2(Gdx.input.getX() - (drawStartX + 4),
+                        (Gdx.graphics.getHeight() - Gdx.input.getY()) - (drawStartY - textBlock.getDefaultSize() + 4));
+                selectedPos = textBlock.getIndexOfPosition(mousePos);
 
                 flashing = true;
-                nextFlashChange = Calendar.getInstance().getTimeInMillis() + 500;
+                nextFlashChange = System.currentTimeMillis() + 500;
+                xPos = -1;
             } else {
                 selected = false;
             }
         }
 
         if (selected) {
-            if (Gdx.input.isKeyJustPressed(Input.Keys.RIGHT)) {
+            if (getKeyPressed(Keys.RIGHT)) {
                 selectedPos++;
                 if (selectedPos > text.length()) {
                     selectedPos = text.length();
                 }
                 flashing = true;
-                nextFlashChange = Calendar.getInstance().getTimeInMillis() + 500;
+                nextFlashChange = System.currentTimeMillis() + 500;
+                xPos = -1;
             }
 
-            if (Gdx.input.isKeyJustPressed(Input.Keys.LEFT)) {
+            if (getKeyPressed(Keys.LEFT)) {
                 selectedPos--;
                 if (selectedPos < 0) {
                     selectedPos = 0;
                 }
                 flashing = true;
-                nextFlashChange = Calendar.getInstance().getTimeInMillis() + 500;
+                nextFlashChange = System.currentTimeMillis() + 500;
+                xPos = -1;
             }
 
-            if (Gdx.input.isKeyJustPressed(Input.Keys.BACKSPACE)) {
+            if (getKeyPressed(Keys.UP)) {
+                Vector2 pos = textBlock.getPositionOfIndex(selectedPos);
+                if (xPos == -1) xPos = pos.x;
+                selectedPos = textBlock.getIndexOfPosition(new Vector2(xPos, pos.y + textBlock.getDefaultLineSpacingSize() + 1));
+
+                flashing = true;
+                nextFlashChange = System.currentTimeMillis() + 500;
+            }
+
+            if (getKeyPressed(Keys.DOWN)) {
+                Vector2 pos = textBlock.getPositionOfIndex(selectedPos);
+                if (xPos == -1) xPos = pos.x;
+                selectedPos = textBlock.getIndexOfPosition(new Vector2(xPos, pos.y - textBlock.getDefaultLineSpacingSize() / 2));
+
+                flashing = true;
+                nextFlashChange = System.currentTimeMillis() + 500;
+            }
+
+            if (getKeyPressed(Keys.BACKSPACE)) {
                 if (selectedPos > 0) {
                     text = text.substring(0, selectedPos - 1) + text.substring(selectedPos);
                     selectedPos--;
                     fireTextChangeEvent();
                 }
+
+                flashing = true;
+                nextFlashChange = System.currentTimeMillis() + 1500;
+                xPos = -1;
             }
 
             if ((Gdx.input.isKeyPressed(Input.Keys.CONTROL_LEFT) || Gdx.input.isKeyPressed(Input.Keys.CONTROL_LEFT)) &&
@@ -121,9 +160,9 @@ public class TextBox extends InputEventListener {
                 }
             }
 
-            if (nextFlashChange < Calendar.getInstance().getTimeInMillis()) {
+            if (nextFlashChange < System.currentTimeMillis()) {
                 flashing = !flashing;
-                nextFlashChange = Calendar.getInstance().getTimeInMillis() + 500;
+                nextFlashChange = System.currentTimeMillis() + 500;
             }
         }
 
@@ -137,16 +176,15 @@ public class TextBox extends InputEventListener {
         FontRenderer.renderText(spriteBatch, drawStartX + 4, drawStartY - textBlock.getDefaultSize() + 4, textBlock);
 
         if (selected && flashing) {
-            textBlock.updateIfDirty();
             if (selectedPos >= 0 && textBlock.getRenderableTextComponents().size() > 0) {
                 Vector2 cursorPos = textBlock.getPositionOfIndex(selectedPos);
-                FontRenderer.renderText(spriteBatch, drawStartX + 1 + cursorPos.x,
+                FontRenderer.renderText(spriteBatch, drawStartX + 2 + cursorPos.x,
                         drawStartY + textBlock.getDefaultSize() - textBlock.getDefaultLineSpacingSize() + 5 + cursorPos.y,
-                        Fonts.JETBRAINS_MONO, fontSize, new TextComponent("|").setColor(Color.BLACK));
+                        cursorTextBlock);
             } else {
-                FontRenderer.renderText(spriteBatch, drawStartX + 1,
+                FontRenderer.renderText(spriteBatch, drawStartX + 2,
                         drawStartY + textBlock.getDefaultSize() - textBlock.getDefaultLineSpacingSize() + 5,
-                        Fonts.JETBRAINS_MONO, fontSize, new TextComponent("|").setColor(Color.BLACK));
+                        cursorTextBlock);
             }
 
         }
@@ -167,8 +205,9 @@ public class TextBox extends InputEventListener {
                 }
                 selectedPos++;
                 flashing = true;
-                nextFlashChange = Calendar.getInstance().getTimeInMillis() + 500;
+                nextFlashChange = System.currentTimeMillis() + 1500;
                 fireTextChangeEvent();
+                xPos = -1;
             } else if (Character.getName(character).equals("CARRIAGE RETURN (CR)")) { //TODO: Make this not cringe
                 if (text.length() == selectedPos) {
                     text = text + '\n';
@@ -177,10 +216,10 @@ public class TextBox extends InputEventListener {
                 }
                 selectedPos++;
                 flashing = true;
-                nextFlashChange = Calendar.getInstance().getTimeInMillis() + 500;
+                nextFlashChange = System.currentTimeMillis() + 1500;
                 fireTextChangeEvent();
+                xPos = -1;
             }
-
         }
     }
 
@@ -220,5 +259,24 @@ public class TextBox extends InputEventListener {
                 "text='" + text + '\'' +
                 ", selectedPos=" + selectedPos +
                 '}';
+    }
+
+    public boolean getKeyPressed(int keyCode) {
+        if (Gdx.input.isKeyPressed(keyCode)) {
+            if (keyPressedMap.get(keyCode) == null || !keyPressedMap.get(keyCode)) {
+                keyPressedMap.put(keyCode, true);
+                nextKeyPressTimeMap.put(keyCode, System.currentTimeMillis() + INITIAL_KEY_PRESS_DELAY);
+                return true;
+            }
+
+            if (System.currentTimeMillis() > nextKeyPressTimeMap.get(keyCode)) {
+                nextKeyPressTimeMap.put(keyCode, System.currentTimeMillis() + KEY_PRESS_DELAY);
+                return true;
+            }
+
+        } else {
+            keyPressedMap.put(keyCode, false);
+        }
+        return false;
     }
 }

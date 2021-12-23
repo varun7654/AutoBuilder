@@ -12,7 +12,7 @@ import org.jetbrains.annotations.NotNull;
  */
 public class RenderableTextComponent {
     public RenderableTextComponent(@NotNull String text, float x, float y, boolean isBold, boolean isItalic, boolean isUnderlined,
-                                   boolean isStrikethrough, @NotNull Color color, int size, @NotNull Fonts font) {
+                                   boolean isStrikethrough, @NotNull Color color, int size, @NotNull Fonts font, int row) {
         this.text = text;
         this.x = x;
         this.y = y;
@@ -23,6 +23,7 @@ public class RenderableTextComponent {
         this.color = color;
         this.size = size;
         this.font = font;
+        this.row = row;
     }
 
     @NotNull final String text;
@@ -35,6 +36,7 @@ public class RenderableTextComponent {
     @NotNull final Color color;
     final int size;
     @NotNull final Fonts font;
+    final int row;
 
     public BitmapFont getBitmapFont() {
         return FontHandler.getFont(font, isBold, isItalic, size);
@@ -42,5 +44,22 @@ public class RenderableTextComponent {
 
     public FreeTypeFontGenerator.FreeTypeBitmapFontData getFontData() {
         return FontHandler.getFontData(font, isBold, isItalic, size);
+    }
+
+    @Override
+    public String toString() {
+        return "RenderableTextComponent{" +
+                "text='" + text + '\'' +
+                ", x=" + x +
+                ", y=" + y +
+                ", isBold=" + isBold +
+                ", isItalic=" + isItalic +
+                ", isUnderlined=" + isUnderlined +
+                ", isStrikethrough=" + isStrikethrough +
+                ", color=" + color +
+                ", size=" + size +
+                ", font=" + font +
+                ", row=" + row +
+                '}';
     }
 }
