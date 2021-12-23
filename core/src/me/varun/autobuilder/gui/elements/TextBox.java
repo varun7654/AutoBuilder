@@ -117,6 +117,7 @@ public class TextBox extends InputEventListener {
                 xPos = -1;
             }
 
+            //Act like we click up on the previous line
             if (getKeyPressed(Keys.UP)) {
                 Vector2 pos = textBlock.getPositionOfIndex(selectedPos);
                 if (xPos == -1) xPos = pos.x;
@@ -126,6 +127,7 @@ public class TextBox extends InputEventListener {
                 nextFlashChange = System.currentTimeMillis() + 500;
             }
 
+            //Act like we click down on the next line
             if (getKeyPressed(Keys.DOWN)) {
                 Vector2 pos = textBlock.getPositionOfIndex(selectedPos);
                 if (xPos == -1) xPos = pos.x;
@@ -263,18 +265,18 @@ public class TextBox extends InputEventListener {
 
     public boolean getKeyPressed(int keyCode) {
         if (Gdx.input.isKeyPressed(keyCode)) {
-            if (keyPressedMap.get(keyCode) == null || !keyPressedMap.get(keyCode)) {
+            if (keyPressedMap.get(keyCode) == null || !keyPressedMap.get(keyCode)) { // Key just pressed
                 keyPressedMap.put(keyCode, true);
                 nextKeyPressTimeMap.put(keyCode, System.currentTimeMillis() + INITIAL_KEY_PRESS_DELAY);
                 return true;
             }
 
-            if (System.currentTimeMillis() > nextKeyPressTimeMap.get(keyCode)) {
+            if (System.currentTimeMillis() > nextKeyPressTimeMap.get(keyCode)) { // Key held down
                 nextKeyPressTimeMap.put(keyCode, System.currentTimeMillis() + KEY_PRESS_DELAY);
                 return true;
             }
 
-        } else {
+        } else { // Key released
             keyPressedMap.put(keyCode, false);
         }
         return false;
