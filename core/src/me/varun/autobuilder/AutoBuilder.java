@@ -89,7 +89,7 @@ public class AutoBuilder extends ApplicationAdapter {
             config = new Config();
         }
 
-        networkTables.start();
+        if (config.isNetworkTablesEnabled()) networkTables.start();
 
         FontHandler.updateFonts();
 
