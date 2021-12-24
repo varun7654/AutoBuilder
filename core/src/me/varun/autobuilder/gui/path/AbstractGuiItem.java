@@ -63,7 +63,7 @@ public abstract class AbstractGuiItem implements Disposable {
         RoundedShapeRenderer.roundedRect(shapeRenderer, drawStartX, drawStartY - 40, drawWidth, 40, 2, headerColor);
 
         headerTextBlock.setTextInComponent(0, headerText);
-        FontRenderer.renderText(spriteBatch, drawStartX + 5, drawStartY - 31, headerTextBlock);
+        FontRenderer.renderText(spriteBatch, shapeRenderer, drawStartX + 5, drawStartY - 31, headerTextBlock);
         spriteBatch.draw(trashTexture, drawStartX + drawWidth - 45, drawStartY - 38,
                 trashTexture.getWidth() * (36f / trashTexture.getHeight()), 36);
         if (warning) {

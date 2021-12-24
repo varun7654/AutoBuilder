@@ -23,6 +23,8 @@ public class TextComponent {
     @NotNull public Color color = Color.WHITE;
     @NotNull public OptionalInt size = OptionalInt.empty();
     @NotNull public Optional<Fonts> font = Optional.empty();
+    @NotNull public Optional<Color> underlineColor = Optional.empty();
+    @NotNull public Optional<Color> strikethroughColor = Optional.empty();
 
     /**
      * @param text  the text of this component.
@@ -38,24 +40,6 @@ public class TextComponent {
      */
     public TextComponent(@NotNull String text) {
         this.text = text;
-    }
-
-    /**
-     * @param text            the text of this component.
-     * @param isBold          set if the font is bold.
-     * @param isItalic        set if the font is italic.
-     * @param isStrikethrough set if the font is strikethrough.
-     * @param isUnderlined    set if the font is underlined.
-     */
-    public TextComponent(@NotNull String text, boolean isBold, boolean isItalic, boolean isStrikethrough, boolean isUnderlined,
-                         boolean isObfuscated, @NotNull Color color) {
-        this.text = text;
-        this.isBold = isBold;
-        this.isItalic = isItalic;
-        this.isStrikethrough = isStrikethrough;
-        this.isUnderlined = isUnderlined;
-        this.isObfuscated = isObfuscated;
-        this.color = color;
     }
 
     /**
@@ -107,14 +91,15 @@ public class TextComponent {
     }
 
     /**
-     * TODO: implement
+     * @return true if strikethrough is enabled
      */
     public boolean isStrikethrough() {
         return isStrikethrough;
     }
 
     /**
-     * TODO: implement
+     * @param strikethrough set if the text should be strikethrough
+     * @return {@link TextComponent} this
      */
     public @NotNull TextComponent setStrikethrough(boolean strikethrough) {
         isStrikethrough = strikethrough;
@@ -122,14 +107,15 @@ public class TextComponent {
     }
 
     /**
-     * TODO: implement
+     * @return true if underline is enabled
      */
     public boolean isUnderlined() {
         return isUnderlined;
     }
 
     /**
-     * TODO: implement
+     * @param underlined set if the text should be underlined
+     * @return {@link TextComponent} this
      */
     public @NotNull TextComponent setUnderlined(boolean underlined) {
         isUnderlined = underlined;
@@ -204,5 +190,23 @@ public class TextComponent {
                 ", size=" + size +
                 ", font=" + font +
                 '}';
+    }
+
+    public @NotNull Color getUnderlineColor() {
+        return underlineColor.orElse(color);
+    }
+
+    public TextComponent setUnderlineColor(Color color) {
+        this.underlineColor = Optional.of(color);
+        return this;
+    }
+
+    public @NotNull Color getStrikethroughColor() {
+        return strikethroughColor.orElse(color);
+    }
+
+    public TextComponent setStrikethroughColor(Color color) {
+        this.strikethroughColor = Optional.of(color);
+        return this;
     }
 }

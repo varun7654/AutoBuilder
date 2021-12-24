@@ -11,16 +11,19 @@ import org.jetbrains.annotations.NotNull;
  * span multiple lines.
  */
 public class RenderableTextComponent {
-    public RenderableTextComponent(@NotNull String text, float x, float y, boolean isBold, boolean isItalic, boolean isUnderlined,
-                                   boolean isStrikethrough, @NotNull Color color, int size, @NotNull Fonts font, int row) {
+    public RenderableTextComponent(@NotNull String text, float x, float y, float endX, boolean isBold, boolean isItalic, boolean isUnderlined,
+                                   boolean isStrikethrough, @NotNull Color color, @NotNull Color underlineColor, @NotNull Color strikethroughColor, int size, @NotNull Fonts font, int row) {
         this.text = text;
         this.x = x;
         this.y = y;
+        this.endX = endX;
         this.isBold = isBold;
         this.isItalic = isItalic;
         this.isUnderlined = isUnderlined;
         this.isStrikethrough = isStrikethrough;
         this.color = color;
+        this.underlineColor = underlineColor;
+        this.strikethroughColor = strikethroughColor;
         this.size = size;
         this.font = font;
         this.row = row;
@@ -29,11 +32,14 @@ public class RenderableTextComponent {
     @NotNull final String text;
     final float x;
     final float y;
+    final float endX;
     final boolean isBold;
     final boolean isItalic;
     final boolean isUnderlined;
     final boolean isStrikethrough;
     @NotNull final Color color;
+    @NotNull final Color underlineColor;
+    @NotNull final Color strikethroughColor;
     final int size;
     @NotNull final Fonts font;
     final int row;

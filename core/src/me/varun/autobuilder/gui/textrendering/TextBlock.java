@@ -65,6 +65,7 @@ public class TextBlock {
         //TODO: Figure why we get empty text components that contain only a single space.
         renderableTextComponents.clear();
         float x = 0, y = 0;
+        float bufferX = 0; // The x & y position of the last character in the text buffer
         float componentStartX = 0, componentStartY = 0;
         boolean textWrapped = true;
         boolean foundValidWhitespace = false;
@@ -92,10 +93,12 @@ public class TextBlock {
                     if (fontData.xHeight > largestFontSize) { // One final check to see if the current font size is larger than the largest recorded font size on this line
                         largestFontSize = fontData.xHeight;
                     }
+                    bufferX = x; // Set the buffer x position to the current x position
 
                     renderableTextComponents.add(new RenderableTextComponent(sb.toString(), componentStartX, componentStartY,
-                            component.isBold, component.isItalic, component.isUnderlined, component.isStrikethrough,
-                            component.color, component.size.orElse(defaultSize), component.font.orElse(defaultFont), row));
+                            bufferX, component.isBold, component.isItalic, component.isUnderlined, component.isStrikethrough,
+                            component.color, component.getUnderlineColor(), component.getStrikethroughColor(),
+                            component.size.orElse(defaultSize), component.font.orElse(defaultFont), row));
 
                     x = 0; // Go back to the start of the line
                     y -= largestFontSize * lineSpacing; //Move down a line
@@ -113,6 +116,7 @@ public class TextBlock {
                     continue;
                 } else if (Character.isWhitespace(c)) { // If the character is a whitespace character
                     sb.append(component.getText(), lastWhiteSpaceIndex, j);
+                    bufferX = x; // Set the x position of the last character in the buffer to the current x position
                     if (fontData.xHeight > largestFontSize) {
                         largestFontSize = fontData.xHeight;
                     }
@@ -133,8 +137,9 @@ public class TextBlock {
 
                         // Add the buffer (which contains the text up to the last whitespace) to the list of renderable
                         renderableTextComponents.add(new RenderableTextComponent(sb + " ", componentStartX, componentStartY,
-                                component.isBold, component.isItalic, component.isUnderlined, component.isStrikethrough,
-                                component.color, component.size.orElse(defaultSize), component.font.orElse(defaultFont), row));
+                                bufferX, component.isBold, component.isItalic, component.isUnderlined, component.isStrikethrough,
+                                component.color, component.getUnderlineColor(), component.getStrikethroughColor(),
+                                component.size.orElse(defaultSize), component.font.orElse(defaultFont), row));
 
                         x = 0; // Reset the x position
                         y -= largestFontSize * lineSpacing; // Move down a line
@@ -147,17 +152,19 @@ public class TextBlock {
                         foundValidWhitespace = false; // Reset the found valid whitespace because we are starting a new line
                         sb = new StringBuilder(); // Reset the buffer
                     } else { // If there is no space on this line we can't wrap the text at a space. We have to wrap the text at the end of the line in the middle of a word
-                        sb.append(component.getText(), lastWhiteSpaceIndex, j); // Add the text from the last whitespace to the
-                        // current index to the buffer
-
+                        sb.append(component.getText(), lastWhiteSpaceIndex, j); // Add the remaining text to the buffer
                         if (fontData.xHeight > largestFontSize) { // One last check to see if the current font size is the
                             // largest font size in the line. If it is, we use it as the largest font size for the line
                             largestFontSize = fontData.xHeight;
                         }
+                        bufferX = x - (glyph != null ? glyph.xadvance : 0); // Set the x position of the last character in the
+                        // buffer to the current x position, but don't add the current charter since it's not on this line
+
                         // Create a new renderable text component with the text from the buffer
                         renderableTextComponents.add(new RenderableTextComponent(sb.toString(), componentStartX, componentStartY,
-                                component.isBold, component.isItalic, component.isUnderlined, component.isStrikethrough,
-                                component.color, component.size.orElse(defaultSize), component.font.orElse(defaultFont), row));
+                                bufferX, component.isBold, component.isItalic, component.isUnderlined, component.isStrikethrough,
+                                component.color, component.getUnderlineColor(), component.getStrikethroughColor(),
+                                component.size.orElse(defaultSize), component.font.orElse(defaultFont), row));
                         x = 0; // Reset the x position
                         y -= largestFontSize * lineSpacing; // Move down a line
                         row++; // Increment the row
@@ -168,24 +175,26 @@ public class TextBlock {
                         componentStartY = y; // Set the y position of the next component to the current y position
                         lastWhiteSpaceIndex = j; // Set the last whitespace index to the current index to avoid duplicating stuff
                         textWrapped = false; // Set to false because we didn't wrap the text at the last whitespace
+                        j--; // Decrement the index because we are starting a new line;
                     }
                 }
             }
             // We reached the end of the textComponent. Add the remaining text to a renderable text component
             if (chars.length > lastWhiteSpaceIndex) { // If there is text left that still needs to be added to the buffer
-                sb.append(component.getText(), lastWhiteSpaceIndex,
-                        chars.length); // Add the text from the last whitespace to the current index to the buffer
-
+                sb.append(component.getText(), lastWhiteSpaceIndex, chars.length); // Add the remaining text to the buffer
                 if (fontData.xHeight > largestFontSize) { // One last check to see if the current font size is the
                     // largest font size in the line. If it is, we use it as the largest font size for the line
                     largestFontSize = fontData.xHeight;
                 }
+                bufferX = x; // Set the x position of the last character in the buffer to the current x position
             }
 
             // Create a new renderable text component with the text from the buffer
             renderableTextComponents.add(new RenderableTextComponent(sb.toString(), componentStartX, componentStartY,
-                    component.isBold, component.isItalic, component.isUnderlined, component.isStrikethrough, component.color,
-                    component.size.orElse(defaultSize), component.font.orElse(defaultFont), row));
+                    bufferX, component.isBold, component.isItalic, component.isUnderlined, component.isStrikethrough,
+                    component.color,
+                    component.getUnderlineColor(), component.getStrikethroughColor(), component.size.orElse(defaultSize),
+                    component.font.orElse(defaultFont), row));
 
             componentStartX = x; // Set the x position of the next component to the current x position
             componentStartY = y; // Set the y position of the next component to the current y position
@@ -307,6 +316,7 @@ public class TextBlock {
         this.dirty = true;
         getPositionOfIndexCache.clear();
         getHeightCache = -1;
+        width = -1;
     }
 
     public void setDirtyIfTrue(boolean dirty) {
@@ -321,20 +331,13 @@ public class TextBlock {
      */
     public Vector2 getPositionOfIndex(int index) {
         System.out.println(index);
-        //if (getPositionOfIndexCache.containsKey(index)) return getPositionOfIndexCache.get(index);
+        if (getPositionOfIndexCache.containsKey(index)) return getPositionOfIndexCache.get(index);
 
         List<RenderableTextComponent> renderableTextComponents = getRenderableTextComponents();
         int currentIndex = 0;
         for (int i = 0; i < renderableTextComponents.size(); i++) {
             RenderableTextComponent renderableTextComponent = renderableTextComponents.get(i);
             String text = renderableTextComponent.text;
-            //            if (text.length() + currentIndex == index && renderableTextComponents.size() > i + 1
-            //                    && Character.isWhitespace(text.charAt(text.length() - 1)) && text.charAt(text.length() - 1) != '\n') {
-            //                //Make sure that the cursor shows up in the right location when the text wraps
-            //                RenderableTextComponent nextRenderableTextComponent = renderableTextComponents.get(i + 1);
-            //                getPositionOfIndexCache.put(index, new Vector2(nextRenderableTextComponent.x, nextRenderableTextComponent.y));
-            //                return getPositionOfIndexCache.get(index);
-            //            }
 
             if (text.length() + currentIndex >= index) {
                 float positionOffset = 0;
@@ -399,6 +402,19 @@ public class TextBlock {
             currentIndex += renderableTextComponent.text.length();
         }
         return currentIndex;
+    }
+
+    float width = -1;
+
+    public float getWidth() {
+        if (width != -1) return width;
+
+        for (RenderableTextComponent renderableTextComponent : getRenderableTextComponents()) {
+            if (renderableTextComponent.endX - renderableTextComponent.x > width) {
+                width = renderableTextComponent.endX - renderableTextComponent.x;
+            }
+        }
+        return width;
     }
 
     public void setTextInComponent(int index, String text) {

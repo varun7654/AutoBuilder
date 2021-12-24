@@ -210,7 +210,7 @@ public class AutoBuilder extends ApplicationAdapter {
         frameTimes[frameTimePos] = Gdx.graphics.getDeltaTime() * 1000;
         frameTimePos++;
         if (frameTimePos == frameTimes.length) frameTimePos = 0;
-        FontRenderer.renderText(hudBatch, 4, 4, new TextBlock(Fonts.ROBOTO, 12,
+        FontRenderer.renderText(hudBatch, null, 4, 4, new TextBlock(Fonts.ROBOTO, 12,
                 new TextComponent(Integer.toString(Gdx.graphics.getFramesPerSecond())).setBold(true),
                 new TextComponent(" FPS, Peak: ").setBold(false),
                 new TextComponent(df.format(Arrays.stream(frameTimes).max().orElseThrow())).setBold(true),

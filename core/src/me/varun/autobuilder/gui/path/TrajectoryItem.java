@@ -109,11 +109,11 @@ public class TrajectoryItem extends AbstractGuiItem implements PathChangeListene
                 }
             }
 
-            FontRenderer.renderText(spriteBatch, drawStartX + 10, drawStartY - (63 + pose2dList.size() * 30),
+            FontRenderer.renderText(spriteBatch, shapeRenderer, drawStartX + 10, drawStartY - (63 + pose2dList.size() * 30),
                     Fonts.ROBOTO, 22, new TextComponent("Start Velocity: ").setBold(true).setColor(Color.BLACK));
-            FontRenderer.renderText(spriteBatch, drawStartX + 10, drawStartY - (63 + (pose2dList.size() + 1) * 30),
+            FontRenderer.renderText(spriteBatch, shapeRenderer, drawStartX + 10, drawStartY - (63 + (pose2dList.size() + 1) * 30),
                     Fonts.ROBOTO, 22, new TextComponent("End Velocity: ").setBold(true).setColor(Color.BLACK));
-            FontRenderer.renderText(spriteBatch, drawStartX + 10, drawStartY - (65 + (pose2dList.size() + 2) * 30),
+            FontRenderer.renderText(spriteBatch, shapeRenderer, drawStartX + 10, drawStartY - (65 + (pose2dList.size() + 2) * 30),
                     Fonts.ROBOTO, 22, new TextComponent("Reversed: ").setBold(true).setColor(Color.BLACK));
 
             startVelocityTextBox.draw(shapeRenderer, spriteBatch, drawStartX + 10 + 2 * 123,

@@ -175,16 +175,17 @@ public class TextBox extends InputEventListener {
         RoundedShapeRenderer.roundedRect(shapeRenderer, drawStartX, drawStartY - textBlock.getHeight(), drawWidth,
                 textBlock.getHeight() + 8, 2, Color.WHITE);
 
-        FontRenderer.renderText(spriteBatch, drawStartX + 4, drawStartY - textBlock.getDefaultSize() + 4, textBlock);
+        FontRenderer.renderText(spriteBatch, shapeRenderer, drawStartX + 4, drawStartY - textBlock.getDefaultSize() + 4,
+                textBlock);
 
         if (selected && flashing) {
             if (selectedPos >= 0 && textBlock.getRenderableTextComponents().size() > 0) {
                 Vector2 cursorPos = textBlock.getPositionOfIndex(selectedPos);
-                FontRenderer.renderText(spriteBatch, drawStartX + 2 + cursorPos.x,
+                FontRenderer.renderText(spriteBatch, shapeRenderer, drawStartX + 2 + cursorPos.x,
                         drawStartY + textBlock.getDefaultSize() - textBlock.getDefaultLineSpacingSize() + 5 + cursorPos.y,
                         cursorTextBlock);
             } else {
-                FontRenderer.renderText(spriteBatch, drawStartX + 2,
+                FontRenderer.renderText(spriteBatch, shapeRenderer, drawStartX + 2,
                         drawStartY + textBlock.getDefaultSize() - textBlock.getDefaultLineSpacingSize() + 5,
                         cursorTextBlock);
             }
