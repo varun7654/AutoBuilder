@@ -313,6 +313,7 @@ public class AutoBuilder extends ApplicationAdapter {
         hudBatch.dispose();
         pathGui.dispose();
         whiteTexture.dispose();
+        FontHandler.dispose();
     }
 
 

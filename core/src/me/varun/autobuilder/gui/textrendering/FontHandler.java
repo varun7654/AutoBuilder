@@ -33,7 +33,12 @@ public class FontHandler {
         fontSizes.add(16);
     }
 
-
+    public static void dispose() {
+        for (FontFamily fontFamily : FONT_FAMILY_MAP.values()) {
+            fontFamily.dispose();
+        }
+    }
+    
     public static void updateFonts() {
         for (FontFamily fontFamily : FONT_FAMILY_MAP.values()) {
             fontFamily.dispose();
