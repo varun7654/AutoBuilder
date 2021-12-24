@@ -88,7 +88,7 @@ public class AutoBuilder extends ApplicationAdapter {
             config = new Config();
         }
 
-        networkTables.start();
+        if (config.isNetworkTablesEnabled()) networkTables.start();
 
         Gdx.app.getInput().setInputProcessor(inputEventThrower);
 

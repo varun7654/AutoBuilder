@@ -20,7 +20,8 @@ public class Config {
     private float pointScaleFactor;
     private float originX;
     private float originY;
-    PathingConfig pathingConfig;
+    private PathingConfig pathingConfig;
+    private boolean networkTablesEnabled;
 
     @JsonCreator
     public Config(@JsonProperty(value = "scriptMethods") List<String> scriptMethods,
@@ -31,8 +32,9 @@ public class Config {
                   @JsonProperty(value = "pointScaleFactor") Float pointScaleFactor,
                   @JsonProperty(value = "originX") Float originX,
                   @JsonProperty(value = "originY") Float originY,
-                  @JsonProperty(value = "pathingConfig") PathingConfig pathingConfig){
-        if(scriptMethods == null){
+                  @JsonProperty(value = "pathingConfig") PathingConfig pathingConfig,
+                  @JsonProperty(value = "networkTablesEnabled") Boolean networkTablesEnabled) {
+        if (scriptMethods == null) {
             this.scriptMethods = new ArrayList<>();
             this.scriptMethods.addAll(List.of("print", "sleep"));
         } else {
@@ -47,10 +49,11 @@ public class Config {
         this.originX = originX == null ? -422f : originX;
         this.originY = originY == null ? -589f : originY;
         this.pathingConfig = pathingConfig == null ? new PathingConfig() : pathingConfig;
+        this.networkTablesEnabled = networkTablesEnabled == null ? true : networkTablesEnabled;
     }
 
     public Config(){
-        this(null, null, null, null, null, null, null, null, null);
+        this(null, null, null, null, null, null, null, null, null, null);
     }
 
     @JsonProperty("scriptMethods")
@@ -89,17 +92,23 @@ public class Config {
     }
 
     @JsonProperty("originY")
-    public float getOriginY(){
+    public float getOriginY() {
         return originY;
     }
 
     @JsonProperty("pathingConfig")
-    public PathingConfig getPathingConfig(){
+    public PathingConfig getPathingConfig() {
         return pathingConfig;
     }
 
-    @JsonProperty("readMe") @JsonFormat(shape = JsonFormat.Shape.STRING)
-    private String getReadMe(){
+    @JsonProperty("networkTablesEnabled")
+    public boolean isNetworkTablesEnabled() {
+        return networkTablesEnabled;
+    }
+
+    @JsonProperty("readMe")
+    @JsonFormat(shape = JsonFormat.Shape.STRING)
+    private String getReadMe() {
         return "the scriptMethods contains the list of valid methods that will be allowed in the script block. " +
                 "print and sleep are currently hardcoded to allow for error checking on the arguments. " +
                 "You to edit them you will need to clone & compile the code. You can find them at src/me/varun/autobuilder/scripting/parser. " +
@@ -109,6 +118,8 @@ public class Config {
                 "The point scale factor is calculated by getting the (length and pixels of the field in the image)/(length of the field in meters). " +
                 "It is used to render everything in the correct position. " +
                 "The units for the origin is in pixels. It represents how much the image should be translated so that (0,0) " +
-                "in the application space is (0,0) on the image. ";
+                "in the application space is (0,0) on the image. " +
+                "You can disable network tables by setting networkTablesEnabled to false. This is useful if you are using the " +
+                "app while not connected to the robot and are getting lag spikes/errors in the console";
     }
 }
