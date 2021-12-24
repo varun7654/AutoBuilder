@@ -29,21 +29,79 @@ public class RenderableTextComponent {
         this.row = row;
     }
 
+    /**
+     * The text that should be rendered.
+     */
     @NotNull final String text;
+
+    /**
+     * Relative x position of the text.
+     */
     final float x;
+
+    /**
+     * Relative y position of the text.
+     */
     final float y;
+
+    /**
+     * Relative end x position of the text.
+     */
     final float endX;
+
+    /**
+     * Whether the text is bold.
+     */
     final boolean isBold;
+
+    /**
+     * Whether the text is italic.
+     */
     final boolean isItalic;
+
+    /**
+     * Whether the text is underlined.
+     */
     final boolean isUnderlined;
+
+    /**
+     * Whether the text is strikethrough.
+     */
     final boolean isStrikethrough;
+
+    /**
+     * Color of the text.
+     */
     @NotNull final Color color;
+
+    /**
+     * Color of the underline.
+     */
     @NotNull final Color underlineColor;
+
+    /**
+     * Color of the strikethrough.
+     */
     @NotNull final Color strikethroughColor;
+
+    /**
+     * Font size of the text.
+     */
     final int size;
+
+    /**
+     * Font of the text.
+     */
     @NotNull final Fonts font;
+
+    /**
+     * Row of the text.
+     */
     final int row;
 
+    /**
+     * @return The font that the text should be rendered with.
+     */
     public BitmapFont getBitmapFont() {
         return FontHandler.getFont(font, isBold, isItalic, size);
     }

@@ -14,16 +14,54 @@ import java.util.OptionalInt;
  */
 @SuppressWarnings("OptionalUsedAsFieldOrParameterType")
 public class TextComponent {
+    /**
+     * The text that this component contains.
+     */
     @NotNull public String text;
+
+    /**
+     * If the text in this component is bold.
+     */
     public boolean isBold = false;
+
+    /**
+     * If the text in this component is italic.
+     */
     public boolean isItalic = false;
+
+    /**
+     * If the text in this component is strikethrough.
+     */
     public boolean isStrikethrough = false;
+
+    /**
+     * If the text in this component is underlined.
+     */
     public boolean isUnderlined = false;
-    public boolean isObfuscated = false;
+
+    /**
+     * The color of the text in this component.
+     */
     @NotNull public Color color = Color.WHITE;
+
+    /**
+     * The optional font size of the text in this component.
+     */
     @NotNull public OptionalInt size = OptionalInt.empty();
+
+    /**
+     * The optional font of the text in this component.
+     */
     @NotNull public Optional<Fonts> font = Optional.empty();
+
+    /**
+     * The optional color of the underline in this component.
+     */
     @NotNull public Optional<Color> underlineColor = Optional.empty();
+
+    /**
+     * The optional color of the strikethrough in this component.
+     */
     @NotNull public Optional<Color> strikethroughColor = Optional.empty();
 
     /**
@@ -122,21 +160,6 @@ public class TextComponent {
         return this;
     }
 
-    /**
-     * not implemented yet
-     */
-    public boolean isObfuscated() {
-        return isObfuscated;
-    }
-
-    /**
-     * not implemented yet
-     */
-    public @NotNull TextComponent setObfuscated(boolean obfuscated) {
-        isObfuscated = obfuscated;
-        return this;
-    }
-
     public @NotNull Color getColor() {
         return color;
     }
@@ -185,7 +208,6 @@ public class TextComponent {
                 ", isItalic=" + isItalic +
                 ", isStrikethrough=" + isStrikethrough +
                 ", isUnderlined=" + isUnderlined +
-                ", isObfuscated=" + isObfuscated +
                 ", color=" + color +
                 ", size=" + size +
                 ", font=" + font +

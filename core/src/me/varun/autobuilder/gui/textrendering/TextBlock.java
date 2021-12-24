@@ -13,15 +13,50 @@ import java.util.*;
  * A text block is a collection of TextComponent objects.
  */
 public class TextBlock {
+    /**
+     * The default font that will be used if one is not specified in the text component.
+     */
     @NotNull private Fonts defaultFont;
-    private boolean dirty = true;
-    float wrapWidth;
-    private int defaultSize;
-    @NotNull private TextComponent[] textComponents;
-    float lineSpacing = 2f;
-    private float largestFontSize = 0;
-    private int totalChars = 0;
 
+    /**
+     * True if the data in this text block is dirty and needs to be re-built.
+     */
+    private boolean dirty = true;
+
+    /**
+     * Maximum width of the text block. Text that exceeds this width will be wrapped.
+     */
+    float wrapWidth;
+
+    /**
+     * The default size of the font if one is not specified in the text component.
+     */
+    private int defaultSize;
+
+    /**
+     * Array of text components in this text block.
+     */
+    @NotNull private TextComponent[] textComponents;
+
+    /**
+     * Spacing between the lines of text.
+     */
+    float lineSpacing = 2f;
+
+    /**
+     * The largest font size that is used in any text component. Value will not be updated until {@link #update()} is called.
+     */
+    private float largestFontSize = 0;
+
+    /**
+     * Total number of character in the text block. This is the total of all the characters in all the textcomponents. Value will
+     * not be updated until {@link #update()} is called.
+     */
+    private int totalChars = 0;
+    
+    /**
+     * List of RenderableTextComponents in this text block. Value will not be updated until {@link #update()} is called.
+     */
     @NotNull private final ArrayList<RenderableTextComponent> renderableTextComponents = new ArrayList<>();
 
     public TextBlock(@NotNull Fonts defaultFont, int defaultSize, TextComponent... textComponent) {
@@ -326,8 +361,11 @@ public class TextBlock {
     Map<Integer, Vector2> getPositionOfIndexCache = new HashMap<>();
 
     /**
+     * Tries to return the cached position of the given index. If the position is not cached, it will be calculated and cached.
+     *
      * @param index of character to get
-     * @return the position of the character at the given index
+     * @return a mutable position of the character at the given index. If the Vector2 needs to be modified, you should clone it
+     * first.
      */
     public Vector2 getPositionOfIndex(int index) {
         if (getPositionOfIndexCache.containsKey(index)) return getPositionOfIndexCache.get(index);
