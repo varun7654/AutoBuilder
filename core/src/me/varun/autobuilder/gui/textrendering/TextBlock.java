@@ -330,13 +330,11 @@ public class TextBlock {
      * @return the position of the character at the given index
      */
     public Vector2 getPositionOfIndex(int index) {
-        System.out.println(index);
         if (getPositionOfIndexCache.containsKey(index)) return getPositionOfIndexCache.get(index);
 
         List<RenderableTextComponent> renderableTextComponents = getRenderableTextComponents();
         int currentIndex = 0;
-        for (int i = 0; i < renderableTextComponents.size(); i++) {
-            RenderableTextComponent renderableTextComponent = renderableTextComponents.get(i);
+        for (RenderableTextComponent renderableTextComponent : renderableTextComponents) {
             String text = renderableTextComponent.text;
 
             if (text.length() + currentIndex >= index) {
@@ -362,9 +360,6 @@ public class TextBlock {
         throw new IllegalArgumentException("Index " + index + " is out of bounds for max index " + currentIndex + " text length "
                 + textComponents[0].getText().length());
     }
-
-
-    //TODO: Fix newlines
 
     /**
      * Note: you might get weird behavior if you are using multiple fonts and/or sizes.
