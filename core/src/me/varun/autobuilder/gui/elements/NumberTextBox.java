@@ -1,10 +1,8 @@
 package me.varun.autobuilder.gui.elements;
 
-import com.badlogic.gdx.graphics.g2d.BitmapFont;
-import com.badlogic.gdx.graphics.glutils.ShaderProgram;
 import me.varun.autobuilder.UndoHandler;
-import me.varun.autobuilder.events.scroll.InputEventThrower;
-import me.varun.autobuilder.events.textchange.NumberTextboxChangeListener;
+import me.varun.autobuilder.events.input.InputEventThrower;
+import me.varun.autobuilder.events.input.NumberTextboxChangeListener;
 import org.jetbrains.annotations.NotNull;
 
 public class NumberTextBox extends TextBox {
@@ -14,9 +12,9 @@ public class NumberTextBox extends TextBox {
     private final int column;
     private final UndoHandler undoHandler = UndoHandler.getInstance();
 
-    public NumberTextBox(@NotNull String text, @NotNull ShaderProgram fontShader, @NotNull BitmapFont font,
-                         @NotNull InputEventThrower eventThrower, @NotNull NumberTextboxChangeListener numberTextboxChangeListener, int row, int column) {
-        super(text, fontShader, font, eventThrower, false, null);
+    public NumberTextBox(@NotNull String text, @NotNull InputEventThrower eventThrower,
+                         @NotNull NumberTextboxChangeListener numberTextboxChangeListener, int row, int column, int fontSize) {
+        super(text, eventThrower, false, null, fontSize);
         this.numberTextboxChangeListener = numberTextboxChangeListener;
         this.row = row;
         this.column = column;

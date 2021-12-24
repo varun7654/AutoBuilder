@@ -12,6 +12,7 @@ import java.util.function.Supplier;
 
 public interface SendableBuilder {
   /** The backend kinds used for the sendable builder. */
+  @SuppressWarnings("EnumClass")
   enum BackendKind {
     kUnknown,
     kNetworkTables

@@ -2,14 +2,17 @@ package me.varun.autobuilder.gui.elements;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
+import com.badlogic.gdx.Input.Keys;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.g2d.Batch;
-import com.badlogic.gdx.graphics.g2d.BitmapFont;
-import com.badlogic.gdx.graphics.g2d.GlyphLayout;
-import com.badlogic.gdx.graphics.glutils.ShaderProgram;
-import me.varun.autobuilder.events.scroll.InputEventListener;
-import me.varun.autobuilder.events.scroll.InputEventThrower;
-import me.varun.autobuilder.events.textchange.TextChangeListener;
+import com.badlogic.gdx.math.Vector2;
+import me.varun.autobuilder.events.input.InputEventListener;
+import me.varun.autobuilder.events.input.InputEventThrower;
+import me.varun.autobuilder.events.input.TextChangeListener;
+import me.varun.autobuilder.gui.textrendering.FontRenderer;
+import me.varun.autobuilder.gui.textrendering.Fonts;
+import me.varun.autobuilder.gui.textrendering.TextBlock;
+import me.varun.autobuilder.gui.textrendering.TextComponent;
 import me.varun.autobuilder.util.RoundedShapeRenderer;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -20,7 +23,8 @@ import java.awt.datatransfer.Clipboard;
 import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.UnsupportedFlavorException;
 import java.io.IOException;
-import java.util.Calendar;
+import java.util.HashMap;
+import java.util.Map;
 
 
 /*
@@ -34,118 +38,115 @@ can't press up arrow to go up a line
  */
 public class TextBox extends InputEventListener {
     @NotNull
-    private final ShaderProgram fontShader;
-    @NotNull
-    private final BitmapFont font;
-    @NotNull
     private final InputEventThrower eventThrower;
     private final boolean wrapText;
     @Nullable
     private final TextChangeListener textChangeListener;
-    @NotNull
-    private final GlyphLayout glyphLayout = new GlyphLayout();
     @NotNull
     protected String text;
     private boolean selected = false;
     private long nextFlashChange = 0;
     private boolean flashing = false;
     private int selectedPos = 0;
+    private final int fontSize;
+    TextBlock textBlock;
+    private final TextBlock cursorTextBlock;
+    private float xPos = -1;
 
-    public TextBox(@NotNull String text, @NotNull ShaderProgram fontShader, @NotNull BitmapFont font,
-                   @NotNull InputEventThrower eventThrower, boolean wrapText, @Nullable TextChangeListener textChangeListener) {
+    Map<Integer, Boolean> keyPressedMap = new HashMap<>();
+    Map<Integer, Long> nextKeyPressTimeMap = new HashMap<>();
+
+    private static final long KEY_PRESS_DELAY = 50;
+    private static final long INITIAL_KEY_PRESS_DELAY = 400;
+
+    public TextBox(@NotNull String text, @NotNull InputEventThrower eventThrower, boolean wrapText,
+                   @Nullable TextChangeListener textChangeListener, int fontSize) {
         this.text = text;
-        this.fontShader = fontShader;
-        this.font = font;
         this.eventThrower = eventThrower;
         this.wrapText = wrapText;
         this.textChangeListener = textChangeListener;
+        this.fontSize = fontSize;
+        textBlock = new TextBlock(Fonts.JETBRAINS_MONO, fontSize, 350, new TextComponent(text).setColor(Color.BLACK));
+        cursorTextBlock = new TextBlock(Fonts.JETBRAINS_MONO, fontSize, new TextComponent("|").setColor(Color.BLACK));
         eventThrower.register(this);
     }
 
 
     //TODO: Fix Text Going outside the box and the entire cringe that this class is
     public void draw(@NotNull ShapeDrawer shapeRenderer, @NotNull Batch spriteBatch, float drawStartX,
-                     float drawStartY, float drawWidth, float drawHeight) {
-        font.getData().setScale((drawHeight - 2) / 64f);
-
+                     float drawStartY, float drawWidth) {
+        textBlock.update();
         if (Gdx.input.isButtonJustPressed(Input.Buttons.LEFT)) {
             if (Gdx.input.getX() > drawStartX && Gdx.input.getX() < drawStartX + drawWidth
-                    && Gdx.graphics.getHeight() - Gdx.input.getY() > drawStartY - getHeight(drawWidth, drawHeight)
+                    && Gdx.graphics.getHeight() - Gdx.input.getY() > drawStartY - getHeight()
                     && Gdx.graphics.getHeight() - Gdx.input.getY() < drawStartY) {
                 selected = true;
                 text = fireTextBoxClickEvent();
 
-                //Checking where we click and setting the mouse cursor to the right pos (Y pos)
-                int relativeMouseY = (int) ((drawStartY - (font.getData().xHeight) - 4) - (Gdx.graphics.getHeight() - Gdx.input.getY()));
-                int row = (int) Math.floor(relativeMouseY / font.getData().xHeight);
-
-
-                //Checking where we click and setting the mouse cursor to the right pos (X pos)
-                float relativeMousePos = Gdx.input.getX() - drawStartX - 4;
-                selectedPos = -1;
-                if (relativeMousePos < 0) {
-                    selectedPos = 0;
-                } else {
-                    float lastTextPos = 0;
-                    for (int i = 0; i < (text + " ").length(); i++) {
-                        glyphLayout.setText(font, (text + " "), 0, i, Color.BLACK, drawWidth - 8, -1, wrapText, null);
-                        if (relativeMousePos < glyphLayout.width && glyphLayout.height > (font.getData().xHeight * row) + 4) {
-                            if (glyphLayout.width - relativeMousePos > relativeMousePos - lastTextPos) {
-                                selectedPos = i - 1;
-                            } else {
-                                selectedPos = i;
-                            }
-
-                            break;
-                        }
-                        lastTextPos = glyphLayout.width;
-                    }
-                    if (selectedPos == -1) {
-                        if (text.length() > 0) {
-                            if (glyphLayout.width - relativeMousePos > relativeMousePos - lastTextPos) {
-                                selectedPos = text.length() - 1;
-                            } else {
-                                selectedPos = text.length();
-                            }
-                        } else {
-                            selectedPos = 0;
-                        }
-
-                    }
-                }
+                //drawStartX + 4, drawStartY - textBlock.getDefaultSize() + 4
+                Vector2 mousePos = new Vector2(Gdx.input.getX() - (drawStartX + 4),
+                        (Gdx.graphics.getHeight() - Gdx.input.getY()) - (drawStartY - textBlock.getDefaultSize() + 4));
+                selectedPos = textBlock.getIndexOfPosition(mousePos);
 
                 flashing = true;
-                nextFlashChange = Calendar.getInstance().getTimeInMillis() + 500;
+                nextFlashChange = System.currentTimeMillis() + 500;
+                xPos = -1;
             } else {
                 selected = false;
             }
         }
 
         if (selected) {
-            if (Gdx.input.isKeyJustPressed(Input.Keys.RIGHT)) {
+            if (getKeyPressed(Keys.RIGHT)) {
                 selectedPos++;
                 if (selectedPos > text.length()) {
                     selectedPos = text.length();
                 }
                 flashing = true;
-                nextFlashChange = Calendar.getInstance().getTimeInMillis() + 500;
+                nextFlashChange = System.currentTimeMillis() + 500;
+                xPos = -1;
             }
 
-            if (Gdx.input.isKeyJustPressed(Input.Keys.LEFT)) {
+            if (getKeyPressed(Keys.LEFT)) {
                 selectedPos--;
                 if (selectedPos < 0) {
                     selectedPos = 0;
                 }
                 flashing = true;
-                nextFlashChange = Calendar.getInstance().getTimeInMillis() + 500;
+                nextFlashChange = System.currentTimeMillis() + 500;
+                xPos = -1;
             }
 
-            if (Gdx.input.isKeyJustPressed(Input.Keys.BACKSPACE)) {
+            //Act like we click up on the previous line
+            if (getKeyPressed(Keys.UP)) {
+                Vector2 pos = textBlock.getPositionOfIndex(selectedPos);
+                if (xPos == -1) xPos = pos.x;
+                selectedPos = textBlock.getIndexOfPosition(new Vector2(xPos, pos.y + textBlock.getDefaultLineSpacingSize() + 1));
+
+                flashing = true;
+                nextFlashChange = System.currentTimeMillis() + 500;
+            }
+
+            //Act like we click down on the next line
+            if (getKeyPressed(Keys.DOWN)) {
+                Vector2 pos = textBlock.getPositionOfIndex(selectedPos);
+                if (xPos == -1) xPos = pos.x;
+                selectedPos = textBlock.getIndexOfPosition(new Vector2(xPos, pos.y - textBlock.getDefaultLineSpacingSize() / 2));
+
+                flashing = true;
+                nextFlashChange = System.currentTimeMillis() + 500;
+            }
+
+            if (getKeyPressed(Keys.BACKSPACE)) {
                 if (selectedPos > 0) {
                     text = text.substring(0, selectedPos - 1) + text.substring(selectedPos);
                     selectedPos--;
                     fireTextChangeEvent();
                 }
+
+                flashing = true;
+                nextFlashChange = System.currentTimeMillis() + 1500;
+                xPos = -1;
             }
 
             if ((Gdx.input.isKeyPressed(Input.Keys.CONTROL_LEFT) || Gdx.input.isKeyPressed(Input.Keys.CONTROL_LEFT)) &&
@@ -161,36 +162,35 @@ public class TextBox extends InputEventListener {
                 }
             }
 
-            if (nextFlashChange < Calendar.getInstance().getTimeInMillis()) {
+            if (nextFlashChange < System.currentTimeMillis()) {
                 flashing = !flashing;
-                nextFlashChange = Calendar.getInstance().getTimeInMillis() + 500;
+                nextFlashChange = System.currentTimeMillis() + 500;
             }
         }
 
-        glyphLayout.setText(font, text, 0, text.length(), Color.BLACK, drawWidth - 8, -1, wrapText, null);
-        shapeRenderer.setColor(Color.WHITE);
-        RoundedShapeRenderer.roundedRect(shapeRenderer, drawStartX, drawStartY - glyphLayout.height - 8, drawWidth, glyphLayout.height + 8, 2);
+        textBlock.setTextInComponent(0, text);
 
+        textBlock.setLineSpacing(2);
 
-        spriteBatch.setShader(fontShader);
-        font.draw(spriteBatch, text, drawStartX + 4, drawStartY - 4, drawWidth - 8, -1, wrapText);
+        RoundedShapeRenderer.roundedRect(shapeRenderer, drawStartX, drawStartY - textBlock.getHeight(), drawWidth,
+                textBlock.getHeight() + 8, 2, Color.WHITE);
+
+        FontRenderer.renderText(spriteBatch, shapeRenderer, drawStartX + 4, drawStartY - textBlock.getDefaultSize() + 4,
+                textBlock);
 
         if (selected && flashing) {
-            glyphLayout.setText(font, text, 0, selectedPos, Color.BLACK, drawWidth - 8, -1, wrapText, null);
-            float cursorRenderPosY = glyphLayout.height;
-            float cursorRenderPosX = 0;
-            for (int i = 0; i < text.length(); i++) {
-                glyphLayout.setText(font, text, i, selectedPos, Color.BLACK, drawWidth - 8, -1, wrapText, null);
-                if (glyphLayout.height <= font.getData().xHeight * 2) {
-                    cursorRenderPosX = glyphLayout.width;
-                    break;
-                }
-
+            if (selectedPos >= 0 && textBlock.getRenderableTextComponents().size() > 0) {
+                Vector2 cursorPos = textBlock.getPositionOfIndex(selectedPos);
+                FontRenderer.renderText(spriteBatch, shapeRenderer, drawStartX + 2 + cursorPos.x,
+                        drawStartY + textBlock.getDefaultSize() - textBlock.getDefaultLineSpacingSize() + 5 + cursorPos.y,
+                        cursorTextBlock);
+            } else {
+                FontRenderer.renderText(spriteBatch, shapeRenderer, drawStartX + 2,
+                        drawStartY + textBlock.getDefaultSize() - textBlock.getDefaultLineSpacingSize() + 5,
+                        cursorTextBlock);
             }
-            font.draw(spriteBatch, "|", drawStartX + 4 + cursorRenderPosX, drawStartY + 4 + font.getData().xHeight - cursorRenderPosY);
-        }
 
-        spriteBatch.setShader(null);
+        }
     }
 
     public void dispose() {
@@ -208,8 +208,9 @@ public class TextBox extends InputEventListener {
                 }
                 selectedPos++;
                 flashing = true;
-                nextFlashChange = Calendar.getInstance().getTimeInMillis() + 500;
+                nextFlashChange = System.currentTimeMillis() + 1500;
                 fireTextChangeEvent();
+                xPos = -1;
             } else if (Character.getName(character).equals("CARRIAGE RETURN (CR)")) { //TODO: Make this not cringe
                 if (text.length() == selectedPos) {
                     text = text + '\n';
@@ -218,10 +219,10 @@ public class TextBox extends InputEventListener {
                 }
                 selectedPos++;
                 flashing = true;
-                nextFlashChange = Calendar.getInstance().getTimeInMillis() + 500;
+                nextFlashChange = System.currentTimeMillis() + 1500;
                 fireTextChangeEvent();
+                xPos = -1;
             }
-
         }
     }
 
@@ -235,10 +236,8 @@ public class TextBox extends InputEventListener {
         return textChangeListener.onTextBoxClick(text, this);
     }
 
-    public float getHeight(float drawWidth, float drawHeight) {
-        font.getData().setScale((drawHeight - 2) / 64f);
-        glyphLayout.setText(font, text, 0, text.length(), Color.BLACK, drawWidth - 8, -1, wrapText, null);
-        return glyphLayout.height + 8;
+    public float getHeight() {
+        return textBlock.getHeight() + 8;
     }
 
     public @NotNull String getText() {
@@ -247,6 +246,7 @@ public class TextBox extends InputEventListener {
 
     /**
      * NOTE: If the textbox is selected the value that is set in this function will be ignored
+     *
      * @param text text to set
      */
     public  void setText(@NotNull String text) {
@@ -262,5 +262,24 @@ public class TextBox extends InputEventListener {
                 "text='" + text + '\'' +
                 ", selectedPos=" + selectedPos +
                 '}';
+    }
+
+    public boolean getKeyPressed(int keyCode) {
+        if (Gdx.input.isKeyPressed(keyCode)) {
+            if (keyPressedMap.get(keyCode) == null || !keyPressedMap.get(keyCode)) { // Key just pressed
+                keyPressedMap.put(keyCode, true);
+                nextKeyPressTimeMap.put(keyCode, System.currentTimeMillis() + INITIAL_KEY_PRESS_DELAY);
+                return true;
+            }
+
+            if (System.currentTimeMillis() > nextKeyPressTimeMap.get(keyCode)) { // Key held down
+                nextKeyPressTimeMap.put(keyCode, System.currentTimeMillis() + KEY_PRESS_DELAY);
+                return true;
+            }
+
+        } else { // Key released
+            keyPressedMap.put(keyCode, false);
+        }
+        return false;
     }
 }

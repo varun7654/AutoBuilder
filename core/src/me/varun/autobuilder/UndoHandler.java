@@ -3,13 +3,11 @@ package me.varun.autobuilder;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
 import com.badlogic.gdx.graphics.Color;
-import com.badlogic.gdx.graphics.g2d.BitmapFont;
-import com.badlogic.gdx.graphics.glutils.ShaderProgram;
-import me.varun.autobuilder.events.scroll.InputEventThrower;
+import me.varun.autobuilder.events.input.InputEventThrower;
+import me.varun.autobuilder.gui.path.AbstractGuiItem;
 import me.varun.autobuilder.gui.path.PathGui;
 import me.varun.autobuilder.gui.path.ScriptItem;
 import me.varun.autobuilder.gui.path.TrajectoryItem;
-import me.varun.autobuilder.gui.path.AbstractGuiItem;
 import me.varun.autobuilder.serialization.path.*;
 import org.jetbrains.annotations.NotNull;
 
@@ -31,7 +29,7 @@ public class UndoHandler {
         return undoHandler;
     }
 
-    public void update(PathGui pathGui, @NotNull ShaderProgram fontShader, @NotNull BitmapFont font, @NotNull InputEventThrower inputEventThrower, @NotNull CameraHandler cameraHandler) {
+    public void update(PathGui pathGui, @NotNull InputEventThrower inputEventThrower, @NotNull CameraHandler cameraHandler) {
         if (somethingChanged) {
             Autonomous newState = GuiSerializer.serializeAutonomousForSaving(pathGui.guiItems);
             while (pointer > 0) {
@@ -51,7 +49,7 @@ public class UndoHandler {
             if ((Gdx.input.isKeyPressed(Input.Keys.SHIFT_LEFT) || Gdx.input.isKeyPressed(Input.Keys.SHIFT_RIGHT))) {
                 pointer--;
                 if (pointer >= 0) {
-                    restoreState(undoHistory.get(pointer), pathGui, fontShader, font, inputEventThrower, cameraHandler);
+                    restoreState(undoHistory.get(pointer), pathGui, inputEventThrower, cameraHandler);
                     //System.out.println("redoing to: " + undoHistory.get(pointer));
                 } else pointer = 0;
             } else {
@@ -59,9 +57,11 @@ public class UndoHandler {
                 //System.out.println(undoHistory);
                 pointer++;
                 if (pointer < undoHistory.size()) {
-                    restoreState(undoHistory.get(pointer), pathGui, fontShader, font, inputEventThrower, cameraHandler);
+                    restoreState(undoHistory.get(pointer), pathGui, inputEventThrower, cameraHandler);
                     //System.out.println("undoing to: " + undoHistory.get(pointer));
-                } else pointer = undoHistory.size() - 1;
+                } else {
+                    pointer = undoHistory.size() - 1;
+                }
 
             }
 
@@ -70,15 +70,15 @@ public class UndoHandler {
 
     }
 
-    public void restoreState(Autonomous autonomous, PathGui pathGui, @NotNull ShaderProgram fontShader, @NotNull BitmapFont font,
-                             @NotNull InputEventThrower inputEventThrower, @NotNull CameraHandler cameraHandler) {
+    public void restoreState(Autonomous autonomous, PathGui pathGui, @NotNull InputEventThrower inputEventThrower,
+                             @NotNull CameraHandler cameraHandler) {
         List<AbstractGuiItem> guiItemList = new ArrayList<>();
         for (AbstractAutonomousStep autonomousStep : autonomous.getAutonomousSteps()) {
             if (autonomousStep instanceof TrajectoryAutonomousStep) {
                 TrajectoryAutonomousStep trajectoryAutonomousStep = (TrajectoryAutonomousStep) autonomousStep;
                 Color color = new Color().fromHsv(trajectoryAutonomousStep.getColor(), 1, 1);
                 color.set(color.r, color.g, color.b, 1);
-                TrajectoryItem trajectoryItem = new TrajectoryItem(pathGui, fontShader, font, inputEventThrower, cameraHandler,
+                TrajectoryItem trajectoryItem = new TrajectoryItem(pathGui, inputEventThrower, cameraHandler,
                         new ArrayList<>(trajectoryAutonomousStep.getPose2DList()), trajectoryAutonomousStep.isReversed(),
                         color, trajectoryAutonomousStep.isClosed(), trajectoryAutonomousStep.getVelocityStart(),
                         trajectoryAutonomousStep.getVelocityEnd());
@@ -87,7 +87,7 @@ public class UndoHandler {
 
             } else if (autonomousStep instanceof ScriptAutonomousStep) {
                 ScriptAutonomousStep scriptAutonomousStep = (ScriptAutonomousStep) autonomousStep;
-                ScriptItem scriptItem = new ScriptItem(fontShader, font, inputEventThrower, scriptAutonomousStep.getScript(),
+                ScriptItem scriptItem = new ScriptItem(inputEventThrower, scriptAutonomousStep.getScript(),
                         scriptAutonomousStep.isClosed(), scriptAutonomousStep.isValid());
                 guiItemList.add(scriptItem);
             }
