@@ -33,13 +33,13 @@ public class FontRenderer {
                     renderableTextComponent.y + y + fontToUse.getCapHeight());
 
             if (shapeDrawer != null) {
-                if (renderableTextComponent.isUnderlined) {
+                if (renderableTextComponent.isUnderlined && renderableTextComponent.underlineColor.a > 0) {
                     shapeDrawer.line(renderableTextComponent.x + x, renderableTextComponent.y + y,
                             renderableTextComponent.endX + x, renderableTextComponent.y + y,
                             renderableTextComponent.underlineColor, 2);
                 }
 
-                if (renderableTextComponent.isStrikethrough) {
+                if (renderableTextComponent.isStrikethrough && renderableTextComponent.strikethroughColor.a > 0) {
                     shapeDrawer.line(renderableTextComponent.x + x, renderableTextComponent.y + y + fontToUse.getCapHeight() / 2,
                             renderableTextComponent.endX + x, renderableTextComponent.y + y + fontToUse.getCapHeight() / 2,
                             renderableTextComponent.strikethroughColor, 2);
