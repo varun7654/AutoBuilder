@@ -104,6 +104,7 @@ public class TextBlock {
         float componentStartX = 0, componentStartY = 0;
         boolean textWrapped = true;
         boolean foundValidWhitespace = false;
+        boolean beginningOfComponent = true;
         largestFontSize = 0;
         totalChars = 0;
         int row = 0;
@@ -156,8 +157,8 @@ public class TextBlock {
                         largestFontSize = fontData.xHeight;
                     }
                     foundValidWhitespace = true;
-
                     lastWhiteSpaceIndex = j;
+                    beginningOfComponent = false; // We've reached a whitespace character, so we don't have to worry about a character being cut off
                 } else {
                     if (textWrapped) { // If this is the first character after the text has been implicitly wrapped
                         lastWhiteSpaceIndex = j; // Set the last whitespace index to the current index to avoid an extra space
@@ -168,7 +169,12 @@ public class TextBlock {
 
                 if (x > wrapWidth && !Character.isWhitespace(c)) {
                     if (foundValidWhitespace) { // If there is a space on this line we can wrap the text at the space
-                        j = lastWhiteSpaceIndex; // Reset the index to the last whitespace index
+                        if (beginningOfComponent) {
+                            j = lastWhiteSpaceIndex - 1; // Fix for the first character being cut off
+                        } else {
+                            j = lastWhiteSpaceIndex;
+                        }
+                        // Reset the index to the last whitespace index
 
                         // Add the buffer (which contains the text up to the last whitespace) to the list of renderable
                         renderableTextComponents.add(new RenderableTextComponent(sb + " ", componentStartX, componentStartY,
@@ -237,6 +243,7 @@ public class TextBlock {
 
             foundValidWhitespace = true; // Set to true because it's easier to just allow the text to wrap at the end of a
             // component than to try and wrap at a point inside the previous component.
+            beginningOfComponent = true; // Fix for first character of the next component being cut off
 
             textWrapped = false; // Set to false because the text has not wrapped yet (text wrapping can only happen inside the loop)
         }
@@ -325,10 +332,12 @@ public class TextBlock {
 
     /**
      * @param lineSpacing the line spacing. This value is multiplied by the font size to get the actual line spacing.
+     * @return this text block
      */
-    public void setLineSpacing(float lineSpacing) {
+    public TextBlock setLineSpacing(float lineSpacing) {
         setDirtyIfTrue(lineSpacing != this.lineSpacing);
         this.lineSpacing = lineSpacing;
+        return this;
     }
 
     float getHeightCache = -1;
@@ -443,8 +452,8 @@ public class TextBlock {
         if (width != -1) return width;
 
         for (RenderableTextComponent renderableTextComponent : getRenderableTextComponents()) {
-            if (renderableTextComponent.endX - renderableTextComponent.x > width) {
-                width = renderableTextComponent.endX - renderableTextComponent.x;
+            if (renderableTextComponent.endX > width) {
+                width = renderableTextComponent.endX;
             }
         }
         return width;

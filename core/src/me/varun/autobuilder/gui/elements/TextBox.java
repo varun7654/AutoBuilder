@@ -9,10 +9,12 @@ import com.badlogic.gdx.math.Vector2;
 import me.varun.autobuilder.events.input.InputEventListener;
 import me.varun.autobuilder.events.input.InputEventThrower;
 import me.varun.autobuilder.events.input.TextChangeListener;
+import me.varun.autobuilder.gui.hover.HoverManager;
 import me.varun.autobuilder.gui.textrendering.FontRenderer;
 import me.varun.autobuilder.gui.textrendering.Fonts;
 import me.varun.autobuilder.gui.textrendering.TextBlock;
 import me.varun.autobuilder.gui.textrendering.TextComponent;
+import me.varun.autobuilder.scripting.util.ErrorPos;
 import me.varun.autobuilder.util.RoundedShapeRenderer;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -23,6 +25,7 @@ import java.awt.datatransfer.Clipboard;
 import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.UnsupportedFlavorException;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -74,8 +77,12 @@ public class TextBox extends InputEventListener {
 
     //TODO: Fix Text Going outside the box and the entire cringe that this class is
     public void draw(@NotNull ShapeDrawer shapeRenderer, @NotNull Batch spriteBatch, float drawStartX,
-                     float drawStartY, float drawWidth) {
+                     float drawStartY, float drawWidth, @Nullable ArrayList<ErrorPos> errorLinting) {
         textBlock.update();
+
+        Vector2 mousePos = new Vector2(Gdx.input.getX() - (drawStartX + 4),
+                (Gdx.graphics.getHeight() - Gdx.input.getY()) - (drawStartY - textBlock.getDefaultSize() + 4));
+        int mouseIndexPos = textBlock.getIndexOfPosition(mousePos);
         if (Gdx.input.isButtonJustPressed(Input.Buttons.LEFT)) {
             if (Gdx.input.getX() > drawStartX && Gdx.input.getX() < drawStartX + drawWidth
                     && Gdx.graphics.getHeight() - Gdx.input.getY() > drawStartY - getHeight()
@@ -83,11 +90,7 @@ public class TextBox extends InputEventListener {
                 selected = true;
                 text = fireTextBoxClickEvent();
 
-                //drawStartX + 4, drawStartY - textBlock.getDefaultSize() + 4
-                Vector2 mousePos = new Vector2(Gdx.input.getX() - (drawStartX + 4),
-                        (Gdx.graphics.getHeight() - Gdx.input.getY()) - (drawStartY - textBlock.getDefaultSize() + 4));
-                selectedPos = textBlock.getIndexOfPosition(mousePos);
-
+                selectedPos = mouseIndexPos;
                 flashing = true;
                 nextFlashChange = System.currentTimeMillis() + 500;
                 xPos = -1;
@@ -168,9 +171,48 @@ public class TextBox extends InputEventListener {
             }
         }
 
-        textBlock.setTextInComponent(0, text);
+        ErrorPos errorPos = null;
+        if (errorLinting != null) {
+            TextComponent[] textComponents = new TextComponent[errorLinting.size() + 1];
+            if (errorLinting.size() > 0) {
+                textComponents[0] = new TextComponent(text.substring(0, errorLinting.get(0).index)).setUnderlined(false);
+                for (int i = 0; i < errorLinting.size(); i++) {
+                    if (errorLinting.size() > i + 1) {
+                        // Lint in between this error and the next error
+                        if (mouseIndexPos >= errorLinting.get(i).index && mouseIndexPos < errorLinting.get(i + 1).index) {
+                            errorPos = errorLinting.get(i);
+                        }
+                        textComponents[i + 1] = new TextComponent(text.substring(errorLinting.get(i).index,
+                                errorLinting.get(i + 1).index)).setUnderlined(true).setUnderlineColor(errorLinting.get(i).color);
+                    } else {
+                        //Lint the rest of the text
+                        textComponents[i + 1] = new TextComponent(text.substring(errorLinting.get(i).index))
+                                .setUnderlined(true).setUnderlineColor(errorLinting.get(i).color);
 
-        textBlock.setLineSpacing(2);
+                        if (mouseIndexPos >= errorLinting.get(i).index) {
+                            errorPos = errorLinting.get(i);
+                        }
+                    }
+
+                }
+
+                // TODO: Change the fixed values to be based of the font
+                if (errorPos != null && errorPos.message != null &&
+                        Math.abs(textBlock.getPositionOfIndex(mouseIndexPos).x - mousePos.x) < 7 &&
+                        Math.abs(textBlock.getPositionOfIndex(mouseIndexPos).y - mousePos.y) < 20) {
+                    HoverManager.setHoverText(errorPos.message); // TODO: Render this at a fixed position above the text
+                    // instead of being relative to the mouse
+                }
+            } else {
+                textComponents[0] = new TextComponent(text);
+            }
+
+
+            textBlock.setTextComponents(textComponents);
+
+        } else {
+            textBlock.setTextInComponent(0, text);
+        }
 
         RoundedShapeRenderer.roundedRect(shapeRenderer, drawStartX, drawStartY - textBlock.getHeight(), drawWidth,
                 textBlock.getHeight() + 8, 2, Color.WHITE);

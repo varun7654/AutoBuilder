@@ -22,6 +22,7 @@ public class Config {
     private float originY;
     private PathingConfig pathingConfig;
     private boolean networkTablesEnabled;
+    private String robotCodeDataFile;
 
     @JsonCreator
     public Config(@JsonProperty(value = "scriptMethods") List<String> scriptMethods,
@@ -33,7 +34,8 @@ public class Config {
                   @JsonProperty(value = "originX") Float originX,
                   @JsonProperty(value = "originY") Float originY,
                   @JsonProperty(value = "pathingConfig") PathingConfig pathingConfig,
-                  @JsonProperty(value = "networkTablesEnabled") Boolean networkTablesEnabled) {
+                  @JsonProperty(value = "networkTablesEnabled") Boolean networkTablesEnabled,
+                  @JsonProperty(value = "robotCodeDataFile") String robotCodeDataFile) {
         if (scriptMethods == null) {
             this.scriptMethods = new ArrayList<>();
             this.scriptMethods.addAll(List.of("print", "sleep"));
@@ -50,10 +52,11 @@ public class Config {
         this.originY = originY == null ? -589f : originY;
         this.pathingConfig = pathingConfig == null ? new PathingConfig() : pathingConfig;
         this.networkTablesEnabled = networkTablesEnabled == null ? true : networkTablesEnabled;
+        this.robotCodeDataFile = robotCodeDataFile == null ? "robotCodeData.json" : robotCodeDataFile;
     }
 
     public Config(){
-        this(null, null, null, null, null, null, null, null, null, null);
+        this(null, null, null, null, null, null, null, null, null, null, null);
     }
 
     @JsonProperty("scriptMethods")
@@ -104,6 +107,11 @@ public class Config {
     @JsonProperty("networkTablesEnabled")
     public boolean isNetworkTablesEnabled() {
         return networkTablesEnabled;
+    }
+
+    @JsonProperty("robotCodeDataFile")
+    public String getRobotCodeDataFile() {
+        return robotCodeDataFile;
     }
 
     @JsonProperty("readMe")

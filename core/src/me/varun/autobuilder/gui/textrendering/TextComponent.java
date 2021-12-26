@@ -42,7 +42,7 @@ public class TextComponent {
     /**
      * The color of the text in this component.
      */
-    @NotNull public Color color = Color.WHITE;
+    @NotNull public Color color = Color.BLACK;
 
     /**
      * The optional font size of the text in this component.

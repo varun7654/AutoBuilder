@@ -105,7 +105,7 @@ public class TrajectoryItem extends AbstractGuiItem implements PathChangeListene
                 List<NumberTextBox> textBoxList = textBoxes.get(i);
                 for (int b = 0; b < textBoxList.size(); b++) {
                     textBoxList.get(b).draw(shapeRenderer, spriteBatch, drawStartX + 10 + b * 123, drawStartY - 50 - i * 30,
-                            120);
+                            120, null);
                 }
             }
 
@@ -117,9 +117,9 @@ public class TrajectoryItem extends AbstractGuiItem implements PathChangeListene
                     Fonts.ROBOTO, 22, new TextComponent("Reversed: ").setBold(true).setColor(Color.BLACK));
 
             startVelocityTextBox.draw(shapeRenderer, spriteBatch, drawStartX + 10 + 2 * 123,
-                    drawStartY - 50 - pose2dList.size() * 30, 120);
+                    drawStartY - 50 - pose2dList.size() * 30, 120, null);
             endVelocityTextBox.draw(shapeRenderer, spriteBatch, drawStartX + 10 + 2 * 123,
-                    drawStartY - 50 - (pose2dList.size() + 1) * 30, 120);
+                    drawStartY - 50 - (pose2dList.size() + 1) * 30, 120, null);
 
             checkBox.setX(drawStartX + drawWidth - 35);
             checkBox.setY(drawStartY - 43 - (pose2dList.size() + 3) * 30);

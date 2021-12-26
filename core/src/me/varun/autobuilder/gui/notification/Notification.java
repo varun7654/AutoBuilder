@@ -16,7 +16,7 @@ public class Notification {
     private final Color color;
     private final TextBlock notification;
 
-    private static final long ANIMATE_IN_OUT_TIME = 100; //ns
+    private static final long ANIMATE_IN_OUT_TIME = 100; //ms
 
     /**
      *

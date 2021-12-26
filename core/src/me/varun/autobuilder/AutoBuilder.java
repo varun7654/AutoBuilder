@@ -12,6 +12,7 @@ import com.badlogic.gdx.utils.viewport.ScreenViewport;
 import com.badlogic.gdx.utils.viewport.Viewport;
 import me.varun.autobuilder.config.Config;
 import me.varun.autobuilder.events.input.InputEventThrower;
+import me.varun.autobuilder.gui.hover.HoverManager;
 import me.varun.autobuilder.gui.path.AbstractGuiItem;
 import me.varun.autobuilder.gui.path.PathGui;
 import me.varun.autobuilder.gui.path.TrajectoryItem;
@@ -22,6 +23,7 @@ import me.varun.autobuilder.pathing.PathRenderer;
 import me.varun.autobuilder.pathing.PointRenderer;
 import me.varun.autobuilder.pathing.pointclicks.ClosePoint;
 import me.varun.autobuilder.pathing.pointclicks.CloseTrajectoryPoint;
+import me.varun.autobuilder.scripting.RobotCodeData;
 import me.varun.autobuilder.serialization.path.Autonomous;
 import me.varun.autobuilder.serialization.path.GuiSerializer;
 import me.varun.autobuilder.util.OsUtil;
@@ -50,7 +52,8 @@ public class AutoBuilder extends ApplicationAdapter {
     @NotNull Viewport hudViewport;
     @NotNull OrthographicCamera hudCam;
     @NotNull PointRenderer origin;
-    @NotNull ExecutorService pathingService = Executors.newFixedThreadPool(1);
+    @NotNull public static final ExecutorService asyncPathingService = Executors.newFixedThreadPool(1);
+    @NotNull public static final ExecutorService asyncParsingService = Executors.newFixedThreadPool(1);
     @NotNull PathGui pathGui;
     @NotNull InputEventThrower inputEventThrower = new InputEventThrower();
     @NotNull UndoHandler undoHandler = UndoHandler.getInstance();
@@ -92,6 +95,7 @@ public class AutoBuilder extends ApplicationAdapter {
         if (config.isNetworkTablesEnabled()) networkTables.start();
 
         FontHandler.updateFonts();
+        RobotCodeData.initData();
 
         Gdx.app.getInput().setInputProcessor(inputEventThrower);
 
@@ -128,10 +132,10 @@ public class AutoBuilder extends ApplicationAdapter {
 
         origin = new PointRenderer(0, 0, Color.ORANGE, POINT_SIZE);
 
-        pathGui = new PathGui(hudViewport, inputEventThrower, pathingService, cameraHandler);
+        pathGui = new PathGui(hudViewport, inputEventThrower, asyncPathingService, cameraHandler);
 
 
-        File pathFile = new File(USER_DIRECTORY +  "/" + config.getSelectedAuto());
+        File pathFile = new File(USER_DIRECTORY + "/" + config.getSelectedAuto());
         pathFile.getParentFile().mkdirs();
 
         try {
@@ -211,16 +215,17 @@ public class AutoBuilder extends ApplicationAdapter {
         frameTimePos++;
         if (frameTimePos == frameTimes.length) frameTimePos = 0;
         FontRenderer.renderText(hudBatch, null, 4, 4, new TextBlock(Fonts.ROBOTO, 12,
-                new TextComponent(Integer.toString(Gdx.graphics.getFramesPerSecond())).setBold(true),
-                new TextComponent(" FPS, Peak: ").setBold(false),
-                new TextComponent(df.format(Arrays.stream(frameTimes).max().orElseThrow())).setBold(true),
-                new TextComponent(" ms, Avg: ").setBold(false),
-                new TextComponent(df.format(Arrays.stream(frameTimes).average().orElseThrow())).setBold(true),
-                new TextComponent(" ms").setBold(false)));
+                new TextComponent(Integer.toString(Gdx.graphics.getFramesPerSecond())).setBold(true).setColor(Color.WHITE),
+                new TextComponent(" FPS, Peak: ").setBold(false).setColor(Color.WHITE),
+                new TextComponent(df.format(Arrays.stream(frameTimes).max().orElseThrow())).setBold(true).setColor(Color.WHITE),
+                new TextComponent(" ms, Avg: ").setBold(false).setColor(Color.WHITE),
+                new TextComponent(df.format(Arrays.stream(frameTimes).average().orElseThrow())).setBold(true)
+                        .setColor(Color.WHITE),
+                new TextComponent(" ms").setBold(false).setColor(Color.WHITE)));
 
         pathGui.render(hudShapeRenderer, hudBatch, hudCam);
+        HoverManager.render(hudBatch, hudShapeRenderer);
         hudBatch.end();
-
     }
 
     @Nullable ClosePoint lastSelectedPoint = null;
