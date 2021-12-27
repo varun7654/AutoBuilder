@@ -202,16 +202,7 @@ public class TextComponent {
 
     @Override
     public String toString() {
-        return "TextComponent{" +
-                "text='" + text + '\'' +
-                ", isBold=" + isBold +
-                ", isItalic=" + isItalic +
-                ", isStrikethrough=" + isStrikethrough +
-                ", isUnderlined=" + isUnderlined +
-                ", color=" + color +
-                ", size=" + size +
-                ", font=" + font +
-                '}';
+        return text;
     }
 
     public @NotNull Color getUnderlineColor() {

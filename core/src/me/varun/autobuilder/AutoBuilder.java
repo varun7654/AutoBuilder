@@ -208,7 +208,6 @@ public class AutoBuilder extends ApplicationAdapter {
         hudBatch.setProjectionMatrix(hudCam.combined);
 
         hudBatch.begin();
-        hudBatch.setShader(null);
 
         //Fps overlay
         frameTimes[frameTimePos] = Gdx.graphics.getDeltaTime() * 1000;

@@ -112,18 +112,6 @@ public class RenderableTextComponent {
 
     @Override
     public String toString() {
-        return "RenderableTextComponent{" +
-                "text='" + text + '\'' +
-                ", x=" + x +
-                ", y=" + y +
-                ", isBold=" + isBold +
-                ", isItalic=" + isItalic +
-                ", isUnderlined=" + isUnderlined +
-                ", isStrikethrough=" + isStrikethrough +
-                ", color=" + color +
-                ", size=" + size +
-                ", font=" + font +
-                ", row=" + row +
-                '}';
+        return text;
     }
 }

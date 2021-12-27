@@ -104,7 +104,7 @@ public class TextBlock {
         float componentStartX = 0, componentStartY = 0;
         boolean textWrapped = true;
         boolean foundValidWhitespace = false;
-        boolean beginningOfComponent = true;
+        boolean beginningOfComponent = false;
         largestFontSize = 0;
         totalChars = 0;
         int row = 0;
@@ -177,10 +177,12 @@ public class TextBlock {
                         // Reset the index to the last whitespace index
 
                         // Add the buffer (which contains the text up to the last whitespace) to the list of renderable
-                        renderableTextComponents.add(new RenderableTextComponent(sb + " ", componentStartX, componentStartY,
-                                bufferX, component.isBold, component.isItalic, component.isUnderlined, component.isStrikethrough,
-                                component.color, component.getUnderlineColor(), component.getStrikethroughColor(),
-                                component.size.orElse(defaultSize), component.font.orElse(defaultFont), row));
+                        renderableTextComponents.add(
+                                new RenderableTextComponent(sb.toString() + " g", componentStartX, componentStartY,
+                                        bufferX, component.isBold, component.isItalic, component.isUnderlined,
+                                        component.isStrikethrough,
+                                        component.color, component.getUnderlineColor(), component.getStrikethroughColor(),
+                                        component.size.orElse(defaultSize), component.font.orElse(defaultFont), row));
 
                         x = 0; // Reset the x position
                         y -= largestFontSize * lineSpacing; // Move down a line
