@@ -6,11 +6,6 @@ import me.varun.autobuilder.AutoBuilder;
 import me.varun.autobuilder.wpi.math.geometry.Pose2d;
 
 public class MathUtil {
-    private static MathUtil instance = new MathUtil();
-    public static MathUtil getInstance() {
-        return instance;
-    }
-
     public static float clamp(float val, float min, float max) {
         return Math.max(min, Math.min(max, val));
     }
@@ -36,21 +31,5 @@ public class MathUtil {
         return new Vector3((float) poseMeters.getTranslation().getX() * AutoBuilder.getConfig().getPointScaleFactor(),
                 (float) poseMeters.getTranslation().getY() * AutoBuilder.getConfig().getPointScaleFactor(),
                 0);
-    }
-
-    public void printThing(String str) {
-        System.out.println("String: " + str);
-    }
-
-    public void printThing(int i) {
-        System.out.println("Int: " + i);
-    }
-
-    public void printThing(double b, double str) {
-        System.out.println("Double: " + b + " String: " + str);
-    }
-
-    public void addThing(double a, double b) {
-        System.out.println(a+b);
     }
 }

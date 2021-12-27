@@ -28,6 +28,8 @@ public class HoverManager {
         hoverOnMouse = false;
     }
 
+    static boolean flippedLastTime = false;
+
     public static void showHover() {
         hoverShown = true;
     }
@@ -53,8 +55,11 @@ public class HoverManager {
             if (hoverPosition.x + (width + 6) / 2 > Gdx.graphics.getWidth()) {
                 hoverPosition.x = Gdx.graphics.getWidth() - (width + 6) / 2;
             }
-            if (hoverPosition.y + height + 5 > Gdx.graphics.getHeight()) {
-                hoverPosition.y = Gdx.graphics.getHeight() - height - 5;
+            if (hoverPosition.y + height + 5 > (flippedLastTime ? Gdx.graphics.getHeight() - 20 : Gdx.graphics.getHeight())) {
+                hoverPosition.y = hoverPosition.y - height - 5;
+                flippedLastTime = true;
+            } else {
+                flippedLastTime = false;
             }
 
             shapeDrawer.filledRectangle(hoverPosition.x - ((width + 6) / 2), hoverPosition.y - 1,
