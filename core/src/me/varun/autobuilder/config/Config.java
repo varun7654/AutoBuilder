@@ -23,6 +23,7 @@ public class Config {
     private PathingConfig pathingConfig;
     private boolean networkTablesEnabled;
     private String robotCodeDataFile;
+    private boolean reflectionEnabled;
 
     @JsonCreator
     public Config(@JsonProperty(value = "scriptMethods") List<String> scriptMethods,
@@ -35,7 +36,8 @@ public class Config {
                   @JsonProperty(value = "originY") Float originY,
                   @JsonProperty(value = "pathingConfig") PathingConfig pathingConfig,
                   @JsonProperty(value = "networkTablesEnabled") Boolean networkTablesEnabled,
-                  @JsonProperty(value = "robotCodeDataFile") String robotCodeDataFile) {
+                  @JsonProperty(value = "robotCodeDataFile") String robotCodeDataFile,
+                  @JsonProperty("useReflection") Boolean reflectionEnabled) {
         if (scriptMethods == null) {
             this.scriptMethods = new ArrayList<>();
             this.scriptMethods.addAll(List.of("print", "sleep"));
@@ -53,10 +55,11 @@ public class Config {
         this.pathingConfig = pathingConfig == null ? new PathingConfig() : pathingConfig;
         this.networkTablesEnabled = networkTablesEnabled == null ? true : networkTablesEnabled;
         this.robotCodeDataFile = robotCodeDataFile == null ? "robotCodeData.json" : robotCodeDataFile;
+        this.reflectionEnabled = reflectionEnabled == null ? true : reflectionEnabled;
     }
 
     public Config(){
-        this(null, null, null, null, null, null, null, null, null, null, null);
+        this(null, null, null, null, null, null, null, null, null, null, null, null);
     }
 
     @JsonProperty("scriptMethods")
@@ -112,6 +115,11 @@ public class Config {
     @JsonProperty("robotCodeDataFile")
     public String getRobotCodeDataFile() {
         return robotCodeDataFile;
+    }
+
+    @JsonProperty("useReflection")
+    public boolean getReflectionEnabled() {
+        return reflectionEnabled;
     }
 
     @JsonProperty("readMe")

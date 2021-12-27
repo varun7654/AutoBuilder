@@ -14,6 +14,7 @@ public final class ReflectionClassData {
     public final String[] fieldTypes;
     public final ReflectionMethodData[] methods;
     public final int modifiers;
+    public final boolean isEnum;
 
     public Hashtable<String, ArrayList<ReflectionMethodData>> methodMap = new Hashtable<>();
 
@@ -32,6 +33,8 @@ public final class ReflectionClassData {
             this.fieldTypes[i] = clazz.getDeclaredFields()[i].getType().getName();
         }
 
+        isEnum = clazz.isEnum();
+
         modifiers = clazz.getModifiers();
     }
 
@@ -49,12 +52,14 @@ public final class ReflectionClassData {
                                @JsonProperty("fieldNames") String[] fieldNames,
                                @JsonProperty("fieldTypes") String[] fieldTypes,
                                @JsonProperty("methods") ReflectionMethodData[] methods,
-                               @JsonProperty("modifiers") int modifiers) {
+                               @JsonProperty("modifiers") int modifiers,
+                               @JsonProperty("isEnum") boolean isEnum) {
         this.fullName = fullName;
         this.fieldNames = fieldNames;
         this.fieldTypes = fieldTypes;
         this.methods = methods;
         this.modifiers = modifiers;
+        this.isEnum = isEnum;
     }
 
     @Override

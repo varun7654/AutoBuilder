@@ -1,6 +1,7 @@
 package me.varun.autobuilder.scripting;
 
 import com.badlogic.gdx.graphics.Color;
+import me.varun.autobuilder.AutoBuilder;
 import me.varun.autobuilder.gui.textrendering.Fonts;
 import me.varun.autobuilder.gui.textrendering.TextBlock;
 import me.varun.autobuilder.gui.textrendering.TextComponent;
@@ -93,20 +94,26 @@ public class Parser {
 
                     break;
                 default:
-                    //if (AutoBuilder.getConfig().getScriptMethods().contains(method)) break; //If the method exists, continue
-                    //Try using reflection
-                    if (!RobotCodeData.validateMethod(method, args, errorPositions)) error = true;
+                    if (AutoBuilder.getConfig().getReflectionEnabled()) {
+                        //Try using reflection
+                        if (!RobotCodeData.validateMethod(method, args, errorPositions)) error = true;
+                    } else {
+                        // Use fallback
+                        if (AutoBuilder.getConfig().getScriptMethods().contains(method.string)) { //If the method exists, continue
+                            errorPositions.add(new ErrorPos(method.index, Color.CLEAR, new TextBlock(Fonts.ROBOTO, 14, 300,
+                                    new TextComponent("This method is in the list of allowed methods").setBold(true))));
+                        } else {
+                            error = true;
+                            errorPositions.add(new ErrorPos(method.index, Color.RED, new TextBlock(Fonts.ROBOTO, 14, 300,
+                                    new TextComponent("This method is not in the list of allowed methods").setBold(true))));
+                        }
+                    }
+
                     break;
             }
 
             prevIndex += command.length() + 1; // The +1 is for the newline character
         }
         return error;
-    }
-
-    private static Class<?> getPrimitiveClass(Class<?> cls) {
-        if (cls.equals(Integer.class)) return int.class;
-        if (cls.equals(Double.class)) return double.class;
-        return cls;
     }
 }

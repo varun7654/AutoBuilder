@@ -168,15 +168,28 @@ public class RobotCodeData {
                         new TextComponent(Integer.toString(args.length)).setItalic(true),
                         new TextComponent("\n\nPossible arguments are:\n"),
                         new TextComponent(reflectionClassData.methodMap.get(classAndMethod[1].string).stream()
-                                .map(methodData -> Arrays.stream(methodData.parameterTypes)
-                                        .map(parameterName -> {
-                                            String[] splitFullName = parameterName.split("\\.")
-                                                    [parameterName.split("\\.").length - 1].split("\\$");
-                                            return splitFullName[splitFullName.length - 1];
+                                .map(methodData -> Arrays.stream(methodData.parameterTypes) // Map a method into a string of its argument types
+                                        .map(parameterName -> { // Remove the package name from the argument name. Also add the enum fields names if applicable.
+                                            String[] splitFullName = parameterName.split("\\.");
+                                            if (inferableTypesVerification.containsKey(parameterName)) {
+                                                return splitFullName[splitFullName.length - 1];
+                                            } else { // Maybe it's an enum
+                                                ReflectionClassData classData = robotFullNameClassesMap.get(parameterName);
+                                                if (classData != null && classData.isEnum) {
+                                                    splitFullName = splitFullName[splitFullName.length - 1].split("\\$");
+                                                    String availableEnums = Arrays.stream(classData.fieldNames)
+                                                            .filter(n -> !n.equals("$VALUES"))
+                                                            .collect(Collectors.joining(", "));
+                                                    return splitFullName[splitFullName.length - 1] + " (enum: " + availableEnums + ")";
+                                                }
+                                                return splitFullName[splitFullName.length - 1] + " (can't infer)";
+                                            }
                                         }).collect(Collectors.joining(", ")))
                                 .map(s -> s.equals("") ? "<no arguments>" : s)
                                 .collect(Collectors.joining("\n")))
                                 .setItalic(true))));
+
+
                 return false;
             }
 
@@ -215,9 +228,22 @@ public class RobotCodeData {
                         new TextComponent(reflectionClassData.methodMap.get(classAndMethod[1].string).stream()
                                 .map(methodData -> Arrays.stream(methodData.parameterTypes)
                                         .map(parameterName -> {
-                                            String[] splitFullName = parameterName.split("\\.")
-                                                    [parameterName.split("\\.").length - 1].split("\\$");
-                                            return splitFullName[splitFullName.length - 1];
+                                            String[] splitFullName = parameterName.split("\\.");
+                                            if (inferableTypesVerification.containsKey(parameterName)) {
+                                                return splitFullName[splitFullName.length - 1];
+                                            } else {
+                                                // Maybe it's an enum
+                                                ReflectionClassData classData = robotFullNameClassesMap.get(parameterName);
+                                                if (classData != null && classData.isEnum) {
+                                                    splitFullName = splitFullName[splitFullName.length - 1].split("\\$");
+                                                    String availableEnums = Arrays.stream(classData.fieldNames)
+                                                            .filter(n -> !n.equals("$VALUES"))
+                                                            .collect(Collectors.joining(", "));
+                                                    return splitFullName[splitFullName.length - 1] + " (enum: " + availableEnums + ")";
+                                                }
+                                                return splitFullName[splitFullName.length - 1] + " (can't infer)";
+                                            }
+
                                         }).collect(Collectors.joining(", ")))
                                 .map(s -> s.equals("") ? "<no arguments>" : s)
                                 .collect(Collectors.joining("\n")))
@@ -238,7 +264,7 @@ public class RobotCodeData {
             for (int i = 0; i < args.length; i++) {
                 errorPositions.add(new ErrorPos(args[i].index, Color.CLEAR, new TextBlock(Fonts.ROBOTO, 14, 300,
                         executingUsingReflectionComponent,
-                        new TextComponent("Infered type: "),
+                        new TextComponent("Inferred type: "),
                         new TextComponent(argumentTypes.get(i)).setItalic(true))));
             }
         } else {
