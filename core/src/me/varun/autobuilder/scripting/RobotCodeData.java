@@ -151,6 +151,18 @@ public class RobotCodeData {
                 return false;
             }
 
+            callableMethods = callableMethods.stream().filter(methodData -> Modifier.isPublic(methodData.modifiers))
+                    .collect(Collectors.toList());
+
+            if (callableMethods.size() == 0) {
+                errorPositions.add(new ErrorPos(classAndMethod[1].index, Color.RED, new TextBlock(Fonts.ROBOTO, 14, 300,
+                        executingUsingReflectionComponent, new TextComponent("\nFound method(s) with the name "),
+                        new TextComponent(classAndMethod[1].string).setItalic(true),
+                        new TextComponent(" but none are public\n\n" +
+                                "Possible Fix:\n" +
+                                "   Make the method public"))));
+                return false;
+            }
 
             List<ReflectionMethodData> possibleMethodsBySize = reflectionClassData.methodMap.get(classAndMethod[1].string)
                     .stream()
@@ -185,8 +197,6 @@ public class RobotCodeData {
                                 .map(s -> s.equals("") ? "<no arguments>" : s)
                                 .collect(Collectors.joining("\n\n"))) //Separate each method by a newline
                                 .setItalic(true))));
-
-
                 return false;
             }
 
