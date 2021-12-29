@@ -59,6 +59,8 @@ public class TextBox extends InputEventListener {
     Map<Integer, Boolean> keyPressedMap = new HashMap<>();
     Map<Integer, Long> nextKeyPressTimeMap = new HashMap<>();
 
+    ArrayList<TextComponent> textComponents = new ArrayList<>();
+
     private static final long KEY_PRESS_DELAY = 50;
     private static final long INITIAL_KEY_PRESS_DELAY = 400;
 
@@ -173,21 +175,25 @@ public class TextBox extends InputEventListener {
 
         ErrorPos errorPos = null;
         if (errorLinting != null) {
-            TextComponent[] textComponents = new TextComponent[errorLinting.size() + 1];
+            textComponents.clear();
             if (errorLinting.size() > 0) {
-                textComponents[0] = new TextComponent(text.substring(0, errorLinting.get(0).index)).setUnderlined(false);
+                textComponents.add(0, new TextComponent(text.substring(0, errorLinting.get(0).index)).setUnderlined(false));
                 for (int i = 0; i < errorLinting.size(); i++) {
-                    if (errorLinting.size() > i + 1) {
+                    if (errorLinting.size() > i + 1 && errorLinting.get(i + 1).index < text.length()) {
                         // Lint in between this error and the next error
                         if (mouseIndexPos >= errorLinting.get(i).index && mouseIndexPos < errorLinting.get(i + 1).index) {
                             errorPos = errorLinting.get(i);
                         }
-                        textComponents[i + 1] = new TextComponent(text.substring(errorLinting.get(i).index,
-                                errorLinting.get(i + 1).index)).setUnderlined(true).setUnderlineColor(errorLinting.get(i).color);
+                        textComponents.add(i + 1, new TextComponent(text.substring(errorLinting.get(i).index, errorLinting.get(i + 1).index))
+                                .setUnderlined(true).setUnderlineColor(errorLinting.get(i).underlineColor)
+                                .setColor(errorLinting.get(i).color));
                     } else {
                         //Lint the rest of the text
-                        textComponents[i + 1] = new TextComponent(text.substring(errorLinting.get(i).index))
-                                .setUnderlined(true).setUnderlineColor(errorLinting.get(i).color);
+                        if (errorLinting.get(i).index < text.length()) {
+                            textComponents.add(i + 1, new TextComponent(text.substring(errorLinting.get(i).index))
+                                    .setUnderlined(true).setUnderlineColor(errorLinting.get(i).underlineColor)
+                                    .setColor(errorLinting.get(i).color));
+                        }
 
                         if (mouseIndexPos >= errorLinting.get(i).index) {
                             errorPos = errorLinting.get(i);
@@ -204,12 +210,10 @@ public class TextBox extends InputEventListener {
                     // instead of being relative to the mouse
                 }
             } else {
-                textComponents[0] = new TextComponent(text);
+                textComponents.add(0, new TextComponent(text));
             }
 
-
-            textBlock.setTextComponents(textComponents);
-
+            textBlock.setTextComponents(textComponents.toArray(new TextComponent[0]));
         } else {
             textBlock.setTextInComponent(0, text);
         }

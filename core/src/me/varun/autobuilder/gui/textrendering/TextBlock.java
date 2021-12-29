@@ -178,7 +178,7 @@ public class TextBlock {
 
                         // Add the buffer (which contains the text up to the last whitespace) to the list of renderable
                         renderableTextComponents.add(
-                                new RenderableTextComponent(sb.toString() + " ", componentStartX, componentStartY,
+                                new RenderableTextComponent(sb + (beginningOfComponent ? "" : " "), componentStartX, componentStartY,
                                         bufferX, component.isBold, component.isItalic, component.isUnderlined,
                                         component.isStrikethrough,
                                         component.color, component.getUnderlineColor(), component.getStrikethroughColor(),
