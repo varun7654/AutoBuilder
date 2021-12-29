@@ -5,8 +5,8 @@ import com.badlogic.gdx.Input;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.math.Vector3;
-import me.varun.autobuilder.events.scroll.InputEventListener;
-import me.varun.autobuilder.events.scroll.InputEventThrower;
+import me.varun.autobuilder.events.input.InputEventListener;
+import me.varun.autobuilder.events.input.InputEventThrower;
 import me.varun.autobuilder.util.MathUtil;
 import org.jetbrains.annotations.NotNull;
 

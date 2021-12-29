@@ -1,4 +1,4 @@
-package me.varun.autobuilder.events.scroll;
+package me.varun.autobuilder.events.input;
 
 import com.badlogic.gdx.InputProcessor;
 import me.varun.autobuilder.AutoBuilder;

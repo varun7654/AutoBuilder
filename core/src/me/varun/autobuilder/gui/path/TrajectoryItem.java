@@ -1,16 +1,17 @@
 package me.varun.autobuilder.gui.path;
 
 import com.badlogic.gdx.graphics.Color;
-import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.PolygonSpriteBatch;
-import com.badlogic.gdx.graphics.glutils.ShaderProgram;
 import me.varun.autobuilder.CameraHandler;
 import me.varun.autobuilder.UndoHandler;
 import me.varun.autobuilder.events.pathchange.PathChangeListener;
-import me.varun.autobuilder.events.scroll.InputEventThrower;
-import me.varun.autobuilder.events.textchange.NumberTextboxChangeListener;
+import me.varun.autobuilder.events.input.InputEventThrower;
+import me.varun.autobuilder.events.input.NumberTextboxChangeListener;
 import me.varun.autobuilder.gui.elements.CheckBox;
 import me.varun.autobuilder.gui.elements.NumberTextBox;
+import me.varun.autobuilder.gui.textrendering.FontRenderer;
+import me.varun.autobuilder.gui.textrendering.Fonts;
+import me.varun.autobuilder.gui.textrendering.TextComponent;
 import me.varun.autobuilder.pathing.MovablePointRenderer;
 import me.varun.autobuilder.pathing.PathRenderer;
 import me.varun.autobuilder.util.RoundedShapeRenderer;
@@ -34,8 +35,6 @@ public class TrajectoryItem extends AbstractGuiItem implements PathChangeListene
 
     private @NotNull
     final PathRenderer pathRenderer;
-    private final @NotNull ShaderProgram fontShader;
-    private final @NotNull BitmapFont font;
     private final @NotNull List<List<NumberTextBox>> textBoxes = new ArrayList<>();
     private final @NotNull InputEventThrower eventThrower;
     private final @NotNull CameraHandler cameraHandler;
@@ -44,7 +43,7 @@ public class TrajectoryItem extends AbstractGuiItem implements PathChangeListene
     private final @NotNull NumberTextBox endVelocityTextBox;
 
 
-    public TrajectoryItem(PathGui pathGui, @NotNull ShaderProgram fontShader, @NotNull BitmapFont font, @NotNull InputEventThrower eventThrower,
+    public TrajectoryItem(@NotNull PathGui pathGui, @NotNull InputEventThrower eventThrower,
                           @NotNull CameraHandler cameraHandler) {
         this.eventThrower = eventThrower;
         this.cameraHandler = cameraHandler;
@@ -52,25 +51,18 @@ public class TrajectoryItem extends AbstractGuiItem implements PathChangeListene
         pose2dList.add(new Pose2d());
         pose2dList.add(new Pose2d(2, 2, Rotation2d.fromDegrees(0)));
 
-        this.fontShader = fontShader;
-        this.font = font;
-
         this.pathRenderer = new PathRenderer(pathGui.getNextColor(), pose2dList, pathGui.executorService, 0, 0);
         pathRenderer.setPathChangeListener(this);
 
-        startVelocityTextBox = new NumberTextBox(df.format(getPathRenderer().getVelocityStart()), fontShader, font,
-                eventThrower, this, 0, 0);
-        endVelocityTextBox = new NumberTextBox(df.format(getPathRenderer().getVelocityEnd()), fontShader, font,
-                eventThrower, this, 0, 0);
+        startVelocityTextBox = new NumberTextBox(df.format(getPathRenderer().getVelocityStart()), eventThrower, this, 0, 0, 18);
+        endVelocityTextBox = new NumberTextBox(df.format(getPathRenderer().getVelocityEnd()), eventThrower, this, 0, 0, 18);
     }
 
-    public TrajectoryItem(PathGui pathGui, @NotNull ShaderProgram fontShader, @NotNull BitmapFont font, @NotNull InputEventThrower eventThrower,
-                          @NotNull CameraHandler cameraHandler, List<Pose2d> pose2dList, boolean reversed, Color color, boolean closed, float velocityStart, float velocityEnd) {
+    public TrajectoryItem(PathGui pathGui, @NotNull InputEventThrower eventThrower, @NotNull CameraHandler cameraHandler,
+                          List<Pose2d> pose2dList, boolean reversed, Color color, boolean closed, float velocityStart,
+                          float velocityEnd) {
         this.eventThrower = eventThrower;
         this.cameraHandler = cameraHandler;
-
-        this.fontShader = fontShader;
-        this.font = font;
 
         this.pathRenderer = new PathRenderer(color, pose2dList, pathGui.executorService, velocityStart, velocityEnd);
         pathRenderer.setReversed(reversed);
@@ -78,10 +70,8 @@ public class TrajectoryItem extends AbstractGuiItem implements PathChangeListene
 
         this.setClosed(closed);
 
-        startVelocityTextBox = new NumberTextBox(df.format(getPathRenderer().getVelocityStart()), fontShader, font,
-                eventThrower, this, 0, 0);
-        endVelocityTextBox = new NumberTextBox(df.format(getPathRenderer().getVelocityEnd()), fontShader, font,
-                eventThrower, this, 0, 0);
+        startVelocityTextBox = new NumberTextBox(df.format(getPathRenderer().getVelocityStart()), eventThrower, this, 0, 0, 18);
+        endVelocityTextBox = new NumberTextBox(df.format(getPathRenderer().getVelocityEnd()), eventThrower, this, 0, 0, 18);
     }
 
 
@@ -93,40 +83,46 @@ public class TrajectoryItem extends AbstractGuiItem implements PathChangeListene
             title = "Path - " + df.format(pathRenderer.getTrajectory().getTotalTimeSeconds()) + "s";
         } else title = "Path - Calculating Time";
         if (isClosed()) {
-            renderHeader(shapeRenderer, spriteBatch, fontShader, font, drawStartX, drawStartY, drawWidth, trashTexture, warningTexture, pathRenderer.getColor(), title, checkWarning(pathGui));
+            renderHeader(shapeRenderer, spriteBatch, drawStartX, drawStartY, drawWidth, trashTexture, warningTexture,
+                    pathRenderer.getColor(), title, checkWarning(pathGui));
             return 40;
         } else {
             List<Pose2d> pose2dList = pathRenderer.getPoint2DList();
             shapeRenderer.setColor(LIGHT_GREY);
-            RoundedShapeRenderer.roundedRect(shapeRenderer, drawStartX + 5, drawStartY - (35 * 3 + (pose2dList.size() * 30) + 40) - 5, drawWidth - 5, 35 * 3 + (pose2dList.size() * 30) + 9, 2);
+            RoundedShapeRenderer.roundedRect(shapeRenderer, drawStartX + 5,
+                    drawStartY - (35 * 3 + (pose2dList.size() * 30) + 40) - 5, drawWidth - 5,
+                    35 * 3 + (pose2dList.size() * 30) + 9, 2);
 
-            renderHeader(shapeRenderer, spriteBatch, fontShader, font, drawStartX, drawStartY, drawWidth, trashTexture, warningTexture, pathRenderer.getColor(), title, checkWarning(pathGui));
+            renderHeader(shapeRenderer, spriteBatch, drawStartX, drawStartY, drawWidth, trashTexture, warningTexture,
+                    pathRenderer.getColor(), title, checkWarning(pathGui));
 
-            spriteBatch.setShader(fontShader);
-
-            if(pathRenderer.getSelectionPoint() >= 0 ){
-                RoundedShapeRenderer.roundedRect(shapeRenderer,drawStartX + 5 ,drawStartY - 42 - (pathRenderer.getSelectionPoint() + 1 )*30, drawWidth - 5,31,3, Color.DARK_GRAY);
+            if (pathRenderer.getSelectionPoint() >= 0) {
+                RoundedShapeRenderer.roundedRect(shapeRenderer, drawStartX + 5,
+                        drawStartY - 42 - (pathRenderer.getSelectionPoint() + 1) * 30, drawWidth - 5, 31, 3, Color.DARK_GRAY);
             }
-
-            font.setColor(Color.BLACK);
+            
             for (int i = 0; i < textBoxes.size(); i++) {
                 List<NumberTextBox> textBoxList = textBoxes.get(i);
                 for (int b = 0; b < textBoxList.size(); b++) {
-                    textBoxList.get(b).draw(shapeRenderer, spriteBatch, drawStartX + 10 + b * 123, drawStartY - 43 - i * 30, 120, 28);
+                    textBoxList.get(b).draw(shapeRenderer, spriteBatch, drawStartX + 10 + b * 123, drawStartY - 50 - i * 30,
+                            120);
                 }
             }
 
-            spriteBatch.setShader(fontShader);
-            font.draw(spriteBatch, "Start Velocity", drawStartX + 10, drawStartY - (40 + pose2dList.size() * 30) - 10);
-            font.draw(spriteBatch, "End Velocity", drawStartX + 10, drawStartY - (40 + pose2dList.size() * 30) - 10 - 35);
-            font.draw(spriteBatch, "Reversed", drawStartX + 10, drawStartY - (40 + pose2dList.size() * 30) - 10 - 35 * 2);
-            spriteBatch.setShader(null);
+            FontRenderer.renderText(spriteBatch, shapeRenderer, drawStartX + 10, drawStartY - (63 + pose2dList.size() * 30),
+                    Fonts.ROBOTO, 22, new TextComponent("Start Velocity: ").setBold(true).setColor(Color.BLACK));
+            FontRenderer.renderText(spriteBatch, shapeRenderer, drawStartX + 10, drawStartY - (63 + (pose2dList.size() + 1) * 30),
+                    Fonts.ROBOTO, 22, new TextComponent("End Velocity: ").setBold(true).setColor(Color.BLACK));
+            FontRenderer.renderText(spriteBatch, shapeRenderer, drawStartX + 10, drawStartY - (65 + (pose2dList.size() + 2) * 30),
+                    Fonts.ROBOTO, 22, new TextComponent("Reversed: ").setBold(true).setColor(Color.BLACK));
 
-            startVelocityTextBox.draw(shapeRenderer, spriteBatch, drawStartX + 10 + 2 * 123, drawStartY - 43 - pose2dList.size() * 30, 120, 28);
-            endVelocityTextBox.draw(shapeRenderer, spriteBatch, drawStartX + 10 + 2 * 123, drawStartY - 43 - (pose2dList.size() + 1) * 30, 120, 28);
+            startVelocityTextBox.draw(shapeRenderer, spriteBatch, drawStartX + 10 + 2 * 123,
+                    drawStartY - 50 - pose2dList.size() * 30, 120);
+            endVelocityTextBox.draw(shapeRenderer, spriteBatch, drawStartX + 10 + 2 * 123,
+                    drawStartY - 50 - (pose2dList.size() + 1) * 30, 120);
 
             checkBox.setX(drawStartX + drawWidth - 35);
-            checkBox.setY(drawStartY - (40 + (pose2dList.size() + 2) * 30) - 35);
+            checkBox.setY(drawStartY - 43 - (pose2dList.size() + 3) * 30);
             checkBox.checkHover();
             if (checkBox.checkClick()) {
                 pathRenderer.setReversed(!pathRenderer.isReversed());
@@ -165,10 +161,10 @@ public class TrajectoryItem extends AbstractGuiItem implements PathChangeListene
         textBoxes.clear();
         for (int i = 0; i < pathRenderer.getPoint2DList().size(); i++) {
             Pose2d pose2d = pathRenderer.getPoint2DList().get(i);
-            NumberTextBox xBox = new NumberTextBox(df.format(pose2d.getX()), fontShader, font, eventThrower, this, i, 0);
-            NumberTextBox yBox = new NumberTextBox(df.format(pose2d.getY()), fontShader, font, eventThrower, this, i, 1);
-            NumberTextBox rotationBox = new NumberTextBox(df.format(pose2d.getRotation().getDegrees()), fontShader, font, eventThrower,
-                    this, i, 2);
+            NumberTextBox xBox = new NumberTextBox(df.format(pose2d.getX()), eventThrower, this, i, 0, 18);
+            NumberTextBox yBox = new NumberTextBox(df.format(pose2d.getY()), eventThrower, this, i, 1, 18);
+            NumberTextBox rotationBox = new NumberTextBox(df.format(pose2d.getRotation().getDegrees()), eventThrower, this, i, 2,
+                    18);
             ArrayList<NumberTextBox> textBoxList = new ArrayList<>();
             textBoxList.add(xBox);
             textBoxList.add(yBox);
@@ -216,7 +212,8 @@ public class TrajectoryItem extends AbstractGuiItem implements PathChangeListene
                     point.setY((float) parsedNumber);
                     break;
                 case 2:
-                    pathRenderer.getPoint2DList().set(row, new Pose2d(pose2d.getX(), pose2d.getY(), Rotation2d.fromDegrees(parsedNumber)));
+                    pathRenderer.getPoint2DList()
+                            .set(row, new Pose2d(pose2d.getX(), pose2d.getY(), Rotation2d.fromDegrees(parsedNumber)));
                     break;
             }
 

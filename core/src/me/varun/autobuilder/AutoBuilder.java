@@ -4,19 +4,18 @@ import com.badlogic.gdx.ApplicationAdapter;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
 import com.badlogic.gdx.graphics.*;
-import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.PolygonSpriteBatch;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
-import com.badlogic.gdx.graphics.glutils.ShaderProgram;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.utils.viewport.ExtendViewport;
 import com.badlogic.gdx.utils.viewport.ScreenViewport;
 import com.badlogic.gdx.utils.viewport.Viewport;
 import me.varun.autobuilder.config.Config;
-import me.varun.autobuilder.events.scroll.InputEventThrower;
+import me.varun.autobuilder.events.input.InputEventThrower;
 import me.varun.autobuilder.gui.path.AbstractGuiItem;
 import me.varun.autobuilder.gui.path.PathGui;
 import me.varun.autobuilder.gui.path.TrajectoryItem;
+import me.varun.autobuilder.gui.textrendering.*;
 import me.varun.autobuilder.net.NetworkTablesHelper;
 import me.varun.autobuilder.net.Serializer;
 import me.varun.autobuilder.pathing.PathRenderer;
@@ -43,10 +42,6 @@ public class AutoBuilder extends ApplicationAdapter {
     public static final float LINE_THICKNESS = 4;
     public static final float POINT_SIZE = 8;
 
-
-    public static BitmapFont font;
-    public static ShaderProgram fontShader;
-
     @NotNull private final Vector3 mousePos = new Vector3();
     @NotNull private final Vector3 lastMousePos = new Vector3();
     @NotNull OrthographicCamera cam;
@@ -69,9 +64,15 @@ public class AutoBuilder extends ApplicationAdapter {
     @NotNull private Texture whiteTexture;
     @NotNull public static final String USER_DIRECTORY = OsUtil.getUserConfigDirectory("AutoBuilder");
 
+
+    /**
+     * Try to save data and exit the program.
+     *
+     * @param e The exception that caused the program to crash.
+     */
     public static void handleCrash(Exception e) {
         e.printStackTrace();
-        System.out.println("Oops Something went wrong during fame " + Gdx.graphics.getFrameId());
+        System.out.println("Something went wrong during fame " + Gdx.graphics.getFrameId());
         Gdx.app.exit();
     }
 
@@ -90,6 +91,8 @@ public class AutoBuilder extends ApplicationAdapter {
 
         if (config.isNetworkTablesEnabled()) networkTables.start();
 
+        FontHandler.updateFonts();
+
         Gdx.app.getInput().setInputProcessor(inputEventThrower);
 
         Pixmap pixmap = new Pixmap(1, 1, Pixmap.Format.RGBA8888);
@@ -98,7 +101,7 @@ public class AutoBuilder extends ApplicationAdapter {
         whiteTexture = new Texture(pixmap); //remember to dispose of later
         pixmap.dispose();
         TextureRegion region = new TextureRegion(whiteTexture, 0, 0, 1, 1);
-        
+
         hudBatch = new PolygonSpriteBatch();
         hudShapeRenderer = new ShapeDrawer(hudBatch, region);
 
@@ -125,19 +128,7 @@ public class AutoBuilder extends ApplicationAdapter {
 
         origin = new PointRenderer(0, 0, Color.ORANGE, POINT_SIZE);
 
-        //TODO: Looks like the texture is messed up and it makes it look really ugly
-        Texture fontTexture = new Texture(Gdx.files.internal("font/arial.png"), false);
-        fontTexture.setFilter(Texture.TextureFilter.Linear, Texture.TextureFilter.Linear);
-
-
-        font = new BitmapFont(Gdx.files.internal("font/arial.fnt"), new TextureRegion(fontTexture), false);
-
-        fontShader = new ShaderProgram(Gdx.files.internal("font/font.vert"), Gdx.files.internal("font/font.frag"));
-        if (!fontShader.isCompiled()) {
-            Gdx.app.error("fontShader", "compilation failed:\n" + fontShader.getLog());
-        }
-
-        pathGui = new PathGui(hudViewport, font, fontShader, inputEventThrower, pathingService, cameraHandler);
+        pathGui = new PathGui(hudViewport, inputEventThrower, pathingService, cameraHandler);
 
 
         File pathFile = new File(USER_DIRECTORY +  "/" + config.getSelectedAuto());
@@ -145,7 +136,7 @@ public class AutoBuilder extends ApplicationAdapter {
 
         try {
             Autonomous autonomous = Serializer.deserializeAutoFromFile(pathFile);
-            undoHandler.restoreState(autonomous, pathGui, fontShader, font, inputEventThrower, cameraHandler);
+            undoHandler.restoreState(autonomous, pathGui, inputEventThrower, cameraHandler);
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -203,7 +194,8 @@ public class AutoBuilder extends ApplicationAdapter {
             Float[] pos1 = networkTables.getRobotPositions().get(i);
             Float[] pos2 = networkTables.getRobotPositions().get(i + 1);
             shapeRenderer.line(pos1[0] * config.getPointScaleFactor(), pos1[1] * config.getPointScaleFactor(),
-                    pos2[0] * config.getPointScaleFactor(), pos2[1] * config.getPointScaleFactor(), Color.WHITE, LINE_THICKNESS);
+                    pos2[0] * config.getPointScaleFactor(), pos2[1] * config.getPointScaleFactor(), Color.WHITE,
+                    LINE_THICKNESS);
         }
 
         batch.end();
@@ -212,18 +204,19 @@ public class AutoBuilder extends ApplicationAdapter {
         hudBatch.setProjectionMatrix(hudCam.combined);
 
         hudBatch.begin();
-        hudBatch.setShader(fontShader);
-
-        //Fps overlay
-        font.getData().setScale(0.2f);
-        font.setColor(Color.WHITE);
-        frameTimes[frameTimePos] = Gdx.graphics.getDeltaTime()* 1000;
-        frameTimePos++;
-        if(frameTimePos == frameTimes.length) frameTimePos = 0;
-        font.draw(hudBatch, "FPS: " + Gdx.graphics.getFramesPerSecond() + ", " + df.format(Gdx.graphics.getDeltaTime()* 1000) + " ms Peak: " + df.format(Arrays.stream(frameTimes).max().getAsDouble()) + " ms Avg: " + df.format(Arrays.stream(frameTimes).average().getAsDouble()) + " ms", 0, 12);
-
         hudBatch.setShader(null);
 
+        //Fps overlay
+        frameTimes[frameTimePos] = Gdx.graphics.getDeltaTime() * 1000;
+        frameTimePos++;
+        if (frameTimePos == frameTimes.length) frameTimePos = 0;
+        FontRenderer.renderText(hudBatch, null, 4, 4, new TextBlock(Fonts.ROBOTO, 12,
+                new TextComponent(Integer.toString(Gdx.graphics.getFramesPerSecond())).setBold(true),
+                new TextComponent(" FPS, Peak: ").setBold(false),
+                new TextComponent(df.format(Arrays.stream(frameTimes).max().orElseThrow())).setBold(true),
+                new TextComponent(" ms, Avg: ").setBold(false),
+                new TextComponent(df.format(Arrays.stream(frameTimes).average().orElseThrow())).setBold(true),
+                new TextComponent(" ms").setBold(false)));
 
         pathGui.render(hudShapeRenderer, hudBatch, hudCam);
         hudBatch.end();
@@ -233,7 +226,7 @@ public class AutoBuilder extends ApplicationAdapter {
     @Nullable ClosePoint lastSelectedPoint = null;
     boolean somethingMoved = false;
     private void update() {
-        undoHandler.update(pathGui, fontShader, font, inputEventThrower, cameraHandler);
+        undoHandler.update(pathGui, inputEventThrower, cameraHandler);
 
         boolean onGui = pathGui.update();
         lastMousePos.set(mousePos);
@@ -318,16 +311,16 @@ public class AutoBuilder extends ApplicationAdapter {
     public void dispose() {
         batch.dispose();
         hudBatch.dispose();
-        font.dispose();
         pathGui.dispose();
         whiteTexture.dispose();
+        FontHandler.dispose();
     }
 
 
     @Override
     public void resize(int width, int height) {
         hudViewport.update(width, height, true);
-        viewport.update(width, height);
+        viewport.update(width, height, true);
 
         pathGui.updateScreen(width, height);
     }
