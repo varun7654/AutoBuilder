@@ -14,7 +14,7 @@ public class GuiSerializer {
         for (AbstractGuiItem abstractGuiItem : guiItemList) {
             if (abstractGuiItem instanceof ScriptItem) {
                 ScriptItem scriptItem = (ScriptItem) abstractGuiItem;
-                autonomousSteps.add(new ScriptAutonomousStep(scriptItem.getText(), scriptItem.isClosed(), scriptItem.isValid()));
+                autonomousSteps.add(new ScriptAutonomousStep(scriptItem.getText(), scriptItem.isClosed(), scriptItem.isValid(), scriptItem.getSendableScript()));
             }
 
             if (abstractGuiItem instanceof TrajectoryItem) {
@@ -27,13 +27,13 @@ public class GuiSerializer {
         return new Autonomous(autonomousSteps);
     }
 
-    public static Autonomous serializeAutonomousForSaving(List<AbstractGuiItem> mutableGuiItemList) {
+    public static Autonomous serializeAutonomousForUndoHistory(List<AbstractGuiItem> mutableGuiItemList) {
         List<AbstractAutonomousStep> autonomousSteps = new ArrayList<>();
         List<AbstractGuiItem> guiItemList = new ArrayList<>(mutableGuiItemList);
         for (AbstractGuiItem abstractGuiItem : guiItemList) {
             if (abstractGuiItem instanceof ScriptItem) {
                 ScriptItem scriptItem = (ScriptItem) abstractGuiItem;
-                autonomousSteps.add(new ScriptAutonomousStep(scriptItem.getText(), scriptItem.isClosed(), scriptItem.isValid()));
+                autonomousSteps.add(new ScriptAutonomousStep(scriptItem.getText(), scriptItem.isClosed(), scriptItem.isValid(), scriptItem.getSendableScript()));
             }
 
             if (abstractGuiItem instanceof TrajectoryItem) {
@@ -54,7 +54,7 @@ public class GuiSerializer {
         for (AbstractGuiItem abstractGuiItem : guiItemList) {
             if (abstractGuiItem instanceof ScriptItem) {
                 ScriptItem scriptItem = (ScriptItem) abstractGuiItem;
-                autonomousSteps.add(new ScriptAutonomousStep(scriptItem.getText(), scriptItem.isClosed(), scriptItem.isValid()));
+                autonomousSteps.add(new ScriptAutonomousStep(scriptItem.getText(), scriptItem.isClosed(), scriptItem.isValid(), scriptItem.getSendableScript()));
             }
 
             if (abstractGuiItem instanceof TrajectoryItem) {

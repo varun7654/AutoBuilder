@@ -6,9 +6,9 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import me.varun.autobuilder.gui.textrendering.Fonts;
 import me.varun.autobuilder.gui.textrendering.TextBlock;
 import me.varun.autobuilder.gui.textrendering.TextComponent;
-import me.varun.autobuilder.net.Serializer;
 import me.varun.autobuilder.scripting.reflection.ReflectionClassData;
 import me.varun.autobuilder.scripting.reflection.ReflectionMethodData;
+import me.varun.autobuilder.scripting.sendable.SendableCommand;
 import me.varun.autobuilder.scripting.util.ErrorPos;
 import me.varun.autobuilder.scripting.util.StringIndex;
 import org.jetbrains.annotations.Nullable;
@@ -69,10 +69,7 @@ public class RobotCodeData {
 
             robotClasses = new ObjectMapper().readValue(string, new TypeReference<ArrayList<ReflectionClassData>>() {
             });
-
-
-            System.out.println(Serializer.serializeToString(robotClasses));
-            System.out.println(robotClasses.size());
+            
             for (ReflectionClassData robotClass : robotClasses) {
                 String[] splitFullName = robotClass.fullName.split("\\.");
                 robotClassesMap.put(splitFullName[splitFullName.length - 1], robotClass);
@@ -90,7 +87,7 @@ public class RobotCodeData {
     private static final TextComponent executingUsingReflectionComponent =
             new TextComponent("Executing this method using reflection\n").setBold(true);
 
-    public static boolean validateMethod(StringIndex classMethod, StringIndex[] args, List<ErrorPos> errorPositions) {
+    public static boolean validateMethod(StringIndex classMethod, StringIndex[] args, List<ErrorPos> errorPositions, ArrayList<SendableCommand> sendableCommands) {
         StringIndex[] classAndMethod = splitWithIndex(classMethod.string, periodPattern, classMethod.index);
 
         boolean error = false;
@@ -186,7 +183,7 @@ public class RobotCodeData {
                                             }
                                         }).collect(Collectors.joining(", ")))
                                 .map(s -> s.equals("") ? "<no arguments>" : s)
-                                .collect(Collectors.joining("\n")))
+                                .collect(Collectors.joining("\n\n"))) //Separate each method by a newline
                                 .setItalic(true))));
 
 
@@ -246,7 +243,7 @@ public class RobotCodeData {
 
                                         }).collect(Collectors.joining(", ")))
                                 .map(s -> s.equals("") ? "<no arguments>" : s)
-                                .collect(Collectors.joining("\n")))
+                                .collect(Collectors.joining("\n\n"))) //Separate each method by a newline
                                 .setItalic(true))));
                 return false;
             }
@@ -267,6 +264,14 @@ public class RobotCodeData {
                         new TextComponent("Inferred type: "),
                         new TextComponent(argumentTypes.get(i)).setItalic(true))));
             }
+
+
+            sendableCommands.add(new SendableCommand(reflectionClassData.fullName + "." + methodToUse.methodName,
+                    Arrays.stream(args).map(StringIndex::toString).toArray(String[]::new),
+                    argumentTypes.toArray(String[]::new),
+                    true));
+
+            return true;
         } else {
             errorPositions.add(new ErrorPos(classAndMethod[1].index, Color.RED,
                     new TextBlock(Fonts.ROBOTO, 14, 300,
@@ -275,9 +280,6 @@ public class RobotCodeData {
                             new TextComponent(classAndMethod[1].string).setItalic(true))));
             return false;
         }
-
-
-        return true;
     }
 
 

@@ -31,7 +31,7 @@ public class UndoHandler {
 
     public void update(PathGui pathGui, @NotNull InputEventThrower inputEventThrower, @NotNull CameraHandler cameraHandler) {
         if (somethingChanged) {
-            Autonomous newState = GuiSerializer.serializeAutonomousForSaving(pathGui.guiItems);
+            Autonomous newState = GuiSerializer.serializeAutonomousForUndoHistory(pathGui.guiItems);
             while (pointer > 0) {
                 undoHistory.remove(0);
                 pointer--;

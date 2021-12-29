@@ -9,19 +9,29 @@ public class ErrorPos implements Comparable<ErrorPos> {
 
 
     public final int index;
+    public final Color underlineColor;
     public final Color color;
     @Nullable public final TextBlock message;
 
-    public ErrorPos(int index, Color color) {
+    public ErrorPos(int index, Color underlineColor) {
         this.index = index;
-        this.color = color;
+        this.underlineColor = underlineColor;
         this.message = null;
+        this.color = Color.BLACK;
     }
 
-    public ErrorPos(int index, Color color, @Nullable TextBlock message) {
+    public ErrorPos(int index, Color underlineColor, @Nullable TextBlock message) {
         this.index = index;
-        this.color = color;
+        this.underlineColor = underlineColor;
         this.message = message;
+        this.color = Color.BLACK;
+    }
+
+    public ErrorPos(int index, Color underlineColor, Color color, @Nullable TextBlock message) {
+        this.index = index;
+        this.underlineColor = underlineColor;
+        this.message = message;
+        this.color = color;
     }
 
 
