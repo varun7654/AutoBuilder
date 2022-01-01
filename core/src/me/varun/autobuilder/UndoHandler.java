@@ -9,6 +9,7 @@ import me.varun.autobuilder.gui.path.PathGui;
 import me.varun.autobuilder.gui.path.ScriptItem;
 import me.varun.autobuilder.gui.path.TrajectoryItem;
 import me.varun.autobuilder.serialization.path.*;
+import me.varun.autobuilder.wpi.math.trajectory.TrajectoryGenerator.ControlVectorList;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
@@ -79,9 +80,9 @@ public class UndoHandler {
                 Color color = new Color().fromHsv(trajectoryAutonomousStep.getColor(), 1, 1);
                 color.set(color.r, color.g, color.b, 1);
                 TrajectoryItem trajectoryItem = new TrajectoryItem(pathGui, inputEventThrower, cameraHandler,
-                        new ArrayList<>(trajectoryAutonomousStep.getPose2DList()), trajectoryAutonomousStep.isReversed(),
-                        color, trajectoryAutonomousStep.isClosed(), trajectoryAutonomousStep.getVelocityStart(),
-                        trajectoryAutonomousStep.getVelocityEnd());
+                        new ControlVectorList(trajectoryAutonomousStep.getControlVectors()), trajectoryAutonomousStep.getRotations(),
+                        trajectoryAutonomousStep.isReversed(), color, trajectoryAutonomousStep.isClosed(),
+                        trajectoryAutonomousStep.getVelocityStart(), trajectoryAutonomousStep.getVelocityEnd());
                 guiItemList.add(trajectoryItem);
 
 

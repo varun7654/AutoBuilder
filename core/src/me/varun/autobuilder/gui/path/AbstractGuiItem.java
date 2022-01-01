@@ -37,8 +37,7 @@ public abstract class AbstractGuiItem implements Disposable {
         this.closed = closed;
     }
 
-    private final TextBlock headerTextBlock = new TextBlock(Fonts.ROBOTO, 36, 250,
-            new TextComponent("headerText").setColor(Color.WHITE));
+    private final TextBlock headerTextBlock = new TextBlock(Fonts.ROBOTO, 36, new TextComponent("headerText").setColor(Color.WHITE));
 
     @Override
     abstract public void dispose();

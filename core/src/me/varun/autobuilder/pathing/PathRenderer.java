@@ -18,10 +18,11 @@ import me.varun.autobuilder.pathing.pointclicks.CloseTrajectoryPoint;
 import me.varun.autobuilder.util.MathUtil;
 import me.varun.autobuilder.wpi.math.geometry.Pose2d;
 import me.varun.autobuilder.wpi.math.geometry.Rotation2d;
-import me.varun.autobuilder.wpi.math.geometry.Translation2d;
+import me.varun.autobuilder.wpi.math.spline.Spline.ControlVector;
 import me.varun.autobuilder.wpi.math.trajectory.Trajectory;
 import me.varun.autobuilder.wpi.math.trajectory.TrajectoryConfig;
 import me.varun.autobuilder.wpi.math.trajectory.TrajectoryGenerator;
+import me.varun.autobuilder.wpi.math.trajectory.TrajectoryGenerator.ControlVectorList;
 import me.varun.autobuilder.wpi.math.trajectory.constraint.TrajectoryConstraint;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -38,7 +39,8 @@ import static me.varun.autobuilder.AutoBuilder.*;
 
 public class PathRenderer implements MovablePointEventHandler, Serializable {
     @NotNull private final Color color;
-    @NotNull private final List<Pose2d> point2DList;
+    @NotNull private final ControlVectorList controlVectors;
+    @NotNull private final List<Rotation2d> rotation2dList;
     @NotNull private final List<MovablePointRenderer> pointRenderList;
     @NotNull private final ExecutorService executorService;
     @Nullable PathChangeListener pathChangeListener;
@@ -47,11 +49,12 @@ public class PathRenderer implements MovablePointEventHandler, Serializable {
     Config config = AutoBuilder.getConfig();
     @Nullable private Trajectory trajectory;
     private boolean reversed = false;
+    @Nullable private MovablePointRenderer controlPoint;
     @Nullable private MovablePointRenderer rotationPoint;
     @Nullable private PointRenderer highlightPoint;
     private int selectionPointIndex = -1;
-    private float velocityStart = 0;
-    private float velocityEnd = 0;
+    private float velocityStart;
+    private float velocityEnd;
     private float robotPreviewTime = -1;
     @Nullable private PathRenderer attachedPath;
     private boolean isAttachedPathEnd;
@@ -60,16 +63,18 @@ public class PathRenderer implements MovablePointEventHandler, Serializable {
     @NotNull Vector2 lastPointRight = new Vector2();
     @NotNull Vector2 nextPointLeft = new Vector2();
     @NotNull Vector2 nextPointRight = new Vector2();
+    private int robotPreviewIndex;
 
-    public PathRenderer(@NotNull Color color, @NotNull List<Pose2d> pointList, @NotNull ExecutorService executorService,
-                        float velocityStart, float velocityEnd) {
+    public PathRenderer(@NotNull Color color, @NotNull ControlVectorList pointList, @NotNull List<Rotation2d> rotation2dList,
+                        @NotNull ExecutorService executorService, float velocityStart, float velocityEnd) {
         this.color = color;
-        this.point2DList = pointList;
+        this.controlVectors = pointList;
+        this.rotation2dList = rotation2dList;
 
         pointRenderList = new ArrayList<>();
 
-        for (Pose2d pose2d : point2DList) {
-            pointRenderList.add(new MovablePointRenderer((float) pose2d.getX(), (float) pose2d.getY(), color, POINT_SIZE, this));
+        for (ControlVector controlVector : controlVectors) {
+            pointRenderList.add(new MovablePointRenderer((float) controlVector.x[0], (float) controlVector.y[0], color, POINT_SIZE, this));
         }
 
         this.executorService = executorService;
@@ -135,20 +140,23 @@ public class PathRenderer implements MovablePointEventHandler, Serializable {
             lastPointRight.set(nextPointRight);
         }
 
-        if (rotationPoint != null) {
-            renderer.line(pointRenderList.get(selectionPointIndex).getRenderPos2(), rotationPoint.getRenderPos2(), LINE_THICKNESS);
-            rotationPoint.draw(renderer, cam);
+        if (controlPoint != null) {
+            PointRenderer selectedPoint = pointRenderList.get(selectionPointIndex);
+            renderer.line(selectedPoint.getRenderPos2(), controlPoint.getRenderPos2(), Color.WHITE, LINE_THICKNESS);
+            controlPoint.draw(renderer, cam);
 
-            float rotation = (float) point2DList.get(selectionPointIndex).getRotation().getRadians();
-            Vector2 origin = pointRenderList.get(selectionPointIndex).getRenderPos2();
+            if (rotationPoint != null) {
+                renderer.line(selectedPoint.getRenderPos2(), rotationPoint.getRenderPos2(), Color.WHITE, LINE_THICKNESS);
+                rotationPoint.draw(renderer, cam);
+            }
 
-            renderRobotBoundingBox(origin, rotation, renderer);
+            Vector2 origin = selectedPoint.getRenderPos2();
+            renderRobotBoundingBox(origin, (float) rotation2dList.get(selectionPointIndex).getRadians(), renderer);
         } else if (robotPreviewTime >= 0) {
             Pose2d hoverPose = trajectory.sample(robotPreviewTime).poseMeters;
-            float rotation = (float) hoverPose.getRotation().getRadians();
             Vector2 origin = MathUtil.toRenderVector2(hoverPose);
 
-            renderRobotBoundingBox(origin, rotation, renderer);
+            renderRobotBoundingBox(origin, (float) rotation2dList.get(robotPreviewIndex).getRadians(), renderer);
         }
 
         for (int i = 0; i < pointRenderList.size(); i++) {
@@ -201,8 +209,9 @@ public class PathRenderer implements MovablePointEventHandler, Serializable {
             for (float i = 0; i < trajectory.getTotalTimeSeconds(); i += 0.01f) {
                 Vector3 renderVector = MathUtil.toRenderVector3(trajectory.sample(i).poseMeters);
 
-                if (currentIndexPos + 1 < point2DList.size() &&
-                        MathUtil.toRenderVector3(point2DList.get(currentIndexPos + 1)).dst2(renderVector) < 2f) {
+                if (currentIndexPos + 1 < controlVectors.size() &&
+                        MathUtil.toRenderVector3(controlVectors.get(currentIndexPos + 1).x[0], controlVectors.get(currentIndexPos + 1).y[0])
+                                .dst2(renderVector) < 8f) {
                     currentIndexPos++;
                 }
 
@@ -222,14 +231,14 @@ public class PathRenderer implements MovablePointEventHandler, Serializable {
      * @param closePoint object that was created by {@link PathRenderer#getClosePoints(float, Vector3)}
      */
     public void deletePoint(ClosePoint closePoint) {
-        if (point2DList.size() > 2) {
+        if (controlVectors.size() > 2) {
             if (selectionPointIndex > closePoint.index) {
                 selectionPointIndex--;
             } else if (selectionPointIndex == closePoint.index) {
                 removeSelection();
             }
             pointRenderList.remove(closePoint.index);
-            point2DList.remove(closePoint.index);
+            controlVectors.remove(closePoint.index);
             pointDeleted = true;
             updatePath();
         }
@@ -243,9 +252,10 @@ public class PathRenderer implements MovablePointEventHandler, Serializable {
     public void addPoint(CloseTrajectoryPoint closePoint) {
         assert trajectory != null;
         Pose2d newPoint = trajectory.sample(closePoint.pointTime).poseMeters;
-        point2DList.add(closePoint.prevPointIndex + 1, newPoint);
+        controlVectors.add(closePoint.prevPointIndex + 1, new ControlVector(new double[]{newPoint.getX(), 1, 0}, new double[]{newPoint.getY(), 0, 0}));
         pointRenderList.add(closePoint.prevPointIndex + 1,
                 new MovablePointRenderer((float) newPoint.getX(), (float) newPoint.getY(), color, POINT_SIZE, this));
+        rotation2dList.add(closePoint.prevPointIndex + 1, new Rotation2d(0));
         if (selectionPointIndex > closePoint.prevPointIndex) selectionPointIndex++;
         updatePath();
         UndoHandler.getInstance().somethingChanged();
@@ -256,9 +266,10 @@ public class PathRenderer implements MovablePointEventHandler, Serializable {
      * @param maxDistance2 the maximum distance to the mouse position squared
      * @return True if the rotation point is being touched.
      */
-    public boolean isTouchingRotationPoint(Vector3 mousePos, float maxDistance2) {
-        if (rotationPoint == null) return false;
-        return rotationPoint.getRenderPos3().dst2(mousePos) < maxDistance2;
+    public boolean isTouchingSomething(Vector3 mousePos, float maxDistance2) {
+        if (controlPoint != null && controlPoint.getRenderPos3().dst2(mousePos) < maxDistance2) return true;
+        if (rotationPoint != null && rotationPoint.getRenderPos3().dst2(mousePos) < maxDistance2) return true;
+        return false;
     }
 
     /**
@@ -288,7 +299,7 @@ public class PathRenderer implements MovablePointEventHandler, Serializable {
                 }
             }
             isAttachedPathEnd = true;
-        } else if (selectionPointIndex == point2DList.size() - 1) {
+        } else if (selectionPointIndex == controlVectors.size() - 1) {
             //We clicked on the last point, so we need to get the path renderer of the next path
             boolean foundMyself = false;
             for (AbstractGuiItem item : itemList) {
@@ -307,14 +318,14 @@ public class PathRenderer implements MovablePointEventHandler, Serializable {
 
         if (attachedPath != null) {
             MovablePointRenderer selectedPoint = pointRenderList.get(selectionPointIndex);
-            Pose2d otherPathPose2d;
+            ControlVector otherPathPose2d;
             if (isAttachedPathEnd) {
-                otherPathPose2d = attachedPath.point2DList.get(attachedPath.point2DList.size() - 1);
+                otherPathPose2d = attachedPath.controlVectors.get(attachedPath.controlVectors.size() - 1);
             } else {
-                otherPathPose2d = attachedPath.point2DList.get(0);
+                otherPathPose2d = attachedPath.controlVectors.get(0);
             }
 
-            if (!(Math.abs(selectedPoint.getPos2().sub((float) otherPathPose2d.getX(), (float) otherPathPose2d.getY()).len2())
+            if (!(Math.abs(selectedPoint.getPos2().sub((float) otherPathPose2d.x[0], (float) otherPathPose2d.y[0]).len2())
                     < Math.pow((20 / config.getPointScaleFactor() * camera.zoom), 2))) {
                 attachedPath = null;
                 System.out.println("Not close enough to other path");
@@ -336,6 +347,10 @@ public class PathRenderer implements MovablePointEventHandler, Serializable {
         if (selectionPointIndex != -1) {
             MovablePointRenderer selectedPoint = pointRenderList.get(selectionPointIndex);
             selectedPoint.update(camera, mousePos, lastMousePos);
+            if (controlPoint != null) {
+                controlPoint.update(camera, mousePos, lastMousePos);
+            }
+
             if (rotationPoint != null) {
                 rotationPoint.update(camera, mousePos, lastMousePos);
             }
@@ -343,11 +358,17 @@ public class PathRenderer implements MovablePointEventHandler, Serializable {
             //update the attached path if needed
             if (attachedPath != null) {
                 if (isAttachedPathEnd) {
-                    attachedPath.point2DList.set(attachedPath.point2DList.size() - 1, point2DList.get(selectionPointIndex));
+                    ControlVector attachedPathControlVector = attachedPath.controlVectors.get(attachedPath.controlVectors.size() - 1);
+                    attachedPath.controlVectors.set(attachedPath.controlVectors.size() - 1, new ControlVector(
+                            new double[]{selectedPoint.getPos2().x, attachedPathControlVector.x[1], attachedPathControlVector.x[2]},
+                            new double[]{selectedPoint.getPos2().y, attachedPathControlVector.y[1], attachedPathControlVector.y[2]}));
                     attachedPath.pointRenderList.get(attachedPath.pointRenderList.size() - 1)
                             .setPosition(selectedPoint.getPos2());
                 } else {
-                    attachedPath.point2DList.set(0, point2DList.get(selectionPointIndex));
+                    ControlVector attachedPathControlVector = attachedPath.controlVectors.get(0);
+                    attachedPath.controlVectors.set(0, new ControlVector(
+                            new double[]{selectedPoint.getPos2().x, attachedPathControlVector.x[1], attachedPathControlVector.x[2]},
+                            new double[]{selectedPoint.getPos2().y, attachedPathControlVector.y[1], attachedPathControlVector.y[2]}));
                     attachedPath.pointRenderList.get(0).setPosition(selectedPoint.getPos2());
                 }
                 attachedPath.updatePath();
@@ -363,6 +384,7 @@ public class PathRenderer implements MovablePointEventHandler, Serializable {
      */
     public void setRobotPathPreviewPoint(CloseTrajectoryPoint closePoint) {
         this.robotPreviewTime = closePoint.pointTime;
+        this.robotPreviewIndex = closePoint.prevPointIndex;
     }
 
     @Override
@@ -370,11 +392,16 @@ public class PathRenderer implements MovablePointEventHandler, Serializable {
         if (pointRenderList.contains(event.getPoint())) { //Should Only be called once per path
             if (event.isLeftClick()) {
                 selectionPointIndex = pointRenderList.indexOf(event.getPoint());
-                Rotation2d rotation = point2DList.get(selectionPointIndex).getRotation();
+                ControlVector controlVector = controlVectors.get(selectionPointIndex);
 
-                float xPos = (float) (event.getPos().x + rotation.getCos() * 1);
-                float yPos = (float) (event.getPos().y + rotation.getSin() * 1);
-                rotationPoint = new MovablePointRenderer(xPos, yPos, Color.GREEN, POINT_SIZE, this);
+                float controlXPos = (float) (event.getPos().x + (controlVector.x[1] / CONTROL_VECTOR_SCALE));
+                float controlYPos = (float) (event.getPos().y + (controlVector.y[1] / CONTROL_VECTOR_SCALE));
+                controlPoint = new MovablePointRenderer(controlXPos, controlYPos, Color.GREEN, POINT_SIZE, this);
+
+
+                float rotationXPos = (float) (event.getPos().x + rotation2dList.get(selectionPointIndex).getSin());
+                float rotationYPos = (float) (event.getPos().y + rotation2dList.get(selectionPointIndex).getCos());
+                rotationPoint = new MovablePointRenderer(rotationXPos, rotationYPos, Color.BLUE, POINT_SIZE, this);
             }
         }
     }
@@ -382,26 +409,39 @@ public class PathRenderer implements MovablePointEventHandler, Serializable {
 
     @Override
     public void onPointMove(@NotNull PointMoveEvent event) {
-        if (event.getPoint() == rotationPoint) {
+        if (event.getPoint() == controlPoint) {
+            MovablePointRenderer referencePoint = pointRenderList.get(selectionPointIndex);
+
+            ControlVector previousControlVector = controlVectors.get(selectionPointIndex);
+            ControlVector controlVector = new ControlVector(
+                    new double[]{previousControlVector.x[0], (event.getNewPos().x - referencePoint.getX()) * CONTROL_VECTOR_SCALE, 0},
+                    new double[]{previousControlVector.y[0], (event.getNewPos().y - referencePoint.getY()) * CONTROL_VECTOR_SCALE, 0});
+            controlVectors.set(selectionPointIndex, controlVector);
+
+        } else if (event.getPoint() == rotationPoint) {
             MovablePointRenderer referencePoint = pointRenderList.get(selectionPointIndex);
             Rotation2d rotation2d = new Rotation2d(Math.atan2(event.getNewPos().y - referencePoint.getY(), event.getNewPos().x - referencePoint.getX()));
-            double posX = (float) (referencePoint.getX() + rotation2d.getCos());
-            double posY = (float) (referencePoint.getY() + rotation2d.getSin());
-            event.setPosition((float) posX, (float) posY);
-
-            Pose2d pose2d = new Pose2d(point2DList.get(selectionPointIndex).getTranslation(), rotation2d);
-            point2DList.set(selectionPointIndex, pose2d);
-
+            rotation2dList.set(selectionPointIndex, rotation2d);
+            event.setPosition((float) (referencePoint.x + rotation2d.getCos()), (float) (referencePoint.y + rotation2d.getSin()));
         } else {
             selectionPointIndex = pointRenderList.indexOf(event.getPoint());
-            Rotation2d rotation = point2DList.get(selectionPointIndex).getRotation();
+            ControlVector controlVector = controlVectors.get(selectionPointIndex);
 
-            float xPos = (float) (event.getNewPos().x + rotation.getCos() * 1);
-            float yPos = (float) (event.getNewPos().y + rotation.getSin() * 1);
-            rotationPoint = new MovablePointRenderer(xPos, yPos, Color.GREEN, POINT_SIZE, this);
+            float xPos = (float) (event.getNewPos().x + (controlVector.x[1] / CONTROL_VECTOR_SCALE));
+            float yPos = (float) (event.getNewPos().y + (controlVector.y[1] / CONTROL_VECTOR_SCALE));
+            assert controlPoint != null;
+            controlPoint.setPosition(xPos, yPos);
 
-            Pose2d pose2d = new Pose2d(new Translation2d(event.getNewPos().x, event.getNewPos().y), point2DList.get(selectionPointIndex).getRotation());
-            point2DList.set(selectionPointIndex, pose2d);
+            float rotationXPos = (float) (event.getNewPos().x + rotation2dList.get(selectionPointIndex).getSin());
+            float rotationYPos = (float) (event.getNewPos().y + rotation2dList.get(selectionPointIndex).getCos());
+            assert rotationPoint != null;
+            rotationPoint.setPosition(rotationXPos, rotationYPos);
+
+            ControlVector previousControlVector = controlVectors.get(selectionPointIndex);
+            ControlVector newControlVector = new ControlVector(
+                    new double[]{event.getNewPos().x, previousControlVector.x[1], 0},
+                    new double[]{event.getNewPos().y, previousControlVector.y[1], 0});
+            controlVectors.set(selectionPointIndex, newControlVector);
         }
         updatePath();
     }
@@ -421,7 +461,8 @@ public class PathRenderer implements MovablePointEventHandler, Serializable {
             trajectoryConfig.setReversed(isReversed());
             trajectoryConfig.setStartVelocity(velocityStart);
             trajectoryConfig.setEndVelocity(velocityEnd);
-            return trajectory = TrajectoryGenerator.generateTrajectory(point2DList, trajectoryConfig);
+
+            return trajectory = TrajectoryGenerator.generateTrajectory(controlVectors, trajectoryConfig);
         }, executorService);
 
 
@@ -444,13 +485,17 @@ public class PathRenderer implements MovablePointEventHandler, Serializable {
         return trajectory;
     }
 
-    public @NotNull List<Pose2d> getPoint2DList() {
-        return point2DList;
+    public @NotNull ControlVectorList getControlVectors() {
+        return controlVectors;
+    }
+
+    public @NotNull List<Rotation2d> getRotations() {
+        return rotation2dList;
     }
 
     public void removeSelection() {
         selectionPointIndex = -1;
-        rotationPoint = null;
+        controlPoint = null;
         highlightPoint = null;
 
     }
@@ -466,16 +511,16 @@ public class PathRenderer implements MovablePointEventHandler, Serializable {
     @Override
     public String toString() {
         StringBuilder stringBuilder = new StringBuilder("Points{");
-        for (Pose2d pose2d : point2DList) {
-            stringBuilder.append("[Translation: (").
-                    append(pose2d.getX()).append(", ").
-                    append(pose2d.getY()).append("), Rotation: ").
-                    append(pose2d.getRotation().getDegrees())
-                    .append("] ");
+        for (ControlVector controlVector : controlVectors) {
+            stringBuilder.append("[Translation: (")
+                    .append(controlVector.x[0]).append(", ").append(controlVector.y[0])
+                    .append("), Control Point: (")
+                    .append(controlVector.x[1]).append(", ").append(controlVector.y[1])
+                    .append(")] ");
         }
         return "PathRenderer{" +
                 "color=" + color +
-                ", point2DList=" + stringBuilder +
+                ", controlVectors=" + stringBuilder +
                 '}';
     }
 

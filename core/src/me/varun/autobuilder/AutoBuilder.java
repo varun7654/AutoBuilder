@@ -37,12 +37,15 @@ import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.stream.Collectors;
 
 public class AutoBuilder extends ApplicationAdapter {
     public static final float LINE_THICKNESS = 4;
     public static final float POINT_SIZE = 8;
+    public static final float CONTROL_VECTOR_SCALE = 3;
 
     @NotNull private final Vector3 mousePos = new Vector3();
     @NotNull private final Vector3 lastMousePos = new Vector3();
@@ -227,8 +230,11 @@ public class AutoBuilder extends ApplicationAdapter {
         hudBatch.end();
     }
 
+    int lastCloseishPointSelectionIndex = 0;
+
     @Nullable ClosePoint lastSelectedPoint = null;
     boolean somethingMoved = false;
+
     private void update() {
         undoHandler.update(pathGui, inputEventThrower, cameraHandler);
 
@@ -245,11 +251,11 @@ public class AutoBuilder extends ApplicationAdapter {
         boolean pointAdded = false;
         //Check if we need to delete/add a point
         if(Gdx.app.getInput().isButtonJustPressed(Input.Buttons.RIGHT) || Gdx.app.getInput().isButtonJustPressed(Input.Buttons.LEFT)) {
-            if (lastSelectedPoint == null || !lastSelectedPoint.parentPathRenderer.isTouchingRotationPoint(mousePos, maxDistance)) {
+            if (lastSelectedPoint == null || !lastSelectedPoint.parentPathRenderer.isTouchingSomething(mousePos, maxDistance)) {
                 removeLastSelectedPoint();
 
                 //Get all close points and find the closest one.
-                ArrayList<ClosePoint> closePoints = new ArrayList<>();
+                List<ClosePoint> closePoints = new ArrayList<>();
                 for (AbstractGuiItem guiItem : pathGui.guiItems) {
                     if (guiItem instanceof TrajectoryItem) {
                         PathRenderer pathRenderer = ((TrajectoryItem) guiItem).getPathRenderer();
@@ -259,9 +265,16 @@ public class AutoBuilder extends ApplicationAdapter {
                 Collections.sort(closePoints);
 
                 //If we have a close point, select it/delete it
-                if(closePoints.size() > 0) {
-                    ClosePoint closestPoint = closePoints.get(0);
-                    if(Gdx.app.getInput().isButtonJustPressed(Input.Buttons.RIGHT)){
+                if (closePoints.size() > 0) {
+                    float closestDistance = closePoints.get(0).len2 + 0.5f;
+                    closePoints = closePoints.stream().filter(closePoint -> closePoint.len2 < closestDistance)
+                            .collect(Collectors.toList());
+
+                    lastCloseishPointSelectionIndex++;
+                    if (lastCloseishPointSelectionIndex >= closePoints.size()) lastCloseishPointSelectionIndex = 0;
+
+                    ClosePoint closestPoint = closePoints.get(lastCloseishPointSelectionIndex);
+                    if (Gdx.app.getInput().isButtonJustPressed(Input.Buttons.RIGHT)) {
                         closestPoint.parentPathRenderer.deletePoint(closestPoint);
                         pointAdded = true;
                         somethingMoved = false;
@@ -292,13 +305,15 @@ public class AutoBuilder extends ApplicationAdapter {
         if(closeTrajectoryPoints.size() > 0) {
             //We're hovering over a trajectory
             CloseTrajectoryPoint closeTrajectoryPoint = closeTrajectoryPoints.get(0);
-            if(Gdx.app.getInput().isButtonJustPressed(Input.Buttons.RIGHT) && !pointAdded) {
+            if (Gdx.app.getInput().isButtonJustPressed(Input.Buttons.RIGHT) && !pointAdded) {
                 //Should we add a point?
                 closeTrajectoryPoint.parentPathRenderer.addPoint(closeTrajectoryPoint);
                 removeLastSelectedPoint();
             }
             //Render the path preview
-            closeTrajectoryPoint.parentPathRenderer.setRobotPathPreviewPoint(closeTrajectoryPoint);
+            if (lastSelectedPoint == null) {
+                closeTrajectoryPoint.parentPathRenderer.setRobotPathPreviewPoint(closeTrajectoryPoint);
+            }
         }
 
         networkTables.updateRobotPath();

@@ -4,10 +4,13 @@
 
 package me.varun.autobuilder.wpi.math.spline;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import me.varun.autobuilder.wpi.math.geometry.Pose2d;
 import me.varun.autobuilder.wpi.math.geometry.Rotation2d;
-import java.util.Arrays;
 import org.ejml.simple.SimpleMatrix;
+
+import java.util.Arrays;
 
 /** Represents a two-dimensional parametric spline that interpolates between two points. */
 public abstract class Spline {
@@ -87,8 +90,8 @@ public abstract class Spline {
    */
   @SuppressWarnings("MemberName")
   public static class ControlVector {
-    public double[] x;
-    public double[] y;
+    @JsonProperty("x") public double[] x;
+    @JsonProperty("y") public double[] y;
 
     /**
      * Instantiates a control vector.
@@ -97,7 +100,9 @@ public abstract class Spline {
      * @param y The y dimension of the control vector.
      */
     @SuppressWarnings("ParameterName")
-    public ControlVector(double[] x, double[] y) {
+    @JsonCreator
+    public ControlVector(@JsonProperty("x") double[] x,
+                         @JsonProperty("y") double[] y) {
       this.x = Arrays.copyOf(x, x.length);
       this.y = Arrays.copyOf(y, y.length);
     }

@@ -30,6 +30,7 @@ public class RobotCodeData {
 
     public static Map<String, Function<String, Boolean>> inferableTypesVerification;
 
+    
     static {
         inferableTypesVerification = new Hashtable<>();
         inferableTypesVerification.put(int.class.getName(), s -> s.matches("[0-9]+"));

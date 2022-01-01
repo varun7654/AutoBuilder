@@ -2,6 +2,7 @@ package me.varun.autobuilder.gui.path;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
+import com.badlogic.gdx.Input.Buttons;
 import com.badlogic.gdx.graphics.Camera;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.g2d.PolygonSpriteBatch;
@@ -111,7 +112,7 @@ public class PathGui extends InputEventListener {
                 lastPath = (TrajectoryItem) guiItem;
             }
 
-            if (dragging && draggingElement == null && guiItem.isMouseOver(panelX + 10, yPos - 40, panelWidth - 20 - 45, 40)) {
+            if (dragging && Gdx.input.isButtonJustPressed(Buttons.LEFT) && draggingElement == null && guiItem.isMouseOver(panelX + 10, yPos - 40, panelWidth - 20 - 45, 40)) {
                 draggingElement = guiItem;
                 draggingElement.setClosed(true);
                 oldDraggingElementIndex = i;

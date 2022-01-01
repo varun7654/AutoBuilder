@@ -4,7 +4,8 @@ import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import me.varun.autobuilder.wpi.math.geometry.Pose2d;
+import me.varun.autobuilder.wpi.math.geometry.Rotation2d;
+import me.varun.autobuilder.wpi.math.spline.Spline.ControlVector;
 import me.varun.autobuilder.wpi.math.trajectory.Trajectory;
 import org.jetbrains.annotations.Nullable;
 
@@ -13,15 +14,17 @@ import java.util.List;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class TrajectoryAutonomousStep extends AbstractAutonomousStep {
     private final List<Trajectory.State> states;
-    private final List<Pose2d> pose2DList;
+    private final List<ControlVector> controlVectors;
     private final boolean reversed;
     private final float color;
     private final float velocityStart;
     private final float velocityEnd;
+    private final List<Rotation2d> rotations;
 
     @JsonCreator
     public TrajectoryAutonomousStep(@JsonProperty(required = true, value = "states") @Nullable List<Trajectory.State> m_states,
-                                    @JsonProperty(required = true, value = "pointList") @Nullable List<Pose2d> point2DList,
+                                    @JsonProperty(required = true, value = "pointList") @Nullable List<ControlVector> controlVectors,
+                                    @JsonProperty(required = true, value = "rotations") List<Rotation2d> rotations,
                                     @JsonProperty(required = true, value = "reversed") boolean reversed,
                                     @JsonProperty(required = true, value = "color") float color,
                                     @JsonProperty(required = true, value = "closed") boolean closed,
@@ -30,7 +33,8 @@ public class TrajectoryAutonomousStep extends AbstractAutonomousStep {
         super(closed);
         this.reversed = reversed;
         this.color = color;
-        this.pose2DList = point2DList;
+        this.controlVectors = controlVectors;
+        this.rotations = rotations;
 
         this.states = m_states;
         this.velocityStart = velocityStart;
@@ -42,9 +46,8 @@ public class TrajectoryAutonomousStep extends AbstractAutonomousStep {
     }
 
     @JsonProperty("pointList")
-    public List<Pose2d> getPose2DList() {
-
-        return pose2DList;
+    public List<ControlVector> getControlVectors() {
+        return controlVectors;
     }
 
     @JsonProperty
@@ -62,7 +65,7 @@ public class TrajectoryAutonomousStep extends AbstractAutonomousStep {
     public String toString() {
         return "TrajectoryAutonomousStep{" +
                 "m_states=" + states +
-                ", pose2DList=" + pose2DList +
+                ", controlVectors=" + controlVectors +
                 ", reversed=" + reversed +
                 ", color=" + color +
                 '}';
@@ -86,5 +89,10 @@ public class TrajectoryAutonomousStep extends AbstractAutonomousStep {
     @JsonProperty
     public float getVelocityEnd() {
         return velocityEnd;
+    }
+
+    @JsonProperty
+    public List<Rotation2d> getRotations() {
+        return rotations;
     }
 }
