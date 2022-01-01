@@ -171,10 +171,10 @@ public class TrajectoryItem extends AbstractGuiItem implements PathChangeListene
         textBoxes.clear();
         for (int i = 0; i < pathRenderer.getControlVectors().size(); i++) {
             ControlVector controlVector = pathRenderer.getControlVectors().get(i);
+            Rotation2d rotation = pathRenderer.getRotations().get(i);
             NumberTextBox xBox = new NumberTextBox(df.format(controlVector.x[0]), eventThrower, this, i, 0, 18);
             NumberTextBox yBox = new NumberTextBox(df.format(controlVector.y[0]), eventThrower, this, i, 1, 18);
-            NumberTextBox rotationBox = new NumberTextBox(df.format(0), eventThrower, this, i, 2,
-                    18);
+            NumberTextBox rotationBox = new NumberTextBox(df.format(rotation.getDegrees()), eventThrower, this, i, 2, 18);
             ArrayList<NumberTextBox> textBoxList = new ArrayList<>();
             textBoxList.add(xBox);
             textBoxList.add(yBox);
@@ -229,6 +229,7 @@ public class TrajectoryItem extends AbstractGuiItem implements PathChangeListene
                     pathRenderer.getControlVectors().set(row, new ControlVector(
                             new double[]{controlVector.x[0], controlVector.x[1], controlVector.x[2]},
                             new double[]{controlVector.y[0], controlVector.y[1], controlVector.y[2]}));
+                    pathRenderer.getRotations().set(row, Rotation2d.fromDegrees(parsedNumber));
                     //TODO: implement rotation
                     break;
             }
