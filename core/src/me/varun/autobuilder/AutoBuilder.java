@@ -138,9 +138,10 @@ public class AutoBuilder extends ApplicationAdapter {
         pathGui = new PathGui(hudViewport, inputEventThrower, asyncPathingService, cameraHandler);
 
 
-        File pathFile = new File(USER_DIRECTORY + "/" + config.getSelectedAuto());
+        File pathFile = new File(USER_DIRECTORY + "/NOTDEPLOYABLE" + config.getSelectedAuto());
         pathFile.getParentFile().mkdirs();
-
+        if (!pathFile.exists()) pathFile = new File(USER_DIRECTORY + "/" + config.getSelectedAuto());
+        System.out.println("Loading autonomous from " + pathFile.getAbsolutePath());
         try {
             Autonomous autonomous = Serializer.deserializeAutoFromFile(pathFile);
             undoHandler.restoreState(autonomous, pathGui, inputEventThrower, cameraHandler);
@@ -347,15 +348,23 @@ public class AutoBuilder extends ApplicationAdapter {
     @Override
     public void pause() {
         super.pause();
-        File autoFile = new File(USER_DIRECTORY + "/" + config.getSelectedAuto());
+        Autonomous autonomous = GuiSerializer.serializeAutonomous(pathGui.guiItems);
+        File autoFile = new File(USER_DIRECTORY + "/" + (autonomous.deployable ? "" : "NOTDEPLOYABLE") + config.getSelectedAuto());
         File configFile = new File(USER_DIRECTORY + "/config.json");
         autoFile.getParentFile().mkdirs();
         configFile.getParentFile().mkdirs();
 
         try {
-            Serializer.serializeToFile(GuiSerializer.serializeAutonomous(pathGui.guiItems), autoFile);
+            Serializer.serializeToFile(autonomous, autoFile);
             configFile.createNewFile();
             Serializer.serializeToFile(config, configFile);
+            if (autonomous.deployable) {
+                File fileToDelete = new File(USER_DIRECTORY + "/NOTDEPLOYABLE" + config.getSelectedAuto());
+                fileToDelete.delete();
+            } else {
+                File fileToDelete = new File(USER_DIRECTORY + "/" + config.getSelectedAuto());
+                fileToDelete.delete();
+            }
         } catch (IOException e) {
             e.printStackTrace();
         }
