@@ -154,6 +154,17 @@ public class TextBox extends InputEventListener {
                 xPos = -1;
             }
 
+            if (getKeyPressed(Keys.FORWARD_DEL)) {
+                if (selectedPos < text.length()) {
+                    text = text.substring(0, selectedPos) + text.substring(selectedPos + 1);
+                    fireTextChangeEvent();
+                }
+
+                flashing = true;
+                nextFlashChange = System.currentTimeMillis() + 1500;
+                xPos = -1;
+            }
+
             if ((Gdx.input.isKeyPressed(Input.Keys.CONTROL_LEFT) || Gdx.input.isKeyPressed(Input.Keys.CONTROL_LEFT)) &&
                     Gdx.input.isKeyJustPressed(Input.Keys.V)) {
                 Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
