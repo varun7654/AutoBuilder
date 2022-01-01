@@ -11,6 +11,8 @@ import me.varun.autobuilder.events.movablepoint.MovablePointEventHandler;
 import me.varun.autobuilder.events.movablepoint.PointClickEvent;
 import me.varun.autobuilder.events.movablepoint.PointMoveEvent;
 import me.varun.autobuilder.events.pathchange.PathChangeListener;
+import me.varun.autobuilder.gui.notification.Notification;
+import me.varun.autobuilder.gui.notification.NotificationHandler;
 import me.varun.autobuilder.gui.path.AbstractGuiItem;
 import me.varun.autobuilder.gui.path.TrajectoryItem;
 import me.varun.autobuilder.pathing.pointclicks.ClosePoint;
@@ -31,6 +33,7 @@ import space.earlygrey.shapedrawer.ShapeDrawer;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
@@ -399,8 +402,8 @@ public class PathRenderer implements MovablePointEventHandler, Serializable {
                 controlPoint = new MovablePointRenderer(controlXPos, controlYPos, Color.GREEN, POINT_SIZE, this);
 
 
-                float rotationXPos = (float) (event.getPos().x + rotation2dList.get(selectionPointIndex).getSin());
-                float rotationYPos = (float) (event.getPos().y + rotation2dList.get(selectionPointIndex).getCos());
+                float rotationXPos = (float) (event.getPos().x + rotation2dList.get(selectionPointIndex).getCos());
+                float rotationYPos = (float) (event.getPos().y + rotation2dList.get(selectionPointIndex).getSin());
                 rotationPoint = new MovablePointRenderer(rotationXPos, rotationYPos, Color.BLUE, POINT_SIZE, this);
             }
         }
@@ -432,8 +435,8 @@ public class PathRenderer implements MovablePointEventHandler, Serializable {
             assert controlPoint != null;
             controlPoint.setPosition(xPos, yPos);
 
-            float rotationXPos = (float) (event.getNewPos().x + rotation2dList.get(selectionPointIndex).getSin());
-            float rotationYPos = (float) (event.getNewPos().y + rotation2dList.get(selectionPointIndex).getCos());
+            float rotationXPos = (float) (event.getNewPos().x + rotation2dList.get(selectionPointIndex).getCos());
+            float rotationYPos = (float) (event.getNewPos().y + rotation2dList.get(selectionPointIndex).getSin());
             assert rotationPoint != null;
             rotationPoint.setPosition(rotationXPos, rotationYPos);
 
@@ -470,14 +473,12 @@ public class PathRenderer implements MovablePointEventHandler, Serializable {
     }
 
     @NotNull
-    public Trajectory getNotNullTrajectory() {
+    public Trajectory getNotNullTrajectory() throws ExecutionException {
         try {
             return completableFutureTrajectory.get();
-        } catch (InterruptedException | ExecutionException e) {
-            e.printStackTrace();
+        } catch (InterruptedException e) {
+            return null; //Should never happen
         }
-
-        return null; //Should never happen
     }
 
     @Nullable
@@ -491,6 +492,42 @@ public class PathRenderer implements MovablePointEventHandler, Serializable {
 
     public @NotNull List<Rotation2d> getRotations() {
         return rotation2dList;
+    }
+
+    /**
+     * @return List of rotation points and the times they should be used
+     * @throws NullPointerException if the trajectory has not been generated yet. Call {@link #getTrajectory()} to get the
+     *                              trajectory.
+     */
+    public List<TimedRotation> getRotationsAndTimes() {
+        List<TimedRotation> rotationsAndTimes = new ArrayList<>(rotation2dList.size());
+        int currentIndexPos = 0;
+        rotationsAndTimes.add(new TimedRotation(0.0, rotation2dList.get(0)));
+        for (double i = 0; i < Objects.requireNonNull(trajectory).getTotalTimeSeconds(); i += 0.01f) {
+            Vector3 renderVector = MathUtil.toRenderVector3(trajectory.sample(i).poseMeters);
+
+            if (currentIndexPos + 1 < controlVectors.size() &&
+                    MathUtil.toRenderVector3(controlVectors.get(currentIndexPos + 1).x[0], controlVectors.get(currentIndexPos + 1).y[0])
+                            .dst2(renderVector) < 8f) {
+                currentIndexPos++;
+                rotationsAndTimes.add(new TimedRotation(i, rotation2dList.get(0)));
+            }
+
+        }
+
+        if (rotation2dList.size() - rotationsAndTimes.size() > 1) {
+            NotificationHandler.addNotification(new Notification(
+                    Color.ORANGE,
+                    "Warning: Path has " + (rotation2dList.size() - rotationsAndTimes.size()) + " extra rotations at the end of the path",
+                    2000));
+        }
+
+        for (int i = currentIndexPos; i < rotation2dList.size(); i++) {
+            rotationsAndTimes.add(new TimedRotation(trajectory.getTotalTimeSeconds(), rotation2dList.get(i)));
+        }
+
+        assert rotationsAndTimes.size() == rotation2dList.size();
+        return rotationsAndTimes;
     }
 
     public void removeSelection() {

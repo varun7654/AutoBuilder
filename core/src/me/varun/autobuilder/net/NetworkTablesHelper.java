@@ -14,6 +14,7 @@ import me.varun.autobuilder.serialization.path.GuiSerializer;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.ExecutionException;
 
 public final class NetworkTablesHelper {
 
@@ -60,11 +61,13 @@ public final class NetworkTablesHelper {
                 Autonomous autonomous = Serializer.deserializeAuto(autoPath.getString(null));
                 System.out.println("Sent Data: " + autonomous);
 
-                NotificationHandler.addNotification(new Notification(LIGHT_GREEN, "Auto Uploaded", 2000 ));
+                NotificationHandler.addNotification(new Notification(LIGHT_GREEN, "Auto Uploaded", 2000));
 
             } catch (IOException | ClassNotFoundException e) {
                 e.printStackTrace();
-                NotificationHandler.addNotification(new Notification(Color.RED, "Auto Failed to Upload", 2000 ));
+                NotificationHandler.addNotification(new Notification(Color.RED, "Auto Failed to Upload", 2000));
+            } catch (ExecutionException e) {
+                NotificationHandler.addNotification(new Notification(Color.RED, "Encountered an error trying to generate the path", 2000));
             }
         } else {
             System.out.println("Cannot Send Data; Not Connected");

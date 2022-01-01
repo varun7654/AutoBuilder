@@ -1,6 +1,7 @@
 package me.varun.autobuilder.serialization.path;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import java.util.List;
@@ -18,6 +19,10 @@ public class Autonomous {
     public List<AbstractAutonomousStep> getAutonomousSteps() {
         return autonomousSteps;
     }
+
+
+    @JsonIgnore
+    public boolean deployable = true;
 
     @Override
     public String toString() {

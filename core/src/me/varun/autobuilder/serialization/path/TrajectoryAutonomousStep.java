@@ -4,7 +4,7 @@ import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import me.varun.autobuilder.wpi.math.geometry.Rotation2d;
+import me.varun.autobuilder.pathing.TimedRotation;
 import me.varun.autobuilder.wpi.math.spline.Spline.ControlVector;
 import me.varun.autobuilder.wpi.math.trajectory.Trajectory;
 import org.jetbrains.annotations.Nullable;
@@ -19,12 +19,12 @@ public class TrajectoryAutonomousStep extends AbstractAutonomousStep {
     private final float color;
     private final float velocityStart;
     private final float velocityEnd;
-    private final List<Rotation2d> rotations;
+    private final List<TimedRotation> rotations;
 
     @JsonCreator
     public TrajectoryAutonomousStep(@JsonProperty(required = true, value = "states") @Nullable List<Trajectory.State> m_states,
                                     @JsonProperty(required = true, value = "pointList") @Nullable List<ControlVector> controlVectors,
-                                    @JsonProperty(required = true, value = "rotations") List<Rotation2d> rotations,
+                                    @JsonProperty(required = true, value = "rotations") List<TimedRotation> rotations,
                                     @JsonProperty(required = true, value = "reversed") boolean reversed,
                                     @JsonProperty(required = true, value = "color") float color,
                                     @JsonProperty(required = true, value = "closed") boolean closed,
@@ -92,7 +92,7 @@ public class TrajectoryAutonomousStep extends AbstractAutonomousStep {
     }
 
     @JsonProperty
-    public List<Rotation2d> getRotations() {
+    public List<TimedRotation> getRotations() {
         return rotations;
     }
 }

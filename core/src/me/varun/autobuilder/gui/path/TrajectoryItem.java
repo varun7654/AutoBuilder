@@ -14,6 +14,7 @@ import me.varun.autobuilder.gui.textrendering.Fonts;
 import me.varun.autobuilder.gui.textrendering.TextComponent;
 import me.varun.autobuilder.pathing.MovablePointRenderer;
 import me.varun.autobuilder.pathing.PathRenderer;
+import me.varun.autobuilder.pathing.TimedRotation;
 import me.varun.autobuilder.util.RoundedShapeRenderer;
 import me.varun.autobuilder.wpi.math.geometry.Rotation2d;
 import me.varun.autobuilder.wpi.math.spline.Spline.ControlVector;
@@ -24,6 +25,7 @@ import space.earlygrey.shapedrawer.ShapeDrawer;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class TrajectoryItem extends AbstractGuiItem implements PathChangeListener, NumberTextboxChangeListener {
     private static final DecimalFormat df = new DecimalFormat();
@@ -63,12 +65,14 @@ public class TrajectoryItem extends AbstractGuiItem implements PathChangeListene
     }
 
     public TrajectoryItem(PathGui pathGui, @NotNull InputEventThrower eventThrower, @NotNull CameraHandler cameraHandler,
-                          @NotNull ControlVectorList controlVectors, @NotNull List<Rotation2d> rotation2dList, boolean reversed,
+                          @NotNull ControlVectorList controlVectors, @NotNull List<TimedRotation> rotation2dList, boolean reversed,
                           Color color, boolean closed, float velocityStart, float velocityEnd) {
         this.eventThrower = eventThrower;
         this.cameraHandler = cameraHandler;
 
-        this.pathRenderer = new PathRenderer(color, controlVectors, rotation2dList, pathGui.executorService, velocityStart, velocityEnd);
+        this.pathRenderer = new PathRenderer(color, controlVectors, rotation2dList.stream().map(TimedRotation::getRotation)
+                .collect(Collectors.toList()),
+                pathGui.executorService, velocityStart, velocityEnd);
         pathRenderer.setReversed(reversed);
         pathRenderer.setPathChangeListener(this);
 
