@@ -25,8 +25,6 @@ public class GuiSerializer {
             if (abstractGuiItem instanceof TrajectoryItem) {
                 TrajectoryItem trajectoryItem = (TrajectoryItem) abstractGuiItem;
 
-                List<Trajectory.State> states;
-
                 autonomousSteps.add(new TrajectoryAutonomousStep(
                         trajectoryItem.getPathRenderer().getNotNullTrajectory().getStates(),
                         null,
