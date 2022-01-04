@@ -2,7 +2,6 @@ package me.varun.autobuilder.gui.path;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
-import com.badlogic.gdx.Input.Buttons;
 import com.badlogic.gdx.graphics.Camera;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.g2d.PolygonSpriteBatch;
@@ -51,6 +50,7 @@ public class PathGui extends InputEventListener {
     private float maxScroll = 0;
     private @NotNull Rectangle clipBounds;
     private @Nullable TrajectoryItem lastPath = null;
+    private boolean clickedInsidePanel;
 
     {
         color.fromHsv(1, 1, 1);
@@ -112,7 +112,7 @@ public class PathGui extends InputEventListener {
                 lastPath = (TrajectoryItem) guiItem;
             }
 
-            if (dragging && Gdx.input.isButtonJustPressed(Buttons.LEFT) && draggingElement == null && guiItem.isMouseOver(panelX + 10, yPos - 40, panelWidth - 20 - 45, 40)) {
+            if (dragging && draggingElement == null && guiItem.isMouseOver(panelX + 10, yPos - 40, panelWidth - 20 - 45, 40)) {
                 draggingElement = guiItem;
                 draggingElement.setClosed(true);
                 oldDraggingElementIndex = i;
@@ -166,11 +166,13 @@ public class PathGui extends InputEventListener {
                 mouseDownPos.x = Gdx.input.getX();
                 mouseDownPos.y = Gdx.input.getY();
                 draggingElement = null;
-            } else if (Gdx.input.isButtonPressed(Input.Buttons.LEFT)) {
+                clickedInsidePanel = true;
+            } else if (clickedInsidePanel && Gdx.input.isButtonPressed(Input.Buttons.LEFT)) {
                 if (MathUtil.len2(mouseDownPos, Gdx.input.getX(), Gdx.input.getY()) > 100) {
                     dragging = true;
                 }
             } else {
+                clickedInsidePanel = false;
                 dragging = false;
                 if (draggingElement != null) {
                     System.out.println(newDraggingElementIndex);
