@@ -10,11 +10,11 @@ import me.varun.autobuilder.gui.notification.NotificationHandler;
 import me.varun.autobuilder.gui.path.AbstractGuiItem;
 import me.varun.autobuilder.serialization.path.Autonomous;
 import me.varun.autobuilder.serialization.path.GuiSerializer;
+import me.varun.autobuilder.serialization.path.NotDeployableException;
 
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.ExecutionException;
 
 public final class NetworkTablesHelper {
 
@@ -66,8 +66,8 @@ public final class NetworkTablesHelper {
             } catch (IOException | ClassNotFoundException e) {
                 e.printStackTrace();
                 NotificationHandler.addNotification(new Notification(Color.RED, "Auto Failed to Upload", 2000));
-            } catch (ExecutionException e) {
-                NotificationHandler.addNotification(new Notification(Color.RED, "Encountered an error trying to generate the path", 2000));
+            } catch (NotDeployableException e) {
+                NotificationHandler.addNotification(new Notification(Color.RED, "Your autonomous contains errors: Cannot deploy!", 2000));
             }
         } else {
             System.out.println("Cannot Send Data; Not Connected");

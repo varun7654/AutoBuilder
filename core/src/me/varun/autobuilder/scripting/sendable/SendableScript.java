@@ -1,6 +1,7 @@
 package me.varun.autobuilder.scripting.sendable;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import java.util.ArrayList;
@@ -15,6 +16,7 @@ public class SendableScript {
 
     private DelayType delayType;
     private double delay;
+    private boolean deployable;
 
     private final ArrayList<SendableCommand> commands;
 
@@ -47,11 +49,20 @@ public class SendableScript {
         return commands;
     }
 
+    @JsonIgnore
+    public boolean isDeployable() {
+        return deployable;
+    }
+
     public void setDelay(double delay) {
         this.delay = delay;
     }
 
     public void setDelayType(DelayType delayType) {
         this.delayType = delayType;
+    }
+
+    public void setDeployable(boolean deployable) {
+        this.deployable = deployable;
     }
 }

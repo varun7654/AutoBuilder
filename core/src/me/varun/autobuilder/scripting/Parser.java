@@ -197,6 +197,7 @@ public class Parser {
 
             prevIndex += command.length() + 1; // The +1 is for the newline character
         }
+        sendableScript.setDeployable(!error);
         return error;
     }
 }
