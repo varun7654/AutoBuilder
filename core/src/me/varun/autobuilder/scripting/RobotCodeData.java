@@ -116,7 +116,7 @@ public class RobotCodeData {
             }
         }
 
-        if (classAndMethod.length == 1) {
+        if (classAndMethod.length < 2) {
             classTextComponents.add(new TextComponent("\n\nExpected a method after class"));
             error = true;
         } else if (classAndMethod.length > 2) {
@@ -131,8 +131,6 @@ public class RobotCodeData {
         if (error) {
             return false;
         }
-
-        assert reflectionClassData != null;
 
         if (reflectionClassData.methodMap.containsKey(classAndMethod[1].string)) {
 

@@ -13,7 +13,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.stream.Collectors;
 
 public class GuiSerializer {
-    public static Autonomous serializeAutonomousForDeployment(List<AbstractGuiItem> mutableGuiItemList) throws ExecutionException {
+    public static Autonomous serializeAutonomousForDeployment(List<AbstractGuiItem> mutableGuiItemList) throws NotDeployableException {
         List<AbstractAutonomousStep> autonomousSteps = new ArrayList<>();
         List<AbstractGuiItem> guiItemList = new ArrayList<>(mutableGuiItemList);
         for (AbstractGuiItem abstractGuiItem : guiItemList) {
@@ -25,15 +25,27 @@ public class GuiSerializer {
             if (abstractGuiItem instanceof TrajectoryItem) {
                 TrajectoryItem trajectoryItem = (TrajectoryItem) abstractGuiItem;
 
-                autonomousSteps.add(new TrajectoryAutonomousStep(
-                        trajectoryItem.getPathRenderer().getNotNullTrajectory().getStates(),
-                        null,
-                        trajectoryItem.getPathRenderer().getRotationsAndTimes(),
-                        trajectoryItem.getPathRenderer().isReversed(),
-                        0,
-                        trajectoryItem.isClosed(),
-                        trajectoryItem.getPathRenderer().getVelocityStart(),
-                        trajectoryItem.getPathRenderer().getVelocityEnd()));
+                try {
+                    autonomousSteps.add(new TrajectoryAutonomousStep(
+                            trajectoryItem.getPathRenderer().getNotNullTrajectory().getStates(),
+                            null,
+                            trajectoryItem.getPathRenderer().getRotationsAndTimes(),
+                            trajectoryItem.getPathRenderer().isReversed(),
+                            0,
+                            trajectoryItem.isClosed(),
+                            trajectoryItem.getPathRenderer().getVelocityStart(),
+                            trajectoryItem.getPathRenderer().getVelocityEnd()));
+                } catch (ExecutionException e) {
+                    throw new NotDeployableException("Trajectory is not deployable");
+                }
+            }
+        }
+        for (AbstractAutonomousStep autonomousStep : autonomousSteps) {
+            if (autonomousStep instanceof ScriptAutonomousStep) {
+                ScriptAutonomousStep scriptAutonomousStep = (ScriptAutonomousStep) autonomousStep;
+                if (!scriptAutonomousStep.getSendableScript().isDeployable()) {
+                    throw new NotDeployableException("Script is not deployable");
+                }
             }
         }
         return new Autonomous(autonomousSteps);
@@ -100,7 +112,9 @@ public class GuiSerializer {
                 autonomousSteps.add(new TrajectoryAutonomousStep(
                         states,
                         trajectoryItem.getPathRenderer().getControlVectors(),
-                        trajectoryItem.getPathRenderer().getRotationsAndTimes(),
+                        deployable ? trajectoryItem.getPathRenderer().getRotationsAndTimes() :
+                                trajectoryItem.getPathRenderer().getRotations().stream().map(TimedRotation::new)
+                                        .collect(Collectors.toList()), // Add fake times as they are not used in undo history,
                         trajectoryItem.getPathRenderer().isReversed(),
                         color[0],
                         trajectoryItem.isClosed(),
@@ -109,6 +123,14 @@ public class GuiSerializer {
             }
         }
         Autonomous autonomous = new Autonomous(autonomousSteps);
+
+        for (AbstractAutonomousStep autonomousStep : autonomous.getAutonomousSteps()) {
+            if (autonomousStep instanceof ScriptAutonomousStep) {
+                ScriptAutonomousStep scriptAutonomousStep = (ScriptAutonomousStep) autonomousStep;
+                if (!scriptAutonomousStep.getSendableScript().isDeployable()) deployable = false;
+            }
+        }
+
         autonomous.deployable = deployable;
         return autonomous;
     }

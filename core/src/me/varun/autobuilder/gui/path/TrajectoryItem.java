@@ -2,6 +2,7 @@ package me.varun.autobuilder.gui.path;
 
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.g2d.PolygonSpriteBatch;
+import com.badlogic.gdx.math.Vector2;
 import me.varun.autobuilder.CameraHandler;
 import me.varun.autobuilder.UndoHandler;
 import me.varun.autobuilder.events.input.InputEventThrower;
@@ -26,6 +27,8 @@ import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
+
+import static me.varun.autobuilder.AutoBuilder.getConfig;
 
 public class TrajectoryItem extends AbstractGuiItem implements PathChangeListener, NumberTextboxChangeListener {
     private static final DecimalFormat df = new DecimalFormat();
@@ -147,12 +150,26 @@ public class TrajectoryItem extends AbstractGuiItem implements PathChangeListene
 
     }
 
+    private static final double allowedAngleError = 1e-2;
+
     private boolean checkWarning(PathGui pathGui) {
         TrajectoryItem lastTrajectoryItem = pathGui.getLastPath();
         if (lastTrajectoryItem != null) {
             ControlVectorList lastControlVectors = lastTrajectoryItem.getPathRenderer().getControlVectors();
             ControlVector lastPoint = lastControlVectors.get(lastControlVectors.size() - 1);
-            return !lastPoint.equals(pathRenderer.getControlVectors().get(0));
+            ControlVector nextPoint = pathRenderer.getControlVectors().get(0);
+            if (getConfig().isHolonomic()) {
+                return !((lastPoint.x[0] == nextPoint.x[0]) && (lastPoint.y[0] == nextPoint.y[0]));
+            } else {
+                double lastAngle = Math.atan2(lastPoint.y[1], lastPoint.x[1]);
+                double nextAngle = Math.atan2(nextPoint.y[1], nextPoint.x[1]);
+
+                if (Math.abs(lastAngle - nextAngle) < allowedAngleError) {
+                    return !((lastPoint.x[0] == nextPoint.x[0]) && (lastPoint.y[0] == nextPoint.y[0]));
+                } else {
+                    return true;
+                }
+            }
         }
         return false;
     }
@@ -174,7 +191,9 @@ public class TrajectoryItem extends AbstractGuiItem implements PathChangeListene
             Rotation2d rotation = pathRenderer.getRotations().get(i);
             NumberTextBox xBox = new NumberTextBox(df.format(controlVector.x[0]), eventThrower, this, i, 0, 18);
             NumberTextBox yBox = new NumberTextBox(df.format(controlVector.y[0]), eventThrower, this, i, 1, 18);
-            NumberTextBox rotationBox = new NumberTextBox(df.format(rotation.getDegrees()), eventThrower, this, i, 2, 18);
+            double rotationDegrees = getConfig().isHolonomic() ?
+                    rotation.getDegrees() : Math.toDegrees(Math.atan2(controlVector.y[1], controlVector.x[1]));
+            NumberTextBox rotationBox = new NumberTextBox(df.format(rotationDegrees), eventThrower, this, i, 2, 18);
             ArrayList<NumberTextBox> textBoxList = new ArrayList<>();
             textBoxList.add(xBox);
             textBoxList.add(yBox);
@@ -226,11 +245,16 @@ public class TrajectoryItem extends AbstractGuiItem implements PathChangeListene
                     point.setY((float) parsedNumber);
                     break;
                 case 2:
-                    pathRenderer.getControlVectors().set(row, new ControlVector(
-                            new double[]{controlVector.x[0], controlVector.x[1], controlVector.x[2]},
-                            new double[]{controlVector.y[0], controlVector.y[1], controlVector.y[2]}));
-                    pathRenderer.getRotations().set(row, Rotation2d.fromDegrees(parsedNumber));
-                    //TODO: implement rotation
+                    if (getConfig().isHolonomic()) {
+                        pathRenderer.getRotations().set(row, Rotation2d.fromDegrees(parsedNumber));
+                    } else {
+                        Vector2 v = new Vector2((float) controlVector.y[1], (float) controlVector.x[1]);
+                        v.setAngleDeg((float) parsedNumber);
+                        pathRenderer.getControlVectors().set(row, new ControlVector(
+                                new double[]{controlVector.x[0], v.x, controlVector.x[2]},
+                                new double[]{controlVector.y[0], v.y, controlVector.y[2]}));
+
+                    }
                     break;
             }
 

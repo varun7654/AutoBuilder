@@ -130,16 +130,15 @@ public final class TrajectoryGenerator {
   }
 
   /**
-   * Generates a trajectory from the given quintic control vectors and config. This method uses
-   * quintic hermite splines -- therefore, all points must be represented by control vectors.
-   * Continuous curvature is guaranteed in this method.
+   * Generates a trajectory from the given quintic control vectors and config. This method uses quintic hermite splines --
+   * therefore, all points must be represented by control vectors. Continuous curvature is guaranteed in this method.
    *
    * @param controlVectors List of quintic control vectors.
-   * @param config The configuration for the trajectory.
+   * @param config         The configuration for the trajectory.
    * @return The generated trajectory.
    */
   public static Trajectory generateTrajectory(
-      ControlVectorList controlVectors, TrajectoryConfig config) {
+          ControlVectorList controlVectors, TrajectoryConfig config) throws MalformedSplineException {
     final var flip = new Transform2d(new Translation2d(), Rotation2d.fromDegrees(180.0));
     final var newControlVectors = new ArrayList<Spline.ControlVector>(controlVectors.size());
 
@@ -155,15 +154,10 @@ public final class TrajectoryGenerator {
 
     // Get the spline points
     List<PoseWithCurvature> points;
-    try {
-      points =
-          splinePointsFromSplines(
-              SplineHelper.getQuinticSplinesFromControlVectors(
-                  newControlVectors.toArray(new Spline.ControlVector[] {})));
-    } catch (MalformedSplineException ex) {
-      reportError(ex.getMessage(), ex.getStackTrace());
-      return kDoNothingTrajectory;
-    }
+    points =
+            splinePointsFromSplines(
+                    SplineHelper.getQuinticSplinesFromControlVectors(
+                            newControlVectors.toArray(new Spline.ControlVector[]{})));
 
     // Change the points back to their original orientation.
     if (config.isReversed()) {

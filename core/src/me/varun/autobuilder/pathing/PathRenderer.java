@@ -21,6 +21,7 @@ import me.varun.autobuilder.util.MathUtil;
 import me.varun.autobuilder.wpi.math.geometry.Pose2d;
 import me.varun.autobuilder.wpi.math.geometry.Rotation2d;
 import me.varun.autobuilder.wpi.math.spline.Spline.ControlVector;
+import me.varun.autobuilder.wpi.math.spline.SplineParameterizer.MalformedSplineException;
 import me.varun.autobuilder.wpi.math.trajectory.Trajectory;
 import me.varun.autobuilder.wpi.math.trajectory.TrajectoryConfig;
 import me.varun.autobuilder.wpi.math.trajectory.TrajectoryGenerator;
@@ -93,54 +94,53 @@ public class PathRenderer implements MovablePointEventHandler, Serializable {
     }
 
     public void render(@NotNull ShapeDrawer renderer, @NotNull OrthographicCamera cam) {
-        if (trajectory == null) return;
-
         //Get the first 2 points of the line at t = 0
         lastPointLeft.set(0, -LINE_THICKNESS / 2);
         lastPointRight.set(0, LINE_THICKNESS / 2);
+        if (trajectory != null) {
+            lastPointLeft.rotateRad((float) trajectory.sample(0).poseMeters.getRotation().getRadians());
+            lastPointRight.rotateRad((float) trajectory.sample(0).poseMeters.getRotation().getRadians());
 
-        lastPointLeft.rotateRad((float) trajectory.sample(0).poseMeters.getRotation().getRadians());
-        lastPointRight.rotateRad((float) trajectory.sample(0).poseMeters.getRotation().getRadians());
+            lastPointLeft.add((float) trajectory.sample(0).poseMeters.getTranslation().getX() * config.getPointScaleFactor(),
+                    (float) trajectory.sample(0).poseMeters.getTranslation().getY() * config.getPointScaleFactor());
+            lastPointRight.add((float) trajectory.sample(0).poseMeters.getTranslation().getX() * config.getPointScaleFactor(),
+                    (float) trajectory.sample(0).poseMeters.getTranslation().getY() * config.getPointScaleFactor());
 
-        lastPointLeft.add((float) trajectory.sample(0).poseMeters.getTranslation().getX() * config.getPointScaleFactor(),
-                (float) trajectory.sample(0).poseMeters.getTranslation().getY() * config.getPointScaleFactor());
-        lastPointRight.add((float) trajectory.sample(0).poseMeters.getTranslation().getX() * config.getPointScaleFactor(),
-                (float) trajectory.sample(0).poseMeters.getTranslation().getY() * config.getPointScaleFactor());
+            for (double i = 0.01; i < trajectory.getTotalTimeSeconds(); i += 0.01) {
+                Pose2d cur = trajectory.sample(i).poseMeters;
 
-        for (double i = 0.01; i < trajectory.getTotalTimeSeconds(); i += 0.01) {
-            Pose2d cur = trajectory.sample(i).poseMeters;
+                //Use the speed of the path to determine its saturation
+                double speed = Math.abs(trajectory.sample(i).velocityMetersPerSecond);
+                float[] color = new float[3];
+                this.color.toHsv(color);
+                color[1] = (float) (0.9 * (speed / getConfig().getPathingConfig().maxVelocityMetersPerSecond) + 0.1);
+                Color speedColor = new Color().fromHsv(color);
+                speedColor.set(speedColor.r, speedColor.g, speedColor.b, 1);
 
-            //Use the speed of the path to determine its saturation
-            double speed = Math.abs(trajectory.sample(i).velocityMetersPerSecond);
-            float[] color = new float[3];
-            this.color.toHsv(color);
-            color[1] = (float) (0.9 * (speed / getConfig().getPathingConfig().maxVelocityMetersPerSecond) + 0.1);
-            Color speedColor = new Color().fromHsv(color);
-            speedColor.set(speedColor.r, speedColor.g, speedColor.b, 1);
+                //Get the 2 points of the line at the current time
+                nextPointLeft.set(0, -LINE_THICKNESS / 2);
+                nextPointRight.set(0, LINE_THICKNESS / 2);
 
-            //Get the 2 points of the line at the current time
-            nextPointLeft.set(0, -LINE_THICKNESS / 2);
-            nextPointRight.set(0, LINE_THICKNESS / 2);
+                nextPointLeft.rotateRad((float) cur.getRotation().getRadians());
+                nextPointRight.rotateRad((float) cur.getRotation().getRadians());
 
-            nextPointLeft.rotateRad((float) cur.getRotation().getRadians());
-            nextPointRight.rotateRad((float) cur.getRotation().getRadians());
+                nextPointLeft.add((float) cur.getTranslation().getX() * config.getPointScaleFactor(),
+                        (float) cur.getTranslation().getY() * config.getPointScaleFactor());
+                nextPointRight.add((float) cur.getTranslation().getX() * config.getPointScaleFactor(),
+                        (float) cur.getTranslation().getY() * config.getPointScaleFactor());
 
-            nextPointLeft.add((float) cur.getTranslation().getX() * config.getPointScaleFactor(),
-                    (float) cur.getTranslation().getY() * config.getPointScaleFactor());
-            nextPointRight.add((float) cur.getTranslation().getX() * config.getPointScaleFactor(),
-                    (float) cur.getTranslation().getY() * config.getPointScaleFactor());
+                //Render the line
+                renderer.setColor(speedColor);
+                renderer.filledPolygon(new float[]{
+                        lastPointLeft.x, lastPointLeft.y,
+                        lastPointRight.x, lastPointRight.y,
+                        nextPointRight.x, nextPointRight.y,
+                        nextPointLeft.x, nextPointLeft.y
+                });
 
-            //Render the line
-            renderer.setColor(speedColor);
-            renderer.filledPolygon(new float[]{
-                    lastPointLeft.x, lastPointLeft.y,
-                    lastPointRight.x, lastPointRight.y,
-                    nextPointRight.x, nextPointRight.y,
-                    nextPointLeft.x, nextPointLeft.y
-            });
-
-            lastPointLeft.set(nextPointLeft);
-            lastPointRight.set(nextPointRight);
+                lastPointLeft.set(nextPointLeft);
+                lastPointRight.set(nextPointRight);
+            }
         }
 
         if (controlPoint != null) {
@@ -148,18 +148,23 @@ public class PathRenderer implements MovablePointEventHandler, Serializable {
             renderer.line(selectedPoint.getRenderPos2(), controlPoint.getRenderPos2(), Color.WHITE, LINE_THICKNESS);
             controlPoint.draw(renderer, cam);
 
-            if (rotationPoint != null) {
+            if (rotationPoint != null && config.isHolonomic()) {
                 renderer.line(selectedPoint.getRenderPos2(), rotationPoint.getRenderPos2(), Color.WHITE, LINE_THICKNESS);
                 rotationPoint.draw(renderer, cam);
             }
 
             Vector2 origin = selectedPoint.getRenderPos2();
-            renderRobotBoundingBox(origin, (float) rotation2dList.get(selectionPointIndex).getRadians(), renderer);
+            float rotation = (float) (config.isHolonomic() ? rotation2dList.get(selectionPointIndex).getRadians() :
+                    Math.atan2(controlVectors.get(selectionPointIndex).y[1], controlVectors.get(selectionPointIndex).x[1]));
+
+            renderRobotBoundingBox(origin, rotation, renderer);
         } else if (robotPreviewTime >= 0) {
             Pose2d hoverPose = trajectory.sample(robotPreviewTime).poseMeters;
             Vector2 origin = MathUtil.toRenderVector2(hoverPose);
+            float rotation = (float) (config.isHolonomic() ? rotation2dList.get(robotPreviewIndex).getRadians() :
+                    hoverPose.getRotation().getRadians());
 
-            renderRobotBoundingBox(origin, (float) rotation2dList.get(robotPreviewIndex).getRadians(), renderer);
+            renderRobotBoundingBox(origin, rotation, renderer);
         }
 
         for (int i = 0; i < pointRenderList.size(); i++) {
@@ -242,6 +247,7 @@ public class PathRenderer implements MovablePointEventHandler, Serializable {
             }
             pointRenderList.remove(closePoint.index);
             controlVectors.remove(closePoint.index);
+            rotation2dList.remove(closePoint.index);
             pointDeleted = true;
             updatePath();
         }
@@ -331,7 +337,6 @@ public class PathRenderer implements MovablePointEventHandler, Serializable {
             if (!(Math.abs(selectedPoint.getPos2().sub((float) otherPathPose2d.x[0], (float) otherPathPose2d.y[0]).len2())
                     < Math.pow((20 / config.getPointScaleFactor() * camera.zoom), 2))) {
                 attachedPath = null;
-                System.out.println("Not close enough to other path");
             }
         }
 
@@ -350,11 +355,7 @@ public class PathRenderer implements MovablePointEventHandler, Serializable {
         if (selectionPointIndex != -1) {
             MovablePointRenderer selectedPoint = pointRenderList.get(selectionPointIndex);
             selectedPoint.update(camera, mousePos, lastMousePos);
-            if (controlPoint != null) {
-                controlPoint.update(camera, mousePos, lastMousePos);
-            }
-
-            if (rotationPoint != null) {
+            if ((controlPoint == null || !controlPoint.update(camera, mousePos, lastMousePos)) && rotationPoint != null) {
                 rotationPoint.update(camera, mousePos, lastMousePos);
             }
 
@@ -362,16 +363,30 @@ public class PathRenderer implements MovablePointEventHandler, Serializable {
             if (attachedPath != null) {
                 if (isAttachedPathEnd) {
                     ControlVector attachedPathControlVector = attachedPath.controlVectors.get(attachedPath.controlVectors.size() - 1);
+
+                    Vector2 attachedPathVector = new Vector2((float) attachedPathControlVector.x[1], (float) attachedPathControlVector.y[1]);
+                    if (!config.isHolonomic()) {
+                        ControlVector thisControlVector = controlVectors.get(0);
+                        attachedPathVector.setAngleRad((float) Math.atan2(thisControlVector.y[1], thisControlVector.x[1]));
+                    }
+
                     attachedPath.controlVectors.set(attachedPath.controlVectors.size() - 1, new ControlVector(
-                            new double[]{selectedPoint.getPos2().x, attachedPathControlVector.x[1], attachedPathControlVector.x[2]},
-                            new double[]{selectedPoint.getPos2().y, attachedPathControlVector.y[1], attachedPathControlVector.y[2]}));
+                            new double[]{selectedPoint.getPos2().x, attachedPathVector.x, attachedPathControlVector.x[2]},
+                            new double[]{selectedPoint.getPos2().y, attachedPathVector.y, attachedPathControlVector.y[2]}));
                     attachedPath.pointRenderList.get(attachedPath.pointRenderList.size() - 1)
                             .setPosition(selectedPoint.getPos2());
                 } else {
                     ControlVector attachedPathControlVector = attachedPath.controlVectors.get(0);
+
+                    Vector2 attachedPathVector = new Vector2((float) attachedPathControlVector.x[1], (float) attachedPathControlVector.y[1]);
+                    if (!config.isHolonomic()) {
+                        ControlVector thisControlVector = controlVectors.get(controlVectors.size() - 1);
+                        attachedPathVector.setAngleRad((float) Math.atan2(thisControlVector.y[1], thisControlVector.x[1]));
+                    }
+
                     attachedPath.controlVectors.set(0, new ControlVector(
-                            new double[]{selectedPoint.getPos2().x, attachedPathControlVector.x[1], attachedPathControlVector.x[2]},
-                            new double[]{selectedPoint.getPos2().y, attachedPathControlVector.y[1], attachedPathControlVector.y[2]}));
+                            new double[]{selectedPoint.getPos2().x, attachedPathVector.x, attachedPathControlVector.x[2]},
+                            new double[]{selectedPoint.getPos2().y, attachedPathVector.y, attachedPathControlVector.y[2]}));
                     attachedPath.pointRenderList.get(0).setPosition(selectedPoint.getPos2());
                 }
                 attachedPath.updatePath();
@@ -416,9 +431,22 @@ public class PathRenderer implements MovablePointEventHandler, Serializable {
             MovablePointRenderer referencePoint = pointRenderList.get(selectionPointIndex);
 
             ControlVector previousControlVector = controlVectors.get(selectionPointIndex);
+            float dist2 = MathUtil.dist2(event.getNewPos().x, event.getNewPos().y, referencePoint.getX(), referencePoint.getY());
+            double x;
+            double y;
+            if (dist2 < Math.pow(MIN_CONTROL_VECTOR_DISTANCE, 2)) {
+                double angle = Math.atan2(event.getNewPos().y - referencePoint.getY(), event.getNewPos().x - referencePoint.getX());
+                x = Math.cos(angle) * MIN_CONTROL_VECTOR_DISTANCE;
+                y = Math.sin(angle) * MIN_CONTROL_VECTOR_DISTANCE;
+                event.setPosition((float) x + referencePoint.getX(), (float) y + referencePoint.getY());
+            } else {
+                x = event.getNewPos().x - referencePoint.getX();
+                y = event.getNewPos().y - referencePoint.getY();
+            }
+
             ControlVector controlVector = new ControlVector(
-                    new double[]{previousControlVector.x[0], (event.getNewPos().x - referencePoint.getX()) * CONTROL_VECTOR_SCALE, 0},
-                    new double[]{previousControlVector.y[0], (event.getNewPos().y - referencePoint.getY()) * CONTROL_VECTOR_SCALE, 0});
+                    new double[]{previousControlVector.x[0], x * CONTROL_VECTOR_SCALE, 0},
+                    new double[]{previousControlVector.y[0], y * CONTROL_VECTOR_SCALE, 0});
             controlVectors.set(selectionPointIndex, controlVector);
 
         } else if (event.getPoint() == rotationPoint) {
@@ -465,7 +493,14 @@ public class PathRenderer implements MovablePointEventHandler, Serializable {
             trajectoryConfig.setStartVelocity(velocityStart);
             trajectoryConfig.setEndVelocity(velocityEnd);
 
-            return trajectory = TrajectoryGenerator.generateTrajectory(controlVectors, trajectoryConfig);
+            Trajectory trajectory;
+            try {
+                trajectory = TrajectoryGenerator.generateTrajectory(controlVectors, trajectoryConfig);
+            } catch (MalformedSplineException e) {
+                e.printStackTrace();
+                throw e;
+            }
+            return this.trajectory = trajectory;
         }, executorService);
 
 

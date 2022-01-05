@@ -24,6 +24,7 @@ public class Config {
     private boolean networkTablesEnabled;
     private String robotCodeDataFile;
     private boolean reflectionEnabled;
+    private boolean isHolonomic;
 
     @JsonCreator
     public Config(@JsonProperty(value = "scriptMethods") List<String> scriptMethods,
@@ -37,7 +38,8 @@ public class Config {
                   @JsonProperty(value = "pathingConfig") PathingConfig pathingConfig,
                   @JsonProperty(value = "networkTablesEnabled") Boolean networkTablesEnabled,
                   @JsonProperty(value = "robotCodeDataFile") String robotCodeDataFile,
-                  @JsonProperty("useReflection") Boolean reflectionEnabled) {
+                  @JsonProperty("useReflection") Boolean reflectionEnabled,
+                  @JsonProperty("isHolonomic") Boolean isHolonomic) {
         if (scriptMethods == null) {
             this.scriptMethods = new ArrayList<>();
             this.scriptMethods.addAll(List.of("print", "sleep"));
@@ -56,10 +58,11 @@ public class Config {
         this.networkTablesEnabled = networkTablesEnabled == null ? true : networkTablesEnabled;
         this.robotCodeDataFile = robotCodeDataFile == null ? "robotCodeData.json" : robotCodeDataFile;
         this.reflectionEnabled = reflectionEnabled == null ? true : reflectionEnabled;
+        this.isHolonomic = isHolonomic == null ? true : isHolonomic;
     }
 
     public Config(){
-        this(null, null, null, null, null, null, null, null, null, null, null, null);
+        this(null, null, null, null, null, null, null, null, null, null, null, null, null);
     }
 
     @JsonProperty("scriptMethods")
@@ -121,6 +124,12 @@ public class Config {
     public boolean getReflectionEnabled() {
         return reflectionEnabled;
     }
+
+    @JsonProperty("isHolonomic")
+    public boolean isHolonomic() {
+        return isHolonomic;
+    }
+
 
     @JsonProperty("readMe")
     @JsonFormat(shape = JsonFormat.Shape.STRING)

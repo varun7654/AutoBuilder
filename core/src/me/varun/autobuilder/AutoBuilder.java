@@ -46,6 +46,7 @@ public class AutoBuilder extends ApplicationAdapter {
     public static final float LINE_THICKNESS = 4;
     public static final float POINT_SIZE = 8;
     public static final float CONTROL_VECTOR_SCALE = 3;
+    public static final float MIN_CONTROL_VECTOR_DISTANCE = 0.1f;
 
     @NotNull private final Vector3 mousePos = new Vector3();
     @NotNull private final Vector3 lastMousePos = new Vector3();
