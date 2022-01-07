@@ -3,6 +3,8 @@ package me.varun.autobuilder.scripting.sendable;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+import java.util.Arrays;
+
 public class SendableCommand {
 
     @JsonProperty("methodName") public final String methodName;
@@ -24,4 +26,13 @@ public class SendableCommand {
         this.reflection = reflection;
     }
 
+    @Override
+    public String toString() {
+        return "SendableCommand{" +
+                "methodName='" + methodName + '\'' +
+                ", args=" + Arrays.toString(args) +
+                ", argTypes=" + Arrays.toString(argTypes) +
+                ", reflection=" + reflection +
+                '}';
+    }
 }

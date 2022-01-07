@@ -26,25 +26,27 @@ public class ScriptAutonomousStep extends AbstractAutonomousStep {
 
     }
 
-    @Override
-    public String toString() {
-        return "ScriptAutonomousStep{" +
-                "script='" + script + '\'' +
-                '}';
-    }
-
-    @JsonProperty
+    @JsonProperty("script")
     public String getScript() {
         return script;
     }
 
-    @JsonProperty
+    @JsonProperty("valid")
     public boolean isValid() {
         return valid;
     }
 
-    @JsonProperty
+    @JsonProperty("sendableScript")
     public SendableScript getSendableScript() {
         return sendableScript;
+    }
+
+    @Override
+    public String toString() {
+        return "ScriptAutonomousStep{" +
+                "script='" + script + '\'' +
+                ", valid=" + valid +
+                ", sendableScript=" + sendableScript +
+                '}';
     }
 }
