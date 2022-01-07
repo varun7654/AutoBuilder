@@ -545,7 +545,7 @@ public class PathRenderer implements MovablePointEventHandler, Serializable {
                     MathUtil.toRenderVector3(controlVectors.get(currentIndexPos + 1).x[0], controlVectors.get(currentIndexPos + 1).y[0])
                             .dst2(renderVector) < 8f) {
                 currentIndexPos++;
-                rotationsAndTimes.add(new TimedRotation(i, rotation2dList.get(0)));
+                rotationsAndTimes.add(new TimedRotation(i, rotation2dList.get(currentIndexPos)));
             }
 
         }
@@ -557,7 +557,7 @@ public class PathRenderer implements MovablePointEventHandler, Serializable {
                     2000));
         }
 
-        for (int i = currentIndexPos; i < rotation2dList.size(); i++) {
+        for (int i = currentIndexPos + 1; i < rotation2dList.size(); i++) {
             rotationsAndTimes.add(new TimedRotation(trajectory.getTotalTimeSeconds(), rotation2dList.get(i)));
         }
 
