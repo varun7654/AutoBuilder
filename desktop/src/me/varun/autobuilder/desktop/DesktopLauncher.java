@@ -12,7 +12,7 @@ public class DesktopLauncher {
 		config.height = 720;
 		config.samples = 8;
 		config.foregroundFPS = 60;
-		config.backgroundFPS = config.foregroundFPS/2;
+		config.backgroundFPS = 144;
 		config.vSyncEnabled = false;
 		config.forceExit = true;
 		new LwjglApplication(new AutoBuilder(), config);

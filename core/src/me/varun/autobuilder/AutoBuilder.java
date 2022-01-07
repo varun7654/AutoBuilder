@@ -70,6 +70,7 @@ public class AutoBuilder extends ApplicationAdapter {
     @NotNull private static Config config;
     @NotNull private Texture whiteTexture;
     @NotNull public static final String USER_DIRECTORY = OsUtil.getUserConfigDirectory("AutoBuilder");
+    static int fps;
 
 
     /**
@@ -85,7 +86,9 @@ public class AutoBuilder extends ApplicationAdapter {
 
     @Override
     public void create() {
+        fps = Gdx.graphics.getDisplayMode().refreshRate;
         Gdx.graphics.setForegroundFPS(Gdx.graphics.getDisplayMode().refreshRate);
+        Gdx.graphics.setContinuousRendering(false);
 
         File configFile = new File(USER_DIRECTORY + "/config.json");
         configFile.getParentFile().mkdirs();
@@ -153,9 +156,38 @@ public class AutoBuilder extends ApplicationAdapter {
         undoHandler.somethingChanged();
     }
 
+    static List<Object> continuousRendering = Collections.synchronizedList(new ArrayList<>());
+
+    public static void enableContinuousRendering(Object obj) {
+        if (!continuousRendering.contains(obj)) {
+            continuousRendering.add(obj);
+            justStartedRendering = true;
+            Gdx.graphics.setContinuousRendering(true);
+        }
+    }
+
+    public static void requestRendering() {
+        justStartedRendering = true;
+        Gdx.graphics.requestRendering();
+    }
+
+    public static void disableContinuousRendering(Object obj) {
+        continuousRendering.remove(obj);
+        Gdx.graphics.setContinuousRendering(continuousRendering.size() > 0);
+    }
+
+    static boolean justStartedRendering = true;
+
+    public static float getDeltaTime() {
+        System.out.println(justStartedRendering);
+        System.out.println(justStartedRendering ? 1f / fps : Gdx.graphics.getDeltaTime());
+        return justStartedRendering ? 1f / fps : Gdx.graphics.getDeltaTime();
+    }
+
     @Override
     public void render() {
         try {
+            Gdx.graphics.setForegroundFPS(fps);
             update();
             draw();
         } catch (Exception e) {
@@ -230,6 +262,7 @@ public class AutoBuilder extends ApplicationAdapter {
         pathGui.render(hudShapeRenderer, hudBatch, hudCam);
         HoverManager.render(hudBatch, hudShapeRenderer);
         hudBatch.end();
+        justStartedRendering = false;
     }
 
     int lastCloseishPointSelectionIndex = 0;

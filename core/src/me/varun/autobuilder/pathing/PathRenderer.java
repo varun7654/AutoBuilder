@@ -1,5 +1,6 @@
 package me.varun.autobuilder.pathing;
 
+import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.math.Vector2;
@@ -500,6 +501,7 @@ public class PathRenderer implements MovablePointEventHandler, Serializable {
                 e.printStackTrace();
                 throw e;
             }
+            Gdx.graphics.requestRendering();
             return this.trajectory = trajectory;
         }, executorService);
 

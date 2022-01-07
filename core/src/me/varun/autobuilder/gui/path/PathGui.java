@@ -9,6 +9,7 @@ import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.scenes.scene2d.utils.ScissorStack;
 import com.badlogic.gdx.utils.viewport.Viewport;
+import me.varun.autobuilder.AutoBuilder;
 import me.varun.autobuilder.CameraHandler;
 import me.varun.autobuilder.UndoHandler;
 import me.varun.autobuilder.events.input.InputEventListener;
@@ -145,7 +146,13 @@ public class PathGui extends InputEventListener {
         guiItemsDeletions.clear();
 
         scrollPos = MathUtil.clamp(scrollPos, 0, maxScroll);
-        smoothScrollPos = (float) (smoothScrollPos + (scrollPos - smoothScrollPos) / Math.max(1, 0.05 / Gdx.graphics.getDeltaTime()));
+        smoothScrollPos = (float) (smoothScrollPos + (scrollPos - smoothScrollPos) / Math.max(1, 0.05 / AutoBuilder.getDeltaTime()));
+
+        if (Math.abs(scrollPos - smoothScrollPos) < 1e-6) {
+            AutoBuilder.disableContinuousRendering(this);
+        } else {
+            AutoBuilder.enableContinuousRendering(this);
+        }
 
         boolean onGui = false;
 
