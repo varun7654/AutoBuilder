@@ -39,9 +39,19 @@ public class Parser {
         ArrayList<SendableCommand> sendableCommands = sendableScript.getCommands();
         sendableCommands.clear();
         for (String command : commands) {
-            if (command.startsWith("#")) continue; //Ignore comments
+            if (command.startsWith("#")) {
+                errorPositions.add(new ErrorPos(prevIndex, Color.CLEAR, DARK_GREEN, null));
+                prevIndex += command.length() + 1; //Add 1 for the newline
+                continue; //Ignore comments
+            }
+
+            if (command.isEmpty()) { //Ignore empty lines
+                errorPositions.add(new ErrorPos(prevIndex, Color.CLEAR, Color.CLEAR, null));
+                prevIndex++; //Add 1 for the newline
+                continue;
+            }
+
             StringIndex[] parts = splitWithIndex(command, spacePattern, prevIndex); //Split by spaces
-            if (parts.length == 0) continue; //Ignore empty lines
             StringIndex method = parts[0]; //Get the method name
             //if(!methods.contains(method)) return false; //Exit early if the method doesn't exist
             StringIndex[] args = new StringIndex[parts.length - 1]; //Initialize the argument array
