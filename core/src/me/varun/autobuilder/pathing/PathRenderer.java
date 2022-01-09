@@ -1,5 +1,6 @@
 package me.varun.autobuilder.pathing;
 
+import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.math.Vector2;
@@ -11,10 +12,14 @@ import me.varun.autobuilder.events.movablepoint.MovablePointEventHandler;
 import me.varun.autobuilder.events.movablepoint.PointClickEvent;
 import me.varun.autobuilder.events.movablepoint.PointMoveEvent;
 import me.varun.autobuilder.events.pathchange.PathChangeListener;
+import me.varun.autobuilder.gui.hover.HoverManager;
 import me.varun.autobuilder.gui.notification.Notification;
 import me.varun.autobuilder.gui.notification.NotificationHandler;
 import me.varun.autobuilder.gui.path.AbstractGuiItem;
 import me.varun.autobuilder.gui.path.TrajectoryItem;
+import me.varun.autobuilder.gui.textrendering.Fonts;
+import me.varun.autobuilder.gui.textrendering.TextBlock;
+import me.varun.autobuilder.gui.textrendering.TextComponent;
 import me.varun.autobuilder.pathing.pointclicks.ClosePoint;
 import me.varun.autobuilder.pathing.pointclicks.CloseTrajectoryPoint;
 import me.varun.autobuilder.util.MathUtil;
@@ -23,6 +28,7 @@ import me.varun.autobuilder.wpi.math.geometry.Rotation2d;
 import me.varun.autobuilder.wpi.math.spline.Spline.ControlVector;
 import me.varun.autobuilder.wpi.math.spline.SplineParameterizer.MalformedSplineException;
 import me.varun.autobuilder.wpi.math.trajectory.Trajectory;
+import me.varun.autobuilder.wpi.math.trajectory.Trajectory.State;
 import me.varun.autobuilder.wpi.math.trajectory.TrajectoryConfig;
 import me.varun.autobuilder.wpi.math.trajectory.TrajectoryGenerator;
 import me.varun.autobuilder.wpi.math.trajectory.TrajectoryGenerator.ControlVectorList;
@@ -32,6 +38,7 @@ import org.jetbrains.annotations.Nullable;
 import space.earlygrey.shapedrawer.ShapeDrawer;
 
 import java.io.Serializable;
+import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -68,6 +75,8 @@ public class PathRenderer implements MovablePointEventHandler, Serializable {
     @NotNull Vector2 nextPointLeft = new Vector2();
     @NotNull Vector2 nextPointRight = new Vector2();
     private int robotPreviewIndex;
+
+    DecimalFormat df = new DecimalFormat("#.##");
 
     public PathRenderer(@NotNull Color color, @NotNull ControlVectorList pointList, @NotNull List<Rotation2d> rotation2dList,
                         @NotNull ExecutorService executorService, float velocityStart, float velocityEnd) {
@@ -159,12 +168,28 @@ public class PathRenderer implements MovablePointEventHandler, Serializable {
 
             renderRobotBoundingBox(origin, rotation, renderer);
         } else if (robotPreviewTime >= 0) {
-            Pose2d hoverPose = trajectory.sample(robotPreviewTime).poseMeters;
-            Vector2 origin = MathUtil.toRenderVector2(hoverPose);
+            State state = trajectory.sample(robotPreviewTime);
+            Vector2 origin = MathUtil.toRenderVector2(state.poseMeters);
             float rotation = (float) (config.isHolonomic() ? rotation2dList.get(robotPreviewIndex).getRadians() :
-                    hoverPose.getRotation().getRadians());
-
+                    state.poseMeters.getRotation().getRadians());
             renderRobotBoundingBox(origin, rotation, renderer);
+
+            HoverManager.setHoverText(new TextBlock(Fonts.ROBOTO, 13, 300,
+                    new TextComponent("Pose: x: ").setBold(true),
+                    new TextComponent(df.format(state.poseMeters.getX()) + "m"),
+                    new TextComponent(" y: ").setBold(true),
+                    new TextComponent(df.format(state.poseMeters.getY()) + "m"),
+                    new TextComponent(" theta: ").setBold(true),
+                    new TextComponent(df.format(state.poseMeters.getRotation().getDegrees()) + "°\n"),
+                    new TextComponent("Velocity: ").setBold(true),
+                    new TextComponent(df.format(state.velocityMetersPerSecond) + "m/s\n"),
+                    new TextComponent("Acceleration: ").setBold(true),
+                    new TextComponent(df.format(state.accelerationMetersPerSecondSq) + "m/s²\n"),
+                    new TextComponent("Curvature: ").setBold(true),
+                    new TextComponent(df.format(Math.toDegrees(state.curvatureRadPerMeter)) + "°/m\n"),
+                    new TextComponent("Time: ").setBold(true),
+                    new TextComponent(df.format(state.timeSeconds) + "s")), 0, Gdx.graphics.getHeight() - 2);
+
         }
 
         for (int i = 0; i < pointRenderList.size(); i++) {

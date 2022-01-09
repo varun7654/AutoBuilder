@@ -52,8 +52,10 @@ public class HoverManager {
             float width = hoverText.getWidth();
             float height = hoverText.getHeight();
 
-            if (hoverPosition.x + (width + 6) / 2 > Gdx.graphics.getWidth()) {
-                hoverPosition.x = Gdx.graphics.getWidth() - (width + 6) / 2;
+            if (hoverPosition.x + (width + 10) / 2 > Gdx.graphics.getWidth()) {
+                hoverPosition.x = Gdx.graphics.getWidth() - (width + 10) / 2;
+            } else if (hoverPosition.x - (width + 10) / 2 < 0) {
+                hoverPosition.x = (width + 10) / 2;
             }
             if (hoverPosition.y + height + 5 > (flippedLastTime ? Gdx.graphics.getHeight() - 20 : Gdx.graphics.getHeight())) {
                 hoverPosition.y = hoverPosition.y - height - 5;
