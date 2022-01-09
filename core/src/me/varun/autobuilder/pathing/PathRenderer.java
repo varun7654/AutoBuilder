@@ -75,11 +75,13 @@ public class PathRenderer implements MovablePointEventHandler, Serializable {
     @NotNull Vector2 nextPointLeft = new Vector2();
     @NotNull Vector2 nextPointRight = new Vector2();
     private int robotPreviewIndex;
+    @NotNull private List<TrajectoryConstraint> constraints;
 
     DecimalFormat df = new DecimalFormat("#.##");
 
     public PathRenderer(@NotNull Color color, @NotNull ControlVectorList pointList, @NotNull List<Rotation2d> rotation2dList,
-                        @NotNull ExecutorService executorService, float velocityStart, float velocityEnd) {
+                        @NotNull ExecutorService executorService, float velocityStart, float velocityEnd,
+                        @NotNull List<TrajectoryConstraint> constraints) {
         this.color = color;
         this.controlVectors = pointList;
         this.rotation2dList = rotation2dList;
@@ -95,6 +97,7 @@ public class PathRenderer implements MovablePointEventHandler, Serializable {
 
         this.velocityStart = velocityStart;
         this.velocityEnd = velocityEnd;
+        this.constraints = constraints;
     }
 
     public void setPathChangeListener(@NotNull PathChangeListener pathChangeListener) {
@@ -514,6 +517,11 @@ public class PathRenderer implements MovablePointEventHandler, Serializable {
             for (TrajectoryConstraint trajectoryConstraint : config.getPathingConfig().trajectoryConstraints) {
                 trajectoryConfig.addConstraint(trajectoryConstraint);
             }
+
+            for (TrajectoryConstraint constraint : constraints) {
+                trajectoryConfig.addConstraint(constraint);
+            }
+
             trajectoryConfig.setReversed(isReversed());
             trajectoryConfig.setStartVelocity(velocityStart);
             trajectoryConfig.setEndVelocity(velocityEnd);
@@ -674,5 +682,9 @@ public class PathRenderer implements MovablePointEventHandler, Serializable {
 
         renderer.setColor(Color.WHITE);
         renderer.line(rightTop, rightBottom, LINE_THICKNESS);
+    }
+
+    public @NotNull List<TrajectoryConstraint> getConstraints() {
+        return constraints;
     }
 }

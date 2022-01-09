@@ -20,6 +20,7 @@ import me.varun.autobuilder.util.RoundedShapeRenderer;
 import me.varun.autobuilder.wpi.math.geometry.Rotation2d;
 import me.varun.autobuilder.wpi.math.spline.Spline.ControlVector;
 import me.varun.autobuilder.wpi.math.trajectory.TrajectoryGenerator.ControlVectorList;
+import me.varun.autobuilder.wpi.math.trajectory.constraint.TrajectoryConstraint;
 import org.jetbrains.annotations.NotNull;
 import space.earlygrey.shapedrawer.ShapeDrawer;
 
@@ -60,7 +61,7 @@ public class TrajectoryItem extends AbstractGuiItem implements PathChangeListene
         rotation2dList.add(Rotation2d.fromDegrees(0));
         rotation2dList.add(Rotation2d.fromDegrees(0));
 
-        this.pathRenderer = new PathRenderer(pathGui.getNextColor(), controlVectorList, rotation2dList, pathGui.executorService, 0, 0);
+        this.pathRenderer = new PathRenderer(pathGui.getNextColor(), controlVectorList, rotation2dList, pathGui.executorService, 0, 0, new ArrayList<>());
         pathRenderer.setPathChangeListener(this);
 
         startVelocityTextBox = new NumberTextBox(df.format(getPathRenderer().getVelocityStart()), eventThrower, this, 0, 0, 18);
@@ -69,13 +70,13 @@ public class TrajectoryItem extends AbstractGuiItem implements PathChangeListene
 
     public TrajectoryItem(PathGui pathGui, @NotNull InputEventThrower eventThrower, @NotNull CameraHandler cameraHandler,
                           @NotNull ControlVectorList controlVectors, @NotNull List<TimedRotation> rotation2dList, boolean reversed,
-                          Color color, boolean closed, float velocityStart, float velocityEnd) {
+                          Color color, boolean closed, float velocityStart, float velocityEnd, @NotNull List<TrajectoryConstraint> constraints) {
         this.eventThrower = eventThrower;
         this.cameraHandler = cameraHandler;
 
-        this.pathRenderer = new PathRenderer(color, controlVectors, rotation2dList.stream().map(TimedRotation::getRotation)
-                .collect(Collectors.toList()),
-                pathGui.executorService, velocityStart, velocityEnd);
+        this.pathRenderer = new PathRenderer(color, controlVectors,
+                rotation2dList.stream().map(TimedRotation::getRotation).collect(Collectors.toList()),
+                pathGui.executorService, velocityStart, velocityEnd, constraints);
         pathRenderer.setReversed(reversed);
         pathRenderer.setPathChangeListener(this);
 
