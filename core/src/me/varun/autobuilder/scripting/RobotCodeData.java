@@ -9,7 +9,7 @@ import me.varun.autobuilder.gui.textrendering.TextComponent;
 import me.varun.autobuilder.scripting.reflection.ReflectionClassData;
 import me.varun.autobuilder.scripting.reflection.ReflectionMethodData;
 import me.varun.autobuilder.scripting.sendable.SendableCommand;
-import me.varun.autobuilder.scripting.util.ErrorPos;
+import me.varun.autobuilder.scripting.util.LintingPos;
 import me.varun.autobuilder.scripting.util.StringIndex;
 import org.jetbrains.annotations.Nullable;
 
@@ -88,7 +88,7 @@ public class RobotCodeData {
     private static final TextComponent executingUsingReflectionComponent =
             new TextComponent("Executing this method using reflection\n").setBold(true);
 
-    public static boolean validateMethod(StringIndex classMethod, StringIndex[] args, List<ErrorPos> errorPositions, ArrayList<SendableCommand> sendableCommands) {
+    public static boolean validateMethod(StringIndex classMethod, StringIndex[] args, List<LintingPos> lintingPositions, ArrayList<SendableCommand> sendableCommands) {
         StringIndex[] classAndMethod = splitWithIndex(classMethod.string, periodPattern, classMethod.index);
 
         boolean error = false;
@@ -125,7 +125,7 @@ public class RobotCodeData {
         }
 
 
-        errorPositions.add(new ErrorPos(classMethod.index, error ? Color.RED : Color.CLEAR,
+        lintingPositions.add(new LintingPos(classMethod.index, error ? Color.RED : Color.CLEAR,
                 new TextBlock(Fonts.ROBOTO, 14, 300, classTextComponents.toArray(new TextComponent[0]))));
 
         if (error) {
@@ -140,7 +140,7 @@ public class RobotCodeData {
             }
 
             if (callableMethods.size() == 0) {
-                errorPositions.add(new ErrorPos(classAndMethod[1].index, Color.RED, new TextBlock(Fonts.ROBOTO, 14, 300,
+                lintingPositions.add(new LintingPos(classAndMethod[1].index, Color.RED, new TextBlock(Fonts.ROBOTO, 14, 300,
                         executingUsingReflectionComponent, new TextComponent("\nFound method(s) with the name "),
                         new TextComponent(classAndMethod[1].string).setItalic(true),
                         new TextComponent(" but none are static or have a singleton instance\n\n" +
@@ -154,7 +154,7 @@ public class RobotCodeData {
                     .collect(Collectors.toList());
 
             if (callableMethods.size() == 0) {
-                errorPositions.add(new ErrorPos(classAndMethod[1].index, Color.RED, new TextBlock(Fonts.ROBOTO, 14, 300,
+                lintingPositions.add(new LintingPos(classAndMethod[1].index, Color.RED, new TextBlock(Fonts.ROBOTO, 14, 300,
                         executingUsingReflectionComponent, new TextComponent("\nFound method(s) with the name "),
                         new TextComponent(classAndMethod[1].string).setItalic(true),
                         new TextComponent(" but none are public\n\n" +
@@ -168,7 +168,7 @@ public class RobotCodeData {
                     .filter(methodData -> methodData.parameterTypes.length == args.length).collect(Collectors.toList());
 
             if (possibleMethodsBySize.isEmpty()) {
-                errorPositions.add(new ErrorPos(classAndMethod[1].index, Color.RED, new TextBlock(Fonts.ROBOTO, 14, 300,
+                lintingPositions.add(new LintingPos(classAndMethod[1].index, Color.RED, new TextBlock(Fonts.ROBOTO, 14, 300,
                         executingUsingReflectionComponent,
                         new TextComponent("Method "),
                         new TextComponent(classAndMethod[1].string).setItalic(true),
@@ -222,7 +222,7 @@ public class RobotCodeData {
             }).collect(Collectors.toList());
 
             if (possibleMethodsBySize.isEmpty()) {
-                errorPositions.add(new ErrorPos(classAndMethod[1].index, Color.RED, new TextBlock(Fonts.ROBOTO, 14, 300,
+                lintingPositions.add(new LintingPos(classAndMethod[1].index, Color.RED, new TextBlock(Fonts.ROBOTO, 14, 300,
                         executingUsingReflectionComponent,
                         new TextComponent("Method "),
                         new TextComponent(classAndMethod[1].string).setItalic(true),
@@ -258,7 +258,7 @@ public class RobotCodeData {
             }
 
             ReflectionMethodData methodToUse = possibleMethodsBySize.get(0);
-            errorPositions.add(new ErrorPos(classAndMethod[1].index, Color.CLEAR, new TextBlock(Fonts.ROBOTO, 14, 300,
+            lintingPositions.add(new LintingPos(classAndMethod[1].index, Color.CLEAR, new TextBlock(Fonts.ROBOTO, 14, 300,
                     executingUsingReflectionComponent,
                     new TextComponent("Will execute "),
                     new TextComponent(methodToUse.methodName + Arrays.stream(args)
@@ -268,7 +268,7 @@ public class RobotCodeData {
             List<String> argumentTypes = Arrays.stream(methodToUse.parameterTypes).collect(Collectors.toList());
 
             for (int i = 0; i < args.length; i++) {
-                errorPositions.add(new ErrorPos(args[i].index, Color.CLEAR, new TextBlock(Fonts.ROBOTO, 14, 300,
+                lintingPositions.add(new LintingPos(args[i].index, Color.CLEAR, new TextBlock(Fonts.ROBOTO, 14, 300,
                         executingUsingReflectionComponent,
                         new TextComponent("Inferred type: "),
                         new TextComponent(argumentTypes.get(i)).setItalic(true))));
@@ -282,7 +282,7 @@ public class RobotCodeData {
 
             return true;
         } else {
-            errorPositions.add(new ErrorPos(classAndMethod[1].index, Color.RED,
+            lintingPositions.add(new LintingPos(classAndMethod[1].index, Color.RED,
                     new TextBlock(Fonts.ROBOTO, 14, 300,
                             executingUsingReflectionComponent,
                             new TextComponent("Could not find method: "),

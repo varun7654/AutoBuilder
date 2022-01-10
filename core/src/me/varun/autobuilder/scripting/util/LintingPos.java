@@ -5,7 +5,7 @@ import me.varun.autobuilder.gui.textrendering.TextBlock;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class ErrorPos implements Comparable<ErrorPos> {
+public class LintingPos implements Comparable<LintingPos> {
 
 
     public final int index;
@@ -13,21 +13,21 @@ public class ErrorPos implements Comparable<ErrorPos> {
     public final Color color;
     @Nullable public final TextBlock message;
 
-    public ErrorPos(int index, Color underlineColor) {
+    public LintingPos(int index, Color underlineColor) {
         this.index = index;
         this.underlineColor = underlineColor;
         this.message = null;
         this.color = Color.BLACK;
     }
 
-    public ErrorPos(int index, Color underlineColor, @Nullable TextBlock message) {
+    public LintingPos(int index, Color underlineColor, @Nullable TextBlock message) {
         this.index = index;
         this.underlineColor = underlineColor;
         this.message = message;
         this.color = Color.BLACK;
     }
 
-    public ErrorPos(int index, Color underlineColor, Color color, @Nullable TextBlock message) {
+    public LintingPos(int index, Color underlineColor, Color color, @Nullable TextBlock message) {
         this.index = index;
         this.underlineColor = underlineColor;
         this.message = message;
@@ -67,7 +67,7 @@ public class ErrorPos implements Comparable<ErrorPos> {
      * @throws ClassCastException   if the specified object's type prevents it from being compared to this object.
      */
     @Override
-    public int compareTo(@NotNull ErrorPos o) {
+    public int compareTo(@NotNull LintingPos o) {
         return Integer.compare(index, o.index);
     }
 }

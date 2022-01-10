@@ -14,7 +14,7 @@ import me.varun.autobuilder.gui.textrendering.FontRenderer;
 import me.varun.autobuilder.gui.textrendering.Fonts;
 import me.varun.autobuilder.gui.textrendering.TextBlock;
 import me.varun.autobuilder.gui.textrendering.TextComponent;
-import me.varun.autobuilder.scripting.util.ErrorPos;
+import me.varun.autobuilder.scripting.util.LintingPos;
 import me.varun.autobuilder.util.RoundedShapeRenderer;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -83,7 +83,7 @@ public class TextBox extends InputEventListener {
      * @return if the mouse is hovering over the textbox
      */
     public boolean draw(@NotNull ShapeDrawer shapeRenderer, @NotNull Batch spriteBatch, float drawStartX,
-                        float drawStartY, float drawWidth, @Nullable ArrayList<ErrorPos> errorLinting) {
+                        float drawStartY, float drawWidth, @Nullable ArrayList<LintingPos> linting) {
         textBlock.update();
 
         boolean hovering = Gdx.input.getX() > drawStartX && Gdx.input.getX() < drawStartX + drawWidth
@@ -190,40 +190,40 @@ public class TextBox extends InputEventListener {
             }
         }
 
-        ErrorPos errorPos = null;
-        if (errorLinting != null) {
+        LintingPos lintingPos = null;
+        if (linting != null) {
             textComponents.clear();
-            if (errorLinting.size() > 0) {
-                textComponents.add(0, new TextComponent(text.substring(0, errorLinting.get(0).index)).setUnderlined(false));
-                for (int i = 0; i < errorLinting.size(); i++) {
-                    if (errorLinting.size() > i + 1 && errorLinting.get(i + 1).index < text.length()) {
+            if (linting.size() > 0) {
+                textComponents.add(0, new TextComponent(text.substring(0, linting.get(0).index)).setUnderlined(false));
+                for (int i = 0; i < linting.size(); i++) {
+                    if (linting.size() > i + 1 && linting.get(i + 1).index < text.length()) {
                         // Lint in between this error and the next error
-                        if (mouseIndexPos >= errorLinting.get(i).index && mouseIndexPos < errorLinting.get(i + 1).index) {
-                            errorPos = errorLinting.get(i);
+                        if (mouseIndexPos >= linting.get(i).index && mouseIndexPos < linting.get(i + 1).index) {
+                            lintingPos = linting.get(i);
                         }
-                        textComponents.add(i + 1, new TextComponent(text.substring(errorLinting.get(i).index, errorLinting.get(i + 1).index))
-                                .setUnderlined(true).setUnderlineColor(errorLinting.get(i).underlineColor)
-                                .setColor(errorLinting.get(i).color));
+                        textComponents.add(i + 1, new TextComponent(text.substring(linting.get(i).index, linting.get(i + 1).index))
+                                .setUnderlined(true).setUnderlineColor(linting.get(i).underlineColor)
+                                .setColor(linting.get(i).color));
                     } else {
                         //Lint the rest of the text
-                        if (errorLinting.get(i).index < text.length()) {
-                            textComponents.add(i + 1, new TextComponent(text.substring(errorLinting.get(i).index))
-                                    .setUnderlined(true).setUnderlineColor(errorLinting.get(i).underlineColor)
-                                    .setColor(errorLinting.get(i).color));
+                        if (linting.get(i).index < text.length()) {
+                            textComponents.add(i + 1, new TextComponent(text.substring(linting.get(i).index))
+                                    .setUnderlined(true).setUnderlineColor(linting.get(i).underlineColor)
+                                    .setColor(linting.get(i).color));
                         }
 
-                        if (mouseIndexPos >= errorLinting.get(i).index) {
-                            errorPos = errorLinting.get(i);
+                        if (mouseIndexPos >= linting.get(i).index) {
+                            lintingPos = linting.get(i);
                         }
                     }
 
                 }
 
                 // TODO: Change the fixed values to be based of the font
-                if (errorPos != null && errorPos.message != null &&
+                if (lintingPos != null && lintingPos.message != null &&
                         Math.abs(textBlock.getPositionOfIndex(mouseIndexPos).x - mousePos.x) < 7 &&
                         Math.abs(textBlock.getPositionOfIndex(mouseIndexPos).y - mousePos.y) < 20) {
-                    HoverManager.setHoverText(errorPos.message); // TODO: Render this at a fixed position above the text
+                    HoverManager.setHoverText(lintingPos.message); // TODO: Render this at a fixed position above the text
                     // instead of being relative to the mouse
                 }
             } else {
