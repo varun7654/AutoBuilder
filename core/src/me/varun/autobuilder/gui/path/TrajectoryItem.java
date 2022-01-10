@@ -26,6 +26,7 @@ import space.earlygrey.shapedrawer.ShapeDrawer;
 
 import java.text.DecimalFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -104,8 +105,8 @@ public class TrajectoryItem extends AbstractGuiItem implements PathChangeListene
             ControlVectorList controlVectors = pathRenderer.getControlVectors();
             shapeRenderer.setColor(LIGHT_GREY);
             RoundedShapeRenderer.roundedRect(shapeRenderer, drawStartX + 5,
-                    drawStartY - (35 * 3 + (controlVectors.size() * 30) + 40) - 5, drawWidth - 5,
-                    35 * 3 + (controlVectors.size() * 30) + 9, 2);
+                    drawStartY - (30 * 3 + (controlVectors.size() * 60) + 40) - 8, drawWidth - 5,
+                    30 * 3 + (controlVectors.size() * 60) + 13, 2);
 
             renderHeader(shapeRenderer, spriteBatch, drawStartX, drawStartY, drawWidth, trashTexture, warningTexture,
                     pathRenderer.getColor(), title, checkWarning(pathGui));
@@ -114,29 +115,41 @@ public class TrajectoryItem extends AbstractGuiItem implements PathChangeListene
                 RoundedShapeRenderer.roundedRect(shapeRenderer, drawStartX + 5,
                         drawStartY - 42 - (pathRenderer.getSelectionPoint() + 1) * 30, drawWidth - 5, 31, 3, Color.DARK_GRAY);
             }
-            
+
+            // Draw all the control vectors
             for (int i = 0; i < textBoxes.size(); i++) {
                 List<NumberTextBox> textBoxList = textBoxes.get(i);
-                for (int b = 0; b < textBoxList.size(); b++) {
-                    textBoxList.get(b).draw(shapeRenderer, spriteBatch, drawStartX + 10 + b * 123, drawStartY - 50 - i * 30,
-                            120, null);
-                }
+
+                textBoxList.get(0).draw(shapeRenderer, spriteBatch, drawStartX + 10 + 0 * 123, drawStartY - 50 - i * 60,
+                        120, null);
+                textBoxList.get(1).draw(shapeRenderer, spriteBatch, drawStartX + 10 + 1 * 123, drawStartY - 50 - i * 60,
+                        120, null);
+                textBoxList.get(2).draw(shapeRenderer, spriteBatch, drawStartX + 10 + 2 * 123, drawStartY - 50 - i * 60,
+                        120, null);
+                textBoxList.get(3).draw(shapeRenderer, spriteBatch, drawStartX + 10 + 0 * 123, drawStartY - 50 - i * 60 - 30,
+                        120, null);
+                textBoxList.get(4).draw(shapeRenderer, spriteBatch, drawStartX + 10 + 1 * 123, drawStartY - 50 - i * 60 - 30,
+                        120, null);
+
             }
 
-            FontRenderer.renderText(spriteBatch, shapeRenderer, drawStartX + 10, drawStartY - (63 + controlVectors.size() * 30),
+            FontRenderer.renderText(spriteBatch, shapeRenderer, drawStartX + 10, drawStartY - (63 + controlVectors.size() * 60),
                     Fonts.ROBOTO, 22, new TextComponent("Start Velocity: ").setBold(true).setColor(Color.BLACK));
-            FontRenderer.renderText(spriteBatch, shapeRenderer, drawStartX + 10, drawStartY - (63 + (controlVectors.size() + 1) * 30),
+            FontRenderer.renderText(spriteBatch, shapeRenderer, drawStartX + 10, drawStartY - (63 + (controlVectors.size()) * 60 + 30),
                     Fonts.ROBOTO, 22, new TextComponent("End Velocity: ").setBold(true).setColor(Color.BLACK));
-            FontRenderer.renderText(spriteBatch, shapeRenderer, drawStartX + 10, drawStartY - (65 + (controlVectors.size() + 2) * 30),
+            FontRenderer.renderText(spriteBatch, shapeRenderer, drawStartX + 10, drawStartY - (3 + (controlVectors.size()) * 60 + 60),
                     Fonts.ROBOTO, 22, new TextComponent("Reversed: ").setBold(true).setColor(Color.BLACK));
 
-            startVelocityTextBox.draw(shapeRenderer, spriteBatch, drawStartX + 10 + 2 * 123,
-                    drawStartY - 50 - controlVectors.size() * 30, 120, null);
-            endVelocityTextBox.draw(shapeRenderer, spriteBatch, drawStartX + 10 + 2 * 123,
-                    drawStartY - 50 - (controlVectors.size() + 1) * 30, 120, null);
+            startVelocityTextBox.draw(shapeRenderer, spriteBatch,
+                    drawStartX + 10 + 2 * 123, drawStartY - 50 - controlVectors.size() * 60,
+                    120, null);
+
+            endVelocityTextBox.draw(shapeRenderer, spriteBatch,
+                    drawStartX + 10 + 2 * 123, drawStartY - 50 - (controlVectors.size()) * 60 - 30,
+                    120, null);
 
             checkBox.setX(drawStartX + drawWidth - 35);
-            checkBox.setY(drawStartY - 43 - (controlVectors.size() + 3) * 30);
+            checkBox.setY(drawStartY - 43 - (controlVectors.size() * 60) - 90);
             checkBox.checkHover();
             if (checkBox.checkClick()) {
                 pathRenderer.setReversed(!pathRenderer.isReversed());
@@ -146,7 +159,7 @@ public class TrajectoryItem extends AbstractGuiItem implements PathChangeListene
             checkBox.render(shapeRenderer, spriteBatch, pathRenderer.isReversed());
 
 
-            return 40 + (controlVectors.size() * 30) + 35 * 3;
+            return 40 + (30 * 3 + (controlVectors.size() * 60)) + 8;
         }
 
     }
@@ -195,11 +208,11 @@ public class TrajectoryItem extends AbstractGuiItem implements PathChangeListene
             double rotationDegrees = getConfig().isHolonomic() ?
                     rotation.getDegrees() : Math.toDegrees(Math.atan2(controlVector.y[1], controlVector.x[1]));
             NumberTextBox rotationBox = new NumberTextBox(df.format(rotationDegrees), eventThrower, this, i, 2, 18);
-            ArrayList<NumberTextBox> textBoxList = new ArrayList<>();
-            textBoxList.add(xBox);
-            textBoxList.add(yBox);
-            textBoxList.add(rotationBox);
-            textBoxes.add(textBoxList);
+
+            NumberTextBox xControlBox = new NumberTextBox(df.format(controlVector.x[1]), eventThrower, this, i, 3, 18);
+            NumberTextBox yControlBox = new NumberTextBox(df.format(controlVector.y[1]), eventThrower, this, i, 4, 18);
+
+            textBoxes.add(Arrays.asList(xBox, yBox, rotationBox, xControlBox, yControlBox));
         }
     }
 
@@ -257,6 +270,15 @@ public class TrajectoryItem extends AbstractGuiItem implements PathChangeListene
 
                     }
                     break;
+                case 3:
+                    pathRenderer.getControlVectors().set(row, new ControlVector(
+                            new double[]{controlVector.x[0], parsedNumber, controlVector.x[2]},
+                            new double[]{controlVector.y[0], controlVector.y[1], controlVector.y[2]}));
+                    break;
+                case 4:
+                    pathRenderer.getControlVectors().set(row, new ControlVector(
+                            new double[]{controlVector.x[0], controlVector.x[1], controlVector.x[2]},
+                            new double[]{controlVector.y[0], parsedNumber, controlVector.y[2]}));
             }
 
             cameraHandler.ensureOnScreen(point.getRenderPos3());
