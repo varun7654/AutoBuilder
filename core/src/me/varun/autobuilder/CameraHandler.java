@@ -70,20 +70,22 @@ public class CameraHandler extends InputEventListener {
         targetX -= zoomXChange;
         targetY -= zoomYChange;
         cam.update();
+
         if (Gdx.input.isButtonJustPressed(Input.Buttons.LEFT) && !(moving | onGui)) {
             mouseHeldLastFrame = true;
         } else if (moving){
             mouseHeldLastFrame = false;
         }
 
-        if (mouseHeldLastFrame && Gdx.input.isButtonPressed(Input.Buttons.LEFT)) { //Left mouse button down. Drag Camera around
+        if (mouseHeldLastFrame && Gdx.input.isButtonPressed(Input.Buttons.LEFT)) { // Drag Camera around
             Vector2 deltaPos = mousePos.sub(lastMousePos);
-            cam.position.x = cam.position.x - (deltaPos.x * cam.zoom);
-            cam.position.y = cam.position.y + (deltaPos.y * cam.zoom);
+            cam.position.x = cam.position.x - (deltaPos.x * cam.zoom * (720f / Gdx.graphics.getHeight()));
+            cam.position.y = cam.position.y + (deltaPos.y * cam.zoom * (720f / Gdx.graphics.getHeight()));
             cam.update();
             targetX = cam.position.x;
             targetY = cam.position.y;
         } else {
+            // Smoothly move camera to target position
             mouseHeldLastFrame = false;
             cam.position.x = cam.position.x + ((targetX - cam.position.x) / (Math.max(1, 0.1f / Gdx.graphics.getDeltaTime())));
             cam.position.y = cam.position.y + ((targetY - cam.position.y) / (Math.max(1, 0.1f / Gdx.graphics.getDeltaTime())));
