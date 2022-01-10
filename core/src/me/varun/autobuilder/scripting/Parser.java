@@ -23,6 +23,7 @@ public class Parser {
     private static final Pattern spacePattern = Pattern.compile(" ");
 
     private final static Color DARK_GREEN = Color.valueOf("007400");
+    private final static Color ORANGE = Color.valueOf("#FF9A00");
 
     /**
      * Parses a string into a list of {@link SendableCommand}s
@@ -108,30 +109,37 @@ public class Parser {
                     break;
                 default:
                     if (method.string.contains("@")) {
+                        if (sendableScript.getDelayType() != DelayType.NONE) {
+                            error = true;
+                            errorPositions.add(new ErrorPos(method.index, Color.RED, new TextBlock(Fonts.ROBOTO, 14, 350,
+                                    new TextComponent("Cannot have multiple delays in a single script.\n"),
+                                    new TextComponent("If you need multiple delays, create a new script block."))));
+                            break;
+                        }
                         if (method.string.contains("@t")) {
                             if (args.length < 1) {
                                 error = true;
-                                errorPositions.add(new ErrorPos(method.index, Color.RED, DARK_GREEN, new TextBlock(Fonts.ROBOTO, 14, 300,
+                                errorPositions.add(new ErrorPos(method.index, Color.RED, ORANGE, new TextBlock(Fonts.ROBOTO, 14, 300,
                                         new TextComponent("Usage: @time <delay amount in seconds>\n").setBold(true),
                                         new TextComponent("Expected a delay amount in seconds (double)"))));
 
 
                             } else if (args.length > 1) {
                                 error = true;
-                                errorPositions.add(new ErrorPos(method.index, Color.RED, DARK_GREEN, new TextBlock(Fonts.ROBOTO, 14, 300,
+                                errorPositions.add(new ErrorPos(method.index, Color.RED, ORANGE, new TextBlock(Fonts.ROBOTO, 14, 300,
                                         new TextComponent("Usage: @time <delay amount in seconds>\n").setBold(true),
                                         new TextComponent("Too many arguments"))));
                             } else {
                                 if (args[0].string.matches("[0-9]+\\.?[0-9]*")) {
                                     sendableScript.setDelay(Double.parseDouble(args[0].string));
                                     sendableScript.setDelayType(DelayType.TIME);
-                                    errorPositions.add(new ErrorPos(method.index, Color.CLEAR, DARK_GREEN, new TextBlock(Fonts.ROBOTO, 14, 300,
+                                    errorPositions.add(new ErrorPos(method.index, Color.CLEAR, ORANGE, new TextBlock(Fonts.ROBOTO, 14, 300,
                                             new TextComponent("This script will be delayed by "),
                                             new TextComponent(sendableScript.getDelay() + "").setItalic(true),
                                             new TextComponent(" seconds"))));
                                 } else {
                                     error = true;
-                                    errorPositions.add(new ErrorPos(args[0].index, Color.RED, DARK_GREEN, new TextBlock(Fonts.ROBOTO, 14, 300,
+                                    errorPositions.add(new ErrorPos(args[0].index, Color.RED, ORANGE, new TextBlock(Fonts.ROBOTO, 14, 300,
                                             new TextComponent("Usage: @time <delay amount in seconds>\n").setBold(true),
                                             new TextComponent("Expected a delay amount in seconds (double)"))));
 
@@ -142,34 +150,34 @@ public class Parser {
                         } else if (method.string.contains("@%") || method.string.contains("@p")) {
                             if (args.length < 1) {
                                 error = true;
-                                errorPositions.add(new ErrorPos(method.index, Color.RED, DARK_GREEN, new TextBlock(Fonts.ROBOTO, 14, 300,
+                                errorPositions.add(new ErrorPos(method.index, Color.RED, ORANGE, new TextBlock(Fonts.ROBOTO, 14, 300,
                                         new TextComponent("Usage: @percentage <delay amount in percent>\n").setBold(true),
                                         new TextComponent("Expected a delay amount in percent (double)"))));
                             } else if (args.length > 1) {
                                 error = true;
-                                errorPositions.add(new ErrorPos(method.index, Color.RED, DARK_GREEN, new TextBlock(Fonts.ROBOTO, 14, 300,
+                                errorPositions.add(new ErrorPos(method.index, Color.RED, ORANGE, new TextBlock(Fonts.ROBOTO, 14, 300,
                                         new TextComponent("Usage: @percentage <delay amount in percent>\n").setBold(true),
                                         new TextComponent("Too many arguments"))));
                             } else {
                                 String usableString = args[0].string.replace("%", "");
 
                                 if (usableString.matches("[0-9]+\\.?[0-9]*")) {
-                                    sendableScript.setDelay(Double.parseDouble(usableString));
+                                    sendableScript.setDelay(Double.parseDouble(usableString) / 100d);
                                     sendableScript.setDelayType(DelayType.PERCENT);
-                                    errorPositions.add(new ErrorPos(method.index, Color.CLEAR, DARK_GREEN, new TextBlock(Fonts.ROBOTO, 14, 300,
+                                    errorPositions.add(new ErrorPos(method.index, Color.CLEAR, ORANGE, new TextBlock(Fonts.ROBOTO, 14, 300,
                                             new TextComponent("This script will execute after the path is "),
-                                            new TextComponent(sendableScript.getDelay() + "%").setItalic(true),
+                                            new TextComponent(sendableScript.getDelay() * 100 + "%").setItalic(true),
                                             new TextComponent(" complete"))));
                                 } else {
                                     error = true;
-                                    errorPositions.add(new ErrorPos(args[0].index, Color.RED, DARK_GREEN, new TextBlock(Fonts.ROBOTO, 14, 300,
+                                    errorPositions.add(new ErrorPos(args[0].index, Color.RED, ORANGE, new TextBlock(Fonts.ROBOTO, 14, 300,
                                             new TextComponent("Usage: @percent <delay amount in percent>\n").setBold(true),
                                             new TextComponent("Expected a delay amount in percent (double)"))));
                                 }
                             }
                         } else {
                             error = true;
-                            errorPositions.add(new ErrorPos(method.index, Color.RED, DARK_GREEN, new TextBlock(Fonts.ROBOTO, 14, 400,
+                            errorPositions.add(new ErrorPos(method.index, Color.RED, ORANGE, new TextBlock(Fonts.ROBOTO, 14, 400,
                                     new TextComponent("Usage: @<delay type> <delay amount>\n").setBold(true),
                                     new TextComponent("Expected a delay type after @\n\n"),
                                     new TextComponent("Valid delay types:\n"),
