@@ -341,7 +341,7 @@ public class AutoBuilder extends ApplicationAdapter {
     @Override
     public void resize(int width, int height) {
         hudViewport.update(width, height, true);
-        viewport.update(width, height, true);
+        viewport.update(width, height, false);
 
         pathGui.updateScreen(width, height);
     }
