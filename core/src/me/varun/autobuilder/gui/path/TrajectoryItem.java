@@ -120,7 +120,7 @@ public class TrajectoryItem extends AbstractGuiItem implements PathChangeListene
 
             if (pathRenderer.getSelectionPoint() >= 0) {
                 RoundedShapeRenderer.roundedRect(shapeRenderer, drawStartX + 5,
-                        drawStartY - 42 - (pathRenderer.getSelectionPoint() + 1) * 30, drawWidth - 5, 31, 3, Color.DARK_GRAY);
+                        drawStartY - 42 - (pathRenderer.getSelectionPoint() + 1) * 60, drawWidth - 5, 62, 3, Color.DARK_GRAY);
             }
 
             // Draw all the control vectors
