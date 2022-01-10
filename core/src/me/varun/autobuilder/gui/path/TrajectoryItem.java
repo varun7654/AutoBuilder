@@ -10,8 +10,10 @@ import me.varun.autobuilder.events.input.NumberTextboxChangeListener;
 import me.varun.autobuilder.events.pathchange.PathChangeListener;
 import me.varun.autobuilder.gui.elements.CheckBox;
 import me.varun.autobuilder.gui.elements.NumberTextBox;
+import me.varun.autobuilder.gui.hover.HoverManager;
 import me.varun.autobuilder.gui.textrendering.FontRenderer;
 import me.varun.autobuilder.gui.textrendering.Fonts;
+import me.varun.autobuilder.gui.textrendering.TextBlock;
 import me.varun.autobuilder.gui.textrendering.TextComponent;
 import me.varun.autobuilder.pathing.MovablePointRenderer;
 import me.varun.autobuilder.pathing.PathRenderer;
@@ -87,6 +89,11 @@ public class TrajectoryItem extends AbstractGuiItem implements PathChangeListene
         endVelocityTextBox = new NumberTextBox(df.format(getPathRenderer().getVelocityEnd()), eventThrower, this, 0, 0, 18);
     }
 
+    private static final TextBlock X_TEXT = new TextBlock(Fonts.ROBOTO, 13, new TextComponent("X (meters)"));
+    private static final TextBlock Y_TEXT = new TextBlock(Fonts.ROBOTO, 13, new TextComponent("Y (meters)"));
+    private static final TextBlock THETA_TEXT = new TextBlock(Fonts.ROBOTO, 13, new TextComponent("Theta (°)"));
+    private static final TextBlock CONTROL_POINT_X = new TextBlock(Fonts.ROBOTO, 13, new TextComponent("X Control Point"));
+    private static final TextBlock CONTROL_POINT_Y = new TextBlock(Fonts.ROBOTO, 13, new TextComponent("Y Control Point"));
 
     @Override
     public int render(@NotNull ShapeDrawer shapeRenderer, @NotNull PolygonSpriteBatch spriteBatch, int drawStartX, int drawStartY, int drawWidth, PathGui pathGui) {
@@ -120,16 +127,26 @@ public class TrajectoryItem extends AbstractGuiItem implements PathChangeListene
             for (int i = 0; i < textBoxes.size(); i++) {
                 List<NumberTextBox> textBoxList = textBoxes.get(i);
 
-                textBoxList.get(0).draw(shapeRenderer, spriteBatch, drawStartX + 10 + 0 * 123, drawStartY - 50 - i * 60,
-                        120, null);
-                textBoxList.get(1).draw(shapeRenderer, spriteBatch, drawStartX + 10 + 1 * 123, drawStartY - 50 - i * 60,
-                        120, null);
-                textBoxList.get(2).draw(shapeRenderer, spriteBatch, drawStartX + 10 + 2 * 123, drawStartY - 50 - i * 60,
-                        120, null);
-                textBoxList.get(3).draw(shapeRenderer, spriteBatch, drawStartX + 10 + 0 * 123, drawStartY - 50 - i * 60 - 30,
-                        120, null);
-                textBoxList.get(4).draw(shapeRenderer, spriteBatch, drawStartX + 10 + 1 * 123, drawStartY - 50 - i * 60 - 30,
-                        120, null);
+                if (textBoxList.get(0).draw(shapeRenderer, spriteBatch, drawStartX + 10 + 0 * 123, drawStartY - 50 - i * 60,
+                        120, null)) {
+                    HoverManager.setHoverText(X_TEXT, drawStartX + (123 / 2f) + 0 * 123, drawStartY - 40 - i * 60);
+                }
+                if (textBoxList.get(1).draw(shapeRenderer, spriteBatch, drawStartX + 10 + 1 * 123, drawStartY - 50 - i * 60,
+                        120, null)) {
+                    HoverManager.setHoverText(Y_TEXT, drawStartX + (123 / 2f) + 1 * 123, drawStartY - 40 - i * 60);
+                }
+                if (textBoxList.get(2).draw(shapeRenderer, spriteBatch, drawStartX + 10 + 2 * 123, drawStartY - 50 - i * 60,
+                        120, null)) {
+                    HoverManager.setHoverText(THETA_TEXT, drawStartX + (123 / 2f) + 2 * 123, drawStartY - 40 - i * 60);
+                }
+                if (textBoxList.get(3).draw(shapeRenderer, spriteBatch, drawStartX + 10 + 0 * 123, drawStartY - 50 - i * 60 - 30,
+                        120, null)) {
+                    HoverManager.setHoverText(CONTROL_POINT_X, drawStartX + (123 / 2f) + 0 * 123, drawStartY - 40 - i * 60 - 30);
+                }
+                if (textBoxList.get(4).draw(shapeRenderer, spriteBatch, drawStartX + 10 + 1 * 123, drawStartY - 50 - i * 60 - 30,
+                        120, null)) {
+                    HoverManager.setHoverText(CONTROL_POINT_Y, drawStartX + (123 / 2f) + 1 * 123, drawStartY - 40 - i * 60 - 30);
+                }
 
             }
 
@@ -137,7 +154,7 @@ public class TrajectoryItem extends AbstractGuiItem implements PathChangeListene
                     Fonts.ROBOTO, 22, new TextComponent("Start Velocity: ").setBold(true).setColor(Color.BLACK));
             FontRenderer.renderText(spriteBatch, shapeRenderer, drawStartX + 10, drawStartY - (63 + (controlVectors.size()) * 60 + 30),
                     Fonts.ROBOTO, 22, new TextComponent("End Velocity: ").setBold(true).setColor(Color.BLACK));
-            FontRenderer.renderText(spriteBatch, shapeRenderer, drawStartX + 10, drawStartY - (3 + (controlVectors.size()) * 60 + 60),
+            FontRenderer.renderText(spriteBatch, shapeRenderer, drawStartX + 10, drawStartY - (63 + (controlVectors.size()) * 60 + 60),
                     Fonts.ROBOTO, 22, new TextComponent("Reversed: ").setBold(true).setColor(Color.BLACK));
 
             startVelocityTextBox.draw(shapeRenderer, spriteBatch,

@@ -77,18 +77,24 @@ public class TextBox extends InputEventListener {
     }
 
 
-    //TODO: Fix Text Going outside the box and the entire cringe that this class is
-    public void draw(@NotNull ShapeDrawer shapeRenderer, @NotNull Batch spriteBatch, float drawStartX,
-                     float drawStartY, float drawWidth, @Nullable ArrayList<ErrorPos> errorLinting) {
+    //TODO: Fix Text Going outside the box
+
+    /**
+     * @return if the mouse is hovering over the textbox
+     */
+    public boolean draw(@NotNull ShapeDrawer shapeRenderer, @NotNull Batch spriteBatch, float drawStartX,
+                        float drawStartY, float drawWidth, @Nullable ArrayList<ErrorPos> errorLinting) {
         textBlock.update();
+
+        boolean hovering = Gdx.input.getX() > drawStartX && Gdx.input.getX() < drawStartX + drawWidth
+                && Gdx.graphics.getHeight() - Gdx.input.getY() > drawStartY - getHeight() + 8
+                && Gdx.graphics.getHeight() - Gdx.input.getY() < drawStartY + textBlock.getHeight() - 11;
 
         Vector2 mousePos = new Vector2(Gdx.input.getX() - (drawStartX + 4),
                 (Gdx.graphics.getHeight() - Gdx.input.getY()) - (drawStartY - textBlock.getDefaultSize() + 4));
         int mouseIndexPos = textBlock.getIndexOfPosition(mousePos);
         if (Gdx.input.isButtonJustPressed(Input.Buttons.LEFT)) {
-            if (Gdx.input.getX() > drawStartX && Gdx.input.getX() < drawStartX + drawWidth
-                    && Gdx.graphics.getHeight() - Gdx.input.getY() > drawStartY - getHeight()
-                    && Gdx.graphics.getHeight() - Gdx.input.getY() < drawStartY) {
+            if (hovering) {
                 selected = true;
                 text = fireTextBoxClickEvent();
 
@@ -248,6 +254,7 @@ public class TextBox extends InputEventListener {
             }
 
         }
+        return hovering;
     }
 
     public void dispose() {
