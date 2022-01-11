@@ -102,7 +102,7 @@ public class TrajectoryAutonomousStep extends AbstractAutonomousStep {
     }
 
     @JsonProperty
-    public List<TrajectoryConstraint> getConstraints() {
+    public @NotNull List<TrajectoryConstraint> getConstraints() {
         return constraints;
     }
 
