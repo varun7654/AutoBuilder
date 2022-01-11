@@ -243,11 +243,12 @@ public class PathRenderer implements MovablePointEventHandler, Serializable {
             ArrayList<CloseTrajectoryPoint> closePoints = new ArrayList<>();
             int currentIndexPos = 0;
             for (float i = 0; i < trajectory.getTotalTimeSeconds(); i += 0.01f) {
-                Vector3 renderVector = MathUtil.toRenderVector3(trajectory.sample(i).poseMeters);
+                State state = trajectory.sample(i);
+                Vector3 renderVector = MathUtil.toRenderVector3(state.poseMeters);
 
                 if (currentIndexPos + 1 < controlVectors.size() &&
                         MathUtil.toRenderVector3(controlVectors.get(currentIndexPos + 1).x[0], controlVectors.get(currentIndexPos + 1).y[0])
-                                .dst2(renderVector) < 8f) {
+                                .dst2(renderVector) < 8f * state.velocityMetersPerSecond) {
                     currentIndexPos++;
                 }
 
