@@ -8,7 +8,7 @@ import me.varun.autobuilder.events.input.TextChangeListener;
 import me.varun.autobuilder.gui.elements.TextBox;
 import me.varun.autobuilder.scripting.Parser;
 import me.varun.autobuilder.scripting.sendable.SendableScript;
-import me.varun.autobuilder.scripting.util.ErrorPos;
+import me.varun.autobuilder.scripting.util.LintingPos;
 import me.varun.autobuilder.util.RoundedShapeRenderer;
 import org.jetbrains.annotations.NotNull;
 import space.earlygrey.shapedrawer.ShapeDrawer;
@@ -23,8 +23,8 @@ public class ScriptItem extends AbstractGuiItem implements TextChangeListener {
     TextBox textBox;
     boolean error = true;
 
-    final ArrayList<ErrorPos> errorLinting = new ArrayList<>();
-    final ArrayList<ErrorPos> synchronizedErrorLinting = new ArrayList<>();
+    final ArrayList<LintingPos> linting = new ArrayList<>();
+    final ArrayList<LintingPos> synchronizedLinting = new ArrayList<>();
 
     CompletableFuture<SendableScript> latestSendableScript;
 
@@ -48,17 +48,17 @@ public class ScriptItem extends AbstractGuiItem implements TextChangeListener {
                     LIGHT_BLUE, "Script", error);
             return 40;
         } else {
-            synchronized (errorLinting) {
-                synchronizedErrorLinting.clear();
-                synchronizedErrorLinting.addAll(errorLinting);
+            synchronized (linting) {
+                synchronizedLinting.clear();
+                synchronizedLinting.addAll(linting);
             }
-            
+
             int height = (int) (textBox.getHeight() + 8);
             shapeRenderer.setColor(LIGHT_GREY);
             RoundedShapeRenderer.roundedRect(shapeRenderer, drawStartX + 5, (drawStartY - 40) - height, drawWidth - 5, height + 5,
                     2);
 
-            textBox.draw(shapeRenderer, spriteBatch, drawStartX + 10, drawStartY - 43, drawWidth - 15, synchronizedErrorLinting);
+            textBox.draw(shapeRenderer, spriteBatch, drawStartX + 10, drawStartY - 43, drawWidth - 15, synchronizedLinting);
             renderHeader(shapeRenderer, spriteBatch, drawStartX, drawStartY, drawWidth, trashTexture, warningTexture,
                     LIGHT_BLUE, "Script", error);
 
@@ -71,12 +71,12 @@ public class ScriptItem extends AbstractGuiItem implements TextChangeListener {
     public void onTextChange(String text, TextBox textBox) {
         CompletableFuture.supplyAsync(() -> {
             try {
-                ArrayList<ErrorPos> errorPositions = new ArrayList<>();
+                ArrayList<LintingPos> lintingPositions = new ArrayList<>();
                 SendableScript sendableScript = new SendableScript();
-                error = Parser.execute(text, errorPositions, sendableScript);
-                synchronized (errorLinting) {
-                    errorLinting.clear();
-                    errorLinting.addAll(errorPositions);
+                error = Parser.execute(text, lintingPositions, sendableScript);
+                synchronized (linting) {
+                    linting.clear();
+                    linting.addAll(lintingPositions);
                 }
                 return sendableScript;
             } catch (Exception e) {

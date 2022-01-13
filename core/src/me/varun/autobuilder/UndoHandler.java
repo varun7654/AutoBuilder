@@ -82,7 +82,7 @@ public class UndoHandler {
                 TrajectoryItem trajectoryItem = new TrajectoryItem(pathGui, inputEventThrower, cameraHandler,
                         new ControlVectorList(trajectoryAutonomousStep.getControlVectors()), trajectoryAutonomousStep.getRotations(),
                         trajectoryAutonomousStep.isReversed(), color, trajectoryAutonomousStep.isClosed(),
-                        trajectoryAutonomousStep.getVelocityStart(), trajectoryAutonomousStep.getVelocityEnd());
+                        trajectoryAutonomousStep.getVelocityStart(), trajectoryAutonomousStep.getVelocityEnd(), trajectoryAutonomousStep.getConstraints());
                 guiItemList.add(trajectoryItem);
 
 

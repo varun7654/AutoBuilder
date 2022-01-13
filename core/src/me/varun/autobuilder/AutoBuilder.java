@@ -119,7 +119,7 @@ public class AutoBuilder extends ApplicationAdapter {
         batch = new PolygonSpriteBatch();
         shapeRenderer = new ShapeDrawer(batch, region);
 
-        field = new Texture(Gdx.files.internal("field21.png"), false);
+        field = new Texture(Gdx.files.internal("field22.png"), false);
         field.setFilter(Texture.TextureFilter.Linear, Texture.TextureFilter.Nearest);
 
         cam = new OrthographicCamera(Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
@@ -374,7 +374,7 @@ public class AutoBuilder extends ApplicationAdapter {
     @Override
     public void resize(int width, int height) {
         hudViewport.update(width, height, true);
-        viewport.update(width, height, true);
+        viewport.update(width, height, false);
 
         pathGui.updateScreen(width, height);
     }

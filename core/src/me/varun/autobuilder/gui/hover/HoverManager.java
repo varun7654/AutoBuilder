@@ -48,15 +48,17 @@ public class HoverManager {
 
     public static void render(Batch batch, ShapeDrawer shapeDrawer) {
         if (hoverShown) {
-            if (hoverOnMouse) hoverPosition.set(Gdx.input.getX(), Gdx.graphics.getHeight() - Gdx.input.getY());
+            if (hoverOnMouse) hoverPosition.set(Gdx.input.getX(), Gdx.graphics.getHeight() - Gdx.input.getY() + 4);
             float width = hoverText.getWidth();
             float height = hoverText.getHeight();
 
-            if (hoverPosition.x + (width + 6) / 2 > Gdx.graphics.getWidth()) {
-                hoverPosition.x = Gdx.graphics.getWidth() - (width + 6) / 2;
+            if (hoverPosition.x + (width + 10) / 2 > Gdx.graphics.getWidth()) {
+                hoverPosition.x = Gdx.graphics.getWidth() - (width + 10) / 2;
+            } else if (hoverPosition.x - (width + 10) / 2 < 0) {
+                hoverPosition.x = (width + 10) / 2;
             }
             if (hoverPosition.y + height + 5 > (flippedLastTime ? Gdx.graphics.getHeight() - 20 : Gdx.graphics.getHeight())) {
-                hoverPosition.y = hoverPosition.y - height - 5;
+                hoverPosition.y = hoverPosition.y - height - (hoverOnMouse ? 30 : 5);
                 flippedLastTime = true;
             } else {
                 flippedLastTime = false;
@@ -66,8 +68,7 @@ public class HoverManager {
                     width + 6, height + 6, Color.BLACK);
 
             shapeDrawer.filledRectangle(hoverPosition.x - ((width + 4) / 2),
-                    hoverPosition.y,
-                    width + 4, height + 4, Color.WHITE);
+                    hoverPosition.y, width + 4, height + 4, Color.WHITE);
 
             FontRenderer.renderText(batch, shapeDrawer,
                     hoverPosition.x - (width / 2),

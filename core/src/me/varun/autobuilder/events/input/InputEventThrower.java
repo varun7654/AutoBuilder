@@ -9,15 +9,14 @@ import java.util.ArrayList;
 public class InputEventThrower implements InputProcessor {
 
     @NotNull ArrayList<InputEventListener> eventHandlers = new ArrayList<>();
-    @NotNull ArrayList<InputEventListener> eventHandlersAdditions = new ArrayList<>();
-    @NotNull ArrayList<InputEventListener> eventHandlersDeletions = new ArrayList<>();
+    @NotNull ArrayList<InputEventListener> iterableEventHandlers = new ArrayList<>();
 
     public void register(@NotNull InputEventListener eventHandler) {
-        eventHandlersAdditions.add(eventHandler);
+        eventHandlers.add(eventHandler);
     }
 
     public void unRegister(@NotNull InputEventListener eventHandler) {
-        eventHandlersDeletions.add(eventHandler);
+        eventHandlers.remove(eventHandler);
     }
 
     @Override
@@ -32,10 +31,8 @@ public class InputEventThrower implements InputProcessor {
 
     @Override
     public boolean keyTyped(char character) {
-        eventHandlers.addAll(eventHandlersAdditions);
-        eventHandlers.removeAll(eventHandlersDeletions);
-        eventHandlersAdditions.clear();
-        eventHandlersDeletions.clear();
+        iterableEventHandlers.clear();
+        iterableEventHandlers.addAll(eventHandlers);
         try {
             for (InputEventListener eventHandler : eventHandlers) {
                 eventHandler.onKeyType(character);
@@ -69,10 +66,8 @@ public class InputEventThrower implements InputProcessor {
 
     @Override
     public boolean scrolled(float amountX, float amountY) {
-        eventHandlers.addAll(eventHandlersAdditions);
-        eventHandlers.removeAll(eventHandlersDeletions);
-        eventHandlersAdditions.clear();
-        eventHandlersDeletions.clear();
+        iterableEventHandlers.clear();
+        iterableEventHandlers.addAll(eventHandlers);
         try {
             for (InputEventListener eventHandler : eventHandlers) {
                 eventHandler.onScroll(amountX, amountY);

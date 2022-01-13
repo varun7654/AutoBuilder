@@ -51,9 +51,9 @@ public class Config {
         this.teamNumber = teamNumber == null ? 3476 : teamNumber;
         this.robotLength = robotLength == null ? 0.9191625f : robotLength;
         this.robotWidth = robotWidth == null ? 0.9229725f : robotWidth;
-        this.pointScaleFactor = pointScaleFactor == null ? 129.7007874015748f : pointScaleFactor;
-        this.originX = originX == null ? -422f : originX;
-        this.originY = originY == null ? -589f : originY;
+        this.pointScaleFactor = pointScaleFactor == null ? 159.967484803998f : pointScaleFactor;
+        this.originX = originX == null ? -601f : originX;
+        this.originY = originY == null ? -1080f : originY;
         this.pathingConfig = pathingConfig == null ? new PathingConfig() : pathingConfig;
         this.networkTablesEnabled = networkTablesEnabled == null ? true : networkTablesEnabled;
         this.robotCodeDataFile = robotCodeDataFile == null ? "robotCodeData.json" : robotCodeDataFile;

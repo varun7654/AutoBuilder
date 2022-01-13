@@ -7,9 +7,9 @@ public class CloseTrajectoryPoint implements Comparable<CloseTrajectoryPoint> {
     public final float len2;
     @NotNull public final PathRenderer parentPathRenderer;
     public final int prevPointIndex;
-    public final float pointTime;
+    public final double pointTime;
 
-    public CloseTrajectoryPoint(float len2, @NotNull PathRenderer parentPathRenderer, int prevPointIndex, float pointTime) {
+    public CloseTrajectoryPoint(float len2, @NotNull PathRenderer parentPathRenderer, int prevPointIndex, double pointTime) {
         this.len2 = len2;
         this.parentPathRenderer = parentPathRenderer;
         this.prevPointIndex = prevPointIndex;

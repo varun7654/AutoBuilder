@@ -8,6 +8,16 @@ import java.util.ArrayList;
 
 public class SendableScript {
 
+    @Override
+    public String toString() {
+        return "SendableScript{" +
+                "delayType=" + delayType +
+                ", delay=" + delay +
+                ", deployable=" + deployable +
+                ", commands=" + commands +
+                '}';
+    }
+
     public enum DelayType {
         NONE,
         TIME,

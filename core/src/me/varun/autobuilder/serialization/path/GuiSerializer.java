@@ -34,7 +34,8 @@ public class GuiSerializer {
                             0,
                             trajectoryItem.isClosed(),
                             trajectoryItem.getPathRenderer().getVelocityStart(),
-                            trajectoryItem.getPathRenderer().getVelocityEnd()));
+                            trajectoryItem.getPathRenderer().getVelocityEnd(),
+                            trajectoryItem.getPathRenderer().getConstraints()));
                 } catch (ExecutionException e) {
                     throw new NotDeployableException("Trajectory is not deployable");
                 }
@@ -77,7 +78,8 @@ public class GuiSerializer {
                         color[0],
                         trajectoryItem.isClosed(),
                         trajectoryItem.getPathRenderer().getVelocityStart(),
-                        trajectoryItem.getPathRenderer().getVelocityEnd()));
+                        trajectoryItem.getPathRenderer().getVelocityEnd(),
+                        trajectoryItem.getPathRenderer().getConstraints()));
             }
         }
         return new Autonomous(autonomousSteps);
@@ -119,7 +121,8 @@ public class GuiSerializer {
                         color[0],
                         trajectoryItem.isClosed(),
                         trajectoryItem.getPathRenderer().getVelocityStart(),
-                        trajectoryItem.getPathRenderer().getVelocityEnd()));
+                        trajectoryItem.getPathRenderer().getVelocityEnd(),
+                        trajectoryItem.getPathRenderer().getConstraints()));
             }
         }
         Autonomous autonomous = new Autonomous(autonomousSteps);

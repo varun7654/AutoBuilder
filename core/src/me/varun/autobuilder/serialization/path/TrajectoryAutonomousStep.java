@@ -7,6 +7,8 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import me.varun.autobuilder.pathing.TimedRotation;
 import me.varun.autobuilder.wpi.math.spline.Spline.ControlVector;
 import me.varun.autobuilder.wpi.math.trajectory.Trajectory;
+import me.varun.autobuilder.wpi.math.trajectory.constraint.TrajectoryConstraint;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
@@ -20,6 +22,7 @@ public class TrajectoryAutonomousStep extends AbstractAutonomousStep {
     private final float velocityStart;
     private final float velocityEnd;
     private final List<TimedRotation> rotations;
+    @NotNull private final List<TrajectoryConstraint> constraints;
 
     @JsonCreator
     public TrajectoryAutonomousStep(@JsonProperty(required = true, value = "states") @Nullable List<Trajectory.State> m_states,
@@ -29,7 +32,8 @@ public class TrajectoryAutonomousStep extends AbstractAutonomousStep {
                                     @JsonProperty(required = true, value = "color") float color,
                                     @JsonProperty(required = true, value = "closed") boolean closed,
                                     @JsonProperty(defaultValue = "0", value = "velocityStart") float velocityStart,
-                                    @JsonProperty(defaultValue = "0", value = "velocityEnd") float velocityEnd) {
+                                    @JsonProperty(defaultValue = "0", value = "velocityEnd") float velocityEnd,
+                                    @JsonProperty(defaultValue = "null", value = "constraints") List<TrajectoryConstraint> constraints) {
         super(closed);
         this.reversed = reversed;
         this.color = color;
@@ -39,6 +43,7 @@ public class TrajectoryAutonomousStep extends AbstractAutonomousStep {
         this.states = m_states;
         this.velocityStart = velocityStart;
         this.velocityEnd = velocityEnd;
+        this.constraints = constraints == null ? List.of() : constraints;
     }
 
     public Trajectory getTrajectory() {
@@ -95,4 +100,10 @@ public class TrajectoryAutonomousStep extends AbstractAutonomousStep {
     public List<TimedRotation> getRotations() {
         return rotations;
     }
+
+    @JsonProperty
+    public @NotNull List<TrajectoryConstraint> getConstraints() {
+        return constraints;
+    }
+
 }
