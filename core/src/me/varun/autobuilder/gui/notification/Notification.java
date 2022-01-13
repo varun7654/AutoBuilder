@@ -3,6 +3,7 @@ package me.varun.autobuilder.gui.notification;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.g2d.Batch;
+import me.varun.autobuilder.AutoBuilder;
 import me.varun.autobuilder.gui.textrendering.FontRenderer;
 import me.varun.autobuilder.gui.textrendering.Fonts;
 import me.varun.autobuilder.gui.textrendering.TextBlock;
@@ -29,6 +30,7 @@ public class Notification {
         notification = new TextBlock(Fonts.ROBOTO, 30, new TextComponent(text));
         this.creationTime = System.currentTimeMillis();
         this.deleteTime = this.creationTime + (duration);
+        AutoBuilder.enableContinuousRendering(this);
     }
 
     @Override

@@ -1,6 +1,7 @@
 package me.varun.autobuilder.gui.notification;
 
 import com.badlogic.gdx.graphics.g2d.Batch;
+import me.varun.autobuilder.AutoBuilder;
 import space.earlygrey.shapedrawer.ShapeDrawer;
 
 import java.util.ArrayList;
@@ -22,6 +23,7 @@ public class NotificationHandler {
          }
 
          for (Notification notification : notificationsToDelete) {
+             AutoBuilder.disableContinuousRendering(notification);
              notifications.remove(notification);
          }
     }
