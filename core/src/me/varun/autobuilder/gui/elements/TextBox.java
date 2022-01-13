@@ -6,6 +6,7 @@ import com.badlogic.gdx.Input.Keys;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.g2d.Batch;
 import com.badlogic.gdx.math.Vector2;
+import me.varun.autobuilder.AutoBuilder;
 import me.varun.autobuilder.events.input.InputEventListener;
 import me.varun.autobuilder.events.input.InputEventThrower;
 import me.varun.autobuilder.events.input.TextChangeListener;
@@ -31,13 +32,7 @@ import java.util.Map;
 
 
 /*
-TODO: FIX
-This class is barely working.
-Code should be cleaned up so that it works
-Known Bugs:
-Making new lines without pressing the enter key breaks things (making text wrap)
-Can't hold backspace
-can't press up arrow to go up a line
+TODO: Still kinda ugly
  */
 public class TextBox extends InputEventListener {
     @NotNull
@@ -101,6 +96,7 @@ public class TextBox extends InputEventListener {
                 selectedPos = mouseIndexPos;
                 flashing = true;
                 nextFlashChange = System.currentTimeMillis() + 500;
+                AutoBuilder.scheduleRendering(500);
                 xPos = -1;
             } else {
                 selected = false;
@@ -115,6 +111,7 @@ public class TextBox extends InputEventListener {
                 }
                 flashing = true;
                 nextFlashChange = System.currentTimeMillis() + 500;
+                AutoBuilder.scheduleRendering(500);
                 xPos = -1;
             }
 
@@ -125,6 +122,7 @@ public class TextBox extends InputEventListener {
                 }
                 flashing = true;
                 nextFlashChange = System.currentTimeMillis() + 500;
+                AutoBuilder.scheduleRendering(500);
                 xPos = -1;
             }
 
@@ -136,6 +134,7 @@ public class TextBox extends InputEventListener {
 
                 flashing = true;
                 nextFlashChange = System.currentTimeMillis() + 500;
+                AutoBuilder.scheduleRendering(500);
             }
 
             //Act like we click down on the next line
@@ -146,6 +145,7 @@ public class TextBox extends InputEventListener {
 
                 flashing = true;
                 nextFlashChange = System.currentTimeMillis() + 500;
+                AutoBuilder.scheduleRendering(500);
             }
 
             if (getKeyPressed(Keys.BACKSPACE)) {
@@ -157,6 +157,7 @@ public class TextBox extends InputEventListener {
 
                 flashing = true;
                 nextFlashChange = System.currentTimeMillis() + 1500;
+                AutoBuilder.scheduleRendering(500);
                 xPos = -1;
             }
 
@@ -168,6 +169,7 @@ public class TextBox extends InputEventListener {
 
                 flashing = true;
                 nextFlashChange = System.currentTimeMillis() + 1500;
+                AutoBuilder.scheduleRendering(500);
                 xPos = -1;
             }
 
@@ -187,6 +189,12 @@ public class TextBox extends InputEventListener {
             if (nextFlashChange < System.currentTimeMillis()) {
                 flashing = !flashing;
                 nextFlashChange = System.currentTimeMillis() + 500;
+                AutoBuilder.scheduleRendering(500);
+            }
+            
+            long nextFlashTime = nextFlashChange - System.currentTimeMillis();
+            if (nextFlashTime > 0) {
+                AutoBuilder.scheduleRenderingIfEmpty(nextFlashTime);
             }
         }
 
@@ -273,6 +281,7 @@ public class TextBox extends InputEventListener {
                 selectedPos++;
                 flashing = true;
                 nextFlashChange = System.currentTimeMillis() + 1500;
+                AutoBuilder.scheduleRendering(500);
                 fireTextChangeEvent();
                 xPos = -1;
             } else if (Character.getName(character).equals("CARRIAGE RETURN (CR)")) { //TODO: Make this not cringe
@@ -284,6 +293,7 @@ public class TextBox extends InputEventListener {
                 selectedPos++;
                 flashing = true;
                 nextFlashChange = System.currentTimeMillis() + 1500;
+                AutoBuilder.scheduleRendering(1500);
                 fireTextChangeEvent();
                 xPos = -1;
             }

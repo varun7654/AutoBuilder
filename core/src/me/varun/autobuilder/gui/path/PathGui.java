@@ -148,7 +148,7 @@ public class PathGui extends InputEventListener {
         scrollPos = MathUtil.clamp(scrollPos, 0, maxScroll);
         smoothScrollPos = (float) (smoothScrollPos + (scrollPos - smoothScrollPos) / Math.max(1, 0.05 / AutoBuilder.getDeltaTime()));
 
-        if (Math.abs(scrollPos - smoothScrollPos) < 1e-6) {
+        if (Math.abs(scrollPos - smoothScrollPos) < 1e-2) {
             AutoBuilder.disableContinuousRendering(this);
         } else {
             AutoBuilder.enableContinuousRendering(this);

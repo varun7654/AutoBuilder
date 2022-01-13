@@ -40,6 +40,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 public class AutoBuilder extends ApplicationAdapter {
@@ -161,14 +163,20 @@ public class AutoBuilder extends ApplicationAdapter {
     public static void enableContinuousRendering(Object obj) {
         if (!continuousRendering.contains(obj)) {
             continuousRendering.add(obj);
-            justStartedRendering = true;
-            Gdx.graphics.setContinuousRendering(true);
+            if (!Gdx.graphics.isContinuousRendering()) {
+                justStartedRendering = true;
+                Gdx.graphics.setContinuousRendering(true);
+            }
         }
     }
 
     public static void requestRendering() {
-        justStartedRendering = true;
+        if (!Gdx.graphics.isContinuousRendering()) justStartedRendering = true;
         Gdx.graphics.requestRendering();
+    }
+
+    public static void somethingInputed() {
+        if (!Gdx.graphics.isContinuousRendering()) justStartedRendering = true;
     }
 
     public static void disableContinuousRendering(Object obj) {
@@ -179,9 +187,23 @@ public class AutoBuilder extends ApplicationAdapter {
     static boolean justStartedRendering = true;
 
     public static float getDeltaTime() {
-        System.out.println(justStartedRendering);
-        System.out.println(justStartedRendering ? 1f / fps : Gdx.graphics.getDeltaTime());
         return justStartedRendering ? 1f / fps : Gdx.graphics.getDeltaTime();
+    }
+
+    static ScheduledThreadPoolExecutor requestedRenderThread = new ScheduledThreadPoolExecutor(1);
+
+    /**
+     * @param delay in milliseconds
+     */
+    public static void scheduleRendering(long delay) {
+        requestedRenderThread.getQueue().clear();
+        requestedRenderThread.schedule(() -> Gdx.graphics.requestRendering(), delay, TimeUnit.MILLISECONDS);
+    }
+
+    public static void scheduleRenderingIfEmpty(long delay) {
+        if (requestedRenderThread.getQueue().isEmpty()) {
+            requestedRenderThread.schedule(() -> Gdx.graphics.requestRendering(), delay, TimeUnit.MILLISECONDS);
+        }
     }
 
     @Override

@@ -536,7 +536,7 @@ public class PathRenderer implements MovablePointEventHandler, Serializable {
                 e.printStackTrace();
                 throw e;
             }
-            Gdx.graphics.requestRendering();
+            AutoBuilder.requestRendering();
             return this.trajectory = trajectory;
         }, executorService);
 
