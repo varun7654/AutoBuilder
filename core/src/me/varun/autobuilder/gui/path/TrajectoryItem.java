@@ -48,7 +48,7 @@ public class TrajectoryItem extends AbstractGuiItem implements PathChangeListene
     private final @NotNull List<List<NumberTextBox>> textBoxes = new ArrayList<>();
     private final @NotNull InputEventThrower eventThrower;
     private final @NotNull CameraHandler cameraHandler;
-    private final @NotNull CheckBox checkBox = new CheckBox(0, 0, 30, 30);
+    private final @NotNull CheckBox reversedCheckBox = new CheckBox(0, 0, 30, 30);
     private final @NotNull NumberTextBox startVelocityTextBox;
     private final @NotNull NumberTextBox endVelocityTextBox;
 
@@ -165,15 +165,15 @@ public class TrajectoryItem extends AbstractGuiItem implements PathChangeListene
                     drawStartX + 10 + 2 * 123, drawStartY - 50 - (controlVectors.size()) * 60 - 30,
                     120, null);
 
-            checkBox.setX(drawStartX + drawWidth - 35);
-            checkBox.setY(drawStartY - 43 - (controlVectors.size() * 60) - 90);
-            checkBox.checkHover();
-            if (checkBox.checkClick()) {
+            reversedCheckBox.setX(drawStartX + drawWidth - 35);
+            reversedCheckBox.setY(drawStartY - 43 - (controlVectors.size() * 60) - 90);
+            reversedCheckBox.checkHover();
+            if (reversedCheckBox.checkClick()) {
                 pathRenderer.setReversed(!pathRenderer.isReversed());
                 pathRenderer.updatePath(false);
                 UndoHandler.getInstance().somethingChanged();
             }
-            checkBox.render(shapeRenderer, spriteBatch, pathRenderer.isReversed());
+            reversedCheckBox.render(shapeRenderer, spriteBatch, pathRenderer.isReversed());
 
 
             return 40 + (30 * 3 + (controlVectors.size() * 60)) + 8;
