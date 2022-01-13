@@ -7,6 +7,7 @@ import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.g2d.Batch;
 import com.badlogic.gdx.math.Vector2;
 import me.varun.autobuilder.AutoBuilder;
+import me.varun.autobuilder.UndoHandler;
 import me.varun.autobuilder.events.input.InputEventListener;
 import me.varun.autobuilder.events.input.InputEventThrower;
 import me.varun.autobuilder.events.input.TextChangeListener;
@@ -153,6 +154,7 @@ public class TextBox extends InputEventListener {
                     text = text.substring(0, selectedPos - 1) + text.substring(selectedPos);
                     selectedPos--;
                     fireTextChangeEvent();
+                    UndoHandler.getInstance().somethingChanged();
                 }
 
                 flashing = true;
@@ -165,6 +167,7 @@ public class TextBox extends InputEventListener {
                 if (selectedPos < text.length()) {
                     text = text.substring(0, selectedPos) + text.substring(selectedPos + 1);
                     fireTextChangeEvent();
+                    UndoHandler.getInstance().somethingChanged();
                 }
 
                 flashing = true;
@@ -283,6 +286,7 @@ public class TextBox extends InputEventListener {
                 nextFlashChange = System.currentTimeMillis() + 1500;
                 AutoBuilder.scheduleRendering(500);
                 fireTextChangeEvent();
+                UndoHandler.getInstance().somethingChanged();
                 xPos = -1;
             } else if (Character.getName(character).equals("CARRIAGE RETURN (CR)")) { //TODO: Make this not cringe
                 if (text.length() == selectedPos) {
@@ -295,6 +299,7 @@ public class TextBox extends InputEventListener {
                 nextFlashChange = System.currentTimeMillis() + 1500;
                 AutoBuilder.scheduleRendering(1500);
                 fireTextChangeEvent();
+                UndoHandler.getInstance().somethingChanged();
                 xPos = -1;
             }
         }
