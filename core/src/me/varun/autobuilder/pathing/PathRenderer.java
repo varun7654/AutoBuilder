@@ -66,7 +66,7 @@ public class PathRenderer implements MovablePointEventHandler, Serializable {
     private int selectionPointIndex = -1;
     private float velocityStart;
     private float velocityEnd;
-    private float robotPreviewTime = -1;
+    private double robotPreviewTime = -1;
     @Nullable private PathRenderer attachedPath;
     private boolean isAttachedPathEnd;
 
@@ -110,48 +110,51 @@ public class PathRenderer implements MovablePointEventHandler, Serializable {
         lastPointLeft.set(0, -LINE_THICKNESS / 2);
         lastPointRight.set(0, LINE_THICKNESS / 2);
         if (trajectory != null) {
-            lastPointLeft.rotateRad((float) trajectory.sample(0).poseMeters.getRotation().getRadians());
-            lastPointRight.rotateRad((float) trajectory.sample(0).poseMeters.getRotation().getRadians());
+            List<State> states = trajectory.getStates();
+            if (states.size() > 0) {
+                lastPointLeft.rotateRad((float) states.get(0).poseMeters.getRotation().getRadians());
+                lastPointRight.rotateRad((float) states.get(0).poseMeters.getRotation().getRadians());
 
-            lastPointLeft.add((float) trajectory.sample(0).poseMeters.getTranslation().getX() * config.getPointScaleFactor(),
-                    (float) trajectory.sample(0).poseMeters.getTranslation().getY() * config.getPointScaleFactor());
-            lastPointRight.add((float) trajectory.sample(0).poseMeters.getTranslation().getX() * config.getPointScaleFactor(),
-                    (float) trajectory.sample(0).poseMeters.getTranslation().getY() * config.getPointScaleFactor());
+                lastPointLeft.add((float) states.get(0).poseMeters.getTranslation().getX() * config.getPointScaleFactor(),
+                        (float) states.get(0).poseMeters.getTranslation().getY() * config.getPointScaleFactor());
+                lastPointRight.add((float) states.get(0).poseMeters.getTranslation().getX() * config.getPointScaleFactor(),
+                        (float) states.get(0).poseMeters.getTranslation().getY() * config.getPointScaleFactor());
 
-            for (double i = 0.01; i < trajectory.getTotalTimeSeconds(); i += 0.01) {
-                Pose2d cur = trajectory.sample(i).poseMeters;
+                for (State state : states) {
+                    Pose2d cur = state.poseMeters;
 
-                //Use the speed of the path to determine its saturation
-                double speed = Math.abs(trajectory.sample(i).velocityMetersPerSecond);
-                float[] color = new float[3];
-                this.color.toHsv(color);
-                color[1] = (float) (0.9 * (speed / getConfig().getPathingConfig().maxVelocityMetersPerSecond) + 0.1);
-                Color speedColor = new Color().fromHsv(color);
-                speedColor.set(speedColor.r, speedColor.g, speedColor.b, 1);
+                    //Use the speed of the path to determine its saturation
+                    double speed = Math.abs(state.velocityMetersPerSecond);
+                    float[] color = new float[3];
+                    this.color.toHsv(color);
+                    color[1] = (float) (0.9 * (speed / getConfig().getPathingConfig().maxVelocityMetersPerSecond) + 0.1);
+                    Color speedColor = new Color().fromHsv(color);
+                    speedColor.set(speedColor.r, speedColor.g, speedColor.b, 1);
 
-                //Get the 2 points of the line at the current time
-                nextPointLeft.set(0, -LINE_THICKNESS / 2);
-                nextPointRight.set(0, LINE_THICKNESS / 2);
+                    //Get the 2 points of the line at the current time
+                    nextPointLeft.set(0, -LINE_THICKNESS / 2);
+                    nextPointRight.set(0, LINE_THICKNESS / 2);
 
-                nextPointLeft.rotateRad((float) cur.getRotation().getRadians());
-                nextPointRight.rotateRad((float) cur.getRotation().getRadians());
+                    nextPointLeft.rotateRad((float) cur.getRotation().getRadians());
+                    nextPointRight.rotateRad((float) cur.getRotation().getRadians());
 
-                nextPointLeft.add((float) cur.getTranslation().getX() * config.getPointScaleFactor(),
-                        (float) cur.getTranslation().getY() * config.getPointScaleFactor());
-                nextPointRight.add((float) cur.getTranslation().getX() * config.getPointScaleFactor(),
-                        (float) cur.getTranslation().getY() * config.getPointScaleFactor());
+                    nextPointLeft.add((float) cur.getTranslation().getX() * config.getPointScaleFactor(),
+                            (float) cur.getTranslation().getY() * config.getPointScaleFactor());
+                    nextPointRight.add((float) cur.getTranslation().getX() * config.getPointScaleFactor(),
+                            (float) cur.getTranslation().getY() * config.getPointScaleFactor());
 
-                //Render the line
-                renderer.setColor(speedColor);
-                renderer.filledPolygon(new float[]{
-                        lastPointLeft.x, lastPointLeft.y,
-                        lastPointRight.x, lastPointRight.y,
-                        nextPointRight.x, nextPointRight.y,
-                        nextPointLeft.x, nextPointLeft.y
-                });
+                    //Render the line
+                    renderer.setColor(speedColor);
+                    renderer.filledPolygon(new float[]{
+                            lastPointLeft.x, lastPointLeft.y,
+                            lastPointRight.x, lastPointRight.y,
+                            nextPointRight.x, nextPointRight.y,
+                            nextPointLeft.x, nextPointLeft.y
+                    });
 
-                lastPointLeft.set(nextPointLeft);
-                lastPointRight.set(nextPointRight);
+                    lastPointLeft.set(nextPointLeft);
+                    lastPointRight.set(nextPointRight);
+                }
             }
         }
 
@@ -242,8 +245,7 @@ public class PathRenderer implements MovablePointEventHandler, Serializable {
         if(trajectory != null){
             ArrayList<CloseTrajectoryPoint> closePoints = new ArrayList<>();
             int currentIndexPos = 0;
-            for (float i = 0; i < trajectory.getTotalTimeSeconds(); i += 0.01f) {
-                State state = trajectory.sample(i);
+            for (State state : trajectory.getStates()) {
                 Vector3 renderVector = MathUtil.toRenderVector3(state.poseMeters);
 
                 if (currentIndexPos + 1 < controlVectors.size() &&
@@ -254,7 +256,7 @@ public class PathRenderer implements MovablePointEventHandler, Serializable {
 
                 float distanceToMouse2 = renderVector.dst2(mousePos);
                 if (distanceToMouse2 < maxDistance2) {
-                    closePoints.add(new CloseTrajectoryPoint(distanceToMouse2, this, currentIndexPos, i));
+                    closePoints.add(new CloseTrajectoryPoint(distanceToMouse2, this, currentIndexPos, state.timeSeconds));
                 }
             }
             return closePoints;
