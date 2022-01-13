@@ -80,9 +80,14 @@ public class TrajectoryItem extends AbstractGuiItem implements PathChangeListene
         this.pathRenderer = new PathRenderer(color, controlVectors,
                 rotation2dList.stream().map(TimedRotation::getRotation).collect(Collectors.toList()),
                 pathGui.executorService, velocityStart, velocityEnd, constraints);
-        pathRenderer.setReversed(reversed);
-        pathRenderer.setPathChangeListener(this);
 
+        if (getConfig().isHolonomic()) {
+            pathRenderer.setReversed(false);
+        } else {
+            pathRenderer.setReversed(reversed);
+        }
+
+        pathRenderer.setPathChangeListener(this);
         this.setClosed(closed);
 
         startVelocityTextBox = new NumberTextBox(df.format(getPathRenderer().getVelocityStart()), eventThrower, this, 0, 0, 18);
@@ -112,8 +117,8 @@ public class TrajectoryItem extends AbstractGuiItem implements PathChangeListene
             ControlVectorList controlVectors = pathRenderer.getControlVectors();
             shapeRenderer.setColor(LIGHT_GREY);
             RoundedShapeRenderer.roundedRect(shapeRenderer, drawStartX + 5,
-                    drawStartY - (30 * 3 + (controlVectors.size() * 60) + 40) - 8, drawWidth - 5,
-                    30 * 3 + (controlVectors.size() * 60) + 13, 2);
+                    drawStartY - (30 * (getConfig().isHolonomic() ? 2 : 3) + (controlVectors.size() * 60) + 40) - 8, drawWidth - 5,
+                    30 * (getConfig().isHolonomic() ? 2 : 3) + (controlVectors.size() * 60) + 13, 2);
 
             renderHeader(shapeRenderer, spriteBatch, drawStartX, drawStartY, drawWidth, trashTexture, warningTexture,
                     pathRenderer.getColor(), title, checkWarning(pathGui));
@@ -154,8 +159,6 @@ public class TrajectoryItem extends AbstractGuiItem implements PathChangeListene
                     Fonts.ROBOTO, 22, new TextComponent("Start Velocity: ").setBold(true).setColor(Color.BLACK));
             FontRenderer.renderText(spriteBatch, shapeRenderer, drawStartX + 10, drawStartY - (63 + (controlVectors.size()) * 60 + 30),
                     Fonts.ROBOTO, 22, new TextComponent("End Velocity: ").setBold(true).setColor(Color.BLACK));
-            FontRenderer.renderText(spriteBatch, shapeRenderer, drawStartX + 10, drawStartY - (63 + (controlVectors.size()) * 60 + 60),
-                    Fonts.ROBOTO, 22, new TextComponent("Reversed: ").setBold(true).setColor(Color.BLACK));
 
             startVelocityTextBox.draw(shapeRenderer, spriteBatch,
                     drawStartX + 10 + 2 * 123, drawStartY - 50 - controlVectors.size() * 60,
@@ -165,18 +168,22 @@ public class TrajectoryItem extends AbstractGuiItem implements PathChangeListene
                     drawStartX + 10 + 2 * 123, drawStartY - 50 - (controlVectors.size()) * 60 - 30,
                     120, null);
 
-            reversedCheckBox.setX(drawStartX + drawWidth - 35);
-            reversedCheckBox.setY(drawStartY - 43 - (controlVectors.size() * 60) - 90);
-            reversedCheckBox.checkHover();
-            if (reversedCheckBox.checkClick()) {
-                pathRenderer.setReversed(!pathRenderer.isReversed());
-                pathRenderer.updatePath(false);
-                UndoHandler.getInstance().somethingChanged();
+            if (!getConfig().isHolonomic()) { //Don't allow reversing the path if holonomic
+                FontRenderer.renderText(spriteBatch, shapeRenderer, drawStartX + 10, drawStartY - (63 + (controlVectors.size()) * 60 + 60),
+                        Fonts.ROBOTO, 22, new TextComponent("Reversed: ").setBold(true).setColor(Color.BLACK));
+
+                reversedCheckBox.setX(drawStartX + drawWidth - 35);
+                reversedCheckBox.setY(drawStartY - 43 - (controlVectors.size() * 60) - 90);
+                reversedCheckBox.checkHover();
+                if (reversedCheckBox.checkClick()) {
+                    pathRenderer.setReversed(!pathRenderer.isReversed());
+                    pathRenderer.updatePath(false);
+                    UndoHandler.getInstance().somethingChanged();
+                }
+                reversedCheckBox.render(shapeRenderer, spriteBatch, pathRenderer.isReversed());
             }
-            reversedCheckBox.render(shapeRenderer, spriteBatch, pathRenderer.isReversed());
 
-
-            return 40 + (30 * 3 + (controlVectors.size() * 60)) + 8;
+            return 40 + (30 * (getConfig().isHolonomic() ? 2 : 3) + (controlVectors.size() * 60)) + 8;
         }
 
     }
