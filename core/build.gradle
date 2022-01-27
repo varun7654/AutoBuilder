@@ -20,7 +20,7 @@ dependencies {
     implementation 'org.jetbrains:annotations:20.1.0'
     implementation 'org.jetbrains:annotations:20.1.0'
     testImplementation group: 'junit', name: 'junit', version: '4.12'
-    testImplementation "org.mockito:mockito-core:2.+"
+    testImplementation 'org.mockito:mockito-core:4.2.0'
     compileOnly 'org.projectlombok:lombok:1.18.2'
     implementation 'com.google.guava:guava:27.0-jre'
 

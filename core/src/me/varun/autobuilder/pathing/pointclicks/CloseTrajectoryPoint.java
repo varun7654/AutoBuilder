@@ -5,13 +5,13 @@ import org.jetbrains.annotations.NotNull;
 
 public class CloseTrajectoryPoint implements Comparable<CloseTrajectoryPoint> {
     public final float len2;
-    @NotNull public final PathRenderer parentPathRenderer;
+    @NotNull public final PathRenderer parentTrajectoryPathRenderer;
     public final int prevPointIndex;
     public final double pointTime;
 
-    public CloseTrajectoryPoint(float len2, @NotNull PathRenderer parentPathRenderer, int prevPointIndex, double pointTime) {
+    public CloseTrajectoryPoint(float len2, @NotNull PathRenderer parentTrajectoryPathRenderer, int prevPointIndex, double pointTime) {
         this.len2 = len2;
-        this.parentPathRenderer = parentPathRenderer;
+        this.parentTrajectoryPathRenderer = parentTrajectoryPathRenderer;
         this.prevPointIndex = prevPointIndex;
         this.pointTime = pointTime;
     }

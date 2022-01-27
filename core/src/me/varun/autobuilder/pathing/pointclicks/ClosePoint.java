@@ -5,12 +5,12 @@ import org.jetbrains.annotations.NotNull;
 
 public final class ClosePoint implements Comparable<ClosePoint> {
     public final float len2;
-    public final PathRenderer parentPathRenderer;
+    public final PathRenderer parentTrajectoryPathRenderer;
     public final int index;
 
-    public ClosePoint(float len2, PathRenderer parentPathRenderer, int index) {
+    public ClosePoint(float len2, PathRenderer parentTrajectoryPathRenderer, int index) {
         this.len2 = len2;
-        this.parentPathRenderer = parentPathRenderer;
+        this.parentTrajectoryPathRenderer = parentTrajectoryPathRenderer;
         this.index = index;
     }
 
@@ -62,7 +62,7 @@ public final class ClosePoint implements Comparable<ClosePoint> {
     public String toString() {
         return "ClosePoint{" +
                 "len2=" + len2 +
-                ", parentPathRenderer=" + parentPathRenderer +
+                ", parentPathRenderer=" + parentTrajectoryPathRenderer +
                 ", index=" + index +
                 '}';
     }

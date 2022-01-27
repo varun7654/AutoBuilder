@@ -27,6 +27,7 @@ public final class NetworkTablesHelper {
     NetworkTable position = table.getSubTable("position");
     NetworkTableEntry xPos = position.getEntry("x");
     NetworkTableEntry yPos = position.getEntry("y");
+    NetworkTableEntry rotationPos = position.getEntry("rotation");
     NetworkTableEntry enabledTable = table.getEntry("enabled");
 
     NetworkTableEntry processingTable = table.getEntry("processing");
@@ -86,8 +87,11 @@ public final class NetworkTablesHelper {
 
                 float x = (float) xPos.getDouble(0);
                 float y = (float) yPos.getDouble(0);
-                if (robotPositions.size() < 1 || (robotPositions.get(robotPositions.size() - 1)[0] != x || robotPositions.get(robotPositions.size() - 1)[1] != y)) {
-                    robotPositions.add(new Float[]{x, y});
+                float rotation = (float) rotationPos.getDouble(0);
+                if (robotPositions.size() < 1 || (robotPositions.get(robotPositions.size() - 1)[0] != x ||
+                        robotPositions.get(robotPositions.size() - 1)[1] != y) ||
+                        (robotPositions.get(robotPositions.size() - 1)[2] != rotation)) {
+                    robotPositions.add(new Float[]{x, y, rotation});
                 }
 
             } else {
