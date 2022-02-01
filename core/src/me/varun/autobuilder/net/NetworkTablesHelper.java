@@ -9,6 +9,7 @@ import me.varun.autobuilder.gui.path.AbstractGuiItem;
 import me.varun.autobuilder.gui.notification.Notification;
 import me.varun.autobuilder.gui.notification.NotificationHandler;
 import me.varun.autobuilder.gui.shooter.ShooterConfig;
+import me.varun.autobuilder.pathing.RobotPosition;
 import me.varun.autobuilder.serialization.path.Autonomous;
 import me.varun.autobuilder.serialization.path.GuiSerializer;
 import me.varun.autobuilder.serialization.path.NotDeployableException;
@@ -21,7 +22,7 @@ public final class NetworkTablesHelper {
 
     private static final float INCHES_PER_METER = 39.3700787f;
     static NetworkTablesHelper networkTablesInstance = new NetworkTablesHelper();
-    private final ArrayList<Float[]> robotPositions = new ArrayList<>();
+    private final ArrayList<List<RobotPosition>> robotPositions = new ArrayList<>();
     NetworkTableInstance inst = NetworkTableInstance.getDefault();
     NetworkTable table = inst.getTable("autodata");
     NetworkTableEntry autoPath = table.getEntry("autoPath");
@@ -110,25 +111,35 @@ public final class NetworkTablesHelper {
                     robotPositions.clear();
                     enabled = true;
                 }
-                float time = (float) timestamp.getDouble(0);
-                if (robotPositions.size() < 1 || time != robotPositions.get(robotPositions.size() - 1)[13]) {
-                    float x = (float) last_estimated_robot_pose_x.getDouble(0);
-                    float y = (float) last_estimated_robot_pose_y.getDouble(0);
-                    float rotation = (float) Math.toRadians(last_estimated_robot_pose_angle.getDouble(0));
-                    float xv = (float) last_estimated_robot_velocity_x.getDouble(0);
-                    float yv = (float) last_estimated_robot_velocity_y.getDouble(0);
-                    float thetav = (float) last_estimated_robot_velocity_theta.getDouble(0);
+                double time = timestamp.getDouble(0);
+                if (robotPositions.size() < 1 || time != robotPositions.get(robotPositions.size() - 1).get(0).time) {
+                    RobotPosition lastEstimatedRobotPosition = new RobotPosition(
+                            last_estimated_robot_pose_x.getDouble(0),
+                            last_estimated_robot_pose_y.getDouble(0),
+                            Math.toRadians(last_estimated_robot_pose_angle.getDouble(0)),
+                            last_estimated_robot_velocity_x.getDouble(0),
+                            last_estimated_robot_velocity_y.getDouble(0),
+                            last_estimated_robot_velocity_theta.getDouble(0),
+                            timestamp.getDouble(0),
+                            "Last Estimated Robot Position"
+                    );
 
-                    float x2 = (float) latency_comped_robot_pose_x.getDouble(0);
-                    float y2 = (float) latency_comped_robot_pose_y.getDouble(0);
-                    float rotation2 = (float) Math.toRadians((float) latency_comped_robot_pose_angle.getDouble(0));
-                    float xv2 = (float) latency_comped_robot_velocity_x.getDouble(0);
-                    float yv2 = (float) latency_comped_robot_velocity_y.getDouble(0);
-                    float thetav2 = (float) latency_comped_robot_velocity_theta.getDouble(0);
+                    RobotPosition latencyCompensatedPosition = new RobotPosition(
+                            latency_comped_robot_pose_x.getDouble(0),
+                            latency_comped_robot_pose_y.getDouble(0),
+                            Math.toRadians((float) latency_comped_robot_pose_angle.getDouble(0)),
+                            latency_comped_robot_velocity_x.getDouble(0),
+                            latency_comped_robot_velocity_y.getDouble(0),
+                            latency_comped_robot_velocity_theta.getDouble(0),
+                            timestamp.getDouble(0),
+                            "Latency Compensated Robot Position"
+                    );
 
-                    robotPositions.add(new Float[]{x, y, rotation, xv, yv, thetav, x2, y2, rotation2, xv2, yv2, thetav2, time});
+                    List<RobotPosition> poses = new ArrayList<>(2);
+                    poses.add(lastEstimatedRobotPosition);
+                    poses.add(latencyCompensatedPosition);
+                    robotPositions.add(poses);
                 }
-
             } else {
                 enabled = false;
             }
@@ -211,7 +222,7 @@ public final class NetworkTablesHelper {
         return shooterTable.getEntry("hoodangle").getDouble(-1);
     }
 
-    public ArrayList<Float[]> getRobotPositions() {
+    public ArrayList<List<RobotPosition>> getRobotPositions() {
         return robotPositions;
     }
 

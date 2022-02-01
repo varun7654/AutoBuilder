@@ -32,29 +32,24 @@ public class DrivenPathRenderer implements PathRenderer {
     @Override
     public void render(@NotNull ShapeDrawer shapeRenderer, @NotNull OrthographicCamera cam) {
         for (int i = 0; i < networkTables.getRobotPositions().size() - 1; i++) {
-            Float[] pos1 = networkTables.getRobotPositions().get(i);
-            Float[] pos2 = networkTables.getRobotPositions().get(i + 1);
-            shapeRenderer.line(pos1[0] * config.getPointScaleFactor(), pos1[1] * config.getPointScaleFactor(),
-                    pos2[0] * config.getPointScaleFactor(), pos2[1] * config.getPointScaleFactor(), Color.WHITE,
+            RobotPosition pos1 = networkTables.getRobotPositions().get(i).get(0);
+            RobotPosition pos2 = networkTables.getRobotPositions().get(i + 1).get(0);
+            shapeRenderer.line((float) (pos1.x * config.getPointScaleFactor()), (float) (pos1.y * config.getPointScaleFactor()),
+                    (float) (pos2.x * config.getPointScaleFactor()), (float) (pos2.y * config.getPointScaleFactor()), Color.WHITE,
                     LINE_THICKNESS);
             if (i == robotPreviewIndex) {
-                renderRobotBoundingBox(new Vector2(pos1[0] * config.getPointScaleFactor(), pos1[1] * config.getPointScaleFactor()),
-                        pos2[2], shapeRenderer, orange, Color.WHITE);
+                renderRobotBoundingBox(
+                        new Vector2((float) (pos1.x * config.getPointScaleFactor()),
+                                (float) (pos1.y * config.getPointScaleFactor())),
+                        (float) pos1.theta, shapeRenderer, orange, Color.WHITE);
 
                 ArrayList<TextComponent> textComponents = new ArrayList<>();
 
                 textComponents.add(new TextComponent("Last Estimated State @").setBold(true).setSize(15));
-                addTextComponents(pos2, textComponents, 0);
+                addTextComponents(pos2, textComponents);
 
                 textComponents.add(new TextComponent("\n\nLatency Compensated State @").setBold(true).setSize(15));
-                addTextComponents(pos1, textComponents, 6);
-
-                if (networkTables.getRobotPositions().size() > 2) {
-                    Float[] pos3 = networkTables.getRobotPositions().get(i - 2);
-
-                    textComponents.add(new TextComponent("\n\nLatency Compensated State @").setBold(true).setSize(15));
-                    addTextComponents(pos3, textComponents, 6);
-                }
+                addTextComponents(pos1, textComponents);
 
                 HoverManager.setHoverText(new TextBlock(Fonts.ROBOTO, 13, 300, textComponents.toArray(new TextComponent[0])));
             }
@@ -62,20 +57,20 @@ public class DrivenPathRenderer implements PathRenderer {
         robotPreviewIndex = -1;
     }
 
-    private void addTextComponents(Float[] data, List<TextComponent> textComponents, int offset) {
-        textComponents.add(new TextComponent(df.format(data[12]) + "s").setSize(15));
+    private void addTextComponents(RobotPosition robotPosition, List<TextComponent> textComponents) {
+        textComponents.add(new TextComponent(df.format(robotPosition.time) + "s").setSize(15));
         textComponents.add(new TextComponent("x: ").setBold(true));
-        textComponents.add(new TextComponent(df.format(data[offset]) + "m"));
+        textComponents.add(new TextComponent(df.format(robotPosition.x) + "m"));
         textComponents.add(new TextComponent(" y: ").setBold(true));
-        textComponents.add(new TextComponent(df.format(data[1 + offset]) + "m"));
+        textComponents.add(new TextComponent(df.format(robotPosition.y) + "m"));
         textComponents.add(new TextComponent(" theta: ").setBold(true));
-        textComponents.add(new TextComponent(df.format(data[2 + offset]) + "°\n"));
+        textComponents.add(new TextComponent(df.format(Math.toDegrees(robotPosition.theta)) + "°\n"));
         textComponents.add(new TextComponent("Vx: ").setBold(true));
-        textComponents.add(new TextComponent(df.format(data[3 + offset]) + "m/s\n"));
+        textComponents.add(new TextComponent(df.format(robotPosition.vx) + "m/s\n"));
         textComponents.add(new TextComponent("Vy: ").setBold(true));
-        textComponents.add(new TextComponent(df.format(data[4 + offset]) + "m/s\n"));
+        textComponents.add(new TextComponent(df.format(robotPosition.vy) + "m/s\n"));
         textComponents.add(new TextComponent("Vtheta: ").setBold(true));
-        textComponents.add(new TextComponent(df.format(Math.toDegrees(data[5 + offset])) + "°/s"));
+        textComponents.add(new TextComponent(df.format(Math.toDegrees(robotPosition.vtheta)) + "°/s"));
     }
 
     @Override
@@ -87,8 +82,9 @@ public class DrivenPathRenderer implements PathRenderer {
     public @NotNull ArrayList<CloseTrajectoryPoint> getCloseTrajectoryPoints(float maxDistance2, Vector3 mousePos) {
         ArrayList<CloseTrajectoryPoint> points = new ArrayList<>();
         for (int i = 0; i < networkTables.getRobotPositions().size(); i++) {
-            Float[] pos = networkTables.getRobotPositions().get(i);
-            float len2 = mousePos.dst2(pos[0] * config.getPointScaleFactor(), pos[1] * config.getPointScaleFactor(), 0);
+            RobotPosition robotPosition = networkTables.getRobotPositions().get(i).get(0);
+            float len2 = mousePos.dst2((float) (robotPosition.x * config.getPointScaleFactor()),
+                    (float) (robotPosition.y * config.getPointScaleFactor()), 0);
             if (len2 < maxDistance2) {
                 points.add(new CloseTrajectoryPoint(len2, this, i, 0));
             }

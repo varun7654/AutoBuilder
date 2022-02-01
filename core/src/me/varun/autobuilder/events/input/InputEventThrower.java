@@ -34,7 +34,7 @@ public class InputEventThrower implements InputProcessor {
         iterableEventHandlers.clear();
         iterableEventHandlers.addAll(eventHandlers);
         try {
-            for (InputEventListener eventHandler : eventHandlers) {
+            for (InputEventListener eventHandler : iterableEventHandlers) {
                 eventHandler.onKeyType(character);
             }
         } catch (Exception e) {
@@ -69,7 +69,7 @@ public class InputEventThrower implements InputProcessor {
         iterableEventHandlers.clear();
         iterableEventHandlers.addAll(eventHandlers);
         try {
-            for (InputEventListener eventHandler : eventHandlers) {
+            for (InputEventListener eventHandler : iterableEventHandlers) {
                 eventHandler.onScroll(amountX, amountY);
             }
         } catch (Exception e) {
