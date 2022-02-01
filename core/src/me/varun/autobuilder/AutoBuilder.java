@@ -16,7 +16,12 @@ import me.varun.autobuilder.gui.hover.HoverManager;
 import me.varun.autobuilder.gui.path.AbstractGuiItem;
 import me.varun.autobuilder.gui.path.PathGui;
 import me.varun.autobuilder.gui.path.TrajectoryItem;
+
 import me.varun.autobuilder.gui.textrendering.*;
+
+import me.varun.autobuilder.gui.shooter.ShooterConfig;
+import me.varun.autobuilder.gui.shooter.ShooterGui;
+
 import me.varun.autobuilder.net.NetworkTablesHelper;
 import me.varun.autobuilder.net.Serializer;
 import me.varun.autobuilder.pathing.DrivenPathRenderer;
@@ -60,6 +65,7 @@ public class AutoBuilder extends ApplicationAdapter {
     @NotNull public static final ExecutorService asyncPathingService = Executors.newFixedThreadPool(1);
     @NotNull public static final ExecutorService asyncParsingService = Executors.newFixedThreadPool(1);
     @NotNull PathGui pathGui;
+    @NotNull ShooterGui shooterGui;
     @NotNull InputEventThrower inputEventThrower = new InputEventThrower();
     @NotNull UndoHandler undoHandler = UndoHandler.getInstance();
     @NotNull NetworkTablesHelper networkTables = NetworkTablesHelper.getInstance();
@@ -155,6 +161,20 @@ public class AutoBuilder extends ApplicationAdapter {
 
         drivenPathRenderer = new DrivenPathRenderer();
 
+        File shooterConfigFile = new File(USER_DIRECTORY + "/" + config.getSelectedShooterConfig());
+        shooterConfigFile.getParentFile().mkdirs();
+
+        try {
+            ShooterConfig shooterConfig = (ShooterConfig) Serializer.deserializeFromFile(shooterConfigFile, ShooterConfig.class);
+            shooterGui = new ShooterGui(hudViewport, inputEventThrower, cameraHandler, shooterConfig);
+        } catch (IOException e) {
+            e.printStackTrace();
+            shooterGui = new ShooterGui(hudViewport, inputEventThrower, cameraHandler);
+        }
+
+
+        undoHandler.somethingChanged();
+
         undoHandler.somethingChanged();
     }
 
@@ -227,7 +247,9 @@ public class AutoBuilder extends ApplicationAdapter {
                 new TextComponent(hudBatch.renderCalls + batch.renderCalls + "").setColor(Color.WHITE).setBold(true)));
 
         pathGui.render(hudShapeRenderer, hudBatch, hudCam);
+        shooterGui.render(hudShapeRenderer, hudBatch, hudCam);
         HoverManager.render(hudBatch, hudShapeRenderer);
+
         hudBatch.end();
     }
 
@@ -239,7 +261,10 @@ public class AutoBuilder extends ApplicationAdapter {
     private void update() {
         undoHandler.update(pathGui, inputEventThrower, cameraHandler);
 
+        networkTables.updateNT();
+
         boolean onGui = pathGui.update();
+        onGui = onGui | shooterGui.update();
         lastMousePos.set(mousePos);
         cameraHandler.update(somethingMoved, onGui);
 
@@ -322,8 +347,6 @@ public class AutoBuilder extends ApplicationAdapter {
                 closeTrajectoryPoint.parentTrajectoryPathRenderer.setRobotPathPreviewPoint(closeTrajectoryPoint);
             }
         }
-
-        networkTables.updateNT();
     }
 
     public void removeLastSelectedPoint() {
@@ -340,6 +363,8 @@ public class AutoBuilder extends ApplicationAdapter {
         pathGui.dispose();
         whiteTexture.dispose();
         FontHandler.dispose();
+
+        shooterGui.dispose();
     }
 
 
@@ -349,6 +374,7 @@ public class AutoBuilder extends ApplicationAdapter {
         viewport.update(width, height, false);
 
         pathGui.updateScreen(width, height);
+        shooterGui.updateScreen(width, height);
     }
 
     @Override
@@ -357,6 +383,7 @@ public class AutoBuilder extends ApplicationAdapter {
         Autonomous autonomous = GuiSerializer.serializeAutonomous(pathGui.guiItems);
         File autoFile = new File(USER_DIRECTORY + "/" + (autonomous.deployable ? "" : "NOTDEPLOYABLE") + config.getSelectedAuto());
         File configFile = new File(USER_DIRECTORY + "/config.json");
+        File shooterConfig = new File(USER_DIRECTORY + "/" + config.getSelectedShooterConfig());
         autoFile.getParentFile().mkdirs();
         configFile.getParentFile().mkdirs();
 
@@ -364,6 +391,7 @@ public class AutoBuilder extends ApplicationAdapter {
             Serializer.serializeToFile(autonomous, autoFile);
             configFile.createNewFile();
             Serializer.serializeToFile(config, configFile);
+
             if (autonomous.deployable) {
                 File fileToDelete = new File(USER_DIRECTORY + "/NOTDEPLOYABLE" + config.getSelectedAuto());
                 fileToDelete.delete();
@@ -371,6 +399,9 @@ public class AutoBuilder extends ApplicationAdapter {
                 File fileToDelete = new File(USER_DIRECTORY + "/" + config.getSelectedAuto());
                 fileToDelete.delete();
             }
+
+            shooterConfig.createNewFile();
+            Serializer.serializeToFile(shooterGui.getShooterConfig(), shooterConfig);
         } catch (IOException e) {
             e.printStackTrace();
         }

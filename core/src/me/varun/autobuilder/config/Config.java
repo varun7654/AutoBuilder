@@ -14,6 +14,7 @@ import java.util.List;
 public class Config {
     private List<String> scriptMethods;
     private String selectedAutoFile;
+    private String shooterConfigFile;
     private int teamNumber;
     private float robotLength;
     private float robotWidth;
@@ -29,6 +30,7 @@ public class Config {
     @JsonCreator
     public Config(@JsonProperty(value = "scriptMethods") List<String> scriptMethods,
                   @JsonProperty(value = "selectedAuto") String selectedAuto,
+                  @JsonProperty(defaultValue = "shooterconfig.json", value = "selectedShooterConfig") String shooterConfig,
                   @JsonProperty(value = "teamNumber") Integer teamNumber,
                   @JsonProperty(value = "robotLength") Float robotLength,
                   @JsonProperty(value = "robotWidth") Float robotWidth,
@@ -47,7 +49,8 @@ public class Config {
             this.scriptMethods = scriptMethods;
         }
 
-        this.selectedAutoFile = selectedAuto == null ? "auto.json" : selectedAuto;
+        this.selectedAutoFile = shooterConfig == null ? "auto.json" : selectedAuto;
+        this.shooterConfigFile = shooterConfig == null ? "shooterconfig.json" : shooterConfig;
         this.teamNumber = teamNumber == null ? 3476 : teamNumber;
         this.robotLength = robotLength == null ? 0.9191625f : robotLength;
         this.robotWidth = robotWidth == null ? 0.9229725f : robotWidth;
@@ -62,26 +65,31 @@ public class Config {
     }
 
     public Config(){
-        this(null, null, null, null, null, null, null, null, null, null, null, null, null);
+        this(null, null, null, null, null, null, null, null, null, null, null, null, null, null);
     }
 
     @JsonProperty("scriptMethods")
-    public List<String> getScriptMethods(){
+    public List<String> getScriptMethods() {
         return scriptMethods;
     }
 
     @JsonProperty("selectedAuto")
-    public String getSelectedAuto(){
+    public String getSelectedAuto() {
         return selectedAutoFile;
     }
 
+    @JsonProperty("selectedShooterConfig")
+    public String getSelectedShooterConfig() {
+        return shooterConfigFile;
+    }
+
     @JsonProperty("teamNumber")
-    public int getTeamNumber(){
+    public int getTeamNumber() {
         return teamNumber;
     }
 
     @JsonProperty("robotLength")
-    public float getRobotLength(){
+    public float getRobotLength() {
         return robotLength;
     }
 
@@ -94,7 +102,6 @@ public class Config {
     public float getPointScaleFactor(){
         return pointScaleFactor;
     }
-
     @JsonProperty("originX")
     public float getOriginX(){
         return originX;
@@ -137,7 +144,7 @@ public class Config {
         return "the scriptMethods contains the list of valid methods that will be allowed in the script block. " +
                 "print and sleep are currently hardcoded to allow for error checking on the arguments. " +
                 "You to edit them you will need to clone & compile the code. You can find them at src/me/varun/autobuilder/scripting/parser. " +
-                "selectedAuto point to the files that the code will read to get and save data. " +
+                "selectedAuto & selectedShooterConfig point to the files that the code will read to get and save data. " +
                 "The team number is used for connect to your robot though network tables. " +
                 "The robot length and width are in meters and is used to draw the blue box when clicking on a point. " +
                 "The point scale factor is calculated by getting the (length and pixels of the field in the image)/(length of the field in meters). " +
