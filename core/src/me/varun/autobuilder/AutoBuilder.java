@@ -323,7 +323,7 @@ public class AutoBuilder extends ApplicationAdapter {
             }
         }
 
-        networkTables.updateRobotPath();
+        networkTables.updateNT();
     }
 
     public void removeLastSelectedPoint() {

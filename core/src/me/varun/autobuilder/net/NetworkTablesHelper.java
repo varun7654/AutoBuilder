@@ -24,10 +24,24 @@ public final class NetworkTablesHelper {
     NetworkTableInstance inst = NetworkTableInstance.getDefault();
     NetworkTable table = inst.getTable("autodata");
     NetworkTableEntry autoPath = table.getEntry("autoPath");
-    NetworkTable position = table.getSubTable("position");
-    NetworkTableEntry xPos = position.getEntry("x");
-    NetworkTableEntry yPos = position.getEntry("y");
-    NetworkTableEntry rotationPos = position.getEntry("rotation");
+
+    NetworkTable smartDashboardTable = inst.getTable("SmartDashboard");
+    NetworkTableEntry last_estimated_robot_pose_x = smartDashboardTable.getEntry("Last Estimated Robot Pose X");
+    NetworkTableEntry last_estimated_robot_pose_y = smartDashboardTable.getEntry("Last Estimated Robot Pose Y");
+    NetworkTableEntry last_estimated_robot_pose_angle = smartDashboardTable.getEntry("Last Estimated Robot Pose Angle");
+    NetworkTableEntry last_estimated_robot_velocity_x = smartDashboardTable.getEntry("Last Estimated Robot Velocity X");
+    NetworkTableEntry last_estimated_robot_velocity_y = smartDashboardTable.getEntry("Last Estimated Robot Velocity Y");
+    NetworkTableEntry last_estimated_robot_velocity_theta = smartDashboardTable.getEntry("Last Estimated Robot Velocity Theta");
+
+    NetworkTableEntry latency_comped_robot_pose_x = smartDashboardTable.getEntry("Latency Comped Robot Pose X");
+    NetworkTableEntry latency_comped_robot_pose_y = smartDashboardTable.getEntry("Latency Comped Robot Pose Y");
+    NetworkTableEntry latency_comped_robot_pose_angle = smartDashboardTable.getEntry("Latency Comped Robot Pose Angle");
+    NetworkTableEntry latency_comped_robot_velocity_x = smartDashboardTable.getEntry("Latency Comped Robot Velocity X");
+    NetworkTableEntry latency_comped_robot_velocity_y = smartDashboardTable.getEntry("Latency Comped Robot Velocity Y");
+    NetworkTableEntry latency_comped_robot_velocity_theta = smartDashboardTable.getEntry("Latency Comped Robot Velocity Theta");
+
+    NetworkTableEntry timestamp = smartDashboardTable.getEntry("Timestamp");
+
     NetworkTableEntry enabledTable = table.getEntry("enabled");
 
     NetworkTableEntry processingTable = table.getEntry("processing");
@@ -54,7 +68,6 @@ public final class NetworkTablesHelper {
 
 
     public void pushAutoData(List<AbstractGuiItem> guiItemList) {
-
         if (inst.isConnected()) {
             try {
                 String autonomousString = Serializer.serializeToString(GuiSerializer.serializeAutonomousForDeployment(guiItemList));
@@ -77,21 +90,30 @@ public final class NetworkTablesHelper {
 
     }
 
-    public void updateRobotPath() {
+    public void updateNT() {
         if (inst.isConnected()) {
             if (enabledTable.getBoolean(false)) {
                 if (!enabled) {
                     robotPositions.clear();
                     enabled = true;
                 }
+                float time = (float) timestamp.getDouble(0);
+                if (robotPositions.size() < 1 || time != robotPositions.get(robotPositions.size() - 1)[13]) {
+                    float x = (float) last_estimated_robot_pose_x.getDouble(0);
+                    float y = (float) last_estimated_robot_pose_y.getDouble(0);
+                    float rotation = (float) Math.toRadians(last_estimated_robot_pose_angle.getDouble(0));
+                    float xv = (float) last_estimated_robot_velocity_x.getDouble(0);
+                    float yv = (float) last_estimated_robot_velocity_y.getDouble(0);
+                    float thetav = (float) last_estimated_robot_velocity_theta.getDouble(0);
 
-                float x = (float) xPos.getDouble(0);
-                float y = (float) yPos.getDouble(0);
-                float rotation = (float) rotationPos.getDouble(0);
-                if (robotPositions.size() < 1 || (robotPositions.get(robotPositions.size() - 1)[0] != x ||
-                        robotPositions.get(robotPositions.size() - 1)[1] != y) ||
-                        (robotPositions.get(robotPositions.size() - 1)[2] != rotation)) {
-                    robotPositions.add(new Float[]{x, y, rotation});
+                    float x2 = (float) latency_comped_robot_pose_x.getDouble(0);
+                    float y2 = (float) latency_comped_robot_pose_y.getDouble(0);
+                    float rotation2 = (float) Math.toRadians((float) latency_comped_robot_pose_angle.getDouble(0));
+                    float xv2 = (float) latency_comped_robot_velocity_x.getDouble(0);
+                    float yv2 = (float) latency_comped_robot_velocity_y.getDouble(0);
+                    float thetav2 = (float) latency_comped_robot_velocity_theta.getDouble(0);
+
+                    robotPositions.add(new Float[]{x, y, rotation, xv, yv, thetav, x2, y2, rotation2, xv2, yv2, thetav2, time});
                 }
 
             } else {
