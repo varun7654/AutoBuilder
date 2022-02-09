@@ -37,7 +37,7 @@ public class ShooterGui extends InputEventListener implements NumberTextboxChang
     private final Viewport hudViewport;
     private final InputEventThrower inputEventThrower;
     private final CameraHandler cameraHandler;
-    ShooterGuiOpenIcon openIcon = new ShooterGuiOpenIcon(10, 10, 30, 30);
+    ShooterGuiOpenIcon openIcon = new ShooterGuiOpenIcon(10, 10, 40, 40);
 
 
     ArrayList<NumberTextBox> textBoxes = new ArrayList<>();

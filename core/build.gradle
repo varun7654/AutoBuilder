@@ -1,3 +1,7 @@
+plugins {
+    id 'org.openjfx.javafxplugin' version '0.0.11'
+}
+
 sourceCompatibility = 11
 [compileJava, compileTestJava]*.options*.encoding = 'UTF-8'
 
@@ -13,6 +17,16 @@ repositories {
             url "https://frcmaven.wpi.edu/artifactory/release/"
         }
     }
+}
+
+
+javafx {
+    modules = ['javafx.controls', 'javafx.fxml']
+}
+
+javafx {
+    version = '11'
+    modules = ['javafx.controls', 'javafx.fxml']
 }
 
 dependencies {

@@ -10,6 +10,7 @@ import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.utils.viewport.ExtendViewport;
 import com.badlogic.gdx.utils.viewport.ScreenViewport;
 import com.badlogic.gdx.utils.viewport.Viewport;
+import javafx.application.Platform;
 import me.varun.autobuilder.config.Config;
 import me.varun.autobuilder.config.gui.ConfigGUI;
 import me.varun.autobuilder.events.input.InputEventThrower;
@@ -94,6 +95,7 @@ public class AutoBuilder extends ApplicationAdapter {
 
     @Override
     public void create() {
+        Platform.startup(() -> {});
         Gdx.graphics.setForegroundFPS(Gdx.graphics.getDisplayMode().refreshRate);
         Gdx.graphics.setVSync(false);
         File configFile = new File(USER_DIRECTORY + "/config.json");
@@ -263,6 +265,7 @@ public class AutoBuilder extends ApplicationAdapter {
 
         boolean onGui = pathGui.update();
         onGui = onGui | shooterGui.update();
+        onGui = onGui | configGUI.update();
         lastMousePos.set(mousePos);
         cameraHandler.update(somethingMoved, onGui);
 
@@ -376,6 +379,7 @@ public class AutoBuilder extends ApplicationAdapter {
 
         pathGui.updateScreen(width, height);
         shooterGui.updateScreen(width, height);
+        configGUI.updateScreen(width, height);
     }
 
     @Override
@@ -410,5 +414,14 @@ public class AutoBuilder extends ApplicationAdapter {
 
     public static @NotNull Config getConfig() {
         return config;
+    }
+
+    /**
+     * Called when a file is dragged onto the window
+     *
+     * @param file the filepath of the file
+     */
+    public void loadFile(String file) {
+        System.out.println("Loading file: " + file);
     }
 }

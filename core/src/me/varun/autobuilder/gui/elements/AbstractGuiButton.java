@@ -98,7 +98,13 @@ public abstract class AbstractGuiButton implements Disposable {
         this.height = height;
     }
 
+    @Override
     public void dispose() {
         texture.dispose();
+    }
+
+    public void setPosition(float x, float y) {
+        this.x = x;
+        this.y = y;
     }
 }
