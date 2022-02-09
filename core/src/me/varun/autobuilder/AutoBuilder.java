@@ -11,22 +11,20 @@ import com.badlogic.gdx.utils.viewport.ExtendViewport;
 import com.badlogic.gdx.utils.viewport.ScreenViewport;
 import com.badlogic.gdx.utils.viewport.Viewport;
 import me.varun.autobuilder.config.Config;
+import me.varun.autobuilder.config.gui.ConfigGUI;
 import me.varun.autobuilder.events.input.InputEventThrower;
 import me.varun.autobuilder.gui.hover.HoverManager;
 import me.varun.autobuilder.gui.path.AbstractGuiItem;
 import me.varun.autobuilder.gui.path.PathGui;
 import me.varun.autobuilder.gui.path.TrajectoryItem;
-
-import me.varun.autobuilder.gui.textrendering.*;
-
 import me.varun.autobuilder.gui.shooter.ShooterConfig;
 import me.varun.autobuilder.gui.shooter.ShooterGui;
-
+import me.varun.autobuilder.gui.textrendering.*;
 import me.varun.autobuilder.net.NetworkTablesHelper;
 import me.varun.autobuilder.net.Serializer;
 import me.varun.autobuilder.pathing.DrivenPathRenderer;
-import me.varun.autobuilder.pathing.TrajectoryPathRenderer;
 import me.varun.autobuilder.pathing.PointRenderer;
+import me.varun.autobuilder.pathing.TrajectoryPathRenderer;
 import me.varun.autobuilder.pathing.pointclicks.ClosePoint;
 import me.varun.autobuilder.pathing.pointclicks.CloseTrajectoryPoint;
 import me.varun.autobuilder.scripting.RobotCodeData;
@@ -53,6 +51,8 @@ public class AutoBuilder extends ApplicationAdapter {
     public static final float POINT_SIZE = 8;
     public static final float CONTROL_VECTOR_SCALE = 3;
     public static final float MIN_CONTROL_VECTOR_DISTANCE = 0.1f;
+
+    @NotNull ConfigGUI configGUI;
 
     @NotNull private final Vector3 mousePos = new Vector3();
     @NotNull private final Vector3 lastMousePos = new Vector3();
@@ -95,7 +95,7 @@ public class AutoBuilder extends ApplicationAdapter {
     @Override
     public void create() {
         Gdx.graphics.setForegroundFPS(Gdx.graphics.getDisplayMode().refreshRate);
-
+        Gdx.graphics.setVSync(false);
         File configFile = new File(USER_DIRECTORY + "/config.json");
         configFile.getParentFile().mkdirs();
         try {
@@ -171,10 +171,7 @@ public class AutoBuilder extends ApplicationAdapter {
             e.printStackTrace();
             shooterGui = new ShooterGui(hudViewport, inputEventThrower, cameraHandler);
         }
-
-
-        undoHandler.somethingChanged();
-
+        configGUI = new ConfigGUI();
         undoHandler.somethingChanged();
     }
 
@@ -248,6 +245,7 @@ public class AutoBuilder extends ApplicationAdapter {
 
         pathGui.render(hudShapeRenderer, hudBatch, hudCam);
         shooterGui.render(hudShapeRenderer, hudBatch, hudCam);
+        configGUI.draw(hudShapeRenderer, hudBatch, hudCam);
         HoverManager.render(hudBatch, hudShapeRenderer);
 
         hudBatch.end();
@@ -366,11 +364,13 @@ public class AutoBuilder extends ApplicationAdapter {
         FontHandler.dispose();
 
         shooterGui.dispose();
+        System.exit(0);
     }
 
 
     @Override
     public void resize(int width, int height) {
+        if (width == 0 || height == 0) return;
         hudViewport.update(width, height, true);
         viewport.update(width, height, false);
 

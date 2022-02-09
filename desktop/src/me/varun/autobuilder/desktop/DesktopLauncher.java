@@ -1,20 +1,19 @@
 package me.varun.autobuilder.desktop;
 
-import com.badlogic.gdx.backends.lwjgl.LwjglApplication;
-import com.badlogic.gdx.backends.lwjgl.LwjglApplicationConfiguration;
+import com.badlogic.gdx.backends.lwjgl3.Lwjgl3Application;
+import com.badlogic.gdx.backends.lwjgl3.Lwjgl3ApplicationConfiguration;
 import me.varun.autobuilder.AutoBuilder;
 
 public class DesktopLauncher {
-	public static void main (String[] arg) {
-		LwjglApplicationConfiguration config = new LwjglApplicationConfiguration();
-		config.title = "Auto Builder";
-		config.width = 1280;
-		config.height = 720;
-		config.samples = 8;
-		config.foregroundFPS = 60;
-		config.backgroundFPS = config.foregroundFPS/2;
-		config.vSyncEnabled = false;
-		config.forceExit = true;
-		new LwjglApplication(new AutoBuilder(), config);
+
+
+	public static void main(String[] arg) {
+		Lwjgl3ApplicationConfiguration config = new Lwjgl3ApplicationConfiguration();
+		config.setTitle("Auto Builder");
+		config.setWindowedMode(1280, 720);
+		config.setForegroundFPS(60);
+		config.setIdleFPS(30);
+		config.setBackBufferConfig(8, 8, 8, 8, 16, 0, 4);
+		new Lwjgl3Application(new AutoBuilder(), config);
 	}
 }

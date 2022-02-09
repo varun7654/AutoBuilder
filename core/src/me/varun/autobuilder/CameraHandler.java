@@ -43,8 +43,12 @@ public class CameraHandler extends InputEventListener {
     }
 
     public void update(boolean moving, boolean onGui) {
-        if (onGui) zoom = lastZoom;
-        else lastZoom = zoom;
+        if (Gdx.graphics.getHeight() == 0 || Gdx.graphics.getWidth() == 0) return;
+        if (onGui) {
+            zoom = lastZoom;
+        } else {
+            lastZoom = zoom;
+        }
         mousePos.set(Gdx.input.getX(), Gdx.input.getY());
 
         /*
