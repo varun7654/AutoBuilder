@@ -143,15 +143,58 @@ public class Config {
     private String getReadMe() {
         return "the scriptMethods contains the list of valid methods that will be allowed in the script block. " +
                 "print and sleep are currently hardcoded to allow for error checking on the arguments. " +
-                "You to edit them you will need to clone & compile the code. You can find them at src/me/varun/autobuilder/scripting/parser. " +
+                "You to edit them you will need to clone & compile the code. You can find them at " +
+                "src/me/varun/autobuilder/scripting/parser. " +
                 "selectedAuto & selectedShooterConfig point to the files that the code will read to get and save data. " +
                 "The team number is used for connect to your robot though network tables. " +
                 "The robot length and width are in meters and is used to draw the blue box when clicking on a point. " +
-                "The point scale factor is calculated by getting the (length and pixels of the field in the image)/(length of the field in meters). " +
+                "The point scale factor is calculated by getting the (length and pixels of the field in the image)/(length of " +
+                "the field in meters). " +
                 "It is used to render everything in the correct position. " +
                 "The units for the origin is in pixels. It represents how much the image should be translated so that (0,0) " +
                 "in the application space is (0,0) on the image. " +
                 "You can disable network tables by setting networkTablesEnabled to false. This is useful if you are using the " +
                 "app while not connected to the robot and are getting lag spikes/errors in the console";
+    }
+
+    @Override
+    public String toString() {
+        return "Config{" +
+                "scriptMethods=" + scriptMethods +
+                ", selectedAutoFile='" + selectedAutoFile + '\'' +
+                ", shooterConfigFile='" + shooterConfigFile + '\'' +
+                ", teamNumber=" + teamNumber +
+                ", robotLength=" + robotLength +
+                ", robotWidth=" + robotWidth +
+                ", pointScaleFactor=" + pointScaleFactor +
+                ", originX=" + originX +
+                ", originY=" + originY +
+                ", pathingConfig=" + pathingConfig +
+                ", networkTablesEnabled=" + networkTablesEnabled +
+                ", robotCodeDataFile='" + robotCodeDataFile + '\'' +
+                ", reflectionEnabled=" + reflectionEnabled +
+                ", isHolonomic=" + isHolonomic +
+                '}';
+    }
+
+    public void setConfig(Config config) {
+        this.scriptMethods = config.scriptMethods;
+        this.selectedAutoFile = config.selectedAutoFile;
+        this.shooterConfigFile = config.shooterConfigFile;
+        this.teamNumber = config.teamNumber;
+        this.robotLength = config.robotLength;
+        this.robotWidth = config.robotWidth;
+        this.pointScaleFactor = config.pointScaleFactor;
+        this.originX = config.originX;
+        this.originY = config.originY;
+        this.pathingConfig = config.pathingConfig;
+        this.networkTablesEnabled = config.networkTablesEnabled;
+        this.robotCodeDataFile = config.robotCodeDataFile;
+        this.reflectionEnabled = config.reflectionEnabled;
+        this.isHolonomic = config.isHolonomic;
+    }
+
+    public void setAuto(String auto) {
+        this.selectedAutoFile = auto;
     }
 }

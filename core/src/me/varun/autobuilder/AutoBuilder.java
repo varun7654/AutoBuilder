@@ -13,6 +13,7 @@ import com.badlogic.gdx.utils.viewport.Viewport;
 import javafx.application.Platform;
 import me.varun.autobuilder.config.Config;
 import me.varun.autobuilder.config.gui.ConfigGUI;
+import me.varun.autobuilder.config.gui.FileHandler;
 import me.varun.autobuilder.events.input.InputEventThrower;
 import me.varun.autobuilder.gui.hover.HoverManager;
 import me.varun.autobuilder.gui.path.AbstractGuiItem;
@@ -47,7 +48,18 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.stream.Collectors;
 
-public class AutoBuilder extends ApplicationAdapter {
+public final class AutoBuilder extends ApplicationAdapter {
+
+    private static final AutoBuilder instance = new AutoBuilder();
+
+    private AutoBuilder() {
+
+    }
+
+    public static AutoBuilder getInstance() {
+        return instance;
+    }
+
     public static final float LINE_THICKNESS = 4;
     public static final float POINT_SIZE = 8;
     public static final float CONTROL_VECTOR_SCALE = 3;
@@ -68,7 +80,7 @@ public class AutoBuilder extends ApplicationAdapter {
     @NotNull PathGui pathGui;
     @NotNull ShooterGui shooterGui;
     @NotNull InputEventThrower inputEventThrower = new InputEventThrower();
-    @NotNull UndoHandler undoHandler = UndoHandler.getInstance();
+    @NotNull public UndoHandler undoHandler = UndoHandler.getInstance();
     @NotNull NetworkTablesHelper networkTables = NetworkTablesHelper.getInstance();
     @NotNull private PolygonSpriteBatch batch;
     @NotNull private PolygonSpriteBatch hudBatch;
@@ -385,8 +397,33 @@ public class AutoBuilder extends ApplicationAdapter {
     @Override
     public void pause() {
         super.pause();
+        save();
+    }
+
+    public static @NotNull Config getConfig() {
+        return config;
+    }
+
+    /**
+     * Called when a file is dragged onto the window
+     *
+     * @param file the filepath of the file
+     */
+    public void loadFile(String file) {
+        System.out.println("Loading file: " + file);
+        FileHandler.handleFile(new File(file));
+    }
+
+    public void restoreState(Autonomous autonomous) {
+        undoHandler.undoHistory.clear();
+        undoHandler.restoreState(autonomous, pathGui, inputEventThrower, cameraHandler);
+        undoHandler.somethingChanged();
+    }
+
+    public void save() {
         Autonomous autonomous = GuiSerializer.serializeAutonomous(pathGui.guiItems);
-        File autoFile = new File(USER_DIRECTORY + "/" + (autonomous.deployable ? "" : "NOTDEPLOYABLE") + config.getSelectedAuto());
+        File autoFile = new File(
+                USER_DIRECTORY + "/" + (autonomous.deployable ? "" : "NOTDEPLOYABLE") + config.getSelectedAuto());
         File configFile = new File(USER_DIRECTORY + "/config.json");
         File shooterConfig = new File(USER_DIRECTORY + "/" + config.getSelectedShooterConfig());
         autoFile.getParentFile().mkdirs();
@@ -410,18 +447,5 @@ public class AutoBuilder extends ApplicationAdapter {
         } catch (IOException e) {
             e.printStackTrace();
         }
-    }
-
-    public static @NotNull Config getConfig() {
-        return config;
-    }
-
-    /**
-     * Called when a file is dragged onto the window
-     *
-     * @param file the filepath of the file
-     */
-    public void loadFile(String file) {
-        System.out.println("Loading file: " + file);
     }
 }

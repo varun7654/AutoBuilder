@@ -15,7 +15,7 @@ public class DesktopLauncher {
 		config.setForegroundFPS(60);
 		config.setIdleFPS(30);
 		config.setBackBufferConfig(8, 8, 8, 8, 16, 0, 4);
-		final AutoBuilder app = new AutoBuilder();
+		final AutoBuilder app = AutoBuilder.getInstance();
 		config.setWindowListener(new Lwjgl3WindowAdapter() {
 			@Override
 			public void filesDropped(String[] files) {
@@ -27,6 +27,6 @@ public class DesktopLauncher {
 			}
 		});
 
-		new Lwjgl3Application(new AutoBuilder(), config);
+		new Lwjgl3Application(app, config);
 	}
 }
