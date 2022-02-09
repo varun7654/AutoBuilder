@@ -1,5 +1,6 @@
 package me.varun.autobuilder.pathing;
 
+import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.math.Vector2;
@@ -48,17 +49,18 @@ public class DrivenPathRenderer implements PathRenderer {
                 textComponents.add(new TextComponent("Last Estimated State @").setBold(true).setSize(15));
                 addTextComponents(pos2, textComponents);
 
-                textComponents.add(new TextComponent("\n\nLatency Compensated State @").setBold(true).setSize(15));
-                addTextComponents(pos1, textComponents);
+//                textComponents.add(new TextComponent("\n\nLatency Compensated State @").setBold(true).setSize(15));
+//                addTextComponents(pos1, textComponents);
 
-                HoverManager.setHoverText(new TextBlock(Fonts.ROBOTO, 13, 300, textComponents.toArray(new TextComponent[0])));
+                HoverManager.setHoverText(new TextBlock(Fonts.ROBOTO, 13, 300, textComponents.toArray(new TextComponent[0])),
+                        0, Gdx.graphics.getHeight() - 2);
             }
         }
         robotPreviewIndex = -1;
     }
 
     private void addTextComponents(RobotPosition robotPosition, List<TextComponent> textComponents) {
-        textComponents.add(new TextComponent(df.format(robotPosition.time) + "s").setSize(15));
+        textComponents.add(new TextComponent(df.format(robotPosition.time) + "s\n").setSize(15));
         textComponents.add(new TextComponent("x: ").setBold(true));
         textComponents.add(new TextComponent(df.format(robotPosition.x) + "m"));
         textComponents.add(new TextComponent(" y: ").setBold(true));

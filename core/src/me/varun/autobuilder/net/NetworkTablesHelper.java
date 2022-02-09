@@ -106,12 +106,13 @@ public final class NetworkTablesHelper {
 
     public void updateNT() {
         if (inst.isConnected()) {
+            double time = timestamp.getDouble(0);
             if (enabledTable.getBoolean(false)) {
                 if (!enabled) {
                     robotPositions.clear();
                     enabled = true;
                 }
-                double time = timestamp.getDouble(0);
+
                 if (robotPositions.size() < 1 || time != robotPositions.get(robotPositions.size() - 1).get(0).time) {
                     RobotPosition lastEstimatedRobotPosition = new RobotPosition(
                             last_estimated_robot_pose_x.getDouble(0),
@@ -124,20 +125,20 @@ public final class NetworkTablesHelper {
                             "Last Estimated Robot Position"
                     );
 
-                    RobotPosition latencyCompensatedPosition = new RobotPosition(
-                            latency_comped_robot_pose_x.getDouble(0),
-                            latency_comped_robot_pose_y.getDouble(0),
-                            Math.toRadians((float) latency_comped_robot_pose_angle.getDouble(0)),
-                            latency_comped_robot_velocity_x.getDouble(0),
-                            latency_comped_robot_velocity_y.getDouble(0),
-                            latency_comped_robot_velocity_theta.getDouble(0),
-                            timestamp.getDouble(0),
-                            "Latency Compensated Robot Position"
-                    );
+//                    RobotPosition latencyCompensatedPosition = new RobotPosition(
+//                            latency_comped_robot_pose_x.getDouble(0),
+//                            latency_comped_robot_pose_y.getDouble(0),
+//                            Math.toRadians((float) latency_comped_robot_pose_angle.getDouble(0)),
+//                            latency_comped_robot_velocity_x.getDouble(0),
+//                            latency_comped_robot_velocity_y.getDouble(0),
+//                            latency_comped_robot_velocity_theta.getDouble(0),
+//                            timestamp.getDouble(0),
+//                            "Latency Compensated Robot Position"
+//                    );
 
                     List<RobotPosition> poses = new ArrayList<>(2);
                     poses.add(lastEstimatedRobotPosition);
-                    poses.add(latencyCompensatedPosition);
+                    //poses.add(latencyCompensatedPosition);
                     robotPositions.add(poses);
                 }
             } else {

@@ -331,6 +331,7 @@ public class AutoBuilder extends ApplicationAdapter {
                 closeTrajectoryPoints.addAll(trajectoryPathRenderer.getCloseTrajectoryPoints(maxDistance, mousePos));
             }
         }
+        closeTrajectoryPoints.addAll(drivenPathRenderer.getCloseTrajectoryPoints(maxDistance, mousePos));
         Collections.sort(closeTrajectoryPoints);
 
         if(closeTrajectoryPoints.size() > 0) {
@@ -339,7 +340,7 @@ public class AutoBuilder extends ApplicationAdapter {
             if (Gdx.app.getInput().isButtonJustPressed(Input.Buttons.RIGHT) && !pointAdded &&
                     closeTrajectoryPoint.parentTrajectoryPathRenderer instanceof TrajectoryPathRenderer) {
                 //Should we add a point?
-                ((TrajectoryPathRenderer) lastSelectedPoint.parentTrajectoryPathRenderer).addPoint(closeTrajectoryPoint);
+                ((TrajectoryPathRenderer) closeTrajectoryPoint.parentTrajectoryPathRenderer).addPoint(closeTrajectoryPoint);
                 removeLastSelectedPoint();
             }
             //Render the path preview

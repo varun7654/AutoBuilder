@@ -369,7 +369,7 @@ public class ShooterGui extends InputEventListener implements NumberTextboxChang
         if (textBoxes.get(i + xOffset).draw(shapeDrawer, spriteBatch, panelX + 5 + (98 * xOffset),
                 panelY + panelHeight + smoothScrollPos - 7 - yOffset * 27, 95, null)) {
             HoverManager.setHoverText(distanceHoverText,
-                    panelX + 5 + (98 * xOffset) + 95 / 2,
+                    panelX + 5 + (98 * xOffset) + 95 / 2f,
                     panelY + panelHeight + smoothScrollPos + 2 - yOffset * 27);
         }
     }
