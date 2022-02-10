@@ -26,7 +26,7 @@ jar.archiveName("AutoBuilder-${project.version}-${getVersionMetadata()}.jar")
 
 task dist(type: Jar) {
 
-    duplicatesStrategy = DuplicatesStrategy.INCLUDE
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
 
     archiveName("AutoBuilder-${project.version}-${getVersionMetadata()}.jar")
     manifest {
