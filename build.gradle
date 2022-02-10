@@ -1,5 +1,5 @@
 buildscript {
-    
+
 
     repositories {
         mavenLocal()
@@ -12,6 +12,11 @@ buildscript {
 
     }
 }
+
+plugins {
+    id 'org.ajoberstar.grgit' version '4.1.0'
+}
+
 
 allprojects {
     apply plugin: "eclipse"
@@ -63,4 +68,3 @@ project(":core") {
         implementation "com.badlogicgames.gdx:gdx-freetype:$gdxVersion"
     }
 }
-
