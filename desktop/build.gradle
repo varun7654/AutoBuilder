@@ -28,6 +28,7 @@ task dist(type: Jar) {
 
     duplicatesStrategy = DuplicatesStrategy.INCLUDE
 
+    archiveName("AutoBuilder-${project.version}-${getVersionMetadata()}.jar")
     manifest {
         attributes 'Main-Class': project.mainClassName
     }
