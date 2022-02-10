@@ -16,6 +16,7 @@ import me.varun.autobuilder.config.gui.ConfigGUI;
 import me.varun.autobuilder.config.gui.FileHandler;
 import me.varun.autobuilder.events.input.InputEventThrower;
 import me.varun.autobuilder.gui.hover.HoverManager;
+import me.varun.autobuilder.gui.notification.NotificationHandler;
 import me.varun.autobuilder.gui.path.AbstractGuiItem;
 import me.varun.autobuilder.gui.path.PathGui;
 import me.varun.autobuilder.gui.path.TrajectoryItem;
@@ -92,6 +93,8 @@ public final class AutoBuilder extends ApplicationAdapter {
     @NotNull public static final String USER_DIRECTORY = OsUtil.getUserConfigDirectory("AutoBuilder");
 
     @NotNull public DrivenPathRenderer drivenPathRenderer;
+
+    @NotNull NotificationHandler notificationHandler = new NotificationHandler();
 
 
     /**
@@ -261,6 +264,8 @@ public final class AutoBuilder extends ApplicationAdapter {
         shooterGui.render(hudShapeRenderer, hudBatch, hudCam);
         configGUI.draw(hudShapeRenderer, hudBatch, hudCam);
         HoverManager.render(hudBatch, hudShapeRenderer);
+
+        notificationHandler.processNotification(hudShapeRenderer, hudBatch);
 
         hudBatch.end();
     }

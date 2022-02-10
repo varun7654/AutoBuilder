@@ -13,7 +13,6 @@ import me.varun.autobuilder.CameraHandler;
 import me.varun.autobuilder.UndoHandler;
 import me.varun.autobuilder.events.input.InputEventListener;
 import me.varun.autobuilder.events.input.InputEventThrower;
-import me.varun.autobuilder.gui.notification.NotificationHandler;
 import me.varun.autobuilder.util.MathUtil;
 import me.varun.autobuilder.util.RoundedShapeRenderer;
 import org.jetbrains.annotations.NotNull;
@@ -55,8 +54,6 @@ public class PathGui extends InputEventListener {
     {
         color.fromHsv(1, 1, 1);
     }
-
-    NotificationHandler notificationHandler = new NotificationHandler();
 
     public PathGui(@NotNull Viewport viewport, @NotNull InputEventThrower eventThrower,
                    @NotNull ExecutorService executorService, @NotNull CameraHandler cameraHandler) {
@@ -130,8 +127,6 @@ public class PathGui extends InputEventListener {
         if (pop) {
             ScissorStack.popScissors();
         }
-
-        notificationHandler.processNotification(shapeRenderer, spriteBatch);
 
         maxScroll = Math.max(0, -(yPos - (int) smoothScrollPos - 10));
         //System.out.println(maxScroll);
