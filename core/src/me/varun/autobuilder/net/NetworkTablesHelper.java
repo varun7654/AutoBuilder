@@ -5,6 +5,7 @@ import edu.wpi.first.networktables.NetworkTable;
 import edu.wpi.first.networktables.NetworkTableEntry;
 import edu.wpi.first.networktables.NetworkTableInstance;
 import me.varun.autobuilder.AutoBuilder;
+import me.varun.autobuilder.config.gui.FileHandler;
 import me.varun.autobuilder.gui.path.AbstractGuiItem;
 import me.varun.autobuilder.gui.notification.Notification;
 import me.varun.autobuilder.gui.notification.NotificationHandler;
@@ -85,6 +86,7 @@ public final class NetworkTablesHelper {
 
 
     public void pushAutoData(List<AbstractGuiItem> guiItemList) {
+        FileHandler.save();
         if (inst.isConnected()) {
             try {
                 String autonomousString = Serializer.serializeToString(GuiSerializer.serializeAutonomousForDeployment(guiItemList));
