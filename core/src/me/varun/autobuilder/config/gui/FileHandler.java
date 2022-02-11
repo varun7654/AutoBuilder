@@ -16,11 +16,10 @@ import static me.varun.autobuilder.AutoBuilder.USER_DIRECTORY;
 import static me.varun.autobuilder.pathing.PathRenderer.config;
 
 public class FileHandler {
-    private static boolean supressNextReload = true;
+    private static boolean supressNextAutoReload = true;
 
     public static void handleFile(File file) {
         if (file.getName().equalsIgnoreCase("config.json")) {
-            //NotificationHandler.addNotification(new Notification(Color.RED, "Currently not supported", 3000));
             try {
                 Config config = (Config) Serializer.deserializeFromFile(file, Config.class);
                 String auto = AutoBuilder.getConfig().getSelectedAuto();
@@ -30,6 +29,7 @@ public class FileHandler {
                 NotificationHandler.addNotification(new Notification(Color.GREEN, "Loaded Config File: " + file.getAbsolutePath(),
                         3000));
             } catch (IOException e) {
+                e.printStackTrace();
                 NotificationHandler.addNotification(new Notification(Color.RED, "Failed to load config file: " + file.getName(),
                         3000));
             }
@@ -55,11 +55,12 @@ public class FileHandler {
                 }
 
                 AutoBuilder.getInstance().restoreState(autonomous);
-                save();
+                saveConfig();
 
                 NotificationHandler.addNotification(new Notification(Color.GREEN, "Loaded Autonomous: " + file.getName(),
                         3000));
             } catch (IOException e) {
+                e.printStackTrace();
                 NotificationHandler.addNotification(
                         new Notification(Color.RED, "Failed to load autonomous file: " + file.getName(),
                                 3000));
@@ -68,17 +69,14 @@ public class FileHandler {
     }
 
     public static void reloadAuto() {
-        if (supressNextReload) {
-            supressNextReload = false;
+        if (supressNextAutoReload) {
+            supressNextAutoReload = false;
         } else {
             System.out.println("Reloading autonomous");
             if (loadAuto()) {
                 NotificationHandler.addNotification(new Notification(Color.GREEN, "Reloaded Autonomous", 3000));
             }
-            save();
         }
-
-//
     }
 
     public static boolean loadAuto() {
@@ -108,19 +106,21 @@ public class FileHandler {
     public static long lastSaveTime = -1;
 
     public static void save() {
+        saveConfig();
+        saveAuto();
+        supressNextAutoReload = true;
+    }
+
+    public static void saveAuto() {
         Autonomous autonomous = GuiSerializer.serializeAutonomous(AutoBuilder.getInstance().pathGui.guiItems);
         File autoFile = new File(
                 config.getAutoPath().getParentFile().getAbsolutePath() + "/" +
                         (autonomous.deployable ? "" : "NOTDEPLOYABLE") + new File(config.getSelectedAuto()).getName());
-        File configFile = new File(USER_DIRECTORY + "/config.json");
-        File shooterConfig = new File(USER_DIRECTORY + "/" + config.getSelectedShooterConfig());
         autoFile.getParentFile().mkdirs();
-        configFile.getParentFile().mkdirs();
+
 
         try {
             Serializer.serializeToFile(autonomous, autoFile);
-            configFile.createNewFile();
-            Serializer.serializeToFile(config, configFile);
 
             if (autonomous.deployable) {
                 File fileToDelete = new File(USER_DIRECTORY + "/NOTDEPLOYABLE" + config.getSelectedAuto());
@@ -129,32 +129,54 @@ public class FileHandler {
                 File fileToDelete = new File(USER_DIRECTORY + "/" + config.getSelectedAuto());
                 fileToDelete.delete();
             }
-
-            shooterConfig.createNewFile();
-            Serializer.serializeToFile(AutoBuilder.getInstance().shooterGui.getShooterConfig(), shooterConfig);
-
+            supressNextAutoReload = true;
             lastSaveTime = System.currentTimeMillis();
-            supressNextReload = true;
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
 
+    public static void saveConfig() {
+        File configFile = new File(USER_DIRECTORY + "/config.json");
+        File shooterConfig = new File(USER_DIRECTORY + "/" + config.getSelectedShooterConfig());
+
+        configFile.getParentFile().mkdirs();
+        shooterConfig.getParentFile().mkdirs();
+        System.out.println("Saving config");
+        try {
+            configFile.createNewFile();
+            Serializer.serializeToFile(config, configFile);
+
+            shooterConfig.createNewFile();
+            Serializer.serializeToFile(AutoBuilder.getInstance().shooterGui.getShooterConfig(), shooterConfig);
+            supressNextConfigReload = true;
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    static boolean supressNextConfigReload = false;
+
     public static void reloadConfig() {
-        if (supressNextReload) {
-            supressNextReload = false;
+        if (supressNextConfigReload) {
+            System.out.println("Suppressed reloading config");
+            supressNextConfigReload = false;
         } else {
             try {
                 Config config = (Config) Serializer.deserializeFromFile(new File(USER_DIRECTORY + "/config.json"), Config.class);
                 String auto = AutoBuilder.getConfig().getSelectedAuto();
                 AutoBuilder.getConfig().setConfig(config);
-                AutoBuilder.getConfig().setAuto(auto);
-                save();
-                NotificationHandler.addNotification(new Notification(Color.GREEN, "Reloaded Config", 3000));
+                if (!auto.equals(config.getSelectedAuto())) {
+                    AutoBuilder.getConfig().setAuto(auto);
+                    save();
+                }
+                loadAuto();
+                saveAuto();
+                NotificationHandler.addNotification(new Notification(Color.GREEN, "Loaded Config", 3000));
             } catch (IOException e) {
+                e.printStackTrace();
                 NotificationHandler.addNotification(new Notification(Color.RED, "Failed to reload config file", 3000));
             }
-            supressNextReload = true;
         }
     }
 }
