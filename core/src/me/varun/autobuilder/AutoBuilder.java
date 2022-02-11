@@ -32,7 +32,6 @@ import me.varun.autobuilder.pathing.pointclicks.ClosePoint;
 import me.varun.autobuilder.pathing.pointclicks.CloseTrajectoryPoint;
 import me.varun.autobuilder.scripting.RobotCodeData;
 import me.varun.autobuilder.serialization.path.Autonomous;
-import me.varun.autobuilder.serialization.path.GuiSerializer;
 import me.varun.autobuilder.util.OsUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -78,8 +77,8 @@ public final class AutoBuilder extends ApplicationAdapter {
     @NotNull PointRenderer origin;
     @NotNull public static final ExecutorService asyncPathingService = Executors.newFixedThreadPool(1);
     @NotNull public static final ExecutorService asyncParsingService = Executors.newFixedThreadPool(1);
-    @NotNull PathGui pathGui;
-    @NotNull ShooterGui shooterGui;
+    @NotNull public PathGui pathGui;
+    @NotNull public ShooterGui shooterGui;
     @NotNull InputEventThrower inputEventThrower = new InputEventThrower();
     @NotNull public UndoHandler undoHandler = UndoHandler.getInstance();
     @NotNull NetworkTablesHelper networkTables = NetworkTablesHelper.getInstance();
@@ -88,7 +87,7 @@ public final class AutoBuilder extends ApplicationAdapter {
     @NotNull private Texture field;
     @NotNull private ShapeDrawer shapeRenderer;
     @NotNull private ShapeDrawer hudShapeRenderer;
-    @NotNull private static Config config;
+    @NotNull private static Config config = new Config();
     @NotNull private Texture whiteTexture;
     @NotNull public static final String USER_DIRECTORY = OsUtil.getUserConfigDirectory("AutoBuilder");
 
@@ -113,14 +112,7 @@ public final class AutoBuilder extends ApplicationAdapter {
         Platform.startup(() -> {});
         Gdx.graphics.setForegroundFPS(Gdx.graphics.getDisplayMode().refreshRate);
         Gdx.graphics.setVSync(false);
-        File configFile = new File(USER_DIRECTORY + "/config.json");
-        configFile.getParentFile().mkdirs();
-        try {
-            config = (Config) Serializer.deserializeFromFile(configFile, Config.class);
-        } catch (IOException e) {
-            e.printStackTrace();
-            config = new Config();
-        }
+        FileHandler.loadConfig();
 
         if (config.isNetworkTablesEnabled()) networkTables.start();
 
@@ -164,17 +156,7 @@ public final class AutoBuilder extends ApplicationAdapter {
 
         pathGui = new PathGui(hudViewport, inputEventThrower, asyncPathingService, cameraHandler);
 
-
-        File pathFile = new File(USER_DIRECTORY + "/NOTDEPLOYABLE" + config.getSelectedAuto());
-        pathFile.getParentFile().mkdirs();
-        if (!pathFile.exists()) pathFile = new File(USER_DIRECTORY + "/" + config.getSelectedAuto());
-        System.out.println("Loading autonomous from " + pathFile.getAbsolutePath());
-        try {
-            Autonomous autonomous = Serializer.deserializeAutoFromFile(pathFile);
-            undoHandler.restoreState(autonomous, pathGui, inputEventThrower, cameraHandler);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        FileHandler.loadAuto();
 
         drivenPathRenderer = new DrivenPathRenderer();
 
@@ -246,11 +228,25 @@ public final class AutoBuilder extends ApplicationAdapter {
 
         hudBatch.begin();
 
+        String lastSave;
+        long saveTimeDiff = System.currentTimeMillis() - FileHandler.lastSaveTime;
+        if (FileHandler.lastSaveTime == -1) {
+            lastSave = "Never";
+        } else if (saveTimeDiff < 1000) {
+            lastSave = "Just now";
+        } else if (saveTimeDiff < 60000) {
+            lastSave = saveTimeDiff / 1000 + "s ago";
+        } else if (saveTimeDiff < 3600000) {
+            lastSave = saveTimeDiff / 60000 + "m ago";
+        } else {
+            lastSave = saveTimeDiff / 3600000 + "h ago";
+        }
+
         //Fps overlay
         frameTimes[frameTimePos] = Gdx.graphics.getDeltaTime() * 1000;
         frameTimePos++;
         if (frameTimePos == frameTimes.length) frameTimePos = 0;
-        FontRenderer.renderText(hudBatch, null, 4, 4, new TextBlock(Fonts.ROBOTO, 12,
+        FontRenderer.renderText(hudBatch, null, 4, 4, new TextBlock(Fonts.JETBRAINS_MONO, 12,
                 new TextComponent(Integer.toString(Gdx.graphics.getFramesPerSecond())).setBold(true).setColor(Color.WHITE),
                 new TextComponent(" FPS, Peak: ").setBold(false).setColor(Color.WHITE),
                 new TextComponent(df.format(Arrays.stream(frameTimes).max().orElseThrow())).setBold(true).setColor(Color.WHITE),
@@ -258,7 +254,9 @@ public final class AutoBuilder extends ApplicationAdapter {
                 new TextComponent(df.format(Arrays.stream(frameTimes).average().orElseThrow())).setBold(true)
                         .setColor(Color.WHITE),
                 new TextComponent(" ms Render Calls: ").setBold(false).setColor(Color.WHITE),
-                new TextComponent(hudBatch.renderCalls + batch.renderCalls + "").setColor(Color.WHITE).setBold(true)));
+                new TextComponent(hudBatch.renderCalls + batch.renderCalls + "").setColor(Color.WHITE).setBold(true),
+                new TextComponent(" Last Save: ").setBold(false).setColor(Color.WHITE),
+                new TextComponent(lastSave).setColor(Color.WHITE).setBold(true)));
 
         pathGui.render(hudShapeRenderer, hudBatch, hudCam);
         shooterGui.render(hudShapeRenderer, hudBatch, hudCam);
@@ -402,7 +400,7 @@ public final class AutoBuilder extends ApplicationAdapter {
     @Override
     public void pause() {
         super.pause();
-        save();
+        FileHandler.save();
     }
 
     public static @NotNull Config getConfig() {
@@ -420,37 +418,14 @@ public final class AutoBuilder extends ApplicationAdapter {
     }
 
     public void restoreState(Autonomous autonomous) {
-        undoHandler.undoHistory.clear();
-        undoHandler.restoreState(autonomous, pathGui, inputEventThrower, cameraHandler);
-        undoHandler.somethingChanged();
+        restoreState(autonomous, true);
     }
 
-    public void save() {
-        Autonomous autonomous = GuiSerializer.serializeAutonomous(pathGui.guiItems);
-        File autoFile = new File(
-                USER_DIRECTORY + "/" + (autonomous.deployable ? "" : "NOTDEPLOYABLE") + config.getSelectedAuto());
-        File configFile = new File(USER_DIRECTORY + "/config.json");
-        File shooterConfig = new File(USER_DIRECTORY + "/" + config.getSelectedShooterConfig());
-        autoFile.getParentFile().mkdirs();
-        configFile.getParentFile().mkdirs();
-
-        try {
-            Serializer.serializeToFile(autonomous, autoFile);
-            configFile.createNewFile();
-            Serializer.serializeToFile(config, configFile);
-
-            if (autonomous.deployable) {
-                File fileToDelete = new File(USER_DIRECTORY + "/NOTDEPLOYABLE" + config.getSelectedAuto());
-                fileToDelete.delete();
-            } else {
-                File fileToDelete = new File(USER_DIRECTORY + "/" + config.getSelectedAuto());
-                fileToDelete.delete();
-            }
-
-            shooterConfig.createNewFile();
-            Serializer.serializeToFile(shooterGui.getShooterConfig(), shooterConfig);
-        } catch (IOException e) {
-            e.printStackTrace();
+    public void restoreState(Autonomous autonomous, boolean clearUndoHistory) {
+        undoHandler.restoreState(autonomous, pathGui, inputEventThrower, cameraHandler);
+        if (clearUndoHistory) {
+            undoHandler.clearUndoHistory();
+            undoHandler.somethingChanged();
         }
     }
 }

@@ -5,6 +5,7 @@ import com.badlogic.gdx.graphics.Camera;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.g2d.Batch;
 import com.badlogic.gdx.math.Polygon;
+import me.varun.autobuilder.AutoBuilder;
 import me.varun.autobuilder.gui.textrendering.Fonts;
 import me.varun.autobuilder.gui.textrendering.TextBlock;
 import me.varun.autobuilder.gui.textrendering.TextComponent;
@@ -12,6 +13,7 @@ import org.jetbrains.annotations.Nullable;
 import space.earlygrey.shapedrawer.ShapeDrawer;
 
 import java.io.File;
+import java.nio.file.Files;
 import java.util.concurrent.CompletableFuture;
 
 public class ConfigGUI {
@@ -29,9 +31,29 @@ public class ConfigGUI {
             10, Gdx.graphics.getHeight() - 10
     });
 
+    long lastModified = 0;
+
     public boolean update() {
         uploadFileButton.checkHover();
         uploadFileButton.checkClick();
+
+
+        try {
+            long lastAutoModified = Files.getLastModifiedTime(AutoBuilder.getConfig().getAutoPath().toPath()).toMillis();
+            long lastConfigModified =
+                    Files.getLastModifiedTime(new File(AutoBuilder.USER_DIRECTORY + "/config.json").toPath()).toMillis();
+            long lastModified = Math.max(lastAutoModified, lastConfigModified);
+            if (lastModified != this.lastModified) {
+                if (lastAutoModified > lastConfigModified) {
+                    FileHandler.reloadAuto();
+                } else {
+                    FileHandler.reloadConfig();
+                }
+                this.lastModified = lastModified;
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
         return false;
     }
 

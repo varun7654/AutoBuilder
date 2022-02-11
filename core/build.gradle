@@ -19,14 +19,9 @@ repositories {
     }
 }
 
-
-javafx {
-    modules = ['javafx.controls', 'javafx.fxml']
-}
-
 javafx {
     version = '11'
-    modules = ['javafx.controls', 'javafx.fxml']
+    modules = ['javafx.fxml']
 }
 
 dependencies {

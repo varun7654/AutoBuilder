@@ -3,6 +3,7 @@ package me.varun.autobuilder;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
 import com.badlogic.gdx.graphics.Color;
+import me.varun.autobuilder.config.gui.FileHandler;
 import me.varun.autobuilder.events.input.InputEventThrower;
 import me.varun.autobuilder.gui.path.AbstractGuiItem;
 import me.varun.autobuilder.gui.path.PathGui;
@@ -15,11 +16,11 @@ import org.jetbrains.annotations.NotNull;
 import java.util.ArrayList;
 import java.util.List;
 
-public class UndoHandler {
+public final class UndoHandler {
     private static final int MAX_UNDO_HISTORY = 100;
     private static final UndoHandler undoHandler = new UndoHandler();
-    @NotNull List<Autonomous> undoHistory = new ArrayList<>();
-    int pointer;
+    private @NotNull List<Autonomous> undoHistory = new ArrayList<>();
+    int pointer = 0;
     private boolean somethingChanged = false;
 
     private UndoHandler() {
@@ -63,10 +64,9 @@ public class UndoHandler {
                 } else {
                     pointer = undoHistory.size() - 1;
                 }
-
             }
 
-
+            FileHandler.save();
         }
 
     }
@@ -97,11 +97,15 @@ public class UndoHandler {
             guiItem.dispose();
         }
         pathGui.guiItems = guiItemList;
-
     }
 
     public void somethingChanged() {
         somethingChanged = true;
+        FileHandler.save();
     }
 
+    public void clearUndoHistory() {
+        undoHistory.clear();
+        pointer = 0;
+    }
 }

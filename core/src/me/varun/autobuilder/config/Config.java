@@ -1,13 +1,14 @@
 package me.varun.autobuilder.config;
 
 
-import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonFormat;
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.*;
+import me.varun.autobuilder.AutoBuilder;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
+
+import static me.varun.autobuilder.AutoBuilder.USER_DIRECTORY;
 
 
 @JsonIgnoreProperties(ignoreUnknown = true)
@@ -78,6 +79,20 @@ public class Config {
         return selectedAutoFile;
     }
 
+    @JsonIgnore
+    public File getAutoPath() {
+        File path = new File(getSelectedAuto());
+        if (!path.isAbsolute()) {
+            path = new File(AutoBuilder.USER_DIRECTORY + "/" + path);
+        }
+
+        if (path.exists()) {
+            return path;
+        } else {
+            return new File(USER_DIRECTORY + "/NOTDEPLOYABLE" + getSelectedAuto());
+        }
+    }
+
     @JsonProperty("selectedShooterConfig")
     public String getSelectedShooterConfig() {
         return shooterConfigFile;
@@ -102,6 +117,7 @@ public class Config {
     public float getPointScaleFactor(){
         return pointScaleFactor;
     }
+
     @JsonProperty("originX")
     public float getOriginX(){
         return originX;
