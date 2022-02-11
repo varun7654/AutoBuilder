@@ -1,5 +1,6 @@
 package me.varun.autobuilder.desktop;
 
+import com.badlogic.gdx.Files.FileType;
 import com.badlogic.gdx.backends.lwjgl3.Lwjgl3Application;
 import com.badlogic.gdx.backends.lwjgl3.Lwjgl3ApplicationConfiguration;
 import com.badlogic.gdx.backends.lwjgl3.Lwjgl3WindowAdapter;
@@ -15,6 +16,7 @@ public class DesktopLauncher {
 		config.setForegroundFPS(60);
 		config.setIdleFPS(30);
 		config.setBackBufferConfig(8, 8, 8, 8, 16, 0, 4);
+		config.setWindowIcon(FileType.Internal, "icon.png");
 		final AutoBuilder app = AutoBuilder.getInstance();
 		config.setWindowListener(new Lwjgl3WindowAdapter() {
 			@Override
