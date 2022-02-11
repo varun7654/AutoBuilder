@@ -27,6 +27,10 @@ public class DrivenPathRenderer implements PathRenderer {
     private int robotPreviewIndex = -1;
 
     private final Color orange = Color.valueOf("ff9800ff");
+    private final Color aqua = Color.valueOf("4dc5c6ff");
+    private final Color red = Color.valueOf("fe0911ff");
+
+    private final Color[] colors = {orange, aqua, red};
 
     DecimalFormat df = new DecimalFormat("#.##");
 
@@ -39,15 +43,16 @@ public class DrivenPathRenderer implements PathRenderer {
                     (float) (pos2.x * config.getPointScaleFactor()), (float) (pos2.y * config.getPointScaleFactor()), Color.WHITE,
                     LINE_THICKNESS);
             if (i == robotPreviewIndex) {
-                renderRobotBoundingBox(
-                        new Vector2((float) (pos1.x * config.getPointScaleFactor()),
-                                (float) (pos1.y * config.getPointScaleFactor())),
-                        (float) pos1.theta, shapeRenderer, orange, Color.WHITE);
-
                 ArrayList<TextComponent> textComponents = new ArrayList<>();
 
-                textComponents.add(new TextComponent("Last Estimated State @").setBold(true).setSize(15));
-                addTextComponents(pos2, textComponents);
+                for (int j = 0; j < networkTables.getRobotPositions().get(i).size(); j++) {
+                    RobotPosition robotPosition = networkTables.getRobotPositions().get(i).get(j);
+                    renderRobotBoundingBox(shapeRenderer, robotPosition, colors[j]);
+
+                    textComponents.add(new TextComponent(robotPosition.name + " @").setBold(true).setSize(15));
+                    addTextComponents(robotPosition, textComponents);
+                }
+
 
 //                textComponents.add(new TextComponent("\n\nLatency Compensated State @").setBold(true).setSize(15));
 //                addTextComponents(pos1, textComponents);
@@ -57,6 +62,14 @@ public class DrivenPathRenderer implements PathRenderer {
             }
         }
         robotPreviewIndex = -1;
+    }
+
+    private void renderRobotBoundingBox(@NotNull ShapeDrawer shapeRenderer, RobotPosition pos1,
+                                        Color color) {
+        renderRobotBoundingBox(
+                new Vector2((float) (pos1.x * config.getPointScaleFactor()),
+                        (float) (pos1.y * config.getPointScaleFactor())),
+                (float) pos1.theta, shapeRenderer, color, Color.WHITE);
     }
 
     private void addTextComponents(RobotPosition robotPosition, List<TextComponent> textComponents) {

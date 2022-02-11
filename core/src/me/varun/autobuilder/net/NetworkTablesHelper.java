@@ -34,15 +34,18 @@ public final class NetworkTablesHelper {
     NetworkTableEntry last_estimated_robot_velocity_x = smartDashboardTable.getEntry("Last Estimated Robot Velocity X");
     NetworkTableEntry last_estimated_robot_velocity_y = smartDashboardTable.getEntry("Last Estimated Robot Velocity Y");
     NetworkTableEntry last_estimated_robot_velocity_theta = smartDashboardTable.getEntry("Last Estimated Robot Velocity Theta");
-
-    NetworkTableEntry latency_comped_robot_pose_x = smartDashboardTable.getEntry("Latency Comped Robot Pose X");
-    NetworkTableEntry latency_comped_robot_pose_y = smartDashboardTable.getEntry("Latency Comped Robot Pose Y");
-    NetworkTableEntry latency_comped_robot_pose_angle = smartDashboardTable.getEntry("Latency Comped Robot Pose Angle");
-    NetworkTableEntry latency_comped_robot_velocity_x = smartDashboardTable.getEntry("Latency Comped Robot Velocity X");
-    NetworkTableEntry latency_comped_robot_velocity_y = smartDashboardTable.getEntry("Latency Comped Robot Velocity Y");
-    NetworkTableEntry latency_comped_robot_velocity_theta = smartDashboardTable.getEntry("Latency Comped Robot Velocity Theta");
-
     NetworkTableEntry timestamp = smartDashboardTable.getEntry("Timestamp");
+
+
+    NetworkTableEntry vision_pose_x = smartDashboardTable.getEntry("Vision Pose X");
+    NetworkTableEntry vision_pose_y = smartDashboardTable.getEntry("Vision Pose Y");
+    NetworkTableEntry vision_pose_angle = smartDashboardTable.getEntry("Vision Pose Angle");
+    NetworkTableEntry vision_pose_time = smartDashboardTable.getEntry("Vision Pose Time");
+
+    NetworkTableEntry predicted_future_pose_x = smartDashboardTable.getEntry("Predicted Future Pose X");
+    NetworkTableEntry predicted_future_pose_y = smartDashboardTable.getEntry("Predicted Future Pose Y");
+    NetworkTableEntry predicted_future_pose_time = smartDashboardTable.getEntry("Predicted Future Pose Time");
+
 
     NetworkTableEntry enabledTable = table.getEntry("enabled");
 
@@ -95,14 +98,17 @@ public final class NetworkTablesHelper {
                 e.printStackTrace();
                 NotificationHandler.addNotification(new Notification(Color.RED, "Auto Failed to Upload", 2000));
             } catch (NotDeployableException e) {
-                NotificationHandler.addNotification(new Notification(Color.RED, "Your autonomous contains errors: Cannot deploy!", 2000));
+                NotificationHandler.addNotification(
+                        new Notification(Color.RED, "Your autonomous contains errors: Cannot deploy!", 2000));
             }
         } else {
             System.out.println("Cannot Send Data; Not Connected");
-            NotificationHandler.addNotification(new Notification(Color.RED, "Auto Failed to Upload: NOT CONNECTED", 2000 ));
+            NotificationHandler.addNotification(new Notification(Color.RED, "Auto Failed to Upload: NOT CONNECTED", 2000));
         }
-
     }
+
+    private double lastVisionPoseTime = 0;
+    private double lastPredictedPoseTime = 0;
 
     public void updateNT() {
         if (inst.isConnected()) {
@@ -114,7 +120,8 @@ public final class NetworkTablesHelper {
                 }
 
                 if (robotPositions.size() < 1 || time != robotPositions.get(robotPositions.size() - 1).get(0).time) {
-                    RobotPosition lastEstimatedRobotPosition = new RobotPosition(
+                    List<RobotPosition> poses = new ArrayList<>(3);
+                    poses.add(new RobotPosition(
                             last_estimated_robot_pose_x.getDouble(0),
                             last_estimated_robot_pose_y.getDouble(0),
                             Math.toRadians(last_estimated_robot_pose_angle.getDouble(0)),
@@ -123,22 +130,32 @@ public final class NetworkTablesHelper {
                             last_estimated_robot_velocity_theta.getDouble(0),
                             timestamp.getDouble(0),
                             "Last Estimated Robot Position"
-                    );
+                    ));
 
-//                    RobotPosition latencyCompensatedPosition = new RobotPosition(
-//                            latency_comped_robot_pose_x.getDouble(0),
-//                            latency_comped_robot_pose_y.getDouble(0),
-//                            Math.toRadians((float) latency_comped_robot_pose_angle.getDouble(0)),
-//                            latency_comped_robot_velocity_x.getDouble(0),
-//                            latency_comped_robot_velocity_y.getDouble(0),
-//                            latency_comped_robot_velocity_theta.getDouble(0),
-//                            timestamp.getDouble(0),
-//                            "Latency Compensated Robot Position"
-//                    );
+                    if (lastVisionPoseTime != vision_pose_time.getDouble(0)) {
+                        poses.add(new RobotPosition(
+                                vision_pose_x.getDouble(0),
+                                vision_pose_y.getDouble(0),
+                                Math.toRadians((float) vision_pose_angle.getDouble(0)),
+                                0, 0, 0,
+                                vision_pose_time.getDouble(0),
+                                "Vision Position"
+                        ));
+                        lastVisionPoseTime = vision_pose_time.getDouble(0);
+                    }
 
-                    List<RobotPosition> poses = new ArrayList<>(2);
-                    poses.add(lastEstimatedRobotPosition);
-                    //poses.add(latencyCompensatedPosition);
+                    if (lastPredictedPoseTime != predicted_future_pose_time.getDouble(0)) {
+                        poses.add(new RobotPosition(
+                                predicted_future_pose_x.getDouble(0),
+                                predicted_future_pose_y.getDouble(0),
+                                Math.toRadians(last_estimated_robot_pose_angle.getDouble(0)),
+                                0, 0, 0,
+                                predicted_future_pose_time.getDouble(0),
+                                "Predicted Future Position"
+                        ));
+                        lastPredictedPoseTime = predicted_future_pose_time.getDouble(0);
+                    }
+
                     robotPositions.add(poses);
                 }
             } else {
