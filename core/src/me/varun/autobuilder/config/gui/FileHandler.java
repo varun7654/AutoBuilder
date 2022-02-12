@@ -55,7 +55,7 @@ public class FileHandler {
                 }
 
                 AutoBuilder.getInstance().restoreState(autonomous);
-                saveConfig();
+                save();
 
                 NotificationHandler.addNotification(new Notification(Color.GREEN, "Loaded Autonomous: " + file.getName(),
                         3000));
