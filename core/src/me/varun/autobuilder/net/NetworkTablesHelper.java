@@ -134,7 +134,7 @@ public final class NetworkTablesHelper {
                             "Last Estimated Robot Position"
                     ));
 
-                    if (lastVisionPoseTime != vision_pose_time.getDouble(0)) {
+                    if (time - vision_pose_time.getDouble(0) < 0.5) {
                         poses.add(new RobotPosition(
                                 vision_pose_x.getDouble(0),
                                 vision_pose_y.getDouble(0),
@@ -146,7 +146,7 @@ public final class NetworkTablesHelper {
                         lastVisionPoseTime = vision_pose_time.getDouble(0);
                     }
 
-                    if (lastPredictedPoseTime != predicted_future_pose_time.getDouble(0)) {
+                    if (time - predicted_future_pose_time.getDouble(0) < 0.5) {
                         poses.add(new RobotPosition(
                                 predicted_future_pose_x.getDouble(0),
                                 predicted_future_pose_y.getDouble(0),
