@@ -62,7 +62,6 @@ public final class NetworkTablesHelper {
 
     NetworkTableEntry LimelightCameraYAngle = inst.getTable("limelightgui").getEntry("CameraYAngle");
     NetworkTable limelightTable = inst.getTable("limelight");
-    NetworkTable shooterTable = inst.getTable("shooter");
 
 
     private boolean enabled = false;
@@ -235,11 +234,11 @@ public final class NetworkTablesHelper {
     }
 
     public double getShooterRPM(){
-        return shooterTable.getEntry("rpm").getDouble(-1);
+        return smartDashboardTable.getEntry("Shooter Flywheel Speed").getDouble(-1);
     }
 
     public double getHoodAngle(){
-        return shooterTable.getEntry("hoodangle").getDouble(-1);
+        return smartDashboardTable.getEntry("Hood Angle").getDouble(-1);
     }
 
     public ArrayList<List<RobotPosition>> getRobotPositions() {

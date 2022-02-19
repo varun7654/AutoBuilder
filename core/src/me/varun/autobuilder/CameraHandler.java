@@ -101,7 +101,8 @@ public class CameraHandler extends InputEventListener {
 
     @Override
     public void onScroll(float amountX, float amountY) {
-        zoom = zoom * (1 + MathUtil.clamp(amountY / 5, 0.5f, 1.5f));
+        System.out.println(amountY);
+        zoom = zoom * (1 + MathUtil.clamp(amountY / 5, -0.5f, 0.5f));
 
         zoom = MathUtil.clamp(zoom, 0.2f, 10f);
         zoomMousePos.set(Gdx.input.getX(), Gdx.input.getY());
