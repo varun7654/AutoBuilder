@@ -292,7 +292,10 @@ public class ShooterGui extends InputEventListener implements NumberTextboxChang
                         //@formatter:off
                         new TextComponent(df.format(interpolatedShooterPreset.getFlywheelSpeed())).setBold(true).setColor(Color.WHITE),
                         new TextComponent(" rpm\n").setBold(false).setColor(Color.WHITE),
-                        new TextComponent(df.format(interpolatedShooterPreset.getHoodEjectAngle()) + "°").setBold(true).setColor(Color.WHITE));
+                        new TextComponent(df.format(interpolatedShooterPreset.getHoodEjectAngle()) +
+                                (networkTablesHelper.getShooterAngleBias() != 0 ?
+                                        "° + " + networkTablesHelper.getShooterAngleBias() + "°" :
+                                        "°")).setBold(true).setColor(Color.WHITE));
                         //@formatter:on
             }
 

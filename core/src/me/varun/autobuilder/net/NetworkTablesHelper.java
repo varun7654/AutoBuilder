@@ -37,6 +37,8 @@ public final class NetworkTablesHelper {
     NetworkTableEntry last_estimated_robot_velocity_theta = smartDashboardTable.getEntry("Last Estimated Robot Velocity Theta");
     NetworkTableEntry timestamp = smartDashboardTable.getEntry("Timestamp");
 
+    NetworkTableEntry shooterAngleBias = smartDashboardTable.getEntry("Shooter Angle Bias");
+
 
     NetworkTableEntry vision_pose_x = smartDashboardTable.getEntry("Vision Pose X");
     NetworkTableEntry vision_pose_y = smartDashboardTable.getEntry("Vision Pose Y");
@@ -245,7 +247,11 @@ public final class NetworkTablesHelper {
         return robotPositions;
     }
 
-    public boolean isConnected(){
+    public boolean isConnected() {
         return inst.isConnected();
+    }
+
+    public double getShooterAngleBias() {
+        return shooterAngleBias.getDouble(1);
     }
 }
