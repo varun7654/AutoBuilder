@@ -279,7 +279,7 @@ public class TextBox extends InputEventListener {
                 fireTextChangeEvent();
                 UndoHandler.getInstance().somethingChanged();
                 xPos = -1;
-            } else if (Character.getName(character).equals("CARRIAGE RETURN (CR)")) { //TODO: Make this not cringe
+            } else if (Character.getName(character).equals("LINE FEED (LF)")) { //TODO: Make this not cringe
                 if (text.length() == selectedPos) {
                     text = text + '\n';
                 } else {
