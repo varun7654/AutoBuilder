@@ -228,8 +228,8 @@ public final class NetworkTablesHelper {
      */
     public double getDistance(){
         if(isTargetVisiable()){
-            return  (limelightCameraTargetHeightOffset.getDouble(0)) /
-                    Math.tan(Math.toRadians(LimelightCameraYAngle.getDouble(0) + getLimelightVerticalOffset()));
+            return ((limelightCameraTargetHeightOffset.getDouble(0)) /
+                    Math.tan(Math.toRadians(LimelightCameraYAngle.getDouble(0) + getLimelightVerticalOffset())) + 24.0);
         } else {
             return -1;//(System.currentTimeMillis() /50d) % 300 ;
         }
@@ -252,6 +252,6 @@ public final class NetworkTablesHelper {
     }
 
     public double getShooterAngleBias() {
-        return shooterAngleBias.getDouble(1);
+        return shooterAngleBias.getDouble(0);
     }
 }
