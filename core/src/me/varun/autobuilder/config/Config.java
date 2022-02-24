@@ -8,8 +8,6 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
-import static me.varun.autobuilder.AutoBuilder.USER_DIRECTORY;
-
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class Config {
@@ -89,7 +87,7 @@ public class Config {
         if (path.exists()) {
             return path;
         } else {
-            return new File(USER_DIRECTORY + "/NOTDEPLOYABLE" + getSelectedAuto());
+            return new File(path.getParentFile().getAbsolutePath() + "/NOTDEPLOYABLE" + new File(getSelectedAuto()).getName());
         }
     }
 
