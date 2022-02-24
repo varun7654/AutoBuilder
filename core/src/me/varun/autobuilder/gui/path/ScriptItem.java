@@ -41,8 +41,9 @@ public class ScriptItem extends AbstractGuiItem implements TextChangeListener {
     }
 
     @Override
-    public int render(@NotNull ShapeDrawer shapeRenderer, @NotNull PolygonSpriteBatch spriteBatch, int drawStartX, int drawStartY, int drawWidth, PathGui pathGui) {
-        super.render(shapeRenderer, spriteBatch, drawStartX, drawStartY, drawWidth, pathGui);
+    public int render(@NotNull ShapeDrawer shapeRenderer, @NotNull PolygonSpriteBatch spriteBatch, int drawStartX, int drawStartY,
+                      int drawWidth, PathGui pathGui, boolean isLeftMouseJustUnpressed) {
+        super.render(shapeRenderer, spriteBatch, drawStartX, drawStartY, drawWidth, pathGui, isLeftMouseJustUnpressed);
         if (isClosed()) {
             renderHeader(shapeRenderer, spriteBatch, drawStartX, drawStartY, drawWidth, trashTexture, warningTexture,
                     LIGHT_BLUE, "Script", error);

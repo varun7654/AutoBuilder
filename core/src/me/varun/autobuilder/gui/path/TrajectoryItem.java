@@ -100,8 +100,9 @@ public class TrajectoryItem extends AbstractGuiItem implements PathChangeListene
     private static final TextBlock CONTROL_POINT_Y = new TextBlock(Fonts.ROBOTO, 13, new TextComponent("Y Control Point"));
 
     @Override
-    public int render(@NotNull ShapeDrawer shapeRenderer, @NotNull PolygonSpriteBatch spriteBatch, int drawStartX, int drawStartY, int drawWidth, PathGui pathGui) {
-        super.render(shapeRenderer, spriteBatch, drawStartX, drawStartY, drawWidth, pathGui);
+    public int render(@NotNull ShapeDrawer shapeRenderer, @NotNull PolygonSpriteBatch spriteBatch, int drawStartX, int drawStartY,
+                      int drawWidth, PathGui pathGui, boolean isLeftMouseJustUnpressed) {
+        super.render(shapeRenderer, spriteBatch, drawStartX, drawStartY, drawWidth, pathGui, isLeftMouseJustUnpressed);
         String title;
         if (trajectoryPathRenderer.getTrajectory() != null) {
             title = "Path - " + df.format(trajectoryPathRenderer.getTrajectory().getTotalTimeSeconds()) + "s";

@@ -95,14 +95,16 @@ public class PathGui extends InputEventListener {
             int newYPos = yPos;
 
             if (draggingElement != null && !elementDrawn && newYPos < Gdx.graphics.getHeight() - Gdx.input.getY()) {
-                newYPos = yPos = yPos - 10 - draggingElement.render(shapeRenderer, spriteBatch, Gdx.input.getX() - (panelWidth - 20) / 2,
-                        (Gdx.graphics.getHeight() - Gdx.input.getY()) + 20, panelWidth - 20, this);
+                newYPos = yPos = yPos - 10 - draggingElement.render(shapeRenderer, spriteBatch,
+                        Gdx.input.getX() - (panelWidth - 20) / 2,
+                        (Gdx.graphics.getHeight() - Gdx.input.getY()) + 20, panelWidth - 20, this, isLeftMouseJustUnpressed);
                 newDraggingElementIndex = i;
                 elementDrawn = true;
             }
 
             if (guiItem != draggingElement) {
-                newYPos = yPos - 10 - guiItem.render(shapeRenderer, spriteBatch, panelX + 10, yPos, panelWidth - 20, this);
+                newYPos = yPos - 10 - guiItem.render(shapeRenderer, spriteBatch, panelX + 10, yPos, panelWidth - 20, this,
+                        isLeftMouseJustUnpressed);
             }
 
             if (guiItem instanceof TrajectoryItem) {
@@ -119,7 +121,7 @@ public class PathGui extends InputEventListener {
 
         if (draggingElement != null && !elementDrawn) {
             draggingElement.render(shapeRenderer, spriteBatch, Gdx.input.getX() - (panelWidth - 20) / 2,
-                    (Gdx.graphics.getHeight() - Gdx.input.getY()) + 20, panelWidth - 20, this);
+                    (Gdx.graphics.getHeight() - Gdx.input.getY()) + 20, panelWidth - 20, this, isLeftMouseJustUnpressed);
             newDraggingElementIndex = guiItems.size();
         }
 
@@ -132,7 +134,13 @@ public class PathGui extends InputEventListener {
         //System.out.println(maxScroll);
     }
 
+    boolean isLeftMousePressed = false;
+    boolean isLeftMouseJustUnpressed = false;
+
     public boolean update() {
+        isLeftMouseJustUnpressed = !Gdx.input.isButtonPressed(Input.Buttons.LEFT) && isLeftMousePressed;
+        isLeftMousePressed = Gdx.input.isButtonPressed(Input.Buttons.LEFT);
+
         for (AbstractGuiItem guiItemsDeletion : guiItemsDeletions) {
             guiItemsDeletion.dispose();
             guiItems.remove(guiItemsDeletion);
@@ -140,7 +148,8 @@ public class PathGui extends InputEventListener {
         guiItemsDeletions.clear();
 
         scrollPos = MathUtil.clamp(scrollPos, 0, maxScroll);
-        smoothScrollPos = (float) (smoothScrollPos + (scrollPos - smoothScrollPos) / Math.max(1, 0.05 / Gdx.graphics.getDeltaTime()));
+        smoothScrollPos = (float) (smoothScrollPos + (scrollPos - smoothScrollPos) / Math.max(1,
+                0.05 / Gdx.graphics.getDeltaTime()));
 
         boolean onGui = false;
 

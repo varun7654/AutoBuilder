@@ -1,7 +1,6 @@
 package me.varun.autobuilder.gui.path;
 
 import com.badlogic.gdx.Gdx;
-import com.badlogic.gdx.Input;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.PolygonSpriteBatch;
@@ -43,8 +42,8 @@ public abstract class AbstractGuiItem implements Disposable {
     abstract public void dispose();
 
     public int render(@NotNull ShapeDrawer shapeRenderer, @NotNull PolygonSpriteBatch spriteBatch, int drawStartX,
-                      int drawStartY, int drawWidth, PathGui pathGui) {
-        if (Gdx.input.isButtonJustPressed(Input.Buttons.LEFT)) {
+                      int drawStartY, int drawWidth, PathGui pathGui, boolean isLeftMouseJustUnpressed) {
+        if (isLeftMouseJustUnpressed) {
             if (isMouseOver(drawStartX + drawWidth - 45, drawStartY - 40, drawWidth - 5, 40)) {
                 pathGui.guiItemsDeletions.add(this);
             } else if (isMouseOver(drawStartX, drawStartY - 40, drawWidth - 5, 40)) {
