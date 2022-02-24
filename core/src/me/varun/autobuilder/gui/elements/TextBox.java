@@ -24,6 +24,7 @@ import space.earlygrey.shapedrawer.ShapeDrawer;
 import java.awt.*;
 import java.awt.datatransfer.Clipboard;
 import java.awt.datatransfer.DataFlavor;
+import java.awt.datatransfer.StringSelection;
 import java.awt.datatransfer.UnsupportedFlavorException;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -62,7 +63,7 @@ public class TextBox extends InputEventListener {
 
     ArrayList<TextComponent> textComponents = new ArrayList<>();
 
-    private static final long KEY_PRESS_DELAY = 50;
+    private static final long KEY_PRESS_DELAY = 25;
     private static final long INITIAL_KEY_PRESS_DELAY = 400;
 
     public TextBox(@NotNull String text, @NotNull InputEventThrower eventThrower, boolean wrapText,
@@ -185,6 +186,24 @@ public class TextBox extends InputEventListener {
                 } catch (UnsupportedFlavorException | IOException e) {
                     System.out.println("bad Clipboard data");
                 }
+            }
+
+            if ((Gdx.input.isKeyPressed(Input.Keys.CONTROL_LEFT) || Gdx.input.isKeyPressed(Input.Keys.CONTROL_LEFT)) &&
+                    Gdx.input.isKeyJustPressed(Input.Keys.C)) {
+                Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
+                int endPos = selectedPos;
+                int startPos = selectedPos;
+                while (endPos < text.length() && text.charAt(endPos) != '\n') {
+                    endPos++;
+                }
+
+                if (endPos < text.length() && text.charAt(endPos) == '\n') endPos += 1; // Add the newline to the copied text
+
+                while (startPos > 0 && text.charAt(startPos - 1) != '\n') {
+                    startPos--;
+                }
+
+                clipboard.setContents(new StringSelection(text.substring(startPos, endPos)), null);
             }
 
             if (nextFlashChange < System.currentTimeMillis()) {
