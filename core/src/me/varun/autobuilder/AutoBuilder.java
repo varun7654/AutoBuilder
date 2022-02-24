@@ -211,9 +211,14 @@ public final class AutoBuilder extends ApplicationAdapter {
 
         //Draw all the paths
         origin.draw(shapeRenderer, cam);
+
+        double pathTime = 0;
         for (AbstractGuiItem guiItem : pathGui.guiItems) {
             if (guiItem instanceof TrajectoryItem) {
                 ((TrajectoryItem) guiItem).getPathRenderer().render(shapeRenderer, cam);
+                if (((TrajectoryItem) guiItem).getPathRenderer().getTrajectory() != null) {
+                    pathTime += ((TrajectoryItem) guiItem).getPathRenderer().getTrajectory().getTotalTimeSeconds();
+                }
             }
         }
 
@@ -227,6 +232,12 @@ public final class AutoBuilder extends ApplicationAdapter {
         hudBatch.setProjectionMatrix(hudCam.combined);
 
         hudBatch.begin();
+
+        TextBlock timeText = new TextBlock(Fonts.ROBOTO, 18, new TextComponent("Total Driving Time: " +
+                df.format(pathTime) + "s", Color.WHITE).setBold(true));
+
+        FontRenderer.renderText(hudBatch, shapeRenderer, Gdx.graphics.getWidth() - timeText.getWidth() - 420,
+                60, timeText);
 
         String lastSave;
         long saveTimeDiff = System.currentTimeMillis() - FileHandler.lastSaveTime;
