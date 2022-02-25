@@ -1,6 +1,7 @@
 package me.varun.autobuilder.pathing;
 
 import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.Input.Keys;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.math.Vector2;
@@ -17,6 +18,7 @@ import space.earlygrey.shapedrawer.ShapeDrawer;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 import static me.varun.autobuilder.AutoBuilder.LINE_THICKNESS;
 
@@ -55,6 +57,24 @@ public class DrivenPathRenderer implements PathRenderer {
                     nextPointRight.x, nextPointRight.y,
                     nextPointLeft.x, nextPointLeft.y
             });
+
+            Optional<RobotPosition> lastVisionPredictedPose = getRobotPositionForName(i, "Vision Position");
+            Optional<RobotPosition> nextVisionPredictedPose = getRobotPositionForName(i, "Vision Position");
+            if (lastVisionPredictedPose.isPresent() && nextVisionPredictedPose.isPresent()) {
+                pos1 = lastVisionPredictedPose.get();
+                getPerfectConectingPoints(pos1, lastPointLeft, lastPointRight);
+
+                pos2 = nextVisionPredictedPose.get();
+                getPerfectConectingPoints(pos2, nextPointLeft, nextPointRight);
+
+                shapeRenderer.setColor(aqua);
+                shapeRenderer.polygon(new float[]{
+                        lastPointLeft.x, lastPointLeft.y,
+                        lastPointRight.x, lastPointRight.y,
+                        nextPointRight.x, nextPointRight.y,
+                        nextPointLeft.x, nextPointLeft.y
+                });
+            }
 
             if (i == robotPreviewIndex) {
                 ArrayList<TextComponent> textComponents = new ArrayList<>();
@@ -118,6 +138,12 @@ public class DrivenPathRenderer implements PathRenderer {
 
     }
 
+    private Optional<RobotPosition> getRobotPositionForName(int timeIndex, @NotNull String name) {
+        List<RobotPosition> robotPositions = networkTables.getRobotPositions().get(timeIndex);
+
+        return robotPositions.stream().filter(pos -> pos.name.equals(name)).findFirst();
+    }
+
     @Override
     public @NotNull ArrayList<CloseTrajectoryPoint> getCloseTrajectoryPoints(float maxDistance2, Vector3 mousePos) {
         ArrayList<CloseTrajectoryPoint> points = new ArrayList<>();
@@ -140,5 +166,12 @@ public class DrivenPathRenderer implements PathRenderer {
     @Override
     public boolean isTouchingSomething(Vector3 mousePos, float maxDistance2) {
         return false;
+    }
+
+    public void update() {
+        if ((Gdx.input.isButtonPressed(Keys.CONTROL_LEFT) || Gdx.input.isButtonPressed(Keys.CONTROL_RIGHT)) &&
+                (Gdx.input.isButtonPressed(Keys.BACKSPACE)) || Gdx.input.isKeyPressed(Keys.DEL)) {
+            networkTables.getRobotPositions().clear();
+        }
     }
 }

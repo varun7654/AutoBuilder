@@ -301,10 +301,14 @@ public final class AutoBuilder extends ApplicationAdapter {
         //Figure out the max distance a point can be from the mouse
         float maxDistance = (float) Math.pow(20 * cam.zoom, 2);
 
+        drivenPathRenderer.update();
+
         boolean pointAdded = false;
         //Check if we need to delete/add a point
-        if(Gdx.app.getInput().isButtonJustPressed(Input.Buttons.RIGHT) || Gdx.app.getInput().isButtonJustPressed(Input.Buttons.LEFT)) {
-            if (lastSelectedPoint == null || !lastSelectedPoint.parentTrajectoryPathRenderer.isTouchingSomething(mousePos, maxDistance)) {
+        if (Gdx.app.getInput().isButtonJustPressed(Input.Buttons.RIGHT) ||
+                Gdx.app.getInput().isButtonJustPressed(Input.Buttons.LEFT)) {
+            if (lastSelectedPoint == null ||
+                    !lastSelectedPoint.parentTrajectoryPathRenderer.isTouchingSomething(mousePos, maxDistance)) {
                 removeLastSelectedPoint();
 
                 //Get all close points and find the closest one.
