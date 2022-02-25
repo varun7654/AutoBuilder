@@ -34,14 +34,28 @@ public class DrivenPathRenderer implements PathRenderer {
 
     DecimalFormat df = new DecimalFormat("#.##");
 
+    @NotNull Vector2 lastPointLeft = new Vector2();
+    @NotNull Vector2 lastPointRight = new Vector2();
+    @NotNull Vector2 nextPointLeft = new Vector2();
+    @NotNull Vector2 nextPointRight = new Vector2();
+
     @Override
     public void render(@NotNull ShapeDrawer shapeRenderer, @NotNull OrthographicCamera cam) {
         for (int i = 0; i < networkTables.getRobotPositions().size() - 1; i++) {
             RobotPosition pos1 = networkTables.getRobotPositions().get(i).get(0);
+            getPerfectConectingPoints(pos1, lastPointLeft, lastPointRight);
+
             RobotPosition pos2 = networkTables.getRobotPositions().get(i + 1).get(0);
-            shapeRenderer.line((float) (pos1.x * config.getPointScaleFactor()), (float) (pos1.y * config.getPointScaleFactor()),
-                    (float) (pos2.x * config.getPointScaleFactor()), (float) (pos2.y * config.getPointScaleFactor()), Color.WHITE,
-                    LINE_THICKNESS);
+            getPerfectConectingPoints(pos2, nextPointLeft, nextPointRight);
+
+            shapeRenderer.setColor(Color.WHITE);
+            shapeRenderer.polygon(new float[]{
+                    lastPointLeft.x, lastPointLeft.y,
+                    lastPointRight.x, lastPointRight.y,
+                    nextPointRight.x, nextPointRight.y,
+                    nextPointLeft.x, nextPointLeft.y
+            });
+
             if (i == robotPreviewIndex) {
                 ArrayList<TextComponent> textComponents = new ArrayList<>();
 
@@ -62,6 +76,17 @@ public class DrivenPathRenderer implements PathRenderer {
             }
         }
         robotPreviewIndex = -1;
+    }
+
+    private void getPerfectConectingPoints(RobotPosition pos2, Vector2 nextPointLeft, Vector2 nextPointRight) {
+        nextPointLeft.set(0, -LINE_THICKNESS / 2);
+        nextPointRight.set(0, LINE_THICKNESS / 2);
+
+        nextPointLeft.rotateRad((float) pos2.theta);
+        nextPointRight.rotateRad((float) pos2.theta);
+
+        nextPointLeft.add((float) (pos2.x * config.getPointScaleFactor()), (float) (pos2.y * config.getPointScaleFactor()));
+        nextPointRight.add((float) (pos2.x * config.getPointScaleFactor()), (float) (pos2.y * config.getPointScaleFactor()));
     }
 
     private void renderRobotBoundingBox(@NotNull ShapeDrawer shapeRenderer, RobotPosition pos1,
@@ -85,7 +110,7 @@ public class DrivenPathRenderer implements PathRenderer {
         textComponents.add(new TextComponent("Vy: ").setBold(true));
         textComponents.add(new TextComponent(df.format(robotPosition.vy) + "m/s\n"));
         textComponents.add(new TextComponent("Vtheta: ").setBold(true));
-        textComponents.add(new TextComponent(df.format(Math.toDegrees(robotPosition.vtheta)) + "°/s"));
+        textComponents.add(new TextComponent(df.format(Math.toDegrees(robotPosition.vtheta)) + "°/s\n"));
     }
 
     @Override

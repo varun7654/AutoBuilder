@@ -7,6 +7,9 @@ public final class RobotPosition {
 
     public final double vx;
     public final double vy;
+    /**
+     * In Radians
+     */
     public final double vtheta;
 
     public final double time;
