@@ -45,36 +45,40 @@ public class DrivenPathRenderer implements PathRenderer {
     public void render(@NotNull ShapeDrawer shapeRenderer, @NotNull OrthographicCamera cam) {
         for (int i = 0; i < networkTables.getRobotPositions().size() - 1; i++) {
             RobotPosition pos1 = networkTables.getRobotPositions().get(i).get(0);
-            getPerfectConectingPoints(pos1, lastPointLeft, lastPointRight);
+            //getPerfectConectingPoints(pos1, lastPointLeft, lastPointRight);
 
             RobotPosition pos2 = networkTables.getRobotPositions().get(i + 1).get(0);
-            getPerfectConectingPoints(pos2, nextPointLeft, nextPointRight);
+//            getPerfectConectingPoints(pos2, nextPointLeft, nextPointRight);
+//
+//            shapeRenderer.setColor(Color.WHITE);
+//            shapeRenderer.polygon(new float[]{
+//                    lastPointLeft.x, lastPointLeft.y,
+//                    lastPointRight.x, lastPointRight.y,
+//                    nextPointRight.x, nextPointRight.y,
+//                    nextPointLeft.x, nextPointLeft.y
+//            });
 
-            shapeRenderer.setColor(Color.WHITE);
-            shapeRenderer.polygon(new float[]{
-                    lastPointLeft.x, lastPointLeft.y,
-                    lastPointRight.x, lastPointRight.y,
-                    nextPointRight.x, nextPointRight.y,
-                    nextPointLeft.x, nextPointLeft.y
-            });
+            shapeRenderer.line((float) (pos1.x * config.getPointScaleFactor()), (float) (pos1.y * config.getPointScaleFactor()),
+                    (float) (pos2.x * config.getPointScaleFactor()), (float) (pos2.y * config.getPointScaleFactor()), Color.WHITE,
+                    LINE_THICKNESS);
 
-            Optional<RobotPosition> lastVisionPredictedPose = getRobotPositionForName(i, "Vision Position");
-            Optional<RobotPosition> nextVisionPredictedPose = getRobotPositionForName(i, "Vision Position");
-            if (lastVisionPredictedPose.isPresent() && nextVisionPredictedPose.isPresent()) {
-                pos1 = lastVisionPredictedPose.get();
-                getPerfectConectingPoints(pos1, lastPointLeft, lastPointRight);
-
-                pos2 = nextVisionPredictedPose.get();
-                getPerfectConectingPoints(pos2, nextPointLeft, nextPointRight);
-
-                shapeRenderer.setColor(aqua);
-                shapeRenderer.polygon(new float[]{
-                        lastPointLeft.x, lastPointLeft.y,
-                        lastPointRight.x, lastPointRight.y,
-                        nextPointRight.x, nextPointRight.y,
-                        nextPointLeft.x, nextPointLeft.y
-                });
-            }
+//            Optional<RobotPosition> lastVisionPredictedPose = getRobotPositionForName(i, "Vision Position");
+//            Optional<RobotPosition> nextVisionPredictedPose = getRobotPositionForName(i, "Vision Position");
+//            if (lastVisionPredictedPose.isPresent() && nextVisionPredictedPose.isPresent()) {
+//                pos1 = lastVisionPredictedPose.get();
+//                getPerfectConectingPoints(pos1, lastPointLeft, lastPointRight);
+//
+//                pos2 = nextVisionPredictedPose.get();
+//                getPerfectConectingPoints(pos2, nextPointLeft, nextPointRight);
+//
+//                shapeRenderer.setColor(aqua);
+//                shapeRenderer.polygon(new float[]{
+//                        lastPointLeft.x, lastPointLeft.y,
+//                        lastPointRight.x, lastPointRight.y,
+//                        nextPointRight.x, nextPointRight.y,
+//                        nextPointLeft.x, nextPointLeft.y
+//                });
+//            }
 
             if (i == robotPreviewIndex) {
                 ArrayList<TextComponent> textComponents = new ArrayList<>();
@@ -169,8 +173,8 @@ public class DrivenPathRenderer implements PathRenderer {
     }
 
     public void update() {
-        if ((Gdx.input.isButtonPressed(Keys.CONTROL_LEFT) || Gdx.input.isButtonPressed(Keys.CONTROL_RIGHT)) &&
-                (Gdx.input.isButtonPressed(Keys.BACKSPACE)) || Gdx.input.isKeyPressed(Keys.DEL)) {
+        if ((Gdx.input.isKeyPressed(Keys.CONTROL_LEFT) || Gdx.input.isKeyPressed(Keys.CONTROL_RIGHT)) &&
+                (Gdx.input.isKeyPressed(Keys.BACKSPACE)) || Gdx.input.isKeyPressed(Keys.DEL)) {
             networkTables.getRobotPositions().clear();
         }
     }

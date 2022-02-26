@@ -218,18 +218,23 @@ public final class NetworkTablesHelper {
     /**
      * @return Vertical Offset From Crosshair To Target (LL1: -20.5 degrees to 20.5 degrees | LL2: -24.85 to 24.85 degrees)
      */
-    public double getLimelightVerticalOffset(){
+    public double getLimelightVerticalOffset() {
         return limelightTable.getEntry("ty").getDouble(0);
     }
 
+
+    NetworkTableEntry visionDistanceOffset = NetworkTableInstance.getDefault().getEntry("VisionDistanceOffset");
+
     /**
-     * @see <a href="https://docs.limelightvision.io/en/latest/cs_estimating_distance.html">...</a>
      * @return Distance from the limelight to the target in cm
+     * @see <a href="https://docs.limelightvision.io/en/latest/cs_estimating_distance.html">...</a>
      */
-    public double getDistance(){
-        if(isTargetVisiable()){
+    public double getDistance() {
+        if (isTargetVisiable()) {
             return ((limelightCameraTargetHeightOffset.getDouble(0)) /
-                    Math.tan(Math.toRadians(LimelightCameraYAngle.getDouble(0) + getLimelightVerticalOffset())) + 24.0);
+                    Math.tan(Math.toRadians(
+                            LimelightCameraYAngle.getDouble(0) + getLimelightVerticalOffset())) +
+                    visionDistanceOffset.getDouble(24 + 18.5774));
         } else {
             return -1;//(System.currentTimeMillis() /50d) % 300 ;
         }

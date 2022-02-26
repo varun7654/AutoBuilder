@@ -90,7 +90,7 @@ public class TextBox extends InputEventListener {
 
         boolean hovering = Gdx.input.getX() > drawStartX && Gdx.input.getX() < drawStartX + drawWidth
                 && Gdx.graphics.getHeight() - Gdx.input.getY() > drawStartY - getHeight() + 8
-                && Gdx.graphics.getHeight() - Gdx.input.getY() < drawStartY + textBlock.getHeight() - 11;
+                && Gdx.graphics.getHeight() - Gdx.input.getY() < drawStartY + 4;
 
         Vector2 mousePos = new Vector2(Gdx.input.getX() - (drawStartX + 4),
                 (Gdx.graphics.getHeight() - Gdx.input.getY()) - (drawStartY - textBlock.getDefaultSize() + 4));
