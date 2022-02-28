@@ -234,7 +234,7 @@ public final class NetworkTablesHelper {
             return ((limelightCameraTargetHeightOffset.getDouble(0)) /
                     Math.tan(Math.toRadians(
                             LimelightCameraYAngle.getDouble(0) + getLimelightVerticalOffset())) +
-                    visionDistanceOffset.getDouble(24 + 18.5774));
+                    visionDistanceOffset.getDouble(24 + 18.5774) + 24);
         } else {
             return -1;//(System.currentTimeMillis() /50d) % 300 ;
         }
