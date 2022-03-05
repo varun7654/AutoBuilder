@@ -230,14 +230,7 @@ public final class NetworkTablesHelper {
      * @see <a href="https://docs.limelightvision.io/en/latest/cs_estimating_distance.html">...</a>
      */
     public double getDistance() {
-        if (isTargetVisiable()) {
-            return ((limelightCameraTargetHeightOffset.getDouble(0)) /
-                    Math.tan(Math.toRadians(
-                            LimelightCameraYAngle.getDouble(0) + getLimelightVerticalOffset())) +
-                    visionDistanceOffset.getDouble(24 + 18.5774) + 24);
-        } else {
-            return -1;//(System.currentTimeMillis() /50d) % 300 ;
-        }
+        return smartDashboardTable.getEntry("Distance to Target").getDouble(-1);
     }
 
     public double getShooterRPM(){
