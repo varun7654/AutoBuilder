@@ -144,7 +144,6 @@ public class FileHandler {
 
         configFile.getParentFile().mkdirs();
         shooterConfig.getParentFile().mkdirs();
-        System.out.println("Saving config");
         try {
             configFile.createNewFile();
             Serializer.serializeToFile(config, configFile);
