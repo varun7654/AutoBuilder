@@ -28,7 +28,7 @@ public class UploadFileButton extends AbstractGuiButton {
                         fileChooser.setTitle("Open an Auto or Config File");
                         fileChooser.getExtensionFilters().addAll(
                                 new FileChooser.ExtensionFilter("json files", "*.json", "config.json"));
-                        fileChooser.setInitialDirectory(new File(AutoBuilder.USER_DIRECTORY));
+                fileChooser.setInitialDirectory(AutoBuilder.getConfig().getAutoPath().getParentFile());
                         File file = fileChooser.showOpenDialog(null);
                         if (file != null) {
                             future.complete(file);
