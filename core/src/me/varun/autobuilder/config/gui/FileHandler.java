@@ -113,18 +113,17 @@ public class FileHandler {
 
     public static void saveAuto() {
         Autonomous autonomous = GuiSerializer.serializeAutonomous(AutoBuilder.getInstance().pathGui.guiItems);
-        File autoFile = new File(
-                new File(config.getSelectedAuto()).getParentFile().getAbsolutePath() + "/" +
+        File autoFile;
+        autoFile = new File(
+                config.getAutoPath().getParentFile().getAbsolutePath() + "/" +
                         (autonomous.deployable ? "" : "NOTDEPLOYABLE") + new File(config.getSelectedAuto()).getName());
         autoFile.getParentFile().mkdirs();
-
 
         try {
             Serializer.serializeToFile(autonomous, autoFile);
 
             if (autonomous.deployable) {
-                File fileToDelete = new File(new File(
-                        config.getSelectedAuto()).getParentFile().getAbsolutePath() + "/NOTDEPLOYABLE" +
+                File fileToDelete = new File(config.getAutoPath().getParentFile().getAbsolutePath() + "/NOTDEPLOYABLE" +
                         new File(config.getSelectedAuto()).getName());
                 fileToDelete.delete();
             } else {
