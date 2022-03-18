@@ -184,12 +184,8 @@ public final class NetworkTablesHelper {
         limelightForcedOn.setBoolean(forcedOn);
     }
 
-    public boolean isTargetVisiable(){
-        if(limelightTable.getEntry("tv").getDouble(0) == 1){
-            return true;
-        } else {
-            return false;
-        }
+    public boolean isTargetVisible (){
+        return limelightTable.getEntry("tv").getDouble(0) == 1;
     }
 
     public void setShooterConfig(ShooterConfig shooterConfig){
@@ -230,7 +226,7 @@ public final class NetworkTablesHelper {
      * @see <a href="https://docs.limelightvision.io/en/latest/cs_estimating_distance.html">...</a>
      */
     public double getDistance() {
-        return smartDashboardTable.getEntry("Distance to Target").getDouble(-1);
+        return smartDashboardTable.getEntry("Shooter Distance to Target").getDouble(-1);
     }
 
     public double getShooterRPM(){
