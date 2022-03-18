@@ -45,10 +45,10 @@ public class DrivenPathRenderer implements PathRenderer {
     public void render(@NotNull ShapeDrawer shapeRenderer, @NotNull OrthographicCamera cam) {
         for (int i = 0; i < networkTables.getRobotPositions().size() - 1; i++) {
             RobotPosition pos1 = networkTables.getRobotPositions().get(i).get(0);
-            //getPerfectConectingPoints(pos1, lastPointLeft, lastPointRight);
+            //getPerfectConnectingPoints(pos1, lastPointLeft, lastPointRight);
 
             RobotPosition pos2 = networkTables.getRobotPositions().get(i + 1).get(0);
-//            getPerfectConectingPoints(pos2, nextPointLeft, nextPointRight);
+//            getPerfectConnectingPoints(pos2, nextPointLeft, nextPointRight);
 //
 //            shapeRenderer.setColor(Color.WHITE);
 //            shapeRenderer.polygon(new float[]{
@@ -66,10 +66,10 @@ public class DrivenPathRenderer implements PathRenderer {
 //            Optional<RobotPosition> nextVisionPredictedPose = getRobotPositionForName(i, "Vision Position");
 //            if (lastVisionPredictedPose.isPresent() && nextVisionPredictedPose.isPresent()) {
 //                pos1 = lastVisionPredictedPose.get();
-//                getPerfectConectingPoints(pos1, lastPointLeft, lastPointRight);
+//                getPerfectConnectingPoints(pos1, lastPointLeft, lastPointRight);
 //
 //                pos2 = nextVisionPredictedPose.get();
-//                getPerfectConectingPoints(pos2, nextPointLeft, nextPointRight);
+//                getPerfectConnectingPoints(pos2, nextPointLeft, nextPointRight);
 //
 //                shapeRenderer.setColor(aqua);
 //                shapeRenderer.polygon(new float[]{
@@ -98,19 +98,28 @@ public class DrivenPathRenderer implements PathRenderer {
                 HoverManager.setHoverText(new TextBlock(Fonts.ROBOTO, 13, 300, textComponents.toArray(new TextComponent[0])),
                         0, Gdx.graphics.getHeight() - 2);
             }
+
+        }
+
+        if(NetworkTablesHelper.getInstance().isEnabled()){ //If we're enabled then render the robot preview at the latest position
+            List<RobotPosition> positions = networkTables.getRobotPositions().get(networkTables.getRobotPositions().size() - 1);
+            for (int i = 0; i < positions.size(); i++) {
+                RobotPosition robotPosition = positions.get(i);
+                renderRobotBoundingBox(shapeRenderer, robotPosition, colors[i]);
+            }
         }
         robotPreviewIndex = -1;
     }
 
-    private void getPerfectConectingPoints(RobotPosition pos2, Vector2 nextPointLeft, Vector2 nextPointRight) {
+    private void getPerfectConnectingPoints(RobotPosition pos, Vector2 nextPointLeft, Vector2 nextPointRight) {
         nextPointLeft.set(0, -LINE_THICKNESS / 2);
         nextPointRight.set(0, LINE_THICKNESS / 2);
 
-        nextPointLeft.rotateRad((float) pos2.theta);
-        nextPointRight.rotateRad((float) pos2.theta);
+        nextPointLeft.rotateRad((float) pos.theta);
+        nextPointRight.rotateRad((float) pos.theta);
 
-        nextPointLeft.add((float) (pos2.x * config.getPointScaleFactor()), (float) (pos2.y * config.getPointScaleFactor()));
-        nextPointRight.add((float) (pos2.x * config.getPointScaleFactor()), (float) (pos2.y * config.getPointScaleFactor()));
+        nextPointLeft.add((float) (pos.x * config.getPointScaleFactor()), (float) (pos.y * config.getPointScaleFactor()));
+        nextPointRight.add((float) (pos.x * config.getPointScaleFactor()), (float) (pos.y * config.getPointScaleFactor()));
     }
 
     private void renderRobotBoundingBox(@NotNull ShapeDrawer shapeRenderer, RobotPosition pos1,

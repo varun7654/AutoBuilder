@@ -66,6 +66,10 @@ public final class NetworkTablesHelper {
     NetworkTable limelightTable = inst.getTable("limelight");
 
 
+    public boolean isEnabled() {
+        return enabled;
+    }
+
     private boolean enabled = false;
     private double lastProcessingId = 0;
 
