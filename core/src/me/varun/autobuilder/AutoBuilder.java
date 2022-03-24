@@ -160,7 +160,7 @@ public final class AutoBuilder extends ApplicationAdapter {
 
         drivenPathRenderer = new DrivenPathRenderer();
 
-        File shooterConfigFile = new File(USER_DIRECTORY + "/" + config.getSelectedShooterConfig());
+        File shooterConfigFile = config.getShooterConfigPath();
         shooterConfigFile.getParentFile().mkdirs();
 
         try {

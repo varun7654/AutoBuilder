@@ -91,6 +91,15 @@ public class Config {
         }
     }
 
+    @JsonIgnore
+    public File getShooterConfigPath() {
+        File path = new File(getSelectedShooterConfig());
+        if (!path.isAbsolute()) {
+            path = new File(AutoBuilder.USER_DIRECTORY + "/" + path);
+        }
+        return path;
+    }
+
     @JsonProperty("selectedShooterConfig")
     public String getSelectedShooterConfig() {
         return shooterConfigFile;

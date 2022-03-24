@@ -139,7 +139,7 @@ public class FileHandler {
 
     public static void saveConfig() {
         File configFile = new File(USER_DIRECTORY + "/config.json");
-        File shooterConfig = new File(USER_DIRECTORY + "/" + config.getSelectedShooterConfig());
+        File shooterConfig = config.getShooterConfigPath();
 
         configFile.getParentFile().mkdirs();
         shooterConfig.getParentFile().mkdirs();
