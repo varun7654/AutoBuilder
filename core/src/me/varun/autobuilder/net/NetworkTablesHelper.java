@@ -1,6 +1,7 @@
 package me.varun.autobuilder.net;
 
 import com.badlogic.gdx.graphics.Color;
+import com.badlogic.gdx.math.Vector2;
 import edu.wpi.first.networktables.NetworkTable;
 import edu.wpi.first.networktables.NetworkTableEntry;
 import edu.wpi.first.networktables.NetworkTableInstance;
@@ -65,6 +66,16 @@ public final class NetworkTablesHelper {
     NetworkTableEntry LimelightCameraYAngle = inst.getTable("limelightgui").getEntry("CameraYAngle");
     NetworkTable limelightTable = inst.getTable("limelight");
 
+    NetworkTableEntry adjustedGoalPosX = smartDashboardTable.getEntry("Calculated Target X");
+    NetworkTableEntry adjustedGoalPosY = smartDashboardTable.getEntry("Calculated Target Y");
+
+
+    /**
+     * get the adjusted gaol pos in meters
+     */
+    public Vector2 getAdjustedGoalPos(){
+        return new Vector2((float) adjustedGoalPosX.getDouble(0), (float) adjustedGoalPosY.getDouble(0));
+    }
 
     public boolean isEnabled() {
         return enabled;
@@ -131,7 +142,7 @@ public final class NetworkTablesHelper {
                     poses.add(new RobotPosition(
                             last_estimated_robot_pose_x.getDouble(0),
                             last_estimated_robot_pose_y.getDouble(0),
-                            Math.toRadians(last_estimated_robot_pose_angle.getDouble(0)),
+                            last_estimated_robot_pose_angle.getDouble(0),
                             last_estimated_robot_velocity_x.getDouble(0),
                             last_estimated_robot_velocity_y.getDouble(0),
                             last_estimated_robot_velocity_theta.getDouble(0),
@@ -143,7 +154,7 @@ public final class NetworkTablesHelper {
                         poses.add(new RobotPosition(
                                 vision_pose_x.getDouble(0),
                                 vision_pose_y.getDouble(0),
-                                Math.toRadians((float) vision_pose_angle.getDouble(0)),
+                                (float) vision_pose_angle.getDouble(0),
                                 0, 0, 0,
                                 vision_pose_time.getDouble(0),
                                 "Vision Position"
@@ -155,7 +166,7 @@ public final class NetworkTablesHelper {
                         poses.add(new RobotPosition(
                                 predicted_future_pose_x.getDouble(0),
                                 predicted_future_pose_y.getDouble(0),
-                                Math.toRadians(last_estimated_robot_pose_angle.getDouble(0)),
+                                last_estimated_robot_pose_angle.getDouble(0),
                                 0, 0, 0,
                                 predicted_future_pose_time.getDouble(0),
                                 "Predicted Future Position"
