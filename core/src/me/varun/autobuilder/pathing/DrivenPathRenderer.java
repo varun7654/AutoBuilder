@@ -98,11 +98,11 @@ public class DrivenPathRenderer implements PathRenderer {
                 HoverManager.setHoverText(new TextBlock(Fonts.ROBOTO, 13, 300, textComponents.toArray(new TextComponent[0])),
                         0, Gdx.graphics.getHeight() - 2);
             }
-
         }
 
-        if(NetworkTablesHelper.getInstance().isEnabled()){ //If we're enabled then render the robot preview at the latest position
-            if(networkTables.getRobotPositions().size() - 1 > 0) {
+        if (NetworkTablesHelper.getInstance().isEnabled()) { //If we're enabled then render the robot preview at the latest
+            // position
+            if (networkTables.getRobotPositions().size() - 1 > 0) {
                 List<RobotPosition> positions = networkTables.getRobotPositions().get(
                         networkTables.getRobotPositions().size() - 1);
                 for (int i = 0; i < positions.size(); i++) {
@@ -186,7 +186,7 @@ public class DrivenPathRenderer implements PathRenderer {
 
     public void update() {
         if ((Gdx.input.isKeyPressed(Keys.CONTROL_LEFT) || Gdx.input.isKeyPressed(Keys.CONTROL_RIGHT)) &&
-                (Gdx.input.isKeyPressed(Keys.BACKSPACE)) || Gdx.input.isKeyPressed(Keys.DEL)) {
+                ((Gdx.input.isKeyPressed(Keys.BACKSPACE)) || Gdx.input.isKeyPressed(Keys.DEL))) {
             networkTables.getRobotPositions().clear();
         }
     }

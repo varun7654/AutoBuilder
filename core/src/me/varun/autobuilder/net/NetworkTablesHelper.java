@@ -7,9 +7,9 @@ import edu.wpi.first.networktables.NetworkTableEntry;
 import edu.wpi.first.networktables.NetworkTableInstance;
 import me.varun.autobuilder.AutoBuilder;
 import me.varun.autobuilder.config.gui.FileHandler;
-import me.varun.autobuilder.gui.path.AbstractGuiItem;
 import me.varun.autobuilder.gui.notification.Notification;
 import me.varun.autobuilder.gui.notification.NotificationHandler;
+import me.varun.autobuilder.gui.path.AbstractGuiItem;
 import me.varun.autobuilder.gui.shooter.ShooterConfig;
 import me.varun.autobuilder.pathing.RobotPosition;
 import me.varun.autobuilder.serialization.path.Autonomous;
@@ -73,7 +73,7 @@ public final class NetworkTablesHelper {
     /**
      * get the adjusted gaol pos in meters
      */
-    public Vector2 getAdjustedGoalPos(){
+    public Vector2 getAdjustedGoalPos() {
         return new Vector2((float) adjustedGoalPosX.getDouble(0), (float) adjustedGoalPosY.getDouble(0));
     }
 
@@ -93,7 +93,9 @@ public final class NetworkTablesHelper {
     }
 
     public void start() {
-        inst.startClientTeam(AutoBuilder.getConfig().getTeamNumber());  // where TEAM=190, 294, etc, or use inst.startClient("hostname") or similar
+        inst.startClientTeam(
+                AutoBuilder.getConfig().getTeamNumber());  // where TEAM=190, 294, etc, or use inst.startClient("hostname") or
+        // similar
         //inst.startDSClient();  // recommended if running on DS computer; this gets the robot IP from the DS
     }
 
@@ -105,13 +107,13 @@ public final class NetworkTablesHelper {
         FileHandler.save();
         if (inst.isConnected()) {
             try {
-                String autonomousString = Serializer.serializeToString(GuiSerializer.serializeAutonomousForDeployment(guiItemList));
+                String autonomousString = Serializer.serializeToString(
+                        GuiSerializer.serializeAutonomousForDeployment(guiItemList));
                 autoPath.setString(autonomousString);
                 Autonomous autonomous = Serializer.deserializeAuto(autoPath.getString(null));
                 System.out.println("Sent Data: " + autonomous);
 
                 NotificationHandler.addNotification(new Notification(LIGHT_GREEN, "Auto Uploaded", 2000));
-
             } catch (IOException | ClassNotFoundException e) {
                 e.printStackTrace();
                 NotificationHandler.addNotification(new Notification(Color.RED, "Auto Failed to Upload", 2000));
@@ -131,79 +133,83 @@ public final class NetworkTablesHelper {
     public void updateNT() {
         if (inst.isConnected()) {
             double time = timestamp.getDouble(0);
-            if (enabledTable.getBoolean(false)) {
-                if (!enabled) {
-                    robotPositions.clear();
-                    enabled = true;
-                }
-
-                if (robotPositions.size() < 1 || time != robotPositions.get(robotPositions.size() - 1).get(0).time) {
-                    List<RobotPosition> poses = new ArrayList<>(3);
-                    poses.add(new RobotPosition(
-                            last_estimated_robot_pose_x.getDouble(0),
-                            last_estimated_robot_pose_y.getDouble(0),
-                            last_estimated_robot_pose_angle.getDouble(0),
-                            last_estimated_robot_velocity_x.getDouble(0),
-                            last_estimated_robot_velocity_y.getDouble(0),
-                            last_estimated_robot_velocity_theta.getDouble(0),
-                            timestamp.getDouble(0),
-                            "Last Estimated Robot Position"
-                    ));
-
-                    if (time - vision_pose_time.getDouble(0) < 0.5) {
-                        poses.add(new RobotPosition(
-                                vision_pose_x.getDouble(0),
-                                vision_pose_y.getDouble(0),
-                                (float) vision_pose_angle.getDouble(0),
-                                0, 0, 0,
-                                vision_pose_time.getDouble(0),
-                                "Vision Position"
-                        ));
-                        lastVisionPoseTime = vision_pose_time.getDouble(0);
-                    }
-
-                    if (time - predicted_future_pose_time.getDouble(0) < 0.5) {
-                        poses.add(new RobotPosition(
-                                predicted_future_pose_x.getDouble(0),
-                                predicted_future_pose_y.getDouble(0),
-                                last_estimated_robot_pose_angle.getDouble(0),
-                                0, 0, 0,
-                                predicted_future_pose_time.getDouble(0),
-                                "Predicted Future Position"
-                        ));
-                        lastPredictedPoseTime = predicted_future_pose_time.getDouble(0);
-                    }
-
-                    robotPositions.add(poses);
-                }
-            } else {
+            if (!enabledTable.getBoolean(false)) {
                 enabled = false;
             }
 
+            if (enabledTable.getBoolean(false) && !enabled) {
+                robotPositions.clear();
+                enabled = true;
+            }
+
+            if (robotPositions.size() < 1 || time != robotPositions.get(robotPositions.size() - 1).get(0).time) {
+                List<RobotPosition> poses = new ArrayList<>(3);
+                poses.add(new RobotPosition(
+                        last_estimated_robot_pose_x.getDouble(0),
+                        last_estimated_robot_pose_y.getDouble(0),
+                        last_estimated_robot_pose_angle.getDouble(0),
+                        last_estimated_robot_velocity_x.getDouble(0),
+                        last_estimated_robot_velocity_y.getDouble(0),
+                        last_estimated_robot_velocity_theta.getDouble(0),
+                        timestamp.getDouble(0),
+                        "Last Estimated Robot Position"
+                ));
+
+                if (time - vision_pose_time.getDouble(0) < 0.5) {
+                    poses.add(new RobotPosition(
+                            vision_pose_x.getDouble(0),
+                            vision_pose_y.getDouble(0),
+                            (float) vision_pose_angle.getDouble(0),
+                            0, 0, 0,
+                            vision_pose_time.getDouble(0),
+                            "Vision Position"
+                    ));
+                    lastVisionPoseTime = vision_pose_time.getDouble(0);
+                }
+
+                if (time - predicted_future_pose_time.getDouble(0) < 0.5) {
+                    poses.add(new RobotPosition(
+                            predicted_future_pose_x.getDouble(0),
+                            predicted_future_pose_y.getDouble(0),
+                            last_estimated_robot_pose_angle.getDouble(0),
+                            0, 0, 0,
+                            predicted_future_pose_time.getDouble(0),
+                            "Predicted Future Position"
+                    ));
+                    lastPredictedPoseTime = predicted_future_pose_time.getDouble(0);
+                }
+
+                robotPositions.add(poses);
+            }
+
+
             //Check for the roborio processing notification
-            if(processingIdTable.getDouble(0) != lastProcessingId){
+            if (processingIdTable.getDouble(0) != lastProcessingId) {
                 lastProcessingId = processingIdTable.getDouble(0);
-                if(processingTable.getDouble(0) == 1){
-                    NotificationHandler.addNotification(new Notification(Color.CORAL, "The Roborio has started deserializing the auto", 1500));
-                } else if (lastProcessingId == 2){
-                    NotificationHandler.addNotification(new Notification(LIGHT_GREEN, "The Roborio has finished deserializing the auto", 1500));
+                if (processingTable.getDouble(0) == 1) {
+                    NotificationHandler.addNotification(
+                            new Notification(Color.CORAL, "The Roborio has started deserializing the auto", 1500));
+                } else if (lastProcessingId == 2) {
+                    NotificationHandler.addNotification(
+                            new Notification(LIGHT_GREEN, "The Roborio has finished deserializing the auto", 1500));
                 } else {
-                    NotificationHandler.addNotification(new Notification(LIGHT_GREEN, "The Roborio has set: " + processingTable.getDouble(0), 1500));
+                    NotificationHandler.addNotification(
+                            new Notification(LIGHT_GREEN, "The Roborio has set: " + processingTable.getDouble(0), 1500));
                 }
             }
         }
     }
 
 
-    public void setLimelightForcedOn(boolean forcedOn){
+    public void setLimelightForcedOn(boolean forcedOn) {
         limelightForcedOn.setBoolean(forcedOn);
     }
 
-    public boolean isTargetVisible (){
+    public boolean isTargetVisible() {
         return limelightTable.getEntry("tv").getDouble(0) == 1;
     }
 
-    public void setShooterConfig(ShooterConfig shooterConfig){
+    public void setShooterConfig(ShooterConfig shooterConfig) {
         try {
             this.shooterConfigEntry.setString(Serializer.serializeToString(shooterConfig));
         } catch (IOException e) {
@@ -211,18 +217,18 @@ public final class NetworkTablesHelper {
         }
     }
 
-    public double getShooterConfigStatusId(){
+    public double getShooterConfigStatusId() {
         return shooterConfigStatusIdEntry.getDouble(-1);
     }
 
-    public double getShooterConfigStatus(){
+    public double getShooterConfigStatus() {
         return shooterConfigStatusEntry.getDouble(-1);
     }
 
     /**
      * @return Horizontal Offset From Crosshair To Target (LL1: -27 degrees to 27 degrees | LL2: -29.8 to 29.8 degrees)
      */
-    public double getLimelightHorizontalOffset(){
+    public double getLimelightHorizontalOffset() {
         return limelightTable.getEntry("tx").getDouble(0);
     }
 
@@ -244,11 +250,11 @@ public final class NetworkTablesHelper {
         return smartDashboardTable.getEntry("Shooter Distance to Target").getDouble(-1);
     }
 
-    public double getShooterRPM(){
+    public double getShooterRPM() {
         return smartDashboardTable.getEntry("Shooter Flywheel Speed").getDouble(-1);
     }
 
-    public double getHoodAngle(){
+    public double getHoodAngle() {
         return smartDashboardTable.getEntry("Hood Angle").getDouble(-1);
     }
 
