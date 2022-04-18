@@ -15,6 +15,7 @@ import me.varun.autobuilder.pathing.RobotPosition;
 import me.varun.autobuilder.serialization.path.Autonomous;
 import me.varun.autobuilder.serialization.path.GuiSerializer;
 import me.varun.autobuilder.serialization.path.NotDeployableException;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -73,8 +74,12 @@ public final class NetworkTablesHelper {
     /**
      * get the adjusted gaol pos in meters
      */
-    public Vector2 getAdjustedGoalPos() {
-        return new Vector2((float) adjustedGoalPosX.getDouble(0), (float) adjustedGoalPosY.getDouble(0));
+    public @Nullable Vector2 getAdjustedGoalPos() {
+        if (adjustedGoalPosX.exists()) {
+            return new Vector2((float) adjustedGoalPosX.getDouble(-10000), (float) adjustedGoalPosY.getDouble(-10000));
+        } else {
+            return null;
+        }
     }
 
     public boolean isEnabled() {

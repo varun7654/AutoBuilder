@@ -77,7 +77,8 @@ public class TrajectoryPathRenderer implements MovablePointEventHandler, Seriali
 
     DecimalFormat df = new DecimalFormat("#.##");
 
-    public TrajectoryPathRenderer(@NotNull Color color, @NotNull ControlVectorList pointList, @NotNull List<Rotation2d> rotation2dList,
+    public TrajectoryPathRenderer(@NotNull Color color, @NotNull ControlVectorList pointList,
+                                  @NotNull List<Rotation2d> rotation2dList,
                                   @NotNull ExecutorService executorService, float velocityStart, float velocityEnd,
                                   @NotNull List<TrajectoryConstraint> constraints) {
         this.color = color;
@@ -87,7 +88,8 @@ public class TrajectoryPathRenderer implements MovablePointEventHandler, Seriali
         pointRenderList = new ArrayList<>();
 
         for (ControlVector controlVector : controlVectors) {
-            pointRenderList.add(new MovablePointRenderer((float) controlVector.x[0], (float) controlVector.y[0], color, POINT_SIZE, this));
+            pointRenderList.add(
+                    new MovablePointRenderer((float) controlVector.x[0], (float) controlVector.y[0], color, POINT_SIZE, this));
         }
 
         this.executorService = executorService;
@@ -194,7 +196,6 @@ public class TrajectoryPathRenderer implements MovablePointEventHandler, Seriali
                     new TextComponent(df.format(Math.toDegrees(state.curvatureRadPerMeter)) + "°/m\n"),
                     new TextComponent("Time: ").setBold(true),
                     new TextComponent(df.format(state.timeSeconds) + "s")), 0, Gdx.graphics.getHeight() - 2);
-
         }
 
         for (int i = 0; i < pointRenderList.size(); i++) {
@@ -213,8 +214,10 @@ public class TrajectoryPathRenderer implements MovablePointEventHandler, Seriali
         }
 
         Vector2 adjustedGoalPos = NetworkTablesHelper.getInstance().getAdjustedGoalPos();
-        renderer.circle(adjustedGoalPos.x  * config.getPointScaleFactor(),
-                adjustedGoalPos.y  * config.getPointScaleFactor(), 1   * config.getPointScaleFactor(), LINE_THICKNESS);
+        if (adjustedGoalPos != null) {
+            renderer.circle(adjustedGoalPos.x * config.getPointScaleFactor(),
+                    adjustedGoalPos.y * config.getPointScaleFactor(), 1 * config.getPointScaleFactor(), LINE_THICKNESS);
+        }
         //Reset the robot preview time so that it won't be visible in the next frame. (Requires that it is set again)
         robotPreviewTime = -1;
     }
@@ -253,7 +256,8 @@ public class TrajectoryPathRenderer implements MovablePointEventHandler, Seriali
                 Vector3 renderVector = MathUtil.toRenderVector3(state.poseMeters);
 
                 if (currentIndexPos + 1 < controlVectors.size() &&
-                        MathUtil.toRenderVector3(controlVectors.get(currentIndexPos + 1).x[0], controlVectors.get(currentIndexPos + 1).y[0])
+                        MathUtil.toRenderVector3(controlVectors.get(currentIndexPos + 1).x[0],
+                                        controlVectors.get(currentIndexPos + 1).y[0])
                                 .dst2(renderVector) < 8f * state.velocityMetersPerSecond) {
                     currentIndexPos++;
                 }
@@ -296,7 +300,8 @@ public class TrajectoryPathRenderer implements MovablePointEventHandler, Seriali
     public void addPoint(CloseTrajectoryPoint closePoint) {
         assert trajectory != null;
         Pose2d newPoint = trajectory.sample(closePoint.pointTime).poseMeters;
-        controlVectors.add(closePoint.prevPointIndex + 1, new ControlVector(new double[]{newPoint.getX(), 1, 0}, new double[]{newPoint.getY(), 0, 0}));
+        controlVectors.add(closePoint.prevPointIndex + 1,
+                new ControlVector(new double[]{newPoint.getX(), 1, 0}, new double[]{newPoint.getY(), 0, 0}));
         pointRenderList.add(closePoint.prevPointIndex + 1,
                 new MovablePointRenderer((float) newPoint.getX(), (float) newPoint.getY(), color, POINT_SIZE, this));
         rotation2dList.add(closePoint.prevPointIndex + 1, new Rotation2d(0));
@@ -399,9 +404,11 @@ public class TrajectoryPathRenderer implements MovablePointEventHandler, Seriali
             //update the attached path if needed
             if (attachedPath != null) {
                 if (isAttachedPathEnd) {
-                    ControlVector attachedPathControlVector = attachedPath.controlVectors.get(attachedPath.controlVectors.size() - 1);
+                    ControlVector attachedPathControlVector = attachedPath.controlVectors.get(
+                            attachedPath.controlVectors.size() - 1);
 
-                    Vector2 attachedPathVector = new Vector2((float) attachedPathControlVector.x[1], (float) attachedPathControlVector.y[1]);
+                    Vector2 attachedPathVector = new Vector2((float) attachedPathControlVector.x[1],
+                            (float) attachedPathControlVector.y[1]);
                     if (!config.isHolonomic()) {
                         ControlVector thisControlVector = controlVectors.get(0);
                         attachedPathVector.setAngleRad((float) Math.atan2(thisControlVector.y[1], thisControlVector.x[1]));
@@ -415,7 +422,8 @@ public class TrajectoryPathRenderer implements MovablePointEventHandler, Seriali
                 } else {
                     ControlVector attachedPathControlVector = attachedPath.controlVectors.get(0);
 
-                    Vector2 attachedPathVector = new Vector2((float) attachedPathControlVector.x[1], (float) attachedPathControlVector.y[1]);
+                    Vector2 attachedPathVector = new Vector2((float) attachedPathControlVector.x[1],
+                            (float) attachedPathControlVector.y[1]);
                     if (!config.isHolonomic()) {
                         ControlVector thisControlVector = controlVectors.get(controlVectors.size() - 1);
                         attachedPathVector.setAngleRad((float) Math.atan2(thisControlVector.y[1], thisControlVector.x[1]));
@@ -434,8 +442,6 @@ public class TrajectoryPathRenderer implements MovablePointEventHandler, Seriali
     /**
      * Sets the time on the trajectory that the robot pose preview should be shown. This should be called every frame when it will
      * be shown.
-     *
-     * @param closePoint
      */
     @Override
     public void setRobotPathPreviewPoint(CloseTrajectoryPoint closePoint) {
@@ -473,7 +479,8 @@ public class TrajectoryPathRenderer implements MovablePointEventHandler, Seriali
             double x;
             double y;
             if (dist2 < Math.pow(MIN_CONTROL_VECTOR_DISTANCE, 2)) {
-                double angle = Math.atan2(event.getNewPos().y - referencePoint.getY(), event.getNewPos().x - referencePoint.getX());
+                double angle = Math.atan2(event.getNewPos().y - referencePoint.getY(),
+                        event.getNewPos().x - referencePoint.getX());
                 x = Math.cos(angle) * MIN_CONTROL_VECTOR_DISTANCE;
                 y = Math.sin(angle) * MIN_CONTROL_VECTOR_DISTANCE;
                 event.setPosition((float) x + referencePoint.getX(), (float) y + referencePoint.getY());
@@ -486,10 +493,10 @@ public class TrajectoryPathRenderer implements MovablePointEventHandler, Seriali
                     new double[]{previousControlVector.x[0], x * CONTROL_VECTOR_SCALE, 0},
                     new double[]{previousControlVector.y[0], y * CONTROL_VECTOR_SCALE, 0});
             controlVectors.set(selectionPointIndex, controlVector);
-
         } else if (event.getPoint() == rotationPoint) {
             MovablePointRenderer referencePoint = pointRenderList.get(selectionPointIndex);
-            Rotation2d rotation2d = new Rotation2d(Math.atan2(event.getNewPos().y - referencePoint.getY(), event.getNewPos().x - referencePoint.getX()));
+            Rotation2d rotation2d = new Rotation2d(
+                    Math.atan2(event.getNewPos().y - referencePoint.getY(), event.getNewPos().x - referencePoint.getX()));
             rotation2dList.set(selectionPointIndex, rotation2d);
             event.setPosition((float) (referencePoint.x + rotation2d.getCos()), (float) (referencePoint.y + rotation2d.getSin()));
         } else {
@@ -585,18 +592,19 @@ public class TrajectoryPathRenderer implements MovablePointEventHandler, Seriali
             Vector3 renderVector = MathUtil.toRenderVector3(trajectory.sample(i).poseMeters);
 
             if (currentIndexPos + 1 < controlVectors.size() &&
-                    MathUtil.toRenderVector3(controlVectors.get(currentIndexPos + 1).x[0], controlVectors.get(currentIndexPos + 1).y[0])
+                    MathUtil.toRenderVector3(controlVectors.get(currentIndexPos + 1).x[0],
+                                    controlVectors.get(currentIndexPos + 1).y[0])
                             .dst2(renderVector) < 8f) {
                 currentIndexPos++;
                 rotationsAndTimes.add(new TimedRotation(i, rotation2dList.get(currentIndexPos)));
             }
-
         }
 
         if (rotation2dList.size() - rotationsAndTimes.size() > 1) {
             NotificationHandler.addNotification(new Notification(
                     Color.ORANGE,
-                    "Warning: Path has " + (rotation2dList.size() - rotationsAndTimes.size()) + " extra rotations at the end of the path",
+                    "Warning: Path has " + (rotation2dList.size() - rotationsAndTimes.size()) + " extra rotations at the end of" +
+                            " the path",
                     2000));
         }
 
@@ -612,7 +620,6 @@ public class TrajectoryPathRenderer implements MovablePointEventHandler, Seriali
         selectionPointIndex = -1;
         controlPoint = null;
         highlightPoint = null;
-
     }
 
     public @NotNull Color getColor() {

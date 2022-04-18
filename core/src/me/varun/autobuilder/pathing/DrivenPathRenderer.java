@@ -100,8 +100,7 @@ public class DrivenPathRenderer implements PathRenderer {
             }
         }
 
-        if (NetworkTablesHelper.getInstance().isEnabled()) { //If we're enabled then render the robot preview at the latest
-            // position
+        if (NetworkTablesHelper.getInstance().isEnabled() || true) { //render the robot preview at the latest position
             if (networkTables.getRobotPositions().size() - 1 > 0) {
                 List<RobotPosition> positions = networkTables.getRobotPositions().get(
                         networkTables.getRobotPositions().size() - 1);
