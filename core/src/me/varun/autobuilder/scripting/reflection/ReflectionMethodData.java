@@ -17,7 +17,7 @@ public final class ReflectionMethodData {
 
     public ReflectionMethodData(Method method) {
         this.methodName = method.getName();
-        this.parameterTypes = ReflectionUtils.getParameterTypes(method);
+        this.parameterTypes = getParameterTypes(method);
         this.returnType = method.getReturnType().getTypeName();
         this.modifiers = method.getModifiers();
     }
@@ -40,5 +40,13 @@ public final class ReflectionMethodData {
                 ", parameterTypes=" + Arrays.toString(parameterTypes) +
                 ", returnType='" + returnType + '\'' +
                 '}';
+    }
+
+    private static String[] getParameterTypes(Method method) {
+        String[] parameterTypes = new String[method.getParameterCount()];
+        for (int i = 0; i < method.getParameterCount(); i++) {
+            parameterTypes[i] = method.getParameterTypes()[i].getName();
+        }
+        return parameterTypes;
     }
 }

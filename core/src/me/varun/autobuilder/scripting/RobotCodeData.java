@@ -1,12 +1,12 @@
 package me.varun.autobuilder.scripting;
 
 import com.badlogic.gdx.graphics.Color;
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import me.varun.autobuilder.gui.textrendering.Fonts;
 import me.varun.autobuilder.gui.textrendering.TextBlock;
 import me.varun.autobuilder.gui.textrendering.TextComponent;
+import me.varun.autobuilder.net.Serializer;
 import me.varun.autobuilder.scripting.reflection.ReflectionClassData;
+import me.varun.autobuilder.scripting.reflection.ReflectionClassDataList;
 import me.varun.autobuilder.scripting.reflection.ReflectionMethodData;
 import me.varun.autobuilder.scripting.sendable.SendableCommand;
 import me.varun.autobuilder.scripting.util.LintingPos;
@@ -30,7 +30,6 @@ public class RobotCodeData {
 
     public static Map<String, Function<String, Boolean>> inferableTypesVerification;
 
-    
     static {
         inferableTypesVerification = new Hashtable<>();
         inferableTypesVerification.put(int.class.getName(), s -> s.matches("[0-9]+"));
@@ -57,6 +56,7 @@ public class RobotCodeData {
 
     public static Hashtable<String, ReflectionClassData> robotClassesMap = new Hashtable<>();
     public static Hashtable<String, ReflectionClassData> robotFullNameClassesMap = new Hashtable<>();
+    public static List<String> accessibleClasses;
 
     public static void initData() {
         try {
@@ -68,15 +68,19 @@ public class RobotCodeData {
             fileInputStream.close();
             String string = new String(bytes);
 
-            robotClasses = new ObjectMapper().readValue(string, new TypeReference<ArrayList<ReflectionClassData>>() {
-            });
-            
+            ReflectionClassDataList reflectionClassDataList =
+                    (ReflectionClassDataList) Serializer.deserialize(string, ReflectionClassDataList.class);
+
+            robotClasses = reflectionClassDataList.reflectionClassData;
+            accessibleClasses = reflectionClassDataList.instanceLocations;
+
             for (ReflectionClassData robotClass : robotClasses) {
                 String[] splitFullName = robotClass.fullName.split("\\.");
                 robotClassesMap.put(splitFullName[splitFullName.length - 1], robotClass);
                 robotFullNameClassesMap.put(robotClass.fullName, robotClass);
                 robotClass.initMap();
             }
+
 
             System.out.println("Loaded " + robotClassesMap.size() + " robot classes");
         } catch (IOException e) {
@@ -88,7 +92,8 @@ public class RobotCodeData {
     private static final TextComponent executingUsingReflectionComponent =
             new TextComponent("Executing this method using reflection\n").setBold(true);
 
-    public static boolean validateMethod(StringIndex classMethod, StringIndex[] args, List<LintingPos> lintingPositions, ArrayList<SendableCommand> sendableCommands) {
+    public static boolean validateMethod(StringIndex classMethod, StringIndex[] args, List<LintingPos> lintingPositions,
+                                         ArrayList<SendableCommand> sendableCommands) {
         StringIndex[] classAndMethod = splitWithIndex(classMethod.string, periodPattern, classMethod.index);
 
         boolean error = false;
@@ -97,7 +102,7 @@ public class RobotCodeData {
 
         // Even if there are errors still try and find the class
         ReflectionClassData reflectionClassData = null;
-        boolean singleton = false;
+        boolean hasInstance = false;
         if (classAndMethod.length > 0) {
             reflectionClassData = robotClassesMap.get(classAndMethod[0].string);
             if (reflectionClassData == null) {
@@ -105,13 +110,18 @@ public class RobotCodeData {
                 classTextComponents.add(new TextComponent(classAndMethod[0].string).setItalic(true));
                 error = true;
             } else {
-                if (reflectionClassData.methodMap.containsKey("getInstance")) {
+                if (accessibleClasses.contains(reflectionClassData.fullName)) {
+                    hasInstance = true;
+                    classTextComponents.add(new TextComponent("Using annotated instance for class "));
+                } else if (reflectionClassData.methodMap.containsKey("getInstance")) {
                     ReflectionMethodData singletonMethod = reflectionClassData.methodMap.get("getInstance").stream()
                             .filter(methodData -> methodData.parameterTypes.length == 0).findFirst().orElse(null);
-                    singleton = isStatic(singletonMethod) && singletonMethod.returnType.equals(reflectionClassData.fullName);
+                    hasInstance = isStatic(singletonMethod) && singletonMethod.returnType.equals(reflectionClassData.fullName);
+                    classTextComponents.add(new TextComponent("Using singleton class "));
+                } else {
+                    classTextComponents.add(new TextComponent("Using class "));
                 }
-
-                classTextComponents.add(new TextComponent("Using " + (singleton ? "singleton " : "") + "class "));
+                
                 classTextComponents.add(new TextComponent(reflectionClassData.fullName).setItalic(true));
             }
         }
@@ -135,7 +145,7 @@ public class RobotCodeData {
         if (reflectionClassData.methodMap.containsKey(classAndMethod[1].string)) {
 
             List<ReflectionMethodData> callableMethods = reflectionClassData.methodMap.get(classAndMethod[1].string);
-            if (!singleton) {
+            if (!hasInstance) {
                 callableMethods = callableMethods.stream().filter(RobotCodeData::isStatic).collect(Collectors.toList());
             }
 
@@ -147,19 +157,6 @@ public class RobotCodeData {
                                 "Possible Fixes:\n" +
                                 "   Make the method static\n" +
                                 "   Make the class a singleton"))));
-                return false;
-            }
-
-            callableMethods = callableMethods.stream().filter(methodData -> Modifier.isPublic(methodData.modifiers))
-                    .collect(Collectors.toList());
-
-            if (callableMethods.size() == 0) {
-                lintingPositions.add(new LintingPos(classAndMethod[1].index, Color.RED, new TextBlock(Fonts.ROBOTO, 14, 300,
-                        executingUsingReflectionComponent, new TextComponent("\nFound method(s) with the name "),
-                        new TextComponent(classAndMethod[1].string).setItalic(true),
-                        new TextComponent(" but none are public\n\n" +
-                                "Possible Fix:\n" +
-                                "   Make the method public"))));
                 return false;
             }
 
@@ -176,8 +173,10 @@ public class RobotCodeData {
                         new TextComponent(Integer.toString(args.length)).setItalic(true),
                         new TextComponent("\n\nPossible arguments are:\n"),
                         new TextComponent(reflectionClassData.methodMap.get(classAndMethod[1].string).stream()
-                                .map(methodData -> Arrays.stream(methodData.parameterTypes) // Map a method into a string of its argument types
-                                        .map(parameterName -> { // Remove the package name from the argument name. Also add the enum fields names if applicable.
+                                .map(methodData -> Arrays.stream(
+                                                methodData.parameterTypes) // Map a method into a string of its argument types
+                                        .map(parameterName -> { // Remove the package name from the argument name. Also add the
+                                            // enum fields names if applicable.
                                             String[] splitFullName = parameterName.split("\\.");
                                             if (inferableTypesVerification.containsKey(parameterName)) {
                                                 return splitFullName[splitFullName.length - 1];
@@ -249,7 +248,6 @@ public class RobotCodeData {
                                                 }
                                                 return splitFullName[splitFullName.length - 1] + " (can't infer)";
                                             }
-
                                         }).collect(Collectors.joining(", ")))
                                 .map(s -> s.equals("") ? "<no arguments>" : s)
                                 .collect(Collectors.joining("\n\n"))) //Separate each method by a newline

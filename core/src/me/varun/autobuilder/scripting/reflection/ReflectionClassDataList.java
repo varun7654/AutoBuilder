@@ -3,12 +3,23 @@ package me.varun.autobuilder.scripting.reflection;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+import java.util.ArrayList;
+
 public class ReflectionClassDataList {
-    @JsonProperty
-    public ReflectionClassData[] reflectionClassData;
+    @JsonProperty("reflectionClassData")
+    public ArrayList<ReflectionClassData> reflectionClassData = new ArrayList<>();
+
+    @JsonProperty("instanceLocations")
+    public ArrayList<String> instanceLocations = new ArrayList<>();
 
     @JsonCreator
-    public ReflectionClassDataList(@JsonProperty ReflectionClassData[] reflectionClassData) {
+    protected ReflectionClassDataList() {
+    }
+
+
+    ReflectionClassDataList(@JsonProperty ArrayList<ReflectionClassData> reflectionClassData,
+                            @JsonProperty ArrayList<String> instanceLocations) {
         this.reflectionClassData = reflectionClassData;
+        this.instanceLocations = instanceLocations;
     }
 }
