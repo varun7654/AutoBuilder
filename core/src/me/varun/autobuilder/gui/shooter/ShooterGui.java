@@ -9,6 +9,7 @@ import com.badlogic.gdx.graphics.g2d.Batch;
 import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.scenes.scene2d.utils.ScissorStack;
 import com.badlogic.gdx.utils.viewport.Viewport;
+import me.varun.autobuilder.AutoBuilder;
 import me.varun.autobuilder.CameraHandler;
 import me.varun.autobuilder.events.input.InputEventListener;
 import me.varun.autobuilder.events.input.InputEventThrower;
@@ -135,8 +136,13 @@ public class ShooterGui extends InputEventListener implements NumberTextboxChang
 
         scrollPos = MathUtil.clamp(scrollPos, -65, -65 + (shooterConfig.getShooterConfigs().size() + 1) * 27);
         smoothScrollPos = (float) (smoothScrollPos + (scrollPos - smoothScrollPos) / Math.max(1,
-                0.05 / Gdx.graphics.getDeltaTime()));
+                0.05 / AutoBuilder.getDeltaTime()));
 
+        if (Math.abs(smoothScrollPos - scrollPos) < 1e-2) {
+            AutoBuilder.disableContinuousRendering(this);
+        } else {
+            AutoBuilder.enableContinuousRendering(this);
+        }
         if (panelOpen) {
             checkBox.setX(panelWidth + panelX - 59);
             checkBox.setY(-3 + panelY + panelHeight + smoothScrollPos - (shooterConfig.getShooterConfigs().size() + 2) * 27);

@@ -5,6 +5,7 @@ import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.math.Vector3;
+import me.varun.autobuilder.AutoBuilder;
 import me.varun.autobuilder.UndoHandler;
 import me.varun.autobuilder.events.movablepoint.MovablePointEventHandler;
 import me.varun.autobuilder.events.movablepoint.PointClickEvent;
@@ -543,6 +544,7 @@ public class TrajectoryPathRenderer implements MovablePointEventHandler, Seriali
                 e.printStackTrace();
                 throw e;
             }
+            AutoBuilder.requestRendering();
             return this.trajectory = trajectory;
         }, executorService);
 

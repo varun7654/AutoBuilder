@@ -41,12 +41,11 @@ import space.earlygrey.shapedrawer.ShapeDrawer;
 import java.io.File;
 import java.io.IOException;
 import java.text.DecimalFormat;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 public final class AutoBuilder extends ApplicationAdapter {
@@ -91,6 +90,7 @@ public final class AutoBuilder extends ApplicationAdapter {
     @NotNull private static Config config = new Config();
     @NotNull private Texture whiteTexture;
     @NotNull public static final String USER_DIRECTORY = OsUtil.getUserConfigDirectory("AutoBuilder");
+    static int fps;
 
     @NotNull public DrivenPathRenderer drivenPathRenderer;
 
@@ -116,6 +116,10 @@ public final class AutoBuilder extends ApplicationAdapter {
         Gdx.graphics.setForegroundFPS(Gdx.graphics.getDisplayMode().refreshRate);
         Gdx.graphics.setVSync(false);
         FileHandler.loadConfig();
+
+        fps = Gdx.graphics.getDisplayMode().refreshRate;
+        Gdx.graphics.setForegroundFPS(Gdx.graphics.getDisplayMode().refreshRate);
+        Gdx.graphics.setContinuousRendering(false);
 
         if (config.isNetworkTablesEnabled()) networkTables.start();
 
@@ -179,11 +183,59 @@ public final class AutoBuilder extends ApplicationAdapter {
     }
 
     long renderTimeMs = 0L;
+    static Set<Object> continuousRendering = Collections.synchronizedSet(new HashSet<>());
+
+    public static void enableContinuousRendering(Object obj) {
+        if (!continuousRendering.contains(obj)) {
+            continuousRendering.add(obj);
+            if (!Gdx.graphics.isContinuousRendering()) {
+                justStartedRendering = true;
+                Gdx.graphics.setContinuousRendering(true);
+            }
+        }
+    }
+
+    public static void requestRendering() {
+        if (!Gdx.graphics.isContinuousRendering()) justStartedRendering = true;
+        Gdx.graphics.requestRendering();
+    }
+
+    public static void somethingInputed() {
+        if (!Gdx.graphics.isContinuousRendering()) justStartedRendering = true;
+    }
+
+    public static void disableContinuousRendering(Object obj) {
+        continuousRendering.remove(obj);
+        Gdx.graphics.setContinuousRendering(continuousRendering.size() > 0);
+    }
+
+    static boolean justStartedRendering = true;
+
+    public static float getDeltaTime() {
+        return justStartedRendering ? 1f / fps : Gdx.graphics.getDeltaTime();
+    }
+
+    static ScheduledThreadPoolExecutor requestedRenderThread = new ScheduledThreadPoolExecutor(1);
+
+    /**
+     * @param delay in milliseconds
+     */
+    public static void scheduleRendering(long delay) {
+        requestedRenderThread.getQueue().clear();
+        requestedRenderThread.schedule(() -> Gdx.graphics.requestRendering(), delay, TimeUnit.MILLISECONDS);
+    }
+
+    public static void scheduleRenderingIfEmpty(long delay) {
+        if (requestedRenderThread.getQueue().isEmpty()) {
+            requestedRenderThread.schedule(() -> Gdx.graphics.requestRendering(), delay, TimeUnit.MILLISECONDS);
+        }
+    }
 
     @Override
     public void render() {
         long prev = System.nanoTime();
         try {
+            Gdx.graphics.setForegroundFPS(fps);
             update();
             draw();
         } catch (Exception e) {
@@ -286,6 +338,7 @@ public final class AutoBuilder extends ApplicationAdapter {
         notificationHandler.processNotification(hudShapeRenderer, hudBatch);
 
         hudBatch.end();
+        justStartedRendering = false;
     }
 
     int lastCloseishPointSelectionIndex = 0;

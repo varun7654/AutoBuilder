@@ -60,7 +60,7 @@ public class CameraHandler extends InputEventListener {
         oldMouseWorldPos.set(zoomMousePos, 0);
         cam.unproject(oldMouseWorldPos);
 
-        cam.zoom = cam.zoom + ((this.zoom - cam.zoom) / (Math.max(1, 0.07f / Gdx.graphics.getDeltaTime()))); //Do Smooth Zoom
+        cam.zoom = cam.zoom + ((this.zoom - cam.zoom) / (Math.max(1, 0.07f / AutoBuilder.getDeltaTime()))); //Do Smooth Zoom
 
         cam.update();
         newMouseWorldPos.set(zoomMousePos, 0);
@@ -91,13 +91,20 @@ public class CameraHandler extends InputEventListener {
         } else {
             // Smoothly move camera to target position
             mouseHeldLastFrame = false;
-            cam.position.x = cam.position.x + ((targetX - cam.position.x) / (Math.max(1, 0.1f / Gdx.graphics.getDeltaTime())));
-            cam.position.y = cam.position.y + ((targetY - cam.position.y) / (Math.max(1, 0.1f / Gdx.graphics.getDeltaTime())));
+            cam.position.x = cam.position.x + ((targetX - cam.position.x) / (Math.max(1, 0.1f / AutoBuilder.getDeltaTime())));
+            cam.position.y = cam.position.y + ((targetY - cam.position.y) / (Math.max(1, 0.1f / AutoBuilder.getDeltaTime())));
             cam.update();
         }
 
         lastMousePos.set(Gdx.input.getX(), Gdx.input.getY());
+
+        if (Math.abs(targetX - cam.position.x) < 1e-2 && Math.abs(targetY - cam.position.y) < 1e-2 && Math.abs(this.zoom - cam.zoom) < 1e-4) {
+            AutoBuilder.disableContinuousRendering(this);
+        } else {
+            AutoBuilder.enableContinuousRendering(this);
+        }
     }
+
 
     @Override
     public void onScroll(float amountX, float amountY) {

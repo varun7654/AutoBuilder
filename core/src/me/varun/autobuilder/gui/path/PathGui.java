@@ -9,6 +9,7 @@ import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.scenes.scene2d.utils.ScissorStack;
 import com.badlogic.gdx.utils.viewport.Viewport;
+import me.varun.autobuilder.AutoBuilder;
 import me.varun.autobuilder.CameraHandler;
 import me.varun.autobuilder.UndoHandler;
 import me.varun.autobuilder.events.input.InputEventListener;
@@ -69,8 +70,6 @@ public class PathGui extends InputEventListener {
         eventThrower.register(this);
 
         this.executorService = executorService;
-
-
     }
 
     public void render(@NotNull ShapeDrawer shapeRenderer, @NotNull PolygonSpriteBatch spriteBatch, @NotNull Camera camera) {
@@ -149,7 +148,13 @@ public class PathGui extends InputEventListener {
 
         scrollPos = MathUtil.clamp(scrollPos, 0, maxScroll);
         smoothScrollPos = (float) (smoothScrollPos + (scrollPos - smoothScrollPos) / Math.max(1,
-                0.05 / Gdx.graphics.getDeltaTime()));
+                0.05 / AutoBuilder.getDeltaTime()));
+
+        if (Math.abs(scrollPos - smoothScrollPos) < 1e-2) {
+            AutoBuilder.disableContinuousRendering(this);
+        } else {
+            AutoBuilder.enableContinuousRendering(this);
+        }
 
         boolean onGui = false;
 
@@ -229,14 +234,13 @@ public class PathGui extends InputEventListener {
 
 
     Random random = new Random();
+
     public @NotNull Color getNextColor() {
         java.awt.Color colorJava = new java.awt.Color(HSBtoRGB(random.nextFloat(), 1, 1));
         return new Color(colorJava.getRed() / 255f, colorJava.getGreen() / 255f, colorJava.getBlue() / 255f, 1);
     }
-    
+
     public @Nullable TrajectoryItem getLastPath() {
         return lastPath;
     }
-
-
 }
