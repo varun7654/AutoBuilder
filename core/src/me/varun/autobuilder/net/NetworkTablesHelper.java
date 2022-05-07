@@ -1,7 +1,6 @@
 package me.varun.autobuilder.net;
 
 import com.badlogic.gdx.graphics.Color;
-import com.badlogic.gdx.math.Vector2;
 import edu.wpi.first.networktables.NetworkTable;
 import edu.wpi.first.networktables.NetworkTableEntry;
 import edu.wpi.first.networktables.NetworkTableInstance;
@@ -23,64 +22,25 @@ import java.util.List;
 
 public final class NetworkTablesHelper {
 
-    private static final float INCHES_PER_METER = 39.3700787f;
-    static NetworkTablesHelper networkTablesInstance = new NetworkTablesHelper();
+    private static final NetworkTablesHelper networkTablesInstance = new NetworkTablesHelper();
     private final ArrayList<List<RobotPosition>> robotPositions = new ArrayList<>();
     NetworkTableInstance inst = NetworkTableInstance.getDefault();
-    NetworkTable table = inst.getTable("autodata");
-    NetworkTableEntry autoPath = table.getEntry("autoPath");
-
+    NetworkTable autoData = inst.getTable("autodata");
+    NetworkTableEntry autoPath = autoData.getEntry("autoPath");
     NetworkTable smartDashboardTable = inst.getTable("SmartDashboard");
-    NetworkTableEntry last_estimated_robot_pose_x = smartDashboardTable.getEntry("Last Estimated Robot Pose X");
-    NetworkTableEntry last_estimated_robot_pose_y = smartDashboardTable.getEntry("Last Estimated Robot Pose Y");
-    NetworkTableEntry last_estimated_robot_pose_angle = smartDashboardTable.getEntry("Last Estimated Robot Pose Angle");
-    NetworkTableEntry last_estimated_robot_velocity_x = smartDashboardTable.getEntry("Last Estimated Robot Velocity X");
-    NetworkTableEntry last_estimated_robot_velocity_y = smartDashboardTable.getEntry("Last Estimated Robot Velocity Y");
-    NetworkTableEntry last_estimated_robot_velocity_theta = smartDashboardTable.getEntry("Last Estimated Robot Velocity Theta");
-    NetworkTableEntry timestamp = smartDashboardTable.getEntry("Timestamp");
 
-    NetworkTableEntry shooterAngleBias = smartDashboardTable.getEntry("Shooter Angle Bias");
-
-
-    NetworkTableEntry vision_pose_x = smartDashboardTable.getEntry("Vision Pose X");
-    NetworkTableEntry vision_pose_y = smartDashboardTable.getEntry("Vision Pose Y");
-    NetworkTableEntry vision_pose_angle = smartDashboardTable.getEntry("Vision Pose Angle");
-    NetworkTableEntry vision_pose_time = smartDashboardTable.getEntry("Vision Pose Time");
-
-    NetworkTableEntry predicted_future_pose_x = smartDashboardTable.getEntry("Predicted Future Pose X");
-    NetworkTableEntry predicted_future_pose_y = smartDashboardTable.getEntry("Predicted Future Pose Y");
-    NetworkTableEntry predicted_future_pose_time = smartDashboardTable.getEntry("Predicted Future Pose Time");
-
-
-    NetworkTableEntry enabledTable = table.getEntry("enabled");
-
-    NetworkTableEntry processingTable = table.getEntry("processing");
-    NetworkTableEntry processingIdTable = table.getEntry("processingid");
+    NetworkTableEntry processingTable = autoData.getEntry("processing");
+    NetworkTableEntry processingIdTable = autoData.getEntry("processingid");
     NetworkTableEntry shooterConfigStatusIdEntry = inst.getTable("limelightgui").getEntry("shooterconfigStatusId");
 
     NetworkTableEntry limelightForcedOn = inst.getTable("limelightgui").getEntry("forceledon");
-    NetworkTableEntry limelightCameraTargetHeightOffset = inst.getTable("limelightgui").getEntry("CameraTargetHeightOffset");
 
     NetworkTableEntry shooterConfigEntry = inst.getTable("limelightgui").getEntry("shooterconfig");
     NetworkTableEntry shooterConfigStatusEntry = inst.getTable("limelightgui").getEntry("shooterconfigStatus");
 
-    NetworkTableEntry LimelightCameraYAngle = inst.getTable("limelightgui").getEntry("CameraYAngle");
-    NetworkTable limelightTable = inst.getTable("limelight");
+    NetworkTableEntry enabledTable = autoData.getEntry("enabled");
 
-    NetworkTableEntry adjustedGoalPosX = smartDashboardTable.getEntry("Calculated Target X");
-    NetworkTableEntry adjustedGoalPosY = smartDashboardTable.getEntry("Calculated Target Y");
-
-
-    /**
-     * get the adjusted gaol pos in meters
-     */
-    public @Nullable Vector2 getAdjustedGoalPos() {
-        if (adjustedGoalPosX.exists()) {
-            return new Vector2((float) adjustedGoalPosX.getDouble(-10000), (float) adjustedGoalPosY.getDouble(-10000));
-        } else {
-            return null;
-        }
-    }
+    NetworkTableEntry robotPositionsEntry = autoData.getEntry("robotPositions");
 
     public boolean isEnabled() {
         return enabled;
@@ -98,10 +58,7 @@ public final class NetworkTablesHelper {
     }
 
     public void start() {
-        inst.startClientTeam(
-                AutoBuilder.getConfig().getTeamNumber());  // where TEAM=190, 294, etc, or use inst.startClient("hostname") or
-        // similar
-        //inst.startDSClient();  // recommended if running on DS computer; this gets the robot IP from the DS
+        inst.startClientTeam(AutoBuilder.getConfig().getTeamNumber());
     }
 
 
@@ -132,59 +89,49 @@ public final class NetworkTablesHelper {
         }
     }
 
-    private double lastVisionPoseTime = 0;
-    private double lastPredictedPoseTime = 0;
+    private double lastRobotPositionTime = 0;
 
     public void updateNT() {
         if (inst.isConnected()) {
-            double time = timestamp.getDouble(0);
             if (!enabledTable.getBoolean(false)) {
                 enabled = false;
             }
 
+            // Only clear if we're moving from disabled to enabled
             if (enabledTable.getBoolean(false) && !enabled) {
                 robotPositions.clear();
                 enabled = true;
             }
 
-            if (robotPositions.size() < 1 || time != robotPositions.get(robotPositions.size() - 1).get(0).time) {
-                List<RobotPosition> poses = new ArrayList<>(3);
-                poses.add(new RobotPosition(
-                        last_estimated_robot_pose_x.getDouble(0),
-                        last_estimated_robot_pose_y.getDouble(0),
-                        last_estimated_robot_pose_angle.getDouble(0),
-                        last_estimated_robot_velocity_x.getDouble(0),
-                        last_estimated_robot_velocity_y.getDouble(0),
-                        last_estimated_robot_velocity_theta.getDouble(0),
-                        timestamp.getDouble(0),
-                        "Last Estimated Robot Position"
-                ));
 
-                if (time - vision_pose_time.getDouble(0) < 0.5) {
-                    poses.add(new RobotPosition(
-                            vision_pose_x.getDouble(0),
-                            vision_pose_y.getDouble(0),
-                            (float) vision_pose_angle.getDouble(0),
-                            0, 0, 0,
-                            vision_pose_time.getDouble(0),
-                            "Vision Position"
-                    ));
-                    lastVisionPoseTime = vision_pose_time.getDouble(0);
+            @Nullable String positions = robotPositionsEntry.getString(null);
+            if (positions != null) {
+                String[] positionsArray = positions.split(";");
+                List<RobotPosition> positionsList = new ArrayList<>(positionsArray.length);
+                for (String s : positionsArray) {
+                    RobotPosition robotPosition = RobotPosition.fromString(s);
+                    if (robotPosition != null) {
+                        positionsList.add(robotPosition);
+                    }
                 }
+                positionsList.sort((o1, o2) -> {
+                    if (o1.name.equals("Robot Position")) { // Always put robot position first
+                        return -1;
+                    } else if (o2.name.equals("Robot Position")) {
+                        return 1;
+                    } else {
+                        return o1.name.compareTo(o2.name);
+                    }
+                });
 
-                if (time - predicted_future_pose_time.getDouble(0) < 0.5) {
-                    poses.add(new RobotPosition(
-                            predicted_future_pose_x.getDouble(0),
-                            predicted_future_pose_y.getDouble(0),
-                            last_estimated_robot_pose_angle.getDouble(0),
-                            0, 0, 0,
-                            predicted_future_pose_time.getDouble(0),
-                            "Predicted Future Position"
-                    ));
-                    lastPredictedPoseTime = predicted_future_pose_time.getDouble(0);
+                if (positionsList.size() > 0) {
+                    RobotPosition robotPosition = positionsList.get(0);
+                    if (robotPosition.name.equals("Robot Position") && robotPosition.time > lastRobotPositionTime) {
+                        // Only add this position if it's newer than the last one
+                        robotPositions.add(positionsList);
+                        lastRobotPositionTime = robotPosition.time;
+                    }
                 }
-
-                robotPositions.add(poses);
             }
 
 
@@ -210,10 +157,6 @@ public final class NetworkTablesHelper {
         limelightForcedOn.setBoolean(forcedOn);
     }
 
-    public boolean isTargetVisible() {
-        return limelightTable.getEntry("tv").getDouble(0) == 1;
-    }
-
     public void setShooterConfig(ShooterConfig shooterConfig) {
         try {
             this.shooterConfigEntry.setString(Serializer.serializeToString(shooterConfig));
@@ -230,22 +173,6 @@ public final class NetworkTablesHelper {
         return shooterConfigStatusEntry.getDouble(-1);
     }
 
-    /**
-     * @return Horizontal Offset From Crosshair To Target (LL1: -27 degrees to 27 degrees | LL2: -29.8 to 29.8 degrees)
-     */
-    public double getLimelightHorizontalOffset() {
-        return limelightTable.getEntry("tx").getDouble(0);
-    }
-
-    /**
-     * @return Vertical Offset From Crosshair To Target (LL1: -20.5 degrees to 20.5 degrees | LL2: -24.85 to 24.85 degrees)
-     */
-    public double getLimelightVerticalOffset() {
-        return limelightTable.getEntry("ty").getDouble(0);
-    }
-
-
-    NetworkTableEntry visionDistanceOffset = NetworkTableInstance.getDefault().getEntry("VisionDistanceOffset");
 
     /**
      * @return Distance from the limelight to the target in cm
@@ -269,9 +196,5 @@ public final class NetworkTablesHelper {
 
     public boolean isConnected() {
         return inst.isConnected();
-    }
-
-    public double getShooterAngleBias() {
-        return shooterAngleBias.getDouble(0);
     }
 }

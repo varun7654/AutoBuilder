@@ -62,24 +62,6 @@ public class DrivenPathRenderer implements PathRenderer {
                     (float) (pos2.x * config.getPointScaleFactor()), (float) (pos2.y * config.getPointScaleFactor()), Color.WHITE,
                     LINE_THICKNESS);
 
-//            Optional<RobotPosition> lastVisionPredictedPose = getRobotPositionForName(i, "Vision Position");
-//            Optional<RobotPosition> nextVisionPredictedPose = getRobotPositionForName(i, "Vision Position");
-//            if (lastVisionPredictedPose.isPresent() && nextVisionPredictedPose.isPresent()) {
-//                pos1 = lastVisionPredictedPose.get();
-//                getPerfectConnectingPoints(pos1, lastPointLeft, lastPointRight);
-//
-//                pos2 = nextVisionPredictedPose.get();
-//                getPerfectConnectingPoints(pos2, nextPointLeft, nextPointRight);
-//
-//                shapeRenderer.setColor(aqua);
-//                shapeRenderer.polygon(new float[]{
-//                        lastPointLeft.x, lastPointLeft.y,
-//                        lastPointRight.x, lastPointRight.y,
-//                        nextPointRight.x, nextPointRight.y,
-//                        nextPointLeft.x, nextPointLeft.y
-//                });
-//            }
-
             if (i == robotPreviewIndex) {
                 ArrayList<TextComponent> textComponents = new ArrayList<>();
 
@@ -91,23 +73,18 @@ public class DrivenPathRenderer implements PathRenderer {
                     addTextComponents(robotPosition, textComponents);
                 }
 
-
-//                textComponents.add(new TextComponent("\n\nLatency Compensated State @").setBold(true).setSize(15));
-//                addTextComponents(pos1, textComponents);
-
                 HoverManager.setHoverText(new TextBlock(Fonts.ROBOTO, 13, 300, textComponents.toArray(new TextComponent[0])),
                         0, Gdx.graphics.getHeight() - 2);
             }
         }
 
-        if (NetworkTablesHelper.getInstance().isEnabled() || true) { //render the robot preview at the latest position
-            if (networkTables.getRobotPositions().size() - 1 > 0) {
-                List<RobotPosition> positions = networkTables.getRobotPositions().get(
-                        networkTables.getRobotPositions().size() - 1);
-                for (int i = 0; i < positions.size(); i++) {
-                    RobotPosition robotPosition = positions.get(i);
-                    renderRobotBoundingBox(shapeRenderer, robotPosition, colors[i]);
-                }
+        //render the robot preview at the latest position
+        if (networkTables.getRobotPositions().size() - 1 > 0) {
+            List<RobotPosition> positions = networkTables.getRobotPositions().get(
+                    networkTables.getRobotPositions().size() - 1);
+            for (int i = 0; i < positions.size(); i++) {
+                RobotPosition robotPosition = positions.get(i);
+                renderRobotBoundingBox(shapeRenderer, robotPosition, colors[i]);
             }
         }
         robotPreviewIndex = -1;

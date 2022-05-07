@@ -18,7 +18,6 @@ import me.varun.autobuilder.gui.path.TrajectoryItem;
 import me.varun.autobuilder.gui.textrendering.Fonts;
 import me.varun.autobuilder.gui.textrendering.TextBlock;
 import me.varun.autobuilder.gui.textrendering.TextComponent;
-import me.varun.autobuilder.net.NetworkTablesHelper;
 import me.varun.autobuilder.pathing.pointclicks.ClosePoint;
 import me.varun.autobuilder.pathing.pointclicks.CloseTrajectoryPoint;
 import me.varun.autobuilder.util.MathUtil;
@@ -211,12 +210,6 @@ public class TrajectoryPathRenderer implements MovablePointEventHandler, Seriali
                 highlightPoint.draw(renderer, cam);
             }
             pointRenderer.draw(renderer, cam);
-        }
-
-        Vector2 adjustedGoalPos = NetworkTablesHelper.getInstance().getAdjustedGoalPos();
-        if (adjustedGoalPos != null) {
-            renderer.circle(adjustedGoalPos.x * config.getPointScaleFactor(),
-                    adjustedGoalPos.y * config.getPointScaleFactor(), 1 * config.getPointScaleFactor(), LINE_THICKNESS);
         }
         //Reset the robot preview time so that it won't be visible in the next frame. (Requires that it is set again)
         robotPreviewTime = -1;

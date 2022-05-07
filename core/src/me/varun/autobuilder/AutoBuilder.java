@@ -13,8 +13,10 @@ import com.badlogic.gdx.utils.viewport.Viewport;
 import javafx.application.Platform;
 import me.varun.autobuilder.config.Config;
 import me.varun.autobuilder.config.gui.ConfigGUI;
+import me.varun.autobuilder.config.gui.FileHandler;
 import me.varun.autobuilder.events.input.InputEventThrower;
 import me.varun.autobuilder.gui.hover.HoverManager;
+import me.varun.autobuilder.gui.hud.HudRenderer;
 import me.varun.autobuilder.gui.notification.NotificationHandler;
 import me.varun.autobuilder.gui.path.AbstractGuiItem;
 import me.varun.autobuilder.gui.path.PathGui;
@@ -32,7 +34,6 @@ import me.varun.autobuilder.pathing.pointclicks.CloseTrajectoryPoint;
 import me.varun.autobuilder.scripting.RobotCodeData;
 import me.varun.autobuilder.serialization.path.Autonomous;
 import me.varun.autobuilder.util.OsUtil;
-import me.varun.autobuilder.config.gui.FileHandler;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import space.earlygrey.shapedrawer.ShapeDrawer;
@@ -93,6 +94,8 @@ public final class AutoBuilder extends ApplicationAdapter {
 
     @NotNull public DrivenPathRenderer drivenPathRenderer;
 
+    @NotNull public HudRenderer hudRenderer;
+
     @NotNull NotificationHandler notificationHandler = new NotificationHandler();
 
 
@@ -146,7 +149,6 @@ public final class AutoBuilder extends ApplicationAdapter {
         Gdx.gl.glClearColor(0f, 0f, 0f, 1f);
 
 
-
         hudCam = new OrthographicCamera(Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
         hudCam.position.x = Gdx.graphics.getWidth() / 2f;
         hudCam.position.y = Gdx.graphics.getHeight() / 2f;
@@ -163,6 +165,8 @@ public final class AutoBuilder extends ApplicationAdapter {
         File shooterConfigFile = config.getShooterConfigPath();
         shooterConfigFile.getParentFile().mkdirs();
 
+        hudRenderer = new HudRenderer();
+
         try {
             ShooterConfig shooterConfig = (ShooterConfig) Serializer.deserializeFromFile(shooterConfigFile, ShooterConfig.class);
             shooterGui = new ShooterGui(hudViewport, inputEventThrower, cameraHandler, shooterConfig);
@@ -174,14 +178,18 @@ public final class AutoBuilder extends ApplicationAdapter {
         undoHandler.somethingChanged();
     }
 
+    long renderTimeMs = 0L;
+
     @Override
     public void render() {
+        long prev = System.nanoTime();
         try {
             update();
             draw();
         } catch (Exception e) {
             handleCrash(e);
         }
+        renderTimeMs = System.nanoTime() - prev;
     }
 
     DecimalFormat df;
@@ -254,7 +262,7 @@ public final class AutoBuilder extends ApplicationAdapter {
         }
 
         //Fps overlay
-        frameTimes[frameTimePos] = Gdx.graphics.getDeltaTime() * 1000;
+        frameTimes[frameTimePos] = renderTimeMs * 0.000001;
         frameTimePos++;
         if (frameTimePos == frameTimes.length) frameTimePos = 0;
         FontRenderer.renderText(hudBatch, null, 4, 4, new TextBlock(Fonts.JETBRAINS_MONO, 12,
@@ -273,6 +281,7 @@ public final class AutoBuilder extends ApplicationAdapter {
         shooterGui.render(hudShapeRenderer, hudBatch, hudCam);
         configGUI.draw(hudShapeRenderer, hudBatch, hudCam);
         HoverManager.render(hudBatch, hudShapeRenderer);
+        hudRenderer.render(hudShapeRenderer, hudBatch, shooterGui.isPanelOpen() ? 340 : 0);
 
         notificationHandler.processNotification(hudShapeRenderer, hudBatch);
 
@@ -332,7 +341,8 @@ public final class AutoBuilder extends ApplicationAdapter {
 
                     ClosePoint closestPoint = closePoints.get(lastCloseishPointSelectionIndex);
                     if (closestPoint.parentTrajectoryPathRenderer instanceof TrajectoryPathRenderer) {
-                        TrajectoryPathRenderer trajectoryPathRenderer = (TrajectoryPathRenderer) closestPoint.parentTrajectoryPathRenderer;
+                        TrajectoryPathRenderer trajectoryPathRenderer =
+                                (TrajectoryPathRenderer) closestPoint.parentTrajectoryPathRenderer;
                         if (Gdx.app.getInput().isButtonJustPressed(Input.Buttons.RIGHT)) {
                             trajectoryPathRenderer.deletePoint(closestPoint);
                             pointAdded = true;
@@ -343,9 +353,7 @@ public final class AutoBuilder extends ApplicationAdapter {
                             somethingMoved = true;
                         }
                     }
-
                 }
-
             }
         }
         //If we have a selected point, update it every frame
@@ -365,7 +373,7 @@ public final class AutoBuilder extends ApplicationAdapter {
         closeTrajectoryPoints.addAll(drivenPathRenderer.getCloseTrajectoryPoints(maxDistance, mousePos));
         Collections.sort(closeTrajectoryPoints);
 
-        if(closeTrajectoryPoints.size() > 0) {
+        if (closeTrajectoryPoints.size() > 0) {
             //We're hovering over a trajectory
             CloseTrajectoryPoint closeTrajectoryPoint = closeTrajectoryPoints.get(0);
             if (Gdx.app.getInput().isButtonJustPressed(Input.Buttons.RIGHT) && !pointAdded &&

@@ -222,4 +222,9 @@ public class TextComponent {
         this.strikethroughColor = Optional.of(color);
         return this;
     }
+
+    public TextComponent setFont(Fonts font) {
+        this.font = Optional.of(font);
+        return this;
+    }
 }
