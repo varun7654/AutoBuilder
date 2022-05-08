@@ -5,27 +5,27 @@ import me.varun.autobuilder.AutoBuilder;
 import space.earlygrey.shapedrawer.ShapeDrawer;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Iterator;
+import java.util.List;
 
 public class NotificationHandler {
-    private final static ArrayList<Notification> notifications = new ArrayList<>();
+    private final static List<Notification> notifications = Collections.synchronizedList(new ArrayList<>());
 
-    public static void addNotification(Notification notification){
+    public static void addNotification(Notification notification) {
         notifications.add(notification);
     }
 
-    ArrayList<Notification> notificationsToDelete = new ArrayList<>();
-     public void processNotification(ShapeDrawer drawer, Batch batch) {
-         notificationsToDelete.clear();
-         for (Notification notification : notifications) {
-             if (notification.tick(drawer, batch)) {
-                 notificationsToDelete.add(notification);
-             }
-         }
-
-         for (Notification notification : notificationsToDelete) {
-             AutoBuilder.disableContinuousRendering(notification);
-             notifications.remove(notification);
-         }
+    public void processNotification(ShapeDrawer drawer, Batch batch) {
+        synchronized (notifications) {
+            Iterator<Notification> iterable = notifications.iterator();
+            while (iterable.hasNext()) {
+                Notification notification = iterable.next();
+                if (notification.tick(drawer, batch)) {
+                    AutoBuilder.disableContinuousRendering(notification);
+                    iterable.remove();
+                }
+            }
+        }
     }
-
 }

@@ -50,7 +50,7 @@ public final class NetworkTablesHelper {
         return enabled;
     }
 
-    private boolean enabled = false;
+    private volatile boolean enabled = false;
 
     private NetworkTablesHelper() {
 
