@@ -27,12 +27,6 @@ public class DrivenPathRenderer implements PathRenderer {
 
     private int robotPreviewIndex = -1;
 
-    private final Color orange = Color.valueOf("ff9800ff");
-    private final Color aqua = Color.valueOf("4dc5c6ff");
-    private final Color red = Color.valueOf("fe0911ff");
-
-    private final Color[] colors = {orange, aqua, red};
-
     DecimalFormat df = new DecimalFormat("#.##");
 
     @NotNull Vector2 lastPointLeft = new Vector2();
@@ -70,7 +64,7 @@ public class DrivenPathRenderer implements PathRenderer {
 
                     for (int j = 0; j < robotPositions.get(i).size(); j++) {
                         RobotPosition robotPosition = robotPositions.get(i).get(j);
-                        renderRobotBoundingBox(shapeRenderer, robotPosition, colors[j]);
+                        renderRobotBoundingBox(shapeRenderer, robotPosition, getColor(j));
 
                         textComponents.add(new TextComponent(robotPosition.name + " @").setBold(true).setSize(15));
                         addTextComponents(robotPosition, textComponents);
@@ -88,11 +82,24 @@ public class DrivenPathRenderer implements PathRenderer {
                     robotPositions.size() - 1);
             for (int i = 0; i < positions.size(); i++) {
                 RobotPosition robotPosition = positions.get(i);
-                renderRobotBoundingBox(shapeRenderer, robotPosition, colors[i]);
+                renderRobotBoundingBox(shapeRenderer, robotPosition, getColor(i));
             }
         }
         robotPreviewIndex = -1;
     }
+
+    List<Color> colors = new ArrayList<>();
+
+    private Color getColor(int i) {
+        if (colors.size() <= i) {
+            // Lazy generate colors as needed
+            Color color = new Color().fromHsv((180 + 71 * i) % 360, 1, 1);
+            color.a = 1;
+            colors.add(color);
+        }
+        return colors.get(i);
+    }
+
 
     private void getPerfectConnectingPoints(RobotPosition pos, Vector2 nextPointLeft, Vector2 nextPointRight) {
         nextPointLeft.set(0, -LINE_THICKNESS / 2);
