@@ -126,6 +126,7 @@ public class PathGui extends InputEventListener {
 
 
         if (pop) {
+            spriteBatch.flush();
             ScissorStack.popScissors();
         }
 

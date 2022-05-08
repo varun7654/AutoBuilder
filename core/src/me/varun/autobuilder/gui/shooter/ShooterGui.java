@@ -303,6 +303,7 @@ public class ShooterGui extends InputEventListener implements NumberTextboxChang
             }
 
             if (pop) {
+                spriteBatch.flush();
                 ScissorStack.popScissors();
             }
         }
