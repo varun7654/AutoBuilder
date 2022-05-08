@@ -7,6 +7,8 @@ import edu.wpi.first.networktables.NetworkTableEntry;
 import edu.wpi.first.networktables.NetworkTableInstance;
 import me.varun.autobuilder.AutoBuilder;
 import me.varun.autobuilder.config.gui.FileHandler;
+import me.varun.autobuilder.gui.hud.HudElement;
+import me.varun.autobuilder.gui.hud.HudRenderer;
 import me.varun.autobuilder.gui.notification.Notification;
 import me.varun.autobuilder.gui.notification.NotificationHandler;
 import me.varun.autobuilder.gui.path.AbstractGuiItem;
@@ -38,6 +40,8 @@ public final class NetworkTablesHelper {
     NetworkTableEntry shooterConfigEntry = inst.getTable("limelightgui").getEntry("shooterconfig");
     NetworkTableEntry shooterConfigStatusEntry = inst.getTable("limelightgui").getEntry("shooterconfigStatus");
 
+    NetworkTableEntry hudElementsEntry = autoData.getEntry("hudElements");
+
     NetworkTableEntry enabledTable = autoData.getEntry("enabled");
 
     NetworkTableEntry robotPositionsEntry = autoData.getEntry("robotPositions");
@@ -56,7 +60,7 @@ public final class NetworkTablesHelper {
         return networkTablesInstance;
     }
 
-    public void start() {
+    public void start(HudRenderer hudRenderer) {
         inst.startClientTeam(AutoBuilder.getConfig().getTeamNumber());
         enabledTable.addListener(entryNotification -> {
             if (entryNotification.getEntry().getBoolean(false)) {
@@ -104,6 +108,21 @@ public final class NetworkTablesHelper {
             } else {
                 NotificationHandler.addNotification(
                         new Notification(LIGHT_GREEN, "The Roborio has set: " + processingId, 1500));
+            }
+        }, EntryListenerFlags.kNew | EntryListenerFlags.kUpdate | EntryListenerFlags.kImmediate);
+
+        hudElementsEntry.addListener(entryNotification -> {
+            @Nullable String hudElementsString = entryNotification.getEntry().getString(null);
+            if (hudElementsString != null) {
+                String[] hudElementsStringArray = hudElementsString.split(";");
+
+                List<HudElement> hudElements = new ArrayList<>(hudElementsStringArray.length);
+                for (String s : hudElementsStringArray) {
+                    HudElement hudElement = HudElement.fromString(s);
+                    hudElements.add(hudElement);
+                }
+
+                hudRenderer.setHudElements(hudElements);
             }
         }, EntryListenerFlags.kNew | EntryListenerFlags.kUpdate | EntryListenerFlags.kImmediate);
     }

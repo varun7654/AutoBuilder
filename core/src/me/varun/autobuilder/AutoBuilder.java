@@ -123,8 +123,6 @@ public final class AutoBuilder extends ApplicationAdapter {
         Gdx.graphics.setForegroundFPS(Gdx.graphics.getDisplayMode().refreshRate);
         Gdx.graphics.setContinuousRendering(false);
 
-        if (config.isNetworkTablesEnabled()) networkTables.start();
-
         FontHandler.updateFonts();
         RobotCodeData.initData();
 
@@ -182,6 +180,8 @@ public final class AutoBuilder extends ApplicationAdapter {
         }
         configGUI = new ConfigGUI();
         undoHandler.somethingChanged();
+
+        if (config.isNetworkTablesEnabled()) networkTables.start(hudRenderer);
     }
 
     long renderTimeMs = 0L;
