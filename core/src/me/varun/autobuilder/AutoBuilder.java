@@ -46,6 +46,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 
 public final class AutoBuilder extends ApplicationAdapter {
@@ -69,6 +70,7 @@ public final class AutoBuilder extends ApplicationAdapter {
 
     @NotNull private final Vector3 mousePos = new Vector3();
     @NotNull private final Vector3 lastMousePos = new Vector3();
+    @NotNull private final Vector3 mouseDiff = new Vector3();
     @NotNull OrthographicCamera cam;
     @NotNull Viewport viewport;
     @NotNull CameraHandler cameraHandler;
@@ -189,19 +191,19 @@ public final class AutoBuilder extends ApplicationAdapter {
         if (!continuousRendering.contains(obj)) {
             continuousRendering.add(obj);
             if (!Gdx.graphics.isContinuousRendering()) {
-                justStartedRendering = true;
+                justStartedRendering.set(true);
                 Gdx.graphics.setContinuousRendering(true);
             }
         }
     }
 
     public static void requestRendering() {
-        if (!Gdx.graphics.isContinuousRendering()) justStartedRendering = true;
+        if (!Gdx.graphics.isContinuousRendering()) justStartedRendering.set(true);
         Gdx.graphics.requestRendering();
     }
 
     public static void somethingInputed() {
-        if (!Gdx.graphics.isContinuousRendering()) justStartedRendering = true;
+        if (!Gdx.graphics.isContinuousRendering()) justStartedRendering.set(true);
     }
 
     public static void disableContinuousRendering(Object obj) {
@@ -209,10 +211,10 @@ public final class AutoBuilder extends ApplicationAdapter {
         Gdx.graphics.setContinuousRendering(continuousRendering.size() > 0);
     }
 
-    static boolean justStartedRendering = true;
+    static AtomicBoolean justStartedRendering = new AtomicBoolean();
 
     public static float getDeltaTime() {
-        return justStartedRendering ? 1f / fps : Gdx.graphics.getDeltaTime();
+        return justStartedRendering.get() ? 1f / fps : Gdx.graphics.getDeltaTime();
     }
 
     static ScheduledThreadPoolExecutor requestedRenderThread = new ScheduledThreadPoolExecutor(1);
@@ -338,7 +340,7 @@ public final class AutoBuilder extends ApplicationAdapter {
         notificationHandler.processNotification(hudShapeRenderer, hudBatch);
 
         hudBatch.end();
-        justStartedRendering = false;
+        justStartedRendering.set(false);
     }
 
     int lastCloseishPointSelectionIndex = 0;
@@ -348,9 +350,6 @@ public final class AutoBuilder extends ApplicationAdapter {
 
     private void update() {
         undoHandler.update(pathGui, inputEventThrower, cameraHandler);
-
-        networkTables.updateNT();
-
         boolean onGui = pathGui.update();
         onGui = onGui | shooterGui.update();
         onGui = onGui | configGUI.update();
@@ -359,6 +358,7 @@ public final class AutoBuilder extends ApplicationAdapter {
 
         mousePos.set(Gdx.input.getX(), Gdx.input.getY(), 0);
         cam.unproject(mousePos);
+        mouseDiff.set(mousePos).sub(lastMousePos);
 
         //Figure out the max distance a point can be from the mouse
         float maxDistance = (float) Math.pow(20 * cam.zoom, 2);
@@ -367,6 +367,7 @@ public final class AutoBuilder extends ApplicationAdapter {
 
         boolean pointAdded = false;
         //Check if we need to delete/add a point
+
         if (Gdx.app.getInput().isButtonJustPressed(Input.Buttons.RIGHT) ||
                 Gdx.app.getInput().isButtonJustPressed(Input.Buttons.LEFT)) {
             if (lastSelectedPoint == null ||
@@ -401,7 +402,8 @@ public final class AutoBuilder extends ApplicationAdapter {
                             pointAdded = true;
                             somethingMoved = false;
                         } else {
-                            trajectoryPathRenderer.selectPoint(closestPoint, cam, mousePos, lastMousePos, pathGui.guiItems);
+                            trajectoryPathRenderer.selectPoint(closestPoint, cam, mousePos, mouseDiff,
+                                    pathGui.guiItems);
                             lastSelectedPoint = closestPoint;
                             somethingMoved = true;
                         }
@@ -411,7 +413,7 @@ public final class AutoBuilder extends ApplicationAdapter {
         }
         //If we have a selected point, update it every frame
         if (lastSelectedPoint != null) {
-            lastSelectedPoint.parentTrajectoryPathRenderer.updatePoint(cam, mousePos, lastMousePos);
+            lastSelectedPoint.parentTrajectoryPathRenderer.updatePoint(cam, mousePos, mouseDiff);
             somethingMoved = Gdx.input.isButtonJustPressed(Input.Buttons.LEFT);
         }
 

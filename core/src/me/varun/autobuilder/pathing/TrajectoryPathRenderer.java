@@ -317,14 +317,14 @@ public class TrajectoryPathRenderer implements MovablePointEventHandler, Seriali
     }
 
     /**
-     * @param closePoint   object that was created by {@link TrajectoryPathRenderer#getClosePoints(float, Vector3)}
-     * @param camera       the camera
-     * @param mousePos     the current mouse position
-     * @param lastMousePos the last mouse position
-     * @param itemList     the list of gui items that contains all the path items
+     * @param closePoint object that was created by {@link TrajectoryPathRenderer#getClosePoints(float, Vector3)}
+     * @param camera     the camera
+     * @param mousePos   the current mouse position
+     * @param mouseDiff  the difference between the current and last mouse position
+     * @param itemList   the list of gui items that contains all the path items
      */
     public void selectPoint(@NotNull ClosePoint closePoint, @NotNull OrthographicCamera camera, @NotNull Vector3 mousePos,
-                            @NotNull Vector3 lastMousePos, @NotNull List<AbstractGuiItem> itemList) {
+                            @NotNull Vector3 mouseDiff, @NotNull List<AbstractGuiItem> itemList) {
         selectionPointIndex = closePoint.index;
         attachedPath = null;
 
@@ -376,27 +376,27 @@ public class TrajectoryPathRenderer implements MovablePointEventHandler, Seriali
         }
 
         MovablePointRenderer point = pointRenderList.get(selectionPointIndex);
-        point.update(camera, mousePos, lastMousePos);
+        point.update(camera, mousePos, mouseDiff);
     }
 
     /**
      * Update the point that is selected. This should be called every frame.
      *
-     * @param camera       the camera
-     * @param mousePos     the current mouse position
-     * @param lastMousePos the last mouse position
+     * @param camera   the camera
+     * @param mousePos the current mouse position
      */
     @Override
-    public void updatePoint(OrthographicCamera camera, Vector3 mousePos, Vector3 lastMousePos) {
+    public void updatePoint(OrthographicCamera camera, Vector3 mousePos, Vector3 mouseDiff) {
         if (selectionPointIndex != -1) {
             MovablePointRenderer selectedPoint = pointRenderList.get(selectionPointIndex);
-            selectedPoint.update(camera, mousePos, lastMousePos);
-            if ((controlPoint == null || !controlPoint.update(camera, mousePos, lastMousePos)) && rotationPoint != null) {
-                rotationPoint.update(camera, mousePos, lastMousePos);
+            selectedPoint.update(camera, mousePos, mouseDiff);
+            if ((controlPoint == null || !controlPoint.update(camera, mousePos, mouseDiff))
+                    && rotationPoint != null) {
+                rotationPoint.update(camera, mousePos, mouseDiff);
             }
 
             //update the attached path if needed
-            if (attachedPath != null) {
+            if (attachedPath != null && !mouseDiff.isZero()) {
                 if (isAttachedPathEnd) {
                     ControlVector attachedPathControlVector = attachedPath.controlVectors.get(
                             attachedPath.controlVectors.size() - 1);
@@ -544,7 +544,9 @@ public class TrajectoryPathRenderer implements MovablePointEventHandler, Seriali
                 e.printStackTrace();
                 throw e;
             }
+
             AutoBuilder.requestRendering();
+
             return this.trajectory = trajectory;
         }, executorService);
 

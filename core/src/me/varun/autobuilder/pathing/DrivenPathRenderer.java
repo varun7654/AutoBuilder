@@ -18,7 +18,6 @@ import space.earlygrey.shapedrawer.ShapeDrawer;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 
 import static me.varun.autobuilder.AutoBuilder.LINE_THICKNESS;
 
@@ -43,11 +42,13 @@ public class DrivenPathRenderer implements PathRenderer {
 
     @Override
     public void render(@NotNull ShapeDrawer shapeRenderer, @NotNull OrthographicCamera cam) {
-        for (int i = 0; i < networkTables.getRobotPositions().size() - 1; i++) {
-            RobotPosition pos1 = networkTables.getRobotPositions().get(i).get(0);
-            //getPerfectConnectingPoints(pos1, lastPointLeft, lastPointRight);
+        List<List<RobotPosition>> robotPositions = networkTables.getRobotPositions();
+        synchronized (robotPositions) {
+            for (int i = 0; i < robotPositions.size() - 1; i++) {
+                RobotPosition pos1 = robotPositions.get(i).get(0);
+                //getPerfectConnectingPoints(pos1, lastPointLeft, lastPointRight);
 
-            RobotPosition pos2 = networkTables.getRobotPositions().get(i + 1).get(0);
+                RobotPosition pos2 = robotPositions.get(i + 1).get(0);
 //            getPerfectConnectingPoints(pos2, nextPointLeft, nextPointRight);
 //
 //            shapeRenderer.setColor(Color.WHITE);
@@ -58,30 +59,33 @@ public class DrivenPathRenderer implements PathRenderer {
 //                    nextPointLeft.x, nextPointLeft.y
 //            });
 
-            shapeRenderer.line((float) (pos1.x * config.getPointScaleFactor()), (float) (pos1.y * config.getPointScaleFactor()),
-                    (float) (pos2.x * config.getPointScaleFactor()), (float) (pos2.y * config.getPointScaleFactor()), Color.WHITE,
-                    LINE_THICKNESS);
+                shapeRenderer.line((float) (pos1.x * config.getPointScaleFactor()),
+                        (float) (pos1.y * config.getPointScaleFactor()),
+                        (float) (pos2.x * config.getPointScaleFactor()), (float) (pos2.y * config.getPointScaleFactor()),
+                        Color.WHITE,
+                        LINE_THICKNESS);
 
-            if (i == robotPreviewIndex) {
-                ArrayList<TextComponent> textComponents = new ArrayList<>();
+                if (i == robotPreviewIndex) {
+                    ArrayList<TextComponent> textComponents = new ArrayList<>();
 
-                for (int j = 0; j < networkTables.getRobotPositions().get(i).size(); j++) {
-                    RobotPosition robotPosition = networkTables.getRobotPositions().get(i).get(j);
-                    renderRobotBoundingBox(shapeRenderer, robotPosition, colors[j]);
+                    for (int j = 0; j < robotPositions.get(i).size(); j++) {
+                        RobotPosition robotPosition = robotPositions.get(i).get(j);
+                        renderRobotBoundingBox(shapeRenderer, robotPosition, colors[j]);
 
-                    textComponents.add(new TextComponent(robotPosition.name + " @").setBold(true).setSize(15));
-                    addTextComponents(robotPosition, textComponents);
+                        textComponents.add(new TextComponent(robotPosition.name + " @").setBold(true).setSize(15));
+                        addTextComponents(robotPosition, textComponents);
+                    }
+
+                    HoverManager.setHoverText(new TextBlock(Fonts.ROBOTO, 13, 300, textComponents.toArray(new TextComponent[0])),
+                            0, Gdx.graphics.getHeight() - 2);
                 }
-
-                HoverManager.setHoverText(new TextBlock(Fonts.ROBOTO, 13, 300, textComponents.toArray(new TextComponent[0])),
-                        0, Gdx.graphics.getHeight() - 2);
             }
         }
 
         //render the robot preview at the latest position
-        if (networkTables.getRobotPositions().size() - 1 > 0) {
-            List<RobotPosition> positions = networkTables.getRobotPositions().get(
-                    networkTables.getRobotPositions().size() - 1);
+        if (robotPositions.size() - 1 > 0) {
+            List<RobotPosition> positions = robotPositions.get(
+                    robotPositions.size() - 1);
             for (int i = 0; i < positions.size(); i++) {
                 RobotPosition robotPosition = positions.get(i);
                 renderRobotBoundingBox(shapeRenderer, robotPosition, colors[i]);
@@ -126,25 +130,23 @@ public class DrivenPathRenderer implements PathRenderer {
     }
 
     @Override
-    public void updatePoint(OrthographicCamera camera, Vector3 mousePos, Vector3 lastMousePos) {
+    public void updatePoint(OrthographicCamera camera, Vector3 mousePos,
+                            Vector3 mouseDiff) {
 
-    }
-
-    private Optional<RobotPosition> getRobotPositionForName(int timeIndex, @NotNull String name) {
-        List<RobotPosition> robotPositions = networkTables.getRobotPositions().get(timeIndex);
-
-        return robotPositions.stream().filter(pos -> pos.name.equals(name)).findFirst();
     }
 
     @Override
     public @NotNull ArrayList<CloseTrajectoryPoint> getCloseTrajectoryPoints(float maxDistance2, Vector3 mousePos) {
         ArrayList<CloseTrajectoryPoint> points = new ArrayList<>();
-        for (int i = 0; i < networkTables.getRobotPositions().size(); i++) {
-            RobotPosition robotPosition = networkTables.getRobotPositions().get(i).get(0);
-            float len2 = mousePos.dst2((float) (robotPosition.x * config.getPointScaleFactor()),
-                    (float) (robotPosition.y * config.getPointScaleFactor()), 0);
-            if (len2 < maxDistance2) {
-                points.add(new CloseTrajectoryPoint(len2, this, i, 0));
+        List<List<RobotPosition>> robotPositions = networkTables.getRobotPositions();
+        synchronized (robotPositions) {
+            for (int i = 0; i < robotPositions.size(); i++) {
+                RobotPosition robotPosition = robotPositions.get(i).get(0);
+                float len2 = mousePos.dst2((float) (robotPosition.x * config.getPointScaleFactor()),
+                        (float) (robotPosition.y * config.getPointScaleFactor()), 0);
+                if (len2 < maxDistance2) {
+                    points.add(new CloseTrajectoryPoint(len2, this, i, 0));
+                }
             }
         }
         return points;

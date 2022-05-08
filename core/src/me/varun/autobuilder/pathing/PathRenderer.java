@@ -23,11 +23,11 @@ public interface PathRenderer {
     /**
      * Update the point that is selected. This should be called every frame.
      *
-     * @param camera       the camera
-     * @param mousePos     the current mouse position
-     * @param lastMousePos the last mouse position
+     * @param camera    the camera
+     * @param mousePos  the current mouse position
+     * @param mouseDiff the difference between the current and last mouse position
      */
-    void updatePoint(OrthographicCamera camera, Vector3 mousePos, Vector3 lastMousePos);
+    void updatePoint(OrthographicCamera camera, Vector3 mousePos, Vector3 mouseDiff);
 
     /**
      * Get a list of all points that are close to the mouse position.
@@ -58,11 +58,16 @@ public interface PathRenderer {
      * @param rotation Rotation of the point (in radians)
      * @param renderer shapeDrawer
      */
-    default void renderRobotBoundingBox(Vector2 origin, float rotation, @NotNull ShapeDrawer renderer, Color mainColor, Color secondaryColor) {
-        Vector2 leftTop = new Vector2(origin).add(-(config.getRobotWidth() / 2) * config.getPointScaleFactor(), (config.getRobotLength() / 2) * config.getPointScaleFactor());
-        Vector2 rightTop = new Vector2(origin).add((config.getRobotWidth() / 2) * config.getPointScaleFactor(), (config.getRobotLength() / 2) * config.getPointScaleFactor());
-        Vector2 leftBottom = new Vector2(origin).add(-(config.getRobotWidth() / 2) * config.getPointScaleFactor(), -(config.getRobotLength() / 2) * config.getPointScaleFactor());
-        Vector2 rightBottom = new Vector2(origin).add((config.getRobotWidth() / 2) * config.getPointScaleFactor(), -(config.getRobotLength() / 2) * config.getPointScaleFactor());
+    default void renderRobotBoundingBox(Vector2 origin, float rotation, @NotNull ShapeDrawer renderer, Color mainColor,
+                                        Color secondaryColor) {
+        Vector2 leftTop = new Vector2(origin).add(-(config.getRobotWidth() / 2) * config.getPointScaleFactor(),
+                (config.getRobotLength() / 2) * config.getPointScaleFactor());
+        Vector2 rightTop = new Vector2(origin).add((config.getRobotWidth() / 2) * config.getPointScaleFactor(),
+                (config.getRobotLength() / 2) * config.getPointScaleFactor());
+        Vector2 leftBottom = new Vector2(origin).add(-(config.getRobotWidth() / 2) * config.getPointScaleFactor(),
+                -(config.getRobotLength() / 2) * config.getPointScaleFactor());
+        Vector2 rightBottom = new Vector2(origin).add((config.getRobotWidth() / 2) * config.getPointScaleFactor(),
+                -(config.getRobotLength() / 2) * config.getPointScaleFactor());
 
         leftTop.rotateAroundRad(origin, rotation);
         rightTop.rotateAroundRad(origin, rotation);
