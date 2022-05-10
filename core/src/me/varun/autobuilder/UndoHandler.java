@@ -17,11 +17,15 @@ import java.util.ArrayList;
 import java.util.List;
 
 public final class UndoHandler {
-    private static final int MAX_UNDO_HISTORY = 100;
+    private static final int MAX_UNDO_HISTORY = 1000;
     private static final UndoHandler undoHandler = new UndoHandler();
     private @NotNull List<Autonomous> undoHistory = new ArrayList<>();
     int pointer = 0;
     private boolean somethingChanged = false;
+
+    private long lastUndoSaveTime = 0;
+
+    private static final long UNDO_SAVE_INTERVAL = 1000;
 
     private UndoHandler() {
 
@@ -32,28 +36,23 @@ public final class UndoHandler {
     }
 
     public void update(PathGui pathGui, @NotNull InputEventThrower inputEventThrower, @NotNull CameraHandler cameraHandler) {
-        if (somethingChanged) {
-            Autonomous newState = GuiSerializer.serializeAutonomousForUndoHistory(pathGui.guiItems);
-            while (pointer > 0) {
-                undoHistory.remove(0);
-                pointer--;
-            }
-            undoHistory.add(0, newState);
-            if (undoHistory.size() > MAX_UNDO_HISTORY) {
-                undoHistory.remove(undoHistory.size() - 1);
-            }
-            //System.out.println("adding: " + newState);
-            somethingChanged = false;
+        if (somethingChanged && System.currentTimeMillis() - lastUndoSaveTime > UNDO_SAVE_INTERVAL) {
+            saveCurrentState(pathGui);
         }
 
         if ((Gdx.input.isKeyPressed(Input.Keys.CONTROL_LEFT) || Gdx.input.isKeyPressed(Input.Keys.CONTROL_LEFT)) &&
                 Gdx.input.isKeyJustPressed(Input.Keys.Z)) {
+            if (somethingChanged) {
+                saveCurrentState(pathGui);
+            }
             if ((Gdx.input.isKeyPressed(Input.Keys.SHIFT_LEFT) || Gdx.input.isKeyPressed(Input.Keys.SHIFT_RIGHT))) {
                 pointer--;
                 if (pointer >= 0) {
                     restoreState(undoHistory.get(pointer), pathGui, inputEventThrower, cameraHandler);
                     //System.out.println("redoing to: " + undoHistory.get(pointer));
-                } else pointer = 0;
+                } else {
+                    pointer = 0;
+                }
             } else {
                 //Undoing
                 //System.out.println(undoHistory);
@@ -68,7 +67,21 @@ public final class UndoHandler {
 
             FileHandler.save();
         }
+    }
 
+    private void saveCurrentState(PathGui pathGui) {
+        Autonomous newState = GuiSerializer.serializeAutonomousForUndoHistory(pathGui.guiItems);
+        while (pointer > 0) {
+            undoHistory.remove(0);
+            pointer--;
+        }
+        undoHistory.add(0, newState);
+        if (undoHistory.size() > MAX_UNDO_HISTORY) {
+            undoHistory.remove(undoHistory.size() - 1);
+        }
+        //System.out.println("adding: " + newState);
+        somethingChanged = false;
+        lastUndoSaveTime = System.currentTimeMillis();
     }
 
     public void restoreState(Autonomous autonomous, PathGui pathGui, @NotNull InputEventThrower inputEventThrower,
@@ -80,12 +93,12 @@ public final class UndoHandler {
                 Color color = new Color().fromHsv(trajectoryAutonomousStep.getColor(), 1, 1);
                 color.set(color.r, color.g, color.b, 1);
                 TrajectoryItem trajectoryItem = new TrajectoryItem(pathGui, inputEventThrower, cameraHandler,
-                        new ControlVectorList(trajectoryAutonomousStep.getControlVectors()), trajectoryAutonomousStep.getRotations(),
+                        new ControlVectorList(trajectoryAutonomousStep.getControlVectors()),
+                        trajectoryAutonomousStep.getRotations(),
                         trajectoryAutonomousStep.isReversed(), color, trajectoryAutonomousStep.isClosed(),
-                        trajectoryAutonomousStep.getVelocityStart(), trajectoryAutonomousStep.getVelocityEnd(), trajectoryAutonomousStep.getConstraints());
+                        trajectoryAutonomousStep.getVelocityStart(), trajectoryAutonomousStep.getVelocityEnd(),
+                        trajectoryAutonomousStep.getConstraints());
                 guiItemList.add(trajectoryItem);
-
-
             } else if (autonomousStep instanceof ScriptAutonomousStep) {
                 ScriptAutonomousStep scriptAutonomousStep = (ScriptAutonomousStep) autonomousStep;
                 ScriptItem scriptItem = new ScriptItem(inputEventThrower, scriptAutonomousStep.getScript(),
