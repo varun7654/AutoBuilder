@@ -15,6 +15,7 @@ import me.varun.autobuilder.config.Config;
 import me.varun.autobuilder.config.gui.ConfigGUI;
 import me.varun.autobuilder.config.gui.FileHandler;
 import me.varun.autobuilder.events.input.InputEventThrower;
+import me.varun.autobuilder.gui.drawable.DrawableRenderer;
 import me.varun.autobuilder.gui.hover.HoverManager;
 import me.varun.autobuilder.gui.hud.HudRenderer;
 import me.varun.autobuilder.gui.notification.NotificationHandler;
@@ -97,6 +98,7 @@ public final class AutoBuilder extends ApplicationAdapter {
     @NotNull public DrivenPathRenderer drivenPathRenderer;
 
     @NotNull public HudRenderer hudRenderer;
+    @NotNull public DrawableRenderer drawableRenderer;
 
     @NotNull NotificationHandler notificationHandler = new NotificationHandler();
 
@@ -170,6 +172,7 @@ public final class AutoBuilder extends ApplicationAdapter {
         shooterConfigFile.getParentFile().mkdirs();
 
         hudRenderer = new HudRenderer();
+        drawableRenderer = new DrawableRenderer();
 
         try {
             ShooterConfig shooterConfig = (ShooterConfig) Serializer.deserializeFromFile(shooterConfigFile, ShooterConfig.class);
@@ -181,7 +184,7 @@ public final class AutoBuilder extends ApplicationAdapter {
         configGUI = new ConfigGUI();
         undoHandler.somethingChanged();
 
-        if (config.isNetworkTablesEnabled()) networkTables.start(hudRenderer);
+        if (config.isNetworkTablesEnabled()) networkTables.start(hudRenderer, drawableRenderer);
     }
 
     long renderTimeMs = 0L;

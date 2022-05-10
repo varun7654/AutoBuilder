@@ -7,6 +7,7 @@ import edu.wpi.first.networktables.NetworkTableEntry;
 import edu.wpi.first.networktables.NetworkTableInstance;
 import me.varun.autobuilder.AutoBuilder;
 import me.varun.autobuilder.config.gui.FileHandler;
+import me.varun.autobuilder.gui.drawable.*;
 import me.varun.autobuilder.gui.hud.HudElement;
 import me.varun.autobuilder.gui.hud.HudRenderer;
 import me.varun.autobuilder.gui.notification.Notification;
@@ -17,6 +18,7 @@ import me.varun.autobuilder.pathing.RobotPosition;
 import me.varun.autobuilder.serialization.path.Autonomous;
 import me.varun.autobuilder.serialization.path.GuiSerializer;
 import me.varun.autobuilder.serialization.path.NotDeployableException;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.IOException;
@@ -41,6 +43,7 @@ public final class NetworkTablesHelper {
     NetworkTableEntry shooterConfigStatusEntry = inst.getTable("limelightgui").getEntry("shooterconfigStatus");
 
     NetworkTableEntry hudElementsEntry = autoData.getEntry("hudElements");
+    NetworkTableEntry drawablesEntry = autoData.getEntry("drawables");
 
     NetworkTableEntry enabledTable = autoData.getEntry("enabled");
 
@@ -60,7 +63,7 @@ public final class NetworkTablesHelper {
         return networkTablesInstance;
     }
 
-    public void start(HudRenderer hudRenderer) {
+    public void start(HudRenderer hudRenderer, @NotNull DrawableRenderer drawableRenderer) {
         inst.startClientTeam(AutoBuilder.getConfig().getTeamNumber());
         enabledTable.addListener(entryNotification -> {
             if (entryNotification.getEntry().getBoolean(false)) {
@@ -125,6 +128,31 @@ public final class NetworkTablesHelper {
                 }
 
                 hudRenderer.setHudElements(hudElements);
+            }
+        }, EntryListenerFlags.kNew | EntryListenerFlags.kUpdate | EntryListenerFlags.kImmediate);
+
+        drawablesEntry.addListener(entryNotification -> {
+            @Nullable String drawablesString = entryNotification.getEntry().getString(null);
+            if (drawablesString != null) {
+                String[] drawablesStringArray = drawablesString.split(";");
+                ArrayList<Drawable> drawables = new ArrayList<>(drawablesStringArray.length);
+                for (String s : drawablesStringArray) {
+                    switch (s.charAt(0)) {
+                        case 'R':
+                            drawables.add(Rectangle.fromString(s));
+                            break;
+                        case 'P':
+                            drawables.add(Path.fromString(s));
+                            break;
+                        case 'C':
+                            drawables.add(Circle.fromString(s));
+                            break;
+                        case 'L':
+                            drawables.add(Line.fromString(s));
+                            break;
+                    }
+                }
+                drawableRenderer.setDrawables(drawables);
             }
         }, EntryListenerFlags.kNew | EntryListenerFlags.kUpdate | EntryListenerFlags.kImmediate);
     }
