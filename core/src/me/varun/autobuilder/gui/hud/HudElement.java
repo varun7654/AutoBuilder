@@ -10,6 +10,7 @@ import me.varun.autobuilder.gui.textrendering.TextBlock;
 import me.varun.autobuilder.gui.textrendering.TextComponent;
 import me.varun.autobuilder.util.NTUtil;
 import me.varun.autobuilder.util.RoundedShapeRenderer;
+import org.jetbrains.annotations.Nullable;
 import space.earlygrey.shapedrawer.ShapeDrawer;
 
 import java.text.DecimalFormat;
@@ -50,8 +51,11 @@ public class HudElement {
         FontRenderer.renderText(batch, shapeDrawer, hudXOffset + 4, hudYOffset + 8, textBlock);
     }
 
-    public static HudElement fromString(String str) {
+    public static @Nullable HudElement fromString(String str) {
         String[] split = str.split(",");
+        if (split.length != 4) {
+            return null;
+        }
         return new HudElement(
                 NetworkTableInstance.getDefault().getEntry(split[0]),
                 split[1],

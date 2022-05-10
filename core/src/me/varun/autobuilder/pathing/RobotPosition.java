@@ -2,6 +2,7 @@ package me.varun.autobuilder.pathing;
 
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public final class RobotPosition {
     public final double x;
@@ -31,7 +32,7 @@ public final class RobotPosition {
     }
 
     @Contract(pure = true)
-    public static RobotPosition fromString(@NotNull String s) {
+    public static @Nullable RobotPosition fromString(@NotNull String s) {
         String[] split = s.split(",");
         if (split.length != 8) {
             return null;

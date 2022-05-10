@@ -119,7 +119,9 @@ public final class NetworkTablesHelper {
                 List<HudElement> hudElements = new ArrayList<>(hudElementsStringArray.length);
                 for (String s : hudElementsStringArray) {
                     HudElement hudElement = HudElement.fromString(s);
-                    hudElements.add(hudElement);
+                    if (hudElement != null) {
+                        hudElements.add(hudElement);
+                    }
                 }
 
                 hudRenderer.setHudElements(hudElements);
