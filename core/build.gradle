@@ -5,7 +5,8 @@ plugins {
 sourceCompatibility = 11
 [compileJava, compileTestJava]*.options*.encoding = 'UTF-8'
 
-sourceSets.main.java.srcDirs = ["src/"]
+sourceSets.main.java.srcDirs = ["src/main/"]
+sourceSets.test.java.srcDirs = ["src/test/"]
 
 eclipse.project.name = appName + "-core"
 
@@ -24,15 +25,20 @@ javafx {
     modules = ['javafx.fxml']
 }
 
+tasks.named('test') {
+    // Use JUnit Platform for unit tests.
+    useJUnitPlatform()
+}
+
+
 dependencies {
     implementation group: 'org.ejml', name: 'ejml-all', version: '0.41'
-    implementation 'org.jetbrains:annotations:20.1.0'
-    implementation 'org.jetbrains:annotations:20.1.0'
-    implementation 'org.junit.jupiter:junit-jupiter:5.8.1'
-    testImplementation group: 'junit', name: 'junit', version: '4.12'
-    testImplementation 'org.mockito:mockito-core:4.2.0'
-    compileOnly 'org.projectlombok:lombok:1.18.2'
-    implementation 'com.google.guava:guava:27.0-jre'
+    implementation 'org.jetbrains:annotations:23.0.0'
+    implementation 'org.junit.jupiter:junit-jupiter:5.8.2'
+    testImplementation 'junit:junit:4.13.2'
+    testImplementation 'org.mockito:mockito-core:4.5.1'
+    compileOnly 'org.projectlombok:lombok:1.18.24'
+    implementation 'com.google.guava:guava:31.1-jre'
 
     api "com.fasterxml.jackson.core:jackson-annotations:2.10.0"
     api "com.fasterxml.jackson.core:jackson-core:2.10.0"

@@ -35,7 +35,8 @@ public final class UndoHandler {
         return undoHandler;
     }
 
-    public void update(PathGui pathGui, @NotNull InputEventThrower inputEventThrower, @NotNull CameraHandler cameraHandler) {
+    public synchronized void update(PathGui pathGui, @NotNull InputEventThrower inputEventThrower,
+                                    @NotNull CameraHandler cameraHandler) {
         if (somethingChanged && System.currentTimeMillis() - lastUndoSaveTime > UNDO_SAVE_INTERVAL) {
             saveCurrentState(pathGui);
         }
@@ -69,7 +70,7 @@ public final class UndoHandler {
         }
     }
 
-    private void saveCurrentState(PathGui pathGui) {
+    private synchronized void saveCurrentState(PathGui pathGui) {
         Autonomous newState = GuiSerializer.serializeAutonomousForUndoHistory(pathGui.guiItems);
         while (pointer > 0) {
             undoHistory.remove(0);
@@ -84,8 +85,8 @@ public final class UndoHandler {
         lastUndoSaveTime = System.currentTimeMillis();
     }
 
-    public void restoreState(Autonomous autonomous, PathGui pathGui, @NotNull InputEventThrower inputEventThrower,
-                             @NotNull CameraHandler cameraHandler) {
+    public synchronized void restoreState(Autonomous autonomous, PathGui pathGui, @NotNull InputEventThrower inputEventThrower,
+                                          @NotNull CameraHandler cameraHandler) {
         List<AbstractGuiItem> guiItemList = new ArrayList<>();
         for (AbstractAutonomousStep autonomousStep : autonomous.getAutonomousSteps()) {
             if (autonomousStep instanceof TrajectoryAutonomousStep) {
@@ -112,12 +113,12 @@ public final class UndoHandler {
         pathGui.guiItems = guiItemList;
     }
 
-    public void somethingChanged() {
+    public synchronized void somethingChanged() {
         somethingChanged = true;
         FileHandler.save();
     }
 
-    public void clearUndoHistory() {
+    public synchronized void clearUndoHistory() {
         undoHistory.clear();
         pointer = 0;
     }
