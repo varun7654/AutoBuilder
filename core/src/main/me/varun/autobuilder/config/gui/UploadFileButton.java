@@ -2,13 +2,17 @@ package me.varun.autobuilder.config.gui;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Texture;
-import javafx.application.Platform;
-import javafx.stage.FileChooser;
 import me.varun.autobuilder.AutoBuilder;
 import me.varun.autobuilder.gui.elements.AbstractGuiButton;
+import org.jetbrains.annotations.Nullable;
+import org.lwjgl.PointerBuffer;
 
 import java.io.File;
 import java.util.concurrent.CompletableFuture;
+
+import static org.lwjgl.system.MemoryUtil.memAllocPointer;
+import static org.lwjgl.system.MemoryUtil.memFree;
+import static org.lwjgl.util.nfd.NativeFileDialog.*;
 
 
 public class UploadFileButton extends AbstractGuiButton {
@@ -22,22 +26,37 @@ public class UploadFileButton extends AbstractGuiButton {
     @Override
     public boolean checkClick() {
         if (super.checkClick()) {
-            CompletableFuture<File> future = new CompletableFuture<>();
-            Platform.runLater(() -> {
-                        FileChooser fileChooser = new FileChooser();
-                        fileChooser.setTitle("Open an Auto or Config File");
-                        fileChooser.getExtensionFilters().addAll(
-                                new FileChooser.ExtensionFilter("json files", "*.json", "config.json"));
-                fileChooser.setInitialDirectory(AutoBuilder.getConfig().getAutoPath().getParentFile());
-                        File file = fileChooser.showOpenDialog(null);
-                        if (file != null) {
-                            future.complete(file);
-                        }
-                    }
-            );
+            CompletableFuture<File> future = CompletableFuture.supplyAsync(() -> {
+                PointerBuffer outPath = memAllocPointer(1);
+
+                try {
+                    return getFile(
+                            NFD_OpenDialog("json",
+                                    AutoBuilder.getConfig().getAutoPath().getParentFile().getAbsolutePath(),
+                                    outPath),
+                            outPath);
+                } finally {
+                    memFree(outPath);
+                }
+            });
             configGUI.setOpenedFile(future);
             return true;
         }
         return false;
+    }
+
+
+    private static @Nullable File getFile(int result, PointerBuffer path) {
+        switch (result) {
+            case NFD_OKAY:
+                nNFD_Free(path.get(0));
+                return new File(path.getStringUTF8());
+            case NFD_CANCEL:
+                System.out.println("User pressed cancel opening file.");
+                break;
+            default: // NFD_ERROR
+                System.err.format("Error: %s\n", NFD_GetError());
+        }
+        return null;
     }
 }

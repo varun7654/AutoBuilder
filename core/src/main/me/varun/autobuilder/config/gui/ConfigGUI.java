@@ -67,7 +67,10 @@ public class ConfigGUI {
 
         if (completedFile != null) {
             if (completedFile.isDone()) {
-                FileHandler.handleFile(completedFile.join());
+                @Nullable File file = completedFile.join();
+                if (file != null) {
+                    FileHandler.handleFile(file);
+                }
                 completedFile = null;
             }
         }

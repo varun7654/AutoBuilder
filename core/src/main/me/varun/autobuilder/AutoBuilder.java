@@ -10,7 +10,6 @@ import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.utils.viewport.ExtendViewport;
 import com.badlogic.gdx.utils.viewport.ScreenViewport;
 import com.badlogic.gdx.utils.viewport.Viewport;
-import javafx.application.Platform;
 import me.varun.autobuilder.config.Config;
 import me.varun.autobuilder.config.gui.ConfigGUI;
 import me.varun.autobuilder.config.gui.FileHandler;
@@ -116,7 +115,6 @@ public final class AutoBuilder extends ApplicationAdapter {
 
     @Override
     public void create() {
-        Platform.startup(() -> {});
         Gdx.graphics.setForegroundFPS(Gdx.graphics.getDisplayMode().refreshRate);
         Gdx.graphics.setVSync(false);
         FileHandler.loadConfig();

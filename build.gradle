@@ -66,5 +66,10 @@ project(":core") {
     dependencies {
         api "com.badlogicgames.gdx:gdx:$gdxVersion"
         implementation "com.badlogicgames.gdx:gdx-freetype:$gdxVersion"
+        api "org.lwjgl:lwjgl-nfd:3.2.3"
+        api "org.lwjgl:lwjgl-nfd:3.2.3:natives-windows"
+        api "org.lwjgl:lwjgl-nfd:3.2.3:natives-windows-x86"
+        api "org.lwjgl:lwjgl-nfd:3.2.3:natives-linux"
+        api "org.lwjgl:lwjgl-nfd:3.2.3:natives-macos"
     }
 }

@@ -1,7 +1,3 @@
-plugins {
-    id 'org.openjfx.javafxplugin' version '0.0.11'
-}
-
 sourceCompatibility = 11
 [compileJava, compileTestJava]*.options*.encoding = 'UTF-8'
 
@@ -18,11 +14,6 @@ repositories {
             url "https://frcmaven.wpi.edu/artifactory/release/"
         }
     }
-}
-
-javafx {
-    version = '11'
-    modules = ['javafx.fxml']
 }
 
 tasks.named('test') {
