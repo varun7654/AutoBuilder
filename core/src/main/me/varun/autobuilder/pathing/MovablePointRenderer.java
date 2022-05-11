@@ -40,7 +40,7 @@ public class MovablePointRenderer extends PointRenderer {
 
     public boolean update(@NotNull OrthographicCamera camera, @NotNull Vector3 mousePos, Vector3 mouseDiff) {
         if (Gdx.input.isButtonJustPressed(Input.Buttons.LEFT) || Gdx.input.isButtonJustPressed(Input.Buttons.RIGHT)) {
-            if (mouseDiff.len2() < Math.pow(20 * camera.zoom, 2)) {
+            if (new Vector3(mousePos).sub(getRenderPos3()).len2() < Math.pow(20 * camera.zoom, 2)) {
                 PointClickEvent event = new PointClickEvent(getPos2(), this, Gdx.input.isButtonJustPressed(Input.Buttons.LEFT),
                         Gdx.input.isButtonJustPressed(Input.Buttons.RIGHT));
                 eventHandler.onPointClick(event);
