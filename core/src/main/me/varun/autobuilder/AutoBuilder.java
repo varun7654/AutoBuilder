@@ -33,6 +33,7 @@ import me.varun.autobuilder.pathing.pointclicks.ClosePoint;
 import me.varun.autobuilder.pathing.pointclicks.CloseTrajectoryPoint;
 import me.varun.autobuilder.scripting.RobotCodeData;
 import me.varun.autobuilder.serialization.path.Autonomous;
+import me.varun.autobuilder.threading.ScheduledRendering;
 import me.varun.autobuilder.util.OsUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -221,16 +222,19 @@ public final class AutoBuilder extends ApplicationAdapter {
     static ScheduledThreadPoolExecutor requestedRenderThread = new ScheduledThreadPoolExecutor(1);
 
     /**
-     * @param delay in milliseconds
+     * @param delay in milliseconds. Will only be added if a more recent request has not been made.
      */
     public static void scheduleRendering(long delay) {
-        requestedRenderThread.getQueue().clear();
-        requestedRenderThread.schedule(() -> Gdx.graphics.requestRendering(), delay, TimeUnit.MILLISECONDS);
-    }
-
-    public static void scheduleRenderingIfEmpty(long delay) {
-        if (requestedRenderThread.getQueue().isEmpty()) {
-            requestedRenderThread.schedule(() -> Gdx.graphics.requestRendering(), delay, TimeUnit.MILLISECONDS);
+        Runnable runnable = requestedRenderThread.getQueue().peek();
+        if (runnable instanceof ScheduledRendering) {
+            ScheduledRendering scheduledRendering = (ScheduledRendering) runnable;
+            if (scheduledRendering.delay > delay) {
+                requestedRenderThread.getQueue().clear();
+                requestedRenderThread.schedule(new ScheduledRendering(delay), delay, TimeUnit.MILLISECONDS);
+            }
+        } else {
+            requestedRenderThread.getQueue().clear();
+            requestedRenderThread.schedule(new ScheduledRendering(delay), delay, TimeUnit.MILLISECONDS);
         }
     }
 
@@ -306,14 +310,21 @@ public final class AutoBuilder extends ApplicationAdapter {
         long saveTimeDiff = System.currentTimeMillis() - FileHandler.lastSaveTime;
         if (FileHandler.lastSaveTime == -1) {
             lastSave = "Never";
-        } else if (saveTimeDiff < 1000) {
+        } else if (saveTimeDiff < 3000) {
             lastSave = "Just now";
+            scheduleRendering(3001 - saveTimeDiff);
+        } else if (saveTimeDiff < 15000) {
+            lastSave = "A couple of seconds ago";
+            scheduleRendering(15001 - saveTimeDiff);
         } else if (saveTimeDiff < 60000) {
-            lastSave = saveTimeDiff / 1000 + "s ago";
+            lastSave = "In the last minute";
+            scheduleRendering(60001 - saveTimeDiff);
         } else if (saveTimeDiff < 3600000) {
             lastSave = saveTimeDiff / 60000 + "m ago";
+            scheduleRendering((60000 - (saveTimeDiff % 60000)) + 1);
         } else {
             lastSave = saveTimeDiff / 3600000 + "h ago";
+            scheduleRendering((3600000 - (saveTimeDiff % 3600000)) + 1);
         }
 
         //Fps overlay

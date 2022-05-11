@@ -213,10 +213,10 @@ public class TextBox extends InputEventListener {
                 nextFlashChange = System.currentTimeMillis() + 500;
                 AutoBuilder.scheduleRendering(500);
             }
-            
+
             long nextFlashTime = nextFlashChange - System.currentTimeMillis();
             if (nextFlashTime > 0) {
-                AutoBuilder.scheduleRenderingIfEmpty(nextFlashTime);
+                AutoBuilder.scheduleRendering(nextFlashTime);
             }
         }
 
@@ -231,7 +231,8 @@ public class TextBox extends InputEventListener {
                         if (mouseIndexPos >= linting.get(i).index && mouseIndexPos < linting.get(i + 1).index) {
                             lintingPos = linting.get(i);
                         }
-                        textComponents.add(i + 1, new TextComponent(text.substring(linting.get(i).index, linting.get(i + 1).index))
+                        textComponents.add(i + 1, new TextComponent(
+                                text.substring(linting.get(i).index, linting.get(i + 1).index))
                                 .setUnderlined(true).setUnderlineColor(linting.get(i).underlineColor)
                                 .setColor(linting.get(i).color));
                     } else {
@@ -246,7 +247,6 @@ public class TextBox extends InputEventListener {
                             lintingPos = linting.get(i);
                         }
                     }
-
                 }
 
                 // TODO: Change the fixed values to be based of the font
@@ -282,7 +282,6 @@ public class TextBox extends InputEventListener {
                         drawStartY + textBlock.getDefaultSize() - textBlock.getDefaultLineSpacingSize() + 5,
                         cursorTextBlock);
             }
-
         }
         return hovering;
     }
@@ -347,11 +346,10 @@ public class TextBox extends InputEventListener {
      *
      * @param text text to set
      */
-    public  void setText(@NotNull String text) {
-        if(!this.selected){
+    public void setText(@NotNull String text) {
+        if (!this.selected) {
             this.text = text;
         }
-
     }
 
     @Override
@@ -374,7 +372,6 @@ public class TextBox extends InputEventListener {
                 nextKeyPressTimeMap.put(keyCode, System.currentTimeMillis() + KEY_PRESS_DELAY);
                 return true;
             }
-
         } else { // Key released
             keyPressedMap.put(keyCode, false);
         }
