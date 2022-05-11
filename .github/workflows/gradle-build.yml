@@ -21,7 +21,7 @@ jobs:
           settings-path: ${{ github.workspace }} # location for the settings.xml file
 
       - name: Make Executable
-        run: chmod ugo+rwx
+        run: chmod drwxrwxrwx
       - name: Build with Gradle
         run: ./gradlew desktop:dist
 
