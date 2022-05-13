@@ -10,7 +10,6 @@ import com.dacubeking.autobuilder.gui.gui.path.PathGui;
 import com.dacubeking.autobuilder.gui.gui.path.ScriptItem;
 import com.dacubeking.autobuilder.gui.gui.path.TrajectoryItem;
 import com.dacubeking.autobuilder.gui.serialization.path.*;
-import me.varun.autobuilder.serialization.path.*;
 import com.dacubeking.autobuilder.gui.wpi.math.trajectory.TrajectoryGenerator.ControlVectorList;
 import org.jetbrains.annotations.NotNull;
 

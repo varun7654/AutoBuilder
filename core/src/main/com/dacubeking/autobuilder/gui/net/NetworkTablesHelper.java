@@ -2,13 +2,8 @@ package com.dacubeking.autobuilder.gui.net;
 
 import com.badlogic.gdx.graphics.Color;
 import com.dacubeking.autobuilder.gui.AutoBuilder;
-import com.dacubeking.autobuilder.gui.gui.drawable.*;
-import edu.wpi.first.networktables.EntryListenerFlags;
-import edu.wpi.first.networktables.NetworkTable;
-import edu.wpi.first.networktables.NetworkTableEntry;
-import edu.wpi.first.networktables.NetworkTableInstance;
 import com.dacubeking.autobuilder.gui.config.gui.FileHandler;
-import me.varun.autobuilder.gui.drawable.*;
+import com.dacubeking.autobuilder.gui.gui.drawable.*;
 import com.dacubeking.autobuilder.gui.gui.hud.HudElement;
 import com.dacubeking.autobuilder.gui.gui.hud.HudRenderer;
 import com.dacubeking.autobuilder.gui.gui.notification.Notification;
@@ -19,6 +14,10 @@ import com.dacubeking.autobuilder.gui.pathing.RobotPosition;
 import com.dacubeking.autobuilder.gui.serialization.path.Autonomous;
 import com.dacubeking.autobuilder.gui.serialization.path.GuiSerializer;
 import com.dacubeking.autobuilder.gui.serialization.path.NotDeployableException;
+import edu.wpi.first.networktables.EntryListenerFlags;
+import edu.wpi.first.networktables.NetworkTable;
+import edu.wpi.first.networktables.NetworkTableEntry;
+import edu.wpi.first.networktables.NetworkTableInstance;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -156,6 +155,13 @@ public final class NetworkTablesHelper {
                 drawableRenderer.setDrawables(drawables);
             }
         }, EntryListenerFlags.kNew | EntryListenerFlags.kUpdate | EntryListenerFlags.kImmediate);
+
+        if (AutoBuilder.getInstance().shooterGui != null) { // Only add the listeners if the shooter gui is enabled
+            smartDashboardTable.getEntry("Shooter Distance to Target").addListener(
+                    entryNotification -> AutoBuilder.requestRendering(),
+                    EntryListenerFlags.kNew | EntryListenerFlags.kUpdate | EntryListenerFlags.kImmediate
+            );
+        }
     }
 
 
