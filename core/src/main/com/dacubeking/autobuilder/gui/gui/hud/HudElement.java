@@ -2,28 +2,30 @@ package com.dacubeking.autobuilder.gui.gui.hud;
 
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.g2d.Batch;
-import com.dacubeking.autobuilder.gui.util.NTUtil;
-import com.dacubeking.autobuilder.gui.util.RoundedShapeRenderer;
-import edu.wpi.first.networktables.NetworkTableEntry;
-import edu.wpi.first.networktables.NetworkTableInstance;
+import com.badlogic.gdx.utils.Disposable;
+import com.dacubeking.autobuilder.gui.AutoBuilder;
 import com.dacubeking.autobuilder.gui.gui.textrendering.FontRenderer;
 import com.dacubeking.autobuilder.gui.gui.textrendering.Fonts;
 import com.dacubeking.autobuilder.gui.gui.textrendering.TextBlock;
 import com.dacubeking.autobuilder.gui.gui.textrendering.TextComponent;
+import com.dacubeking.autobuilder.gui.util.NTUtil;
+import com.dacubeking.autobuilder.gui.util.RoundedShapeRenderer;
+import edu.wpi.first.networktables.EntryListenerFlags;
+import edu.wpi.first.networktables.NetworkTableEntry;
+import edu.wpi.first.networktables.NetworkTableInstance;
 import org.jetbrains.annotations.Nullable;
 import space.earlygrey.shapedrawer.ShapeDrawer;
 
 import java.text.DecimalFormat;
 
-public class HudElement {
+public class HudElement implements Disposable {
 
-    Color color;
-    NetworkTableEntry entry;
-    String label;
-
-    float width;
-
-    DecimalFormat decimalFormat;
+    protected final Color color;
+    protected final NetworkTableEntry entry;
+    protected final String label;
+    protected float width;
+    protected final DecimalFormat decimalFormat;
+    protected final int listenerId;
 
     public HudElement(NetworkTableEntry entry, String label, Color color, float width, DecimalFormat decimalFormat) {
         this.entry = entry;
@@ -31,6 +33,9 @@ public class HudElement {
         this.color = color;
         this.width = width;
         this.decimalFormat = decimalFormat;
+
+        listenerId = entry.addListener((entryNotification -> AutoBuilder.requestRendering()),
+                EntryListenerFlags.kNew | EntryListenerFlags.kUpdate | EntryListenerFlags.kImmediate);
     }
 
 
@@ -53,7 +58,7 @@ public class HudElement {
 
     public static @Nullable HudElement fromString(String str) {
         String[] split = str.split(",");
-        if (split.length != 4) {
+        if (split.length != 5) {
             return null;
         }
         return new HudElement(
@@ -61,7 +66,12 @@ public class HudElement {
                 split[1],
                 Color.valueOf(split[2]),
                 Float.parseFloat(split[3]),
-                new DecimalFormat(split[5])
+                new DecimalFormat(split[4])
         );
+    }
+
+    @Override
+    public void dispose() {
+        entry.removeListener(listenerId);
     }
 }

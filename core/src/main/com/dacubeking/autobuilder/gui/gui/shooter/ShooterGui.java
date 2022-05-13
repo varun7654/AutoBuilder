@@ -11,9 +11,6 @@ import com.badlogic.gdx.scenes.scene2d.utils.ScissorStack;
 import com.badlogic.gdx.utils.viewport.Viewport;
 import com.dacubeking.autobuilder.gui.AutoBuilder;
 import com.dacubeking.autobuilder.gui.CameraHandler;
-import com.dacubeking.autobuilder.gui.net.NetworkTablesHelper;
-import com.dacubeking.autobuilder.gui.util.MathUtil;
-import com.dacubeking.autobuilder.gui.util.RoundedShapeRenderer;
 import com.dacubeking.autobuilder.gui.events.input.InputEventListener;
 import com.dacubeking.autobuilder.gui.events.input.InputEventThrower;
 import com.dacubeking.autobuilder.gui.events.input.NumberTextboxChangeListener;
@@ -24,7 +21,10 @@ import com.dacubeking.autobuilder.gui.gui.textrendering.FontRenderer;
 import com.dacubeking.autobuilder.gui.gui.textrendering.Fonts;
 import com.dacubeking.autobuilder.gui.gui.textrendering.TextBlock;
 import com.dacubeking.autobuilder.gui.gui.textrendering.TextComponent;
+import com.dacubeking.autobuilder.gui.net.NetworkTablesHelper;
 import com.dacubeking.autobuilder.gui.serialization.shooter.ShooterPreset;
+import com.dacubeking.autobuilder.gui.util.MathUtil;
+import com.dacubeking.autobuilder.gui.util.RoundedShapeRenderer;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import space.earlygrey.shapedrawer.ShapeDrawer;
@@ -177,9 +177,6 @@ public class ShooterGui extends InputEventListener implements NumberTextboxChang
         if (!panelOpen) openIcon.render(shapeDrawer, spriteBatch);
         clickedOnTextBoxThisFrame = false;
         spriteBatch.flush();
-
-        float hudXOffset;
-        float hudYOffset;
 
         //The popout text part
         double distance = networkTablesHelper.getDistance();

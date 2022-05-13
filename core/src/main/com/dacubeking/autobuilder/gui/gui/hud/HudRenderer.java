@@ -11,6 +11,7 @@ public class HudRenderer {
     List<HudElement> hudElements = new ArrayList<>();
 
     public synchronized void setHudElements(List<HudElement> hudElements) {
+        this.hudElements.forEach(HudElement::dispose);
         this.hudElements = hudElements;
     }
 
