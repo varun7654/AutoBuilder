@@ -81,7 +81,7 @@ public final class AutoBuilder extends ApplicationAdapter {
     @NotNull public static final ExecutorService asyncPathingService = Executors.newFixedThreadPool(1);
     @NotNull public static final ExecutorService asyncParsingService = Executors.newFixedThreadPool(1);
     @NotNull public PathGui pathGui;
-    @NotNull public ShooterGui shooterGui;
+    @Nullable public ShooterGui shooterGui;
     @NotNull InputEventThrower inputEventThrower = new InputEventThrower();
     @NotNull public UndoHandler undoHandler = UndoHandler.getInstance();
     @NotNull NetworkTablesHelper networkTables = NetworkTablesHelper.getInstance();
@@ -90,7 +90,7 @@ public final class AutoBuilder extends ApplicationAdapter {
     @NotNull private Texture field;
     @NotNull private ShapeDrawer shapeRenderer;
     @NotNull private ShapeDrawer hudShapeRenderer;
-    @NotNull private static Config config = new Config();
+    @NotNull private static final Config config = new Config();
     @NotNull private Texture whiteTexture;
     @NotNull public static final String USER_DIRECTORY = OsUtil.getUserConfigDirectory("AutoBuilder");
     static int fps;
@@ -108,7 +108,7 @@ public final class AutoBuilder extends ApplicationAdapter {
      *
      * @param e The exception that caused the program to crash.
      */
-    public static void handleCrash(Exception e) {
+    public static void handleCrash(Throwable e) {
         e.printStackTrace();
         System.out.println("Something went wrong during fame " + Gdx.graphics.getFrameId());
         Gdx.app.exit();
@@ -116,6 +116,8 @@ public final class AutoBuilder extends ApplicationAdapter {
 
     @Override
     public void create() {
+
+        Thread.currentThread().setUncaughtExceptionHandler((t, e) -> handleCrash(e));
         Gdx.graphics.setForegroundFPS(Gdx.graphics.getDisplayMode().refreshRate);
         Gdx.graphics.setVSync(false);
         FileHandler.loadConfig();
@@ -166,19 +168,21 @@ public final class AutoBuilder extends ApplicationAdapter {
         FileHandler.loadAuto();
 
         drivenPathRenderer = new DrivenPathRenderer();
-
-        File shooterConfigFile = config.getShooterConfigPath();
-        shooterConfigFile.getParentFile().mkdirs();
-
         hudRenderer = new HudRenderer();
         drawableRenderer = new DrawableRenderer();
 
-        try {
-            ShooterConfig shooterConfig = (ShooterConfig) Serializer.deserializeFromFile(shooterConfigFile, ShooterConfig.class);
-            shooterGui = new ShooterGui(hudViewport, inputEventThrower, cameraHandler, shooterConfig);
-        } catch (IOException e) {
-            e.printStackTrace();
-            shooterGui = new ShooterGui(hudViewport, inputEventThrower, cameraHandler);
+        if (config.isShooterConfigEnabled()) {
+            File shooterConfigFile = config.getShooterConfigPath();
+            shooterConfigFile.getParentFile().mkdirs();
+
+            try {
+                ShooterConfig shooterConfig = (ShooterConfig) Serializer.deserializeFromFile(shooterConfigFile,
+                        ShooterConfig.class);
+                shooterGui = new ShooterGui(hudViewport, inputEventThrower, cameraHandler, shooterConfig);
+            } catch (IOException e) {
+                e.printStackTrace();
+                shooterGui = new ShooterGui(hudViewport, inputEventThrower, cameraHandler);
+            }
         }
         configGUI = new ConfigGUI();
         undoHandler.somethingChanged();
@@ -344,10 +348,12 @@ public final class AutoBuilder extends ApplicationAdapter {
                 new TextComponent(lastSave).setColor(Color.WHITE).setBold(true)));
 
         pathGui.render(hudShapeRenderer, hudBatch, hudCam);
-        shooterGui.render(hudShapeRenderer, hudBatch, hudCam);
+        if (shooterGui != null) { //If the shooter gui is null, it means its disabled
+            shooterGui.render(hudShapeRenderer, hudBatch, hudCam);
+        }
         configGUI.draw(hudShapeRenderer, hudBatch, hudCam);
         HoverManager.render(hudBatch, hudShapeRenderer);
-        hudRenderer.render(hudShapeRenderer, hudBatch, shooterGui.isPanelOpen() ? 340 : 0);
+        hudRenderer.render(hudShapeRenderer, hudBatch, (shooterGui != null && shooterGui.isPanelOpen()) ? 340 : 0);
 
         notificationHandler.processNotification(hudShapeRenderer, hudBatch);
 
@@ -363,7 +369,7 @@ public final class AutoBuilder extends ApplicationAdapter {
     private void update() {
         undoHandler.update(pathGui, inputEventThrower, cameraHandler);
         boolean onGui = pathGui.update();
-        onGui = onGui | shooterGui.update();
+        if (shooterGui != null) onGui = onGui | shooterGui.update();
         onGui = onGui | configGUI.update();
         lastMousePos.set(mousePos);
         cameraHandler.update(somethingMoved, onGui);
@@ -471,7 +477,7 @@ public final class AutoBuilder extends ApplicationAdapter {
         whiteTexture.dispose();
         FontHandler.dispose();
 
-        shooterGui.dispose();
+        if (shooterGui != null) shooterGui.dispose();
         System.exit(0);
     }
 
@@ -483,7 +489,7 @@ public final class AutoBuilder extends ApplicationAdapter {
         viewport.update(width, height, false);
 
         pathGui.updateScreen(width, height);
-        shooterGui.updateScreen(width, height);
+        if (shooterGui != null) shooterGui.updateScreen(width, height);
         configGUI.updateScreen(width, height);
     }
 

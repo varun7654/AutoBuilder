@@ -114,15 +114,17 @@ public class FileHandler {
         File autoFile;
         autoFile = new File(
                 PathRenderer.config.getAutoPath().getParentFile().getAbsolutePath() + "/" +
-                        (autonomous.deployable ? "" : "NOTDEPLOYABLE") + new File(PathRenderer.config.getSelectedAuto()).getName());
+                        (autonomous.deployable ? "" : "NOTDEPLOYABLE") + new File(
+                        PathRenderer.config.getSelectedAuto()).getName());
         autoFile.getParentFile().mkdirs();
 
         try {
             Serializer.serializeToFile(autonomous, autoFile);
 
             if (autonomous.deployable) {
-                File fileToDelete = new File(PathRenderer.config.getAutoPath().getParentFile().getAbsolutePath() + "/NOTDEPLOYABLE" +
-                        new File(PathRenderer.config.getSelectedAuto()).getName());
+                File fileToDelete = new File(
+                        PathRenderer.config.getAutoPath().getParentFile().getAbsolutePath() + "/NOTDEPLOYABLE" +
+                                new File(PathRenderer.config.getSelectedAuto()).getName());
                 fileToDelete.delete();
             } else {
                 File fileToDelete = new File(PathRenderer.config.getSelectedAuto());
@@ -145,8 +147,10 @@ public class FileHandler {
             configFile.createNewFile();
             Serializer.serializeToFile(PathRenderer.config, configFile);
 
-            shooterConfig.createNewFile();
-            Serializer.serializeToFile(AutoBuilder.getInstance().shooterGui.getShooterConfig(), shooterConfig);
+            if (AutoBuilder.getInstance().shooterGui != null) {
+                shooterConfig.createNewFile();
+                Serializer.serializeToFile(AutoBuilder.getInstance().shooterGui.getShooterConfig(), shooterConfig);
+            }
             supressNextConfigReload = true;
         } catch (IOException e) {
             e.printStackTrace();
@@ -161,7 +165,8 @@ public class FileHandler {
             supressNextConfigReload = false;
         } else {
             try {
-                Config config = (Config) Serializer.deserializeFromFile(new File(AutoBuilder.USER_DIRECTORY + "/config.json"), Config.class);
+                Config config = (Config) Serializer.deserializeFromFile(new File(AutoBuilder.USER_DIRECTORY + "/config.json"),
+                        Config.class);
                 String auto = AutoBuilder.getConfig().getSelectedAuto();
                 AutoBuilder.getConfig().setConfig(config);
                 if (!auto.equals(config.getSelectedAuto())) {

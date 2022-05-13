@@ -25,6 +25,7 @@ public class Config {
     private String robotCodeDataFile;
     private boolean reflectionEnabled;
     private boolean isHolonomic;
+    private boolean shooterConfigEnabled;
 
     @JsonCreator
     public Config(@JsonProperty(value = "scriptMethods") List<String> scriptMethods,
@@ -40,7 +41,8 @@ public class Config {
                   @JsonProperty(value = "networkTablesEnabled") Boolean networkTablesEnabled,
                   @JsonProperty(value = "robotCodeDataFile") String robotCodeDataFile,
                   @JsonProperty("useReflection") Boolean reflectionEnabled,
-                  @JsonProperty("isHolonomic") Boolean isHolonomic) {
+                  @JsonProperty("isHolonomic") Boolean isHolonomic,
+                  @JsonProperty(value = "shooterConfigEnabled", defaultValue = "false") Boolean shooterConfigEnabled) {
         if (scriptMethods == null) {
             this.scriptMethods = new ArrayList<>();
             this.scriptMethods.addAll(List.of("print", "sleep"));
@@ -61,10 +63,11 @@ public class Config {
         this.robotCodeDataFile = robotCodeDataFile == null ? "robotCodeData.json" : robotCodeDataFile;
         this.reflectionEnabled = reflectionEnabled == null ? true : reflectionEnabled;
         this.isHolonomic = isHolonomic == null ? true : isHolonomic;
+        this.shooterConfigEnabled = shooterConfigEnabled == null ? false : shooterConfigEnabled;
     }
 
-    public Config(){
-        this(null, null, null, null, null, null, null, null, null, null, null, null, null, null);
+    public Config() {
+        this(null, null, null, null, null, null, null, null, null, null, null, null, null, null, null);
     }
 
     @JsonProperty("scriptMethods")
@@ -116,17 +119,17 @@ public class Config {
     }
 
     @JsonProperty("robotWidth")
-    public float getRobotWidth(){
+    public float getRobotWidth() {
         return robotWidth;
     }
 
     @JsonProperty("pointScaleFactor")
-    public float getPointScaleFactor(){
+    public float getPointScaleFactor() {
         return pointScaleFactor;
     }
 
     @JsonProperty("originX")
-    public float getOriginX(){
+    public float getOriginX() {
         return originX;
     }
 
@@ -160,6 +163,10 @@ public class Config {
         return isHolonomic;
     }
 
+    @JsonProperty("shooterConfigEnabled")
+    public boolean isShooterConfigEnabled() {
+        return shooterConfigEnabled;
+    }
 
     @JsonProperty("readMe")
     @JsonFormat(shape = JsonFormat.Shape.STRING)
@@ -215,6 +222,7 @@ public class Config {
         this.robotCodeDataFile = config.robotCodeDataFile;
         this.reflectionEnabled = config.reflectionEnabled;
         this.isHolonomic = config.isHolonomic;
+        this.shooterConfigEnabled = config.shooterConfigEnabled;
     }
 
     public void setAuto(String auto) {
