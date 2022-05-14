@@ -98,6 +98,8 @@ public class FileHandler {
             AutoBuilder.getConfig().setConfig((Config) Serializer.deserializeFromFile(configFile, Config.class));
         } catch (IOException e) {
             e.printStackTrace();
+            NotificationHandler.addNotification(
+                    new Notification(Color.RED, "Failed to load config file: " + configFile.getName(), 10000));
         }
     }
 
