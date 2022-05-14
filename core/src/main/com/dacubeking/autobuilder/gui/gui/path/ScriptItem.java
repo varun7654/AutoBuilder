@@ -3,13 +3,13 @@ package com.dacubeking.autobuilder.gui.gui.path;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.g2d.PolygonSpriteBatch;
 import com.dacubeking.autobuilder.gui.AutoBuilder;
-import com.dacubeking.autobuilder.gui.scripting.Parser;
-import com.dacubeking.autobuilder.gui.util.RoundedShapeRenderer;
 import com.dacubeking.autobuilder.gui.events.input.InputEventThrower;
 import com.dacubeking.autobuilder.gui.events.input.TextChangeListener;
 import com.dacubeking.autobuilder.gui.gui.elements.TextBox;
+import com.dacubeking.autobuilder.gui.scripting.Parser;
 import com.dacubeking.autobuilder.gui.scripting.sendable.SendableScript;
 import com.dacubeking.autobuilder.gui.scripting.util.LintingPos;
+import com.dacubeking.autobuilder.gui.util.RoundedShapeRenderer;
 import org.jetbrains.annotations.NotNull;
 import space.earlygrey.shapedrawer.ShapeDrawer;
 
@@ -85,8 +85,6 @@ public class ScriptItem extends AbstractGuiItem implements TextChangeListener {
             }
             return null; // Will never happen (will crash before this)
         }, AutoBuilder.asyncParsingService);
-
-
     }
 
     @Override
@@ -97,6 +95,15 @@ public class ScriptItem extends AbstractGuiItem implements TextChangeListener {
     @Override
     public void dispose() {
         textBox.dispose();
+    }
+
+    @Override
+    public int getHeight() {
+        if (isClosed()) {
+            return 40;
+        } else {
+            return (int) (textBox.getHeight() + 8 + 40);
+        }
     }
 
     @Override

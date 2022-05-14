@@ -12,10 +12,10 @@ import com.badlogic.gdx.utils.viewport.Viewport;
 import com.dacubeking.autobuilder.gui.AutoBuilder;
 import com.dacubeking.autobuilder.gui.CameraHandler;
 import com.dacubeking.autobuilder.gui.UndoHandler;
-import com.dacubeking.autobuilder.gui.util.MathUtil;
-import com.dacubeking.autobuilder.gui.util.RoundedShapeRenderer;
 import com.dacubeking.autobuilder.gui.events.input.InputEventListener;
 import com.dacubeking.autobuilder.gui.events.input.InputEventThrower;
+import com.dacubeking.autobuilder.gui.util.MathUtil;
+import com.dacubeking.autobuilder.gui.util.RoundedShapeRenderer;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import space.earlygrey.shapedrawer.ShapeDrawer;
@@ -93,10 +93,10 @@ public class PathGui extends InputEventListener {
             AbstractGuiItem guiItem = guiItems.get(i);
             int newYPos = yPos;
 
-            if (draggingElement != null && !elementDrawn && newYPos < Gdx.graphics.getHeight() - Gdx.input.getY()) {
-                newYPos = yPos = yPos - 10 - draggingElement.render(shapeRenderer, spriteBatch,
-                        Gdx.input.getX() - (panelWidth - 20) / 2,
-                        (Gdx.graphics.getHeight() - Gdx.input.getY()) + 20, panelWidth - 20, this, isLeftMouseJustUnpressed);
+            if (draggingElement != null && !elementDrawn &&
+                    (newYPos - (guiItem.getHeight() / 2) - (newDraggingElementIndex == i ? draggingElement.getHeight() : 0))
+                            < Gdx.graphics.getHeight() - Gdx.input.getY()) {
+                newYPos = yPos = yPos - 10 - draggingElement.getHeight();
                 newDraggingElementIndex = i;
                 elementDrawn = true;
             }
@@ -118,10 +118,12 @@ public class PathGui extends InputEventListener {
             yPos = newYPos;
         }
 
-        if (draggingElement != null && !elementDrawn) {
+        if (draggingElement != null) {
             draggingElement.render(shapeRenderer, spriteBatch, Gdx.input.getX() - (panelWidth - 20) / 2,
                     (Gdx.graphics.getHeight() - Gdx.input.getY()) + 20, panelWidth - 20, this, isLeftMouseJustUnpressed);
-            newDraggingElementIndex = guiItems.size();
+            if (!elementDrawn) {
+                newDraggingElementIndex = guiItems.size();
+            }
         }
 
 

@@ -5,11 +5,11 @@ import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.PolygonSpriteBatch;
 import com.badlogic.gdx.utils.Disposable;
-import com.dacubeking.autobuilder.gui.util.RoundedShapeRenderer;
 import com.dacubeking.autobuilder.gui.gui.textrendering.FontRenderer;
 import com.dacubeking.autobuilder.gui.gui.textrendering.Fonts;
 import com.dacubeking.autobuilder.gui.gui.textrendering.TextBlock;
 import com.dacubeking.autobuilder.gui.gui.textrendering.TextComponent;
+import com.dacubeking.autobuilder.gui.util.RoundedShapeRenderer;
 import org.jetbrains.annotations.NotNull;
 import space.earlygrey.shapedrawer.ShapeDrawer;
 
@@ -36,10 +36,13 @@ public abstract class AbstractGuiItem implements Disposable {
         this.closed = closed;
     }
 
-    private final TextBlock headerTextBlock = new TextBlock(Fonts.ROBOTO, 36, new TextComponent("headerText").setColor(Color.WHITE));
+    private final TextBlock headerTextBlock = new TextBlock(Fonts.ROBOTO, 36,
+            new TextComponent("headerText").setColor(Color.WHITE));
 
     @Override
     abstract public void dispose();
+
+    abstract public int getHeight();
 
     public int render(@NotNull ShapeDrawer shapeRenderer, @NotNull PolygonSpriteBatch spriteBatch, int drawStartX,
                       int drawStartY, int drawWidth, PathGui pathGui, boolean isLeftMouseJustUnpressed) {
