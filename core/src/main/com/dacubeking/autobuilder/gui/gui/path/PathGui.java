@@ -29,17 +29,17 @@ import static java.awt.Color.HSBtoRGB;
 
 public class PathGui extends InputEventListener {
     final @NotNull ExecutorService executorService;
-    private final @NotNull Viewport viewport;
     public @NotNull List<AbstractGuiItem> guiItems = new ArrayList<>();
     public ArrayList<AbstractGuiItem> guiItemsDeletions = new ArrayList<>();
     @NotNull AddPathButton addPathButton;
     @NotNull AddScriptButton addScriptButton;
     @NotNull PushAutoButton pushAutoButton;
-    Vector2 mouseDownPos = new Vector2();
+    @NotNull Vector2 mouseDownPos = new Vector2();
     boolean dragging = false;
-    AbstractGuiItem draggingElement = null;
+    @Nullable AbstractGuiItem draggingElement = null;
     int newDraggingElementIndex = 0;
     int oldDraggingElementIndex = 0;
+    @NotNull Vector2 dragOffset = new Vector2();
     @NotNull Color color = new Color(1, 1, 1, 1);
     private int panelX;
     private int panelY;
@@ -58,7 +58,6 @@ public class PathGui extends InputEventListener {
 
     public PathGui(@NotNull Viewport viewport, @NotNull InputEventThrower eventThrower,
                    @NotNull ExecutorService executorService, @NotNull CameraHandler cameraHandler) {
-        this.viewport = viewport;
 
 
         addPathButton = new AddPathButton(0, 0, 40, 40, eventThrower, cameraHandler);
@@ -88,42 +87,49 @@ public class PathGui extends InputEventListener {
         int yPos = Gdx.graphics.getHeight() - 20 + (int) smoothScrollPos;
 
         lastPath = null;
-        boolean elementDrawn = false;
+        boolean draggingElementSpotFound = false;
+        TrajectoryItem lastDraggingElementTrajectory = null;
         for (int i = 0; i < guiItems.size(); i++) {
             AbstractGuiItem guiItem = guiItems.get(i);
-            int newYPos = yPos;
 
-            if (draggingElement != null && !elementDrawn &&
-                    (newYPos - (guiItem.getHeight() / 2) - (newDraggingElementIndex == i ? draggingElement.getHeight() : 0))
-                            < Gdx.graphics.getHeight() - Gdx.input.getY()) {
-                newYPos = yPos = yPos - 10 - draggingElement.getHeight();
+            if (dragging && draggingElement == null && guiItem.isMouseOver(panelX + 10, yPos - 40, panelWidth - 20 - 45, 40)) {
+                draggingElement = guiItem;
+                draggingElement.setClosed(true);
+                oldDraggingElementIndex = i;
+                dragOffset.set(Gdx.input.getX() - panelX + 10, Gdx.graphics.getHeight() - Gdx.input.getY() - yPos);
+            }
+
+            if (draggingElement != null && !draggingElementSpotFound &&
+                    (yPos - (guiItem.getHeight() / 2f) - (newDraggingElementIndex == i ? draggingElement.getHeight() : 0))
+                            < Gdx.graphics.getHeight() - Gdx.input.getY() - dragOffset.y) {
+                yPos = yPos - 10 - draggingElement.getHeight();
                 newDraggingElementIndex = i;
-                elementDrawn = true;
+                draggingElementSpotFound = true;
+                lastDraggingElementTrajectory = lastPath;
+                if (draggingElement instanceof TrajectoryItem) {
+                    lastPath = (TrajectoryItem) draggingElement;
+                }
             }
 
             if (guiItem != draggingElement) {
-                newYPos = yPos - 10 - guiItem.render(shapeRenderer, spriteBatch, panelX + 10, yPos, panelWidth - 20, this,
+                yPos = yPos - 10 - guiItem.render(shapeRenderer, spriteBatch, panelX + 10, yPos, panelWidth - 20, this,
                         isLeftMouseJustUnpressed);
             }
 
             if (guiItem instanceof TrajectoryItem) {
                 lastPath = (TrajectoryItem) guiItem;
             }
-
-            if (dragging && draggingElement == null && guiItem.isMouseOver(panelX + 10, yPos - 40, panelWidth - 20 - 45, 40)) {
-                draggingElement = guiItem;
-                draggingElement.setClosed(true);
-                oldDraggingElementIndex = i;
-            }
-            yPos = newYPos;
         }
 
         if (draggingElement != null) {
-            draggingElement.render(shapeRenderer, spriteBatch, Gdx.input.getX() - (panelWidth - 20) / 2,
-                    (Gdx.graphics.getHeight() - Gdx.input.getY()) + 20, panelWidth - 20, this, isLeftMouseJustUnpressed);
-            if (!elementDrawn) {
+            if (!draggingElementSpotFound) {
                 newDraggingElementIndex = guiItems.size();
             }
+            lastPath = lastDraggingElementTrajectory;
+            draggingElement.render(shapeRenderer, spriteBatch,
+                    (int) (Gdx.input.getX() - dragOffset.x),
+                    (int) ((Gdx.graphics.getHeight() - Gdx.input.getY()) - dragOffset.y),
+                    panelWidth - 20, this, isLeftMouseJustUnpressed);
         }
 
 
