@@ -7,7 +7,6 @@ import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.math.Vector3;
 import com.dacubeking.autobuilder.gui.AutoBuilder;
 import com.dacubeking.autobuilder.gui.UndoHandler;
-import com.dacubeking.autobuilder.gui.util.MathUtil;
 import com.dacubeking.autobuilder.gui.events.movablepoint.MovablePointEventHandler;
 import com.dacubeking.autobuilder.gui.events.movablepoint.PointClickEvent;
 import com.dacubeking.autobuilder.gui.events.movablepoint.PointMoveEvent;
@@ -22,6 +21,7 @@ import com.dacubeking.autobuilder.gui.gui.textrendering.TextBlock;
 import com.dacubeking.autobuilder.gui.gui.textrendering.TextComponent;
 import com.dacubeking.autobuilder.gui.pathing.pointclicks.ClosePoint;
 import com.dacubeking.autobuilder.gui.pathing.pointclicks.CloseTrajectoryPoint;
+import com.dacubeking.autobuilder.gui.util.MathUtil;
 import com.dacubeking.autobuilder.gui.wpi.math.geometry.Pose2d;
 import com.dacubeking.autobuilder.gui.wpi.math.geometry.Rotation2d;
 import com.dacubeking.autobuilder.gui.wpi.math.spline.Spline.ControlVector;
@@ -87,7 +87,8 @@ public class TrajectoryPathRenderer implements MovablePointEventHandler, Seriali
 
         for (ControlVector controlVector : controlVectors) {
             pointRenderList.add(
-                    new MovablePointRenderer((float) controlVector.x[0], (float) controlVector.y[0], color, AutoBuilder.POINT_SIZE, this));
+                    new MovablePointRenderer((float) controlVector.x[0], (float) controlVector.y[0], color,
+                            AutoBuilder.POINT_SIZE, this));
         }
 
         this.executorService = executorService;
@@ -126,7 +127,8 @@ public class TrajectoryPathRenderer implements MovablePointEventHandler, Seriali
                     double speed = Math.abs(state.velocityMetersPerSecond);
                     float[] color = new float[3];
                     this.color.toHsv(color);
-                    color[1] = (float) (0.9 * (speed / AutoBuilder.getConfig().getPathingConfig().maxVelocityMetersPerSecond) + 0.1);
+                    color[1] =
+                            (float) (0.9 * (speed / AutoBuilder.getConfig().getPathingConfig().maxVelocityMetersPerSecond) + 0.1);
                     Color speedColor = new Color().fromHsv(color);
                     speedColor.set(speedColor.r, speedColor.g, speedColor.b, 1);
 
@@ -163,7 +165,8 @@ public class TrajectoryPathRenderer implements MovablePointEventHandler, Seriali
             controlPoint.draw(renderer, cam);
 
             if (rotationPoint != null && config.isHolonomic()) {
-                renderer.line(selectedPoint.getRenderPos2(), rotationPoint.getRenderPos2(), Color.WHITE, AutoBuilder.LINE_THICKNESS);
+                renderer.line(selectedPoint.getRenderPos2(), rotationPoint.getRenderPos2(), Color.WHITE,
+                        AutoBuilder.LINE_THICKNESS);
                 rotationPoint.draw(renderer, cam);
             }
 
@@ -539,6 +542,8 @@ public class TrajectoryPathRenderer implements MovablePointEventHandler, Seriali
             try {
                 trajectory = TrajectoryGenerator.generateTrajectory(controlVectors, trajectoryConfig);
             } catch (MalformedSplineException e) {
+                NotificationHandler.addNotification(new Notification(Color.RED, "Could not parameterize a malformed spline",
+                        3000));
                 e.printStackTrace();
                 throw e;
             }
