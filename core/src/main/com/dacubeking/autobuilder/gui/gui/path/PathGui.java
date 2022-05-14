@@ -131,6 +131,12 @@ public class PathGui extends InputEventListener {
                     (int) (getMouseX() - dragOffset.x),
                     (int) (getMouseY() - dragOffset.y),
                     panelWidth - 20, this, isLeftMouseJustUnpressed);
+
+            if (getMouseY() < panelY + 15) {
+                onScroll(0, 0.1f);
+            } else if (getMouseY() > panelY + panelHeight - 15) {
+                onScroll(0, -0.1f);
+            }
         }
 
 
