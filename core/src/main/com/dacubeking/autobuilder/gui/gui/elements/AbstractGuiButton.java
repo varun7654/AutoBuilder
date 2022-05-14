@@ -10,6 +10,9 @@ import com.dacubeking.autobuilder.gui.util.RoundedShapeRenderer;
 import org.jetbrains.annotations.NotNull;
 import space.earlygrey.shapedrawer.ShapeDrawer;
 
+import static com.dacubeking.autobuilder.gui.util.MouseUtil.getMouseX;
+import static com.dacubeking.autobuilder.gui.util.MouseUtil.getMouseY;
+
 public abstract class AbstractGuiButton implements Disposable {
     private final @NotNull Texture texture;
     private float x;
@@ -25,11 +28,10 @@ public abstract class AbstractGuiButton implements Disposable {
         setWidth(width);
         setHeight(height);
         texture.setFilter(Texture.TextureFilter.MipMap, Texture.TextureFilter.Linear);
-
     }
 
     public boolean checkClick() {
-        if(Gdx.input.isButtonJustPressed(Input.Buttons.LEFT)){
+        if (Gdx.input.isButtonJustPressed(Input.Buttons.LEFT)) {
             return hovering;
         }
         return false;
@@ -37,8 +39,7 @@ public abstract class AbstractGuiButton implements Disposable {
 
 
     public boolean checkHover() {
-        return hovering = Gdx.input.getX() >= x && Gdx.input.getX() <= x + width &&
-                Gdx.graphics.getHeight() - Gdx.input.getY() >= y && Gdx.graphics.getHeight() - Gdx.input.getY() <= y + height;
+        return hovering = getMouseX() >= x && getMouseX() <= x + width && getMouseY() >= y && getMouseY() <= y + height;
     }
 
     public void render(@NotNull ShapeDrawer shapeRenderer, @NotNull Batch spriteBatch) {
@@ -50,7 +51,6 @@ public abstract class AbstractGuiButton implements Disposable {
 
         RoundedShapeRenderer.roundedRect(shapeRenderer, x, y, width, height, 4);
         spriteBatch.draw(texture, x + 5, y + 5, width - 10, height - 10);
-
     }
 
     public void render(@NotNull ShapeDrawer shapeRenderer, @NotNull Batch spriteBatch, boolean renderTexture) {
@@ -63,7 +63,6 @@ public abstract class AbstractGuiButton implements Disposable {
         if (renderTexture) {
             spriteBatch.draw(texture, x + 5, y + 5, width - 10, ((width - 10f) / (texture.getWidth())) * texture.getHeight());
         }
-
     }
 
     public float getX() {

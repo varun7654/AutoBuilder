@@ -25,6 +25,7 @@ import java.util.List;
 import java.util.Random;
 import java.util.concurrent.ExecutorService;
 
+import static com.dacubeking.autobuilder.gui.util.MouseUtil.*;
 import static java.awt.Color.HSBtoRGB;
 
 public class PathGui extends InputEventListener {
@@ -92,11 +93,11 @@ public class PathGui extends InputEventListener {
         for (int i = 0; i < guiItems.size(); i++) {
             AbstractGuiItem guiItem = guiItems.get(i);
 
-            if (dragging && draggingElement == null && guiItem.isMouseOver(panelX + 10, yPos - 40, panelWidth - 20 - 45, 40)) {
+            if (dragging && draggingElement == null && isMouseOver(panelX + 10, yPos - 40, panelWidth - 20 - 45, 40)) {
                 draggingElement = guiItem;
                 draggingElement.setClosed(true);
                 oldDraggingElementIndex = i;
-                dragOffset.set(Gdx.input.getX() - panelX + 10, Gdx.graphics.getHeight() - Gdx.input.getY() - yPos);
+                dragOffset.set(getMouseX() - panelX + 10, Gdx.graphics.getHeight() - Gdx.input.getY() - yPos);
             }
 
             if (draggingElement != null && !draggingElementSpotFound &&
@@ -127,8 +128,8 @@ public class PathGui extends InputEventListener {
             }
             lastPath = lastDraggingElementTrajectory;
             draggingElement.render(shapeRenderer, spriteBatch,
-                    (int) (Gdx.input.getX() - dragOffset.x),
-                    (int) ((Gdx.graphics.getHeight() - Gdx.input.getY()) - dragOffset.y),
+                    (int) (getMouseX() - dragOffset.x),
+                    (int) (getMouseY() - dragOffset.y),
                     panelWidth - 20, this, isLeftMouseJustUnpressed);
         }
 
@@ -178,15 +179,15 @@ public class PathGui extends InputEventListener {
             pushAutoButton.checkClick(this);
         }
 
-        if (Gdx.input.getX() > panelX && Gdx.input.getX() < panelX + panelWidth &&
+        if (getMouseX() > panelX && getMouseX() < panelX + panelWidth &&
                 Gdx.input.getY() > panelY && Gdx.input.getY() < panelY + panelHeight) {
             if (Gdx.input.isButtonJustPressed(Input.Buttons.LEFT)) {
-                mouseDownPos.x = Gdx.input.getX();
+                mouseDownPos.x = getMouseX();
                 mouseDownPos.y = Gdx.input.getY();
                 draggingElement = null;
                 clickedInsidePanel = true;
             } else if (clickedInsidePanel && Gdx.input.isButtonPressed(Input.Buttons.LEFT)) {
-                if (MathUtil.len2(mouseDownPos, Gdx.input.getX(), Gdx.input.getY()) > 100) {
+                if (MathUtil.len2(mouseDownPos, getMouseX(), Gdx.input.getY()) > 100) {
                     dragging = true;
                 }
             } else {
@@ -235,8 +236,8 @@ public class PathGui extends InputEventListener {
 
     @Override
     public void onScroll(float amountX, float amountY) {
-        if (Gdx.input.getX() > panelX && Gdx.input.getX() < panelX + panelWidth &&
-                Gdx.graphics.getHeight() - Gdx.input.getY() > panelY && Gdx.graphics.getHeight() - Gdx.input.getY() < panelY + panelHeight) {
+        if (getMouseX() > panelX && getMouseX() < panelX + panelWidth &&
+                getMouseY() > panelY && getMouseY() < panelY + panelHeight) {
             scrollPos = scrollPos + amountY * 80;
         }
     }

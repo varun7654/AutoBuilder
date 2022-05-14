@@ -9,6 +9,9 @@ import com.dacubeking.autobuilder.gui.gui.textrendering.FontRenderer;
 import com.dacubeking.autobuilder.gui.gui.textrendering.TextBlock;
 import space.earlygrey.shapedrawer.ShapeDrawer;
 
+import static com.dacubeking.autobuilder.gui.util.MouseUtil.getMouseX;
+import static com.dacubeking.autobuilder.gui.util.MouseUtil.getMouseY;
+
 public class HoverManager {
     private static TextBlock hoverText;
     private static boolean hoverShown = false;
@@ -48,7 +51,7 @@ public class HoverManager {
 
     public static void render(Batch batch, ShapeDrawer shapeDrawer) {
         if (hoverShown) {
-            if (hoverOnMouse) hoverPosition.set(Gdx.input.getX(), Gdx.graphics.getHeight() - Gdx.input.getY() + 4);
+            if (hoverOnMouse) hoverPosition.set(getMouseX(), getMouseY() + 4);
             float width = hoverText.getWidth();
             float height = hoverText.getHeight();
 

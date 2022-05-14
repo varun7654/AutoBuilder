@@ -13,6 +13,8 @@ import com.dacubeking.autobuilder.gui.util.RoundedShapeRenderer;
 import org.jetbrains.annotations.NotNull;
 import space.earlygrey.shapedrawer.ShapeDrawer;
 
+import static com.dacubeking.autobuilder.gui.util.MouseUtil.isMouseOver;
+
 public abstract class AbstractGuiItem implements Disposable {
 
     protected static final @NotNull Color LIGHT_GREY = Color.valueOf("E9E9E9");
@@ -71,10 +73,5 @@ public abstract class AbstractGuiItem implements Disposable {
             spriteBatch.draw(warningTexture, drawStartX + drawWidth - 10, drawStartY - 10,
                     warningTexture.getWidth() * (18f / warningTexture.getHeight()), 18);
         }
-    }
-
-    public boolean isMouseOver(int x, int y, int width, int height) {
-        return Gdx.input.getX() >= x && Gdx.input.getX() <= x + width &&
-                Gdx.graphics.getHeight() - Gdx.input.getY() >= y && Gdx.graphics.getHeight() - Gdx.input.getY() <= y + height;
     }
 }

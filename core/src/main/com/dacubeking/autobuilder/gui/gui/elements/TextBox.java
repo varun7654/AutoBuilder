@@ -8,16 +8,16 @@ import com.badlogic.gdx.graphics.g2d.Batch;
 import com.badlogic.gdx.math.Vector2;
 import com.dacubeking.autobuilder.gui.AutoBuilder;
 import com.dacubeking.autobuilder.gui.UndoHandler;
-import com.dacubeking.autobuilder.gui.gui.hover.HoverManager;
-import com.dacubeking.autobuilder.gui.util.RoundedShapeRenderer;
 import com.dacubeking.autobuilder.gui.events.input.InputEventListener;
 import com.dacubeking.autobuilder.gui.events.input.InputEventThrower;
 import com.dacubeking.autobuilder.gui.events.input.TextChangeListener;
+import com.dacubeking.autobuilder.gui.gui.hover.HoverManager;
 import com.dacubeking.autobuilder.gui.gui.textrendering.FontRenderer;
 import com.dacubeking.autobuilder.gui.gui.textrendering.Fonts;
 import com.dacubeking.autobuilder.gui.gui.textrendering.TextBlock;
 import com.dacubeking.autobuilder.gui.gui.textrendering.TextComponent;
 import com.dacubeking.autobuilder.gui.scripting.util.LintingPos;
+import com.dacubeking.autobuilder.gui.util.RoundedShapeRenderer;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import space.earlygrey.shapedrawer.ShapeDrawer;
@@ -31,6 +31,9 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
+
+import static com.dacubeking.autobuilder.gui.util.MouseUtil.getMouseX;
+import static com.dacubeking.autobuilder.gui.util.MouseUtil.getMouseY;
 
 
 /*
@@ -83,12 +86,12 @@ public class TextBox extends InputEventListener {
                         float drawStartY, float drawWidth, @Nullable ArrayList<LintingPos> linting) {
         textBlock.update();
 
-        boolean hovering = Gdx.input.getX() > drawStartX && Gdx.input.getX() < drawStartX + drawWidth
-                && Gdx.graphics.getHeight() - Gdx.input.getY() > drawStartY - getHeight() + 8
-                && Gdx.graphics.getHeight() - Gdx.input.getY() < drawStartY + 4;
+        boolean hovering = getMouseX() > drawStartX && getMouseX() < drawStartX + drawWidth
+                && getMouseY() > drawStartY - getHeight() + 8
+                && getMouseY() < drawStartY + 4;
 
-        Vector2 mousePos = new Vector2(Gdx.input.getX() - (drawStartX + 4),
-                (Gdx.graphics.getHeight() - Gdx.input.getY()) - (drawStartY - textBlock.getDefaultSize() + 4));
+        Vector2 mousePos = new Vector2(getMouseX() - (drawStartX + 4),
+                (getMouseY()) - (drawStartY - textBlock.getDefaultSize() + 4));
         int mouseIndexPos = textBlock.getIndexOfPosition(mousePos);
         if (Gdx.input.isButtonJustPressed(Input.Buttons.LEFT)) {
             if (hovering) {

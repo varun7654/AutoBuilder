@@ -33,6 +33,9 @@ import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Collections;
 
+import static com.dacubeking.autobuilder.gui.util.MouseUtil.getMouseX;
+import static com.dacubeking.autobuilder.gui.util.MouseUtil.getMouseY;
+
 public class ShooterGui extends InputEventListener implements NumberTextboxChangeListener {
 
     private final Viewport hudViewport;
@@ -127,8 +130,8 @@ public class ShooterGui extends InputEventListener implements NumberTextboxChang
                 smoothScrollPos = 0;
             }
 
-            if (!(Gdx.input.getX() >= panelX && Gdx.input.getX() <= panelX + panelWidth &&
-                    Gdx.graphics.getHeight() - Gdx.input.getY() >= panelY && Gdx.graphics.getHeight() - Gdx.input.getY() <= panelY + panelHeight)) {
+            if (!(getMouseX() >= panelX && getMouseX() <= panelX + panelWidth &&
+                    getMouseY() >= panelY && getMouseY() <= panelY + panelHeight)) {
                 //We clicked outside the panel
                 panelOpen = false;
             }
@@ -165,8 +168,8 @@ public class ShooterGui extends InputEventListener implements NumberTextboxChang
 
     @Override
     public void onScroll(float amountX, float amountY) {
-        if (Gdx.input.getX() > panelX && Gdx.input.getX() < panelX + panelWidth &&
-                Gdx.graphics.getHeight() - Gdx.input.getY() > panelY && Gdx.graphics.getHeight() - Gdx.input.getY() < panelY + panelHeight) {
+        if (getMouseX() > panelX && getMouseX() < panelX + panelWidth &&
+                getMouseY() > panelY && getMouseY() < panelY + panelHeight) {
             scrollPos = scrollPos + amountY * 20;
         }
     }
@@ -249,11 +252,12 @@ public class ShooterGui extends InputEventListener implements NumberTextboxChang
             FontRenderer.renderText(spriteBatch, shapeDrawer, panelX + 10, checkBox.getY() + 6, limelightLedOnText);
 
             if (Gdx.input.isButtonJustPressed(Input.Buttons.LEFT)) {
-                if (Gdx.input.getX() > panelX + 295 && Gdx.input.getX() < panelX + panelWidth &&
-                        Gdx.graphics.getHeight() - Gdx.input.getY() > panelY && Gdx.graphics.getHeight() - Gdx.input.getY() < panelY + panelHeight) {
+                if (getMouseX() > panelX + 295 && getMouseX() < panelX + panelWidth &&
+                        getMouseY() > panelY && getMouseY() < panelY + panelHeight) {
                     //We are clicking in the column with the trash (delete) icons
                     int indexToDelete = (int) Math.floor(
-                            ((panelY + panelHeight) - ((Gdx.graphics.getHeight() - Gdx.input.getY()) - smoothScrollPos)) / 27); // Get the index of the item we want to delete
+                            ((panelY + panelHeight) - ((getMouseY()) - smoothScrollPos)) / 27); // Get the index of
+                    // the item we want to delete
                     if (indexToDelete >= 0 && indexToDelete < shooterConfig.getShooterConfigs().size()) {
                         shooterConfig.getShooterConfigs().remove(indexToDelete);
                         for (int i = 0; i < 3; i++) { //Delete text boxes we no longer need

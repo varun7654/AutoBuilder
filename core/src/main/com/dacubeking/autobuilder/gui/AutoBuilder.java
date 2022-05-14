@@ -50,6 +50,8 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 
+import static com.dacubeking.autobuilder.gui.util.MouseUtil.getMouseX;
+
 public final class AutoBuilder extends ApplicationAdapter {
 
     private static final AutoBuilder instance = new AutoBuilder();
@@ -374,7 +376,7 @@ public final class AutoBuilder extends ApplicationAdapter {
         lastMousePos.set(mousePos);
         cameraHandler.update(somethingMoved, onGui);
 
-        mousePos.set(Gdx.input.getX(), Gdx.input.getY(), 0);
+        mousePos.set(getMouseX(), Gdx.input.getY(), 0);
         cam.unproject(mousePos);
         mouseDiff.set(mousePos).sub(lastMousePos);
 
