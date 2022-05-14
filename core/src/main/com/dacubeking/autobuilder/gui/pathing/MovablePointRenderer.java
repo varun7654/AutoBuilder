@@ -38,6 +38,8 @@ public class MovablePointRenderer extends PointRenderer {
         this.eventHandler = eventHandler;
     }
 
+    private long lastClickTime = -1;
+
     public boolean update(@NotNull OrthographicCamera camera, @NotNull Vector3 mousePos, Vector3 mouseDiff) {
         if (Gdx.input.isButtonJustPressed(Input.Buttons.LEFT) || Gdx.input.isButtonJustPressed(Input.Buttons.RIGHT)) {
             if (new Vector3(mousePos).sub(getRenderPos3()).len2() < Math.pow(20 * camera.zoom, 2)) {
@@ -51,12 +53,14 @@ public class MovablePointRenderer extends PointRenderer {
                     pressed = true;
                 }
             }
+            lastClickTime = System.currentTimeMillis();
         }
 
 
         if (Gdx.input.isButtonPressed(Input.Buttons.LEFT)) {
-            if (pressed && mouseDiff.len2() != 0 && (dragStarted || (new Vector3(startPress).sub(mousePos).len2() > Math.pow(
-                    10 * camera.zoom, 2)))) {
+            if ((pressed && mouseDiff.len2() != 0) &&
+                    (dragStarted || lastClickTime < System.currentTimeMillis() - 500 ||
+                            (new Vector3(startPress).sub(mousePos).len2() > Math.pow(10 * camera.zoom, 2)))) {
                 dragStarted = true;
                 Vector2 newPos = new Vector2(mousePos.x / config.getPointScaleFactor(),
                         mousePos.y / config.getPointScaleFactor());
