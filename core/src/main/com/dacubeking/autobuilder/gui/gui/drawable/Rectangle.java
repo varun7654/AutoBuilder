@@ -56,7 +56,7 @@ public class Rectangle extends Drawable {
 
     public static @Nullable Rectangle fromString(String s) {
         String[] split = s.split(":");
-        split = split[split.length - 1].split(",");
+        split = SPLIT_COMMA_NOT_IN_PAREN.split(split[split.length - 1]);
         if (split.length != 5) {
             return null;
         }

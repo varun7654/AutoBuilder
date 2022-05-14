@@ -36,7 +36,7 @@ public class Path extends Drawable {
 
     public static Path fromString(String s) {
         String[] split = s.split(":");
-        split = split[split.length - 1].split(",");
+        split = SPLIT_COMMA_NOT_IN_PAREN.split(split[split.length - 1]);
         Vector2[] vertices = new Vector2[split.length - 1];
 
         for (int i = 0; i < split.length - 1; i++) {

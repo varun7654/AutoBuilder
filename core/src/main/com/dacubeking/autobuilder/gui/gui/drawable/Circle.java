@@ -32,7 +32,7 @@ public class Circle extends Drawable {
 
     public static Circle fromString(String s) {
         String[] split = s.split(":");
-        split = split[split.length - 1].split(",");
+        split = SPLIT_COMMA_NOT_IN_PAREN.split(split[split.length - 1]);
         if (split.length != 3) {
             return null;
         }

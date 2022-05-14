@@ -74,7 +74,7 @@ public final class NetworkTablesHelper {
             } else {
                 enabled = false;
             }
-        }, EntryListenerFlags.kNew | EntryListenerFlags.kUpdate | EntryListenerFlags.kImmediate);
+        }, EntryListenerFlags.kNew | EntryListenerFlags.kUpdate | EntryListenerFlags.kImmediate | EntryListenerFlags.kLocal);
 
         robotPositionsEntry.addListener(entryNotification -> {
             @Nullable String positions = robotPositionsEntry.getString(null);
@@ -98,7 +98,7 @@ public final class NetworkTablesHelper {
                 });
                 robotPositions.add(positionsList);
             }
-        }, EntryListenerFlags.kNew | EntryListenerFlags.kUpdate | EntryListenerFlags.kImmediate);
+        }, EntryListenerFlags.kNew | EntryListenerFlags.kUpdate | EntryListenerFlags.kImmediate | EntryListenerFlags.kLocal);
 
         processingTable.addListener(entryNotification -> {
             double processingId = entryNotification.getEntry().getDouble(0);
@@ -112,7 +112,7 @@ public final class NetworkTablesHelper {
                 NotificationHandler.addNotification(
                         new Notification(LIGHT_GREEN, "The Roborio has set: " + processingId, 1500));
             }
-        }, EntryListenerFlags.kNew | EntryListenerFlags.kUpdate | EntryListenerFlags.kImmediate);
+        }, EntryListenerFlags.kNew | EntryListenerFlags.kUpdate | EntryListenerFlags.kImmediate | EntryListenerFlags.kLocal);
 
         hudElementsEntry.addListener(entryNotification -> {
             @Nullable String hudElementsString = entryNotification.getEntry().getString(null);
@@ -129,7 +129,7 @@ public final class NetworkTablesHelper {
 
                 hudRenderer.setHudElements(hudElements);
             }
-        }, EntryListenerFlags.kNew | EntryListenerFlags.kUpdate | EntryListenerFlags.kImmediate);
+        }, EntryListenerFlags.kNew | EntryListenerFlags.kUpdate | EntryListenerFlags.kImmediate | EntryListenerFlags.kLocal);
 
         drawablesEntry.addListener(entryNotification -> {
             @Nullable String drawablesString = entryNotification.getEntry().getString(null);
@@ -154,12 +154,12 @@ public final class NetworkTablesHelper {
                 }
                 drawableRenderer.setDrawables(drawables);
             }
-        }, EntryListenerFlags.kNew | EntryListenerFlags.kUpdate | EntryListenerFlags.kImmediate);
+        }, EntryListenerFlags.kNew | EntryListenerFlags.kUpdate | EntryListenerFlags.kImmediate | EntryListenerFlags.kLocal);
 
         if (AutoBuilder.getInstance().shooterGui != null) { // Only add the listeners if the shooter gui is enabled
             smartDashboardTable.getEntry("Shooter Distance to Target").addListener(
                     entryNotification -> AutoBuilder.requestRendering(),
-                    EntryListenerFlags.kNew | EntryListenerFlags.kUpdate | EntryListenerFlags.kImmediate
+                    EntryListenerFlags.kNew | EntryListenerFlags.kUpdate | EntryListenerFlags.kImmediate | EntryListenerFlags.kLocal
             );
         }
     }

@@ -39,10 +39,10 @@ public class Line extends Drawable {
 
     public static @Nullable Line fromString(String line) {
         String[] split = line.split(":");
-        split = split[split.length - 1].split(",");
-        if (split.length != 4) {
+        split = SPLIT_COMMA_NOT_IN_PAREN.split(split[split.length - 1]);
+        if (split.length != 3) {
             return null;
         }
-        return new Line(new Vector2().fromString(split[1]), new Vector2().fromString(split[2]), Color.valueOf(split[3]));
+        return new Line(new Vector2().fromString(split[0]), new Vector2().fromString(split[1]), Color.valueOf(split[2]));
     }
 }
