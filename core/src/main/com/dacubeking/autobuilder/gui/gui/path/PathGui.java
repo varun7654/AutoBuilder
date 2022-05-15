@@ -93,11 +93,12 @@ public class PathGui extends InputEventListener {
         for (int i = 0; i < guiItems.size(); i++) {
             AbstractGuiItem guiItem = guiItems.get(i);
 
-            if (dragging && draggingElement == null && isMouseOver(panelX + 10, yPos - 40, panelWidth - 20 - 45, 40)) {
+            if (dragging && draggingElement == null && isMouseOver(mouseDownPos, panelX + 10, yPos - 40, panelWidth - 20 - 45,
+                    40)) {
                 draggingElement = guiItem;
                 draggingElement.setClosed(true);
                 oldDraggingElementIndex = i;
-                dragOffset.set(getMouseX() - panelX + 10, Gdx.graphics.getHeight() - Gdx.input.getY() - yPos);
+                dragOffset.set(mouseDownPos.x - panelX - 10, mouseDownPos.y - yPos);
             }
 
             if (draggingElement != null && !draggingElementSpotFound &&
@@ -130,7 +131,7 @@ public class PathGui extends InputEventListener {
             draggingElement.render(shapeRenderer, spriteBatch,
                     (int) (getMouseX() - dragOffset.x),
                     (int) (getMouseY() - dragOffset.y),
-                    panelWidth - 20, this, isLeftMouseJustUnpressed);
+                    panelWidth - 20, this, false);
 
             if (getMouseY() < panelY + 15) {
                 onScroll(0, 0.1f);
@@ -189,18 +190,18 @@ public class PathGui extends InputEventListener {
                 Gdx.input.getY() > panelY && Gdx.input.getY() < panelY + panelHeight) {
             if (Gdx.input.isButtonJustPressed(Input.Buttons.LEFT)) {
                 mouseDownPos.x = getMouseX();
-                mouseDownPos.y = Gdx.input.getY();
+                mouseDownPos.y = getMouseY();
                 draggingElement = null;
                 clickedInsidePanel = true;
             } else if (clickedInsidePanel && Gdx.input.isButtonPressed(Input.Buttons.LEFT)) {
-                if (MathUtil.len2(mouseDownPos, getMouseX(), Gdx.input.getY()) > 100) {
+                if (MathUtil.len2(mouseDownPos, getMouseX(), getMouseY()) > 100) {
                     dragging = true;
                 }
             } else {
                 clickedInsidePanel = false;
                 dragging = false;
                 if (draggingElement != null) {
-                    System.out.println(newDraggingElementIndex);
+                    isLeftMouseJustUnpressed = false; //Don't register a click so the element doesn't reopen
                     guiItems.remove(oldDraggingElementIndex);
                     if (newDraggingElementIndex > oldDraggingElementIndex) newDraggingElementIndex--;
                     guiItems.add(newDraggingElementIndex, draggingElement);
