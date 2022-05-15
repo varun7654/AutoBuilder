@@ -12,9 +12,10 @@ import com.dacubeking.autobuilder.gui.serialization.path.GuiSerializer;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 
 public class FileHandler {
-    private static boolean supressNextAutoReload = true;
+    private static boolean suppressNextAutoReload = true;
 
     public static void handleFile(File file) {
         if (file.getName().equalsIgnoreCase("config.json")) {
@@ -66,9 +67,35 @@ public class FileHandler {
         }
     }
 
+    public static void createNewAuto(File file) {
+        save();
+        if (!file.getName().endsWith(".json")) {
+            file = new File(file.getAbsolutePath() + ".json");
+        }
+        Autonomous autonomous = new Autonomous(new ArrayList<>());
+        if (file.getName().startsWith("NOTDEPLOYABLE")) {
+            if (new File(AutoBuilder.USER_DIRECTORY).equals(file.getParentFile())) {
+                AutoBuilder.getConfig().setAuto(file.getName().substring(13));
+            } else {
+                AutoBuilder.getConfig().setAuto(
+                        file.getParentFile().getAbsolutePath() + "/" + file.getName().substring(13));
+            }
+        } else {
+            if (new File(AutoBuilder.USER_DIRECTORY).equals(file.getParentFile())) {
+                AutoBuilder.getConfig().setAuto(file.getName());
+            } else {
+                AutoBuilder.getConfig().setAuto(file.getAbsolutePath());
+            }
+        }
+        AutoBuilder.getInstance().restoreState(autonomous);
+        save();
+        NotificationHandler.addNotification(new Notification(Color.GREEN, "Created Autonomous: " + file.getName(),
+                3000));
+    }
+
     public static void reloadAuto() {
-        if (supressNextAutoReload) {
-            supressNextAutoReload = false;
+        if (suppressNextAutoReload) {
+            suppressNextAutoReload = false;
         } else {
             System.out.println("Reloading autonomous");
             if (loadAuto()) {
@@ -108,7 +135,7 @@ public class FileHandler {
     public static void save() {
         saveConfig();
         saveAuto();
-        supressNextAutoReload = true;
+        suppressNextAutoReload = true;
     }
 
     public static void saveAuto() {
@@ -132,7 +159,7 @@ public class FileHandler {
                 File fileToDelete = new File(PathRenderer.config.getSelectedAuto());
                 fileToDelete.delete();
             }
-            supressNextAutoReload = true;
+            suppressNextAutoReload = true;
             lastSaveTime = System.currentTimeMillis();
         } catch (IOException e) {
             e.printStackTrace();

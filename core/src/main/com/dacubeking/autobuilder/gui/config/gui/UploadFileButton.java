@@ -38,10 +38,27 @@ public class UploadFileButton extends AbstractGuiButton {
                             outPath);
                 } finally {
                     memFree(outPath);
+                    AutoBuilder.requestRendering();
                 }
             });
             configGUI.setOpenedFile(future);
             return true;
+        } else if (checkRightClick()) {
+            CompletableFuture<File> future = CompletableFuture.supplyAsync(() -> {
+                PointerBuffer outPath = memAllocPointer(1);
+
+                try {
+                    return getFile(
+                            NativeFileDialog.NFD_SaveDialog("json",
+                                    AutoBuilder.getConfig().getAutoPath().getParentFile().getAbsolutePath(),
+                                    outPath),
+                            outPath);
+                } finally {
+                    memFree(outPath);
+                    AutoBuilder.requestRendering();
+                }
+            });
+            configGUI.setNewAutoFile(future);
         }
         return false;
     }

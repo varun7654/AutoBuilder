@@ -1,7 +1,7 @@
 package com.dacubeking.autobuilder.gui.gui.elements;
 
 import com.badlogic.gdx.Gdx;
-import com.badlogic.gdx.Input;
+import com.badlogic.gdx.Input.Buttons;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.Batch;
@@ -31,7 +31,14 @@ public abstract class AbstractGuiButton implements Disposable {
     }
 
     public boolean checkClick() {
-        if (Gdx.input.isButtonJustPressed(Input.Buttons.LEFT)) {
+        if (Gdx.input.isButtonJustPressed(Buttons.LEFT)) {
+            return hovering;
+        }
+        return false;
+    }
+
+    public boolean checkRightClick() {
+        if (Gdx.input.isButtonJustPressed(Buttons.RIGHT)) {
             return hovering;
         }
         return false;

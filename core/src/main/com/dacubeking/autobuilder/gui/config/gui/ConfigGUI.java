@@ -57,21 +57,31 @@ public class ConfigGUI {
         return false;
     }
 
-    @Nullable CompletableFuture<File> completedFile;
+    @Nullable CompletableFuture<File> completableOpenFile;
 
     public void setOpenedFile(CompletableFuture<File> completedFile) {
-        this.completedFile = completedFile;
+        this.completableOpenFile = completedFile;
     }
 
     public void draw(ShapeDrawer shapeDrawer, Batch batch, Camera cam) {
 
-        if (completedFile != null) {
-            if (completedFile.isDone()) {
-                @Nullable File file = completedFile.join();
+        if (completableOpenFile != null) {
+            if (completableOpenFile.isDone()) {
+                @Nullable File file = completableOpenFile.join();
                 if (file != null) {
                     FileHandler.handleFile(file);
                 }
-                completedFile = null;
+                completableOpenFile = null;
+            }
+        }
+
+        if (completableNewAutoFile != null) {
+            if (completableNewAutoFile.isDone()) {
+                @Nullable File file = completableNewAutoFile.join();
+                if (file != null) {
+                    FileHandler.createNewAuto(file);
+                }
+                completableNewAutoFile = null;
             }
         }
 
@@ -88,5 +98,11 @@ public class ConfigGUI {
 
     public void updateScreen(int width, int height) {
         uploadFileButton.setPosition(width - uploadFileButton.getWidth() - 410 - 160, 10);
+    }
+
+    @Nullable CompletableFuture<File> completableNewAutoFile;
+
+    public void setNewAutoFile(CompletableFuture<File> future) {
+        this.completableNewAutoFile = future;
     }
 }
