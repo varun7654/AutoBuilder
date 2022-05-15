@@ -41,6 +41,7 @@ public class PathGui extends InputEventListener {
     int newDraggingElementIndex = 0;
     int oldDraggingElementIndex = 0;
     @NotNull Vector2 dragOffset = new Vector2();
+    boolean wasDraggingElementClosed;
     @NotNull Color color = new Color(1, 1, 1, 1);
     private int panelX;
     private int panelY;
@@ -52,6 +53,8 @@ public class PathGui extends InputEventListener {
     private @NotNull Rectangle clipBounds;
     private @Nullable TrajectoryItem lastPath = null;
     private boolean clickedInsidePanel;
+    private float previousMaxScroll;
+    private long previousMaxScrollTimeSet = 0;
 
     {
         color.fromHsv(1, 1, 1);
@@ -96,6 +99,7 @@ public class PathGui extends InputEventListener {
             if (dragging && draggingElement == null && isMouseOver(mouseDownPos, panelX + 10, yPos - 40, panelWidth - 20 - 45,
                     40)) {
                 draggingElement = guiItem;
+                wasDraggingElementClosed = guiItem.isClosed();
                 draggingElement.setClosed(true);
                 oldDraggingElementIndex = i;
                 dragOffset.set(mouseDownPos.x - panelX - 10, mouseDownPos.y - yPos);
@@ -115,7 +119,7 @@ public class PathGui extends InputEventListener {
 
             if (guiItem != draggingElement) {
                 yPos = yPos - 10 - guiItem.render(shapeRenderer, spriteBatch, panelX + 10, yPos, panelWidth - 20, this,
-                        isLeftMouseJustUnpressed);
+                        camera, isLeftMouseJustUnpressed);
             }
 
             if (guiItem instanceof TrajectoryItem) {
@@ -131,7 +135,7 @@ public class PathGui extends InputEventListener {
             draggingElement.render(shapeRenderer, spriteBatch,
                     (int) (getMouseX() - dragOffset.x),
                     (int) (getMouseY() - dragOffset.y),
-                    panelWidth - 20, this, false);
+                    panelWidth - 20, this, camera, false);
 
             if (getMouseY() < panelY + 15) {
                 onScroll(0, 0.1f);
@@ -146,8 +150,8 @@ public class PathGui extends InputEventListener {
             ScissorStack.popScissors();
         }
 
-        maxScroll = Math.max(0, -(yPos - (int) smoothScrollPos - 10));
-        //System.out.println(maxScroll);
+        maxScroll = Math.max(0, -(yPos - (int) smoothScrollPos - 10) +
+                (draggingElement != null ? draggingElement.getOpenHeight() + 40 : 0)); //Add the height of the dragging element
     }
 
     boolean isLeftMousePressed = false;
@@ -163,7 +167,6 @@ public class PathGui extends InputEventListener {
         }
         guiItemsDeletions.clear();
 
-        scrollPos = MathUtil.clamp(scrollPos, 0, maxScroll);
         smoothScrollPos = (float) (smoothScrollPos + (scrollPos - smoothScrollPos) / Math.max(1,
                 0.05 / AutoBuilder.getDeltaTime()));
 
@@ -202,6 +205,7 @@ public class PathGui extends InputEventListener {
                 dragging = false;
                 if (draggingElement != null) {
                     isLeftMouseJustUnpressed = false; //Don't register a click so the element doesn't reopen
+                    draggingElement.setClosed(wasDraggingElementClosed);
                     guiItems.remove(oldDraggingElementIndex);
                     if (newDraggingElementIndex > oldDraggingElementIndex) newDraggingElementIndex--;
                     guiItems.add(newDraggingElementIndex, draggingElement);
@@ -245,7 +249,7 @@ public class PathGui extends InputEventListener {
     public void onScroll(float amountX, float amountY) {
         if (getMouseX() > panelX && getMouseX() < panelX + panelWidth &&
                 getMouseY() > panelY && getMouseY() < panelY + panelHeight) {
-            scrollPos = scrollPos + amountY * 80;
+            scrollPos = MathUtil.clamp(scrollPos + amountY * 80, 0, Math.max(scrollPos, maxScroll));
         }
     }
 

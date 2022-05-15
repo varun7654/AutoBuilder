@@ -1,10 +1,14 @@
 package com.dacubeking.autobuilder.gui.gui.path;
 
 import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.graphics.Camera;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.PolygonSpriteBatch;
+import com.badlogic.gdx.math.Rectangle;
+import com.badlogic.gdx.scenes.scene2d.utils.ScissorStack;
 import com.badlogic.gdx.utils.Disposable;
+import com.dacubeking.autobuilder.gui.AutoBuilder;
 import com.dacubeking.autobuilder.gui.gui.textrendering.FontRenderer;
 import com.dacubeking.autobuilder.gui.gui.textrendering.Fonts;
 import com.dacubeking.autobuilder.gui.gui.textrendering.TextBlock;
@@ -30,8 +34,14 @@ public abstract class AbstractGuiItem implements Disposable {
 
     private boolean closed = false;
 
+    protected float openHeight = 0;
+
     public boolean isClosed() {
         return closed;
+    }
+
+    public boolean isFullyClosed() {
+        return closed && openHeight == 0;
     }
 
     public void setClosed(boolean closed) {
@@ -42,12 +52,14 @@ public abstract class AbstractGuiItem implements Disposable {
             new TextComponent("headerText").setColor(Color.WHITE));
 
     @Override
-    abstract public void dispose();
+    public void dispose() {
+        AutoBuilder.disableContinuousRendering(this);
+    }
 
-    abstract public int getHeight();
+    abstract public int getOpenHeight();
 
     public int render(@NotNull ShapeDrawer shapeRenderer, @NotNull PolygonSpriteBatch spriteBatch, int drawStartX,
-                      int drawStartY, int drawWidth, PathGui pathGui, boolean isLeftMouseJustUnpressed) {
+                      int drawStartY, int drawWidth, PathGui pathGui, Camera camera, boolean isLeftMouseJustUnpressed) {
         if (isLeftMouseJustUnpressed) {
             if (isMouseOver(drawStartX + drawWidth - 45, drawStartY - 40, drawWidth - 5, 40)) {
                 pathGui.guiItemsDeletions.add(this);
@@ -55,8 +67,35 @@ public abstract class AbstractGuiItem implements Disposable {
                 setClosed(!isClosed());
             }
         }
+        if (isClosed()) {
+            if (openHeight > 0) {
+                openHeight -= getOpenHeight() * AutoBuilder.getDeltaTime() * 15;
+                AutoBuilder.enableContinuousRendering(this);
+            }
+            if (openHeight <= 0) {
+                openHeight = 0;
+                AutoBuilder.disableContinuousRendering(this);
+            }
+        } else {
+            if (openHeight < getOpenHeight()) {
+                openHeight += getOpenHeight() * AutoBuilder.getDeltaTime() * 15;
+                AutoBuilder.enableContinuousRendering(this);
+            }
+            if (openHeight >= getOpenHeight()) {
+                openHeight = getOpenHeight();
+                AutoBuilder.disableContinuousRendering(this);
+            }
+        }
 
-        return 40;
+        Rectangle scissor = new Rectangle();
+        ScissorStack.calculateScissors(camera, spriteBatch.getTransformMatrix(),
+                new Rectangle(drawStartX, drawStartY + 10, drawWidth + 8, -(openHeight + 50)), scissor);
+        spriteBatch.flush();
+        if (ScissorStack.pushScissors(scissor)) {
+            return 1;
+        } else {
+            return -1;
+        }
     }
 
     public void renderHeader(ShapeDrawer shapeRenderer, @NotNull PolygonSpriteBatch spriteBatch, float drawStartX,
@@ -73,5 +112,9 @@ public abstract class AbstractGuiItem implements Disposable {
             spriteBatch.draw(warningTexture, drawStartX + drawWidth - 10, drawStartY - 10,
                     warningTexture.getWidth() * (18f / warningTexture.getHeight()), 18);
         }
+    }
+
+    public int getHeight() {
+        return (int) (40 + openHeight);
     }
 }

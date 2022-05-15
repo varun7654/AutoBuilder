@@ -2,6 +2,7 @@ package com.dacubeking.autobuilder.gui;
 
 import com.badlogic.gdx.ApplicationAdapter;
 import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.Graphics;
 import com.badlogic.gdx.Input;
 import com.badlogic.gdx.graphics.*;
 import com.badlogic.gdx.graphics.g2d.PolygonSpriteBatch;
@@ -221,6 +222,12 @@ public final class AutoBuilder extends ApplicationAdapter {
 
     static AtomicBoolean justStartedRendering = new AtomicBoolean();
 
+    /**
+     * Should be used instead of {@link Graphics#getDeltaTime()} to get the time since the last frame. If rendering is not
+     * continuous, it will instead return the expected dt (calculated from the frame rate).
+     *
+     * @return the time span between the current frame and the last frame in seconds.
+     */
     public static float getDeltaTime() {
         return justStartedRendering.get() ? 1f / fps : Gdx.graphics.getDeltaTime();
     }

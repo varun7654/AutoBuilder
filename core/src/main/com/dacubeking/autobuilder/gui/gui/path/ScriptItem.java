@@ -1,7 +1,9 @@
 package com.dacubeking.autobuilder.gui.gui.path;
 
+import com.badlogic.gdx.graphics.Camera;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.g2d.PolygonSpriteBatch;
+import com.badlogic.gdx.scenes.scene2d.utils.ScissorStack;
 import com.dacubeking.autobuilder.gui.AutoBuilder;
 import com.dacubeking.autobuilder.gui.events.input.InputEventThrower;
 import com.dacubeking.autobuilder.gui.events.input.TextChangeListener;
@@ -42,12 +44,12 @@ public class ScriptItem extends AbstractGuiItem implements TextChangeListener {
 
     @Override
     public int render(@NotNull ShapeDrawer shapeRenderer, @NotNull PolygonSpriteBatch spriteBatch, int drawStartX, int drawStartY,
-                      int drawWidth, PathGui pathGui, boolean isLeftMouseJustUnpressed) {
-        super.render(shapeRenderer, spriteBatch, drawStartX, drawStartY, drawWidth, pathGui, isLeftMouseJustUnpressed);
-        if (isClosed()) {
+                      int drawWidth, PathGui pathGui, Camera camera, boolean isLeftMouseJustUnpressed) {
+        int pop = super.render(shapeRenderer, spriteBatch, drawStartX, drawStartY, drawWidth, pathGui, camera,
+                isLeftMouseJustUnpressed);
+        if (isFullyClosed()) {
             renderHeader(shapeRenderer, spriteBatch, drawStartX, drawStartY, drawWidth, trashTexture, warningTexture,
                     LIGHT_BLUE, "Script", error);
-            return 40;
         } else {
             synchronized (linting) {
                 synchronizedLinting.clear();
@@ -62,9 +64,10 @@ public class ScriptItem extends AbstractGuiItem implements TextChangeListener {
             textBox.draw(shapeRenderer, spriteBatch, drawStartX + 10, drawStartY - 43, drawWidth - 15, synchronizedLinting);
             renderHeader(shapeRenderer, spriteBatch, drawStartX, drawStartY, drawWidth, trashTexture, warningTexture,
                     LIGHT_BLUE, "Script", error);
-
-            return height + 40;
         }
+        spriteBatch.flush();
+        if (pop == 1) ScissorStack.popScissors();
+        return getHeight();
     }
 
 
@@ -94,16 +97,13 @@ public class ScriptItem extends AbstractGuiItem implements TextChangeListener {
 
     @Override
     public void dispose() {
+        super.dispose();
         textBox.dispose();
     }
 
     @Override
-    public int getHeight() {
-        if (isClosed()) {
-            return 40;
-        } else {
-            return (int) (textBox.getHeight() + 8 + 40);
-        }
+    public int getOpenHeight() {
+        return (int) (textBox.getHeight() + 8);
     }
 
     @Override

@@ -1,8 +1,10 @@
 package com.dacubeking.autobuilder.gui.gui.path;
 
+import com.badlogic.gdx.graphics.Camera;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.g2d.PolygonSpriteBatch;
 import com.badlogic.gdx.math.Vector2;
+import com.badlogic.gdx.scenes.scene2d.utils.ScissorStack;
 import com.dacubeking.autobuilder.gui.AutoBuilder;
 import com.dacubeking.autobuilder.gui.CameraHandler;
 import com.dacubeking.autobuilder.gui.UndoHandler;
@@ -103,18 +105,18 @@ public class TrajectoryItem extends AbstractGuiItem implements PathChangeListene
 
     @Override
     public int render(@NotNull ShapeDrawer shapeRenderer, @NotNull PolygonSpriteBatch spriteBatch, int drawStartX, int drawStartY,
-                      int drawWidth, PathGui pathGui, boolean isLeftMouseJustUnpressed) {
-        super.render(shapeRenderer, spriteBatch, drawStartX, drawStartY, drawWidth, pathGui, isLeftMouseJustUnpressed);
+                      int drawWidth, PathGui pathGui, Camera camera, boolean isLeftMouseJustUnpressed) {
+        int pop = super.render(shapeRenderer, spriteBatch, drawStartX, drawStartY, drawWidth, pathGui, camera,
+                isLeftMouseJustUnpressed);
         String title;
         if (trajectoryPathRenderer.getTrajectory() != null) {
             title = "Path - " + df.format(trajectoryPathRenderer.getTrajectory().getTotalTimeSeconds()) + "s";
         } else {
             title = "Path - Calculating";
         }
-        if (isClosed()) {
+        if (isFullyClosed()) {
             renderHeader(shapeRenderer, spriteBatch, drawStartX, drawStartY, drawWidth, trashTexture, warningTexture,
                     trajectoryPathRenderer.getColor(), title, checkWarning(pathGui));
-            return 40;
         } else {
             ControlVectorList controlVectors = trajectoryPathRenderer.getControlVectors();
             shapeRenderer.setColor(LIGHT_GREY);
@@ -187,9 +189,10 @@ public class TrajectoryItem extends AbstractGuiItem implements PathChangeListene
                 }
                 reversedCheckBox.render(shapeRenderer, spriteBatch, trajectoryPathRenderer.isReversed());
             }
-
-            return 40 + (30 * (AutoBuilder.getConfig().isHolonomic() ? 2 : 3) + (controlVectors.size() * 60)) + 8;
         }
+        spriteBatch.flush();
+        if (pop == 1) ScissorStack.popScissors();
+        return getHeight();
     }
 
     private static final double allowedAngleError = 1e-2;
@@ -321,12 +324,12 @@ public class TrajectoryItem extends AbstractGuiItem implements PathChangeListene
         }
 
         cameraHandler.ensureOnScreen(trajectoryPathRenderer.getPointList().get(row).getRenderPos3());
-        ;
         return text;
     }
 
     @Override
     public void dispose() {
+        super.dispose();
         for (List<NumberTextBox> textBox : textBoxes) {
             for (NumberTextBox box : textBox) {
                 box.dispose();
@@ -335,11 +338,8 @@ public class TrajectoryItem extends AbstractGuiItem implements PathChangeListene
     }
 
     @Override
-    public int getHeight() {
-        if (isClosed()) {
-            return 40;
-        }
-        return 40 + (30 * (AutoBuilder.getConfig().isHolonomic() ? 2 : 3)
+    public int getOpenHeight() {
+        return (30 * (AutoBuilder.getConfig().isHolonomic() ? 2 : 3)
                 + (trajectoryPathRenderer.getControlVectors().size() * 60)) + 8;
     }
 
