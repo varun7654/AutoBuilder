@@ -117,4 +117,13 @@ public abstract class AbstractGuiItem implements Disposable {
     public int getHeight() {
         return (int) (40 + openHeight);
     }
+
+    protected void setInitialClosed(boolean closed) {
+        this.closed = closed;
+        if (closed) {
+            openHeight = 0;
+        } else {
+            openHeight = getOpenHeight();
+        }
+    }
 }

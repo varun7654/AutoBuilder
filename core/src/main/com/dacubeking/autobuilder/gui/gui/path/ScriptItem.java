@@ -37,7 +37,7 @@ public class ScriptItem extends AbstractGuiItem implements TextChangeListener {
     public ScriptItem(@NotNull InputEventThrower inputEventThrower, String text, boolean closed, boolean valid) {
         textBox = new TextBox(text, inputEventThrower, true, this, 16);
         error = !valid;
-        this.setClosed(closed);
+        this.setInitialClosed(closed);
 
         onTextChange(text, textBox);
     }

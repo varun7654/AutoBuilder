@@ -91,7 +91,7 @@ public class TrajectoryItem extends AbstractGuiItem implements PathChangeListene
         }
 
         trajectoryPathRenderer.setPathChangeListener(this);
-        this.setClosed(closed);
+        this.setInitialClosed(closed);
 
         startVelocityTextBox = new NumberTextBox(df.format(getPathRenderer().getVelocityStart()), eventThrower, this, 0, 0, 18);
         endVelocityTextBox = new NumberTextBox(df.format(getPathRenderer().getVelocityEnd()), eventThrower, this, 0, 0, 18);
