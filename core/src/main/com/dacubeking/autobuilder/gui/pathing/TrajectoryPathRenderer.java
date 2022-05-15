@@ -295,12 +295,37 @@ public class TrajectoryPathRenderer implements MovablePointEventHandler, Seriali
      */
     public void addPoint(CloseTrajectoryPoint closePoint) {
         assert trajectory != null;
-        Pose2d newPoint = trajectory.sample(closePoint.pointTime).poseMeters;
+        double time = closePoint.pointTime;
+        State newPoint = trajectory.sample(closePoint.pointTime);
+
+        Vector2 controlVector;
+
+        if (time - 0.1 >= 0 && time + 0.1 <= trajectory.getTotalTimeSeconds()) {
+            Pose2d before = trajectory.sample(time - 0.1).poseMeters;
+            Pose2d after = trajectory.sample(time + 0.1).poseMeters;
+            controlVector = new Vector2(
+                    (float) (after.getX() - before.getX()),
+                    (float) (after.getY() - before.getY()));
+            controlVector.setLength(1);
+        } else {
+            controlVector = new Vector2(1, 0);
+        }
+
         controlVectors.add(closePoint.prevPointIndex + 1,
-                new ControlVector(new double[]{newPoint.getX(), 1, 0}, new double[]{newPoint.getY(), 0, 0}));
+                new ControlVector(
+                        new double[]{newPoint.poseMeters.getX(), controlVector.x, 0},
+                        new double[]{newPoint.poseMeters.getY(), controlVector.y, 0}
+                ));
+
         pointRenderList.add(closePoint.prevPointIndex + 1,
-                new MovablePointRenderer((float) newPoint.getX(), (float) newPoint.getY(), color, AutoBuilder.POINT_SIZE, this));
-        rotation2dList.add(closePoint.prevPointIndex + 1, new Rotation2d(0));
+                new MovablePointRenderer(
+                        (float) newPoint.poseMeters.getX(),
+                        (float) newPoint.poseMeters.getY(),
+                        color, AutoBuilder.POINT_SIZE, this
+                ));
+
+        rotation2dList.add(closePoint.prevPointIndex + 1, newPoint.poseMeters.getRotation());
+
         if (selectionPointIndex > closePoint.prevPointIndex) selectionPointIndex++;
         updatePath();
         UndoHandler.getInstance().somethingChanged();
