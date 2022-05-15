@@ -1,6 +1,7 @@
 package com.dacubeking.autobuilder.gui.pathing;
 
 import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.Input.Buttons;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.math.Vector2;
@@ -380,6 +381,8 @@ public class TrajectoryPathRenderer implements MovablePointEventHandler, Seriali
         point.update(camera, mousePos, mouseDiff);
     }
 
+    boolean controlPointSelected = false;
+
     /**
      * Update the point that is selected. This should be called every frame.
      *
@@ -391,9 +394,27 @@ public class TrajectoryPathRenderer implements MovablePointEventHandler, Seriali
         if (selectionPointIndex != -1) {
             MovablePointRenderer selectedPoint = pointRenderList.get(selectionPointIndex);
             selectedPoint.update(camera, mousePos, mouseDiff);
-            if ((controlPoint == null || !controlPoint.update(camera, mousePos, mouseDiff))
-                    && rotationPoint != null) {
-                rotationPoint.update(camera, mousePos, mouseDiff);
+            if (Gdx.input.isButtonJustPressed(Buttons.LEFT)) {
+                float distToCtrlPoint = controlPoint != null ? controlPoint.getRenderPos3().dst2(mousePos) : Float.MAX_VALUE;
+                float distToRotPoint = rotationPoint != null ? rotationPoint.getRenderPos3().dst2(mousePos) : Float.MAX_VALUE;
+
+                if (distToCtrlPoint < distToRotPoint) {
+                    controlPointSelected = true;
+                } else if (distToRotPoint < distToCtrlPoint) {
+                    controlPointSelected = false;
+                }
+            }
+
+            if (Gdx.input.isButtonPressed(Buttons.LEFT)) {
+                if (controlPointSelected) {
+                    if (controlPoint != null) {
+                        controlPoint.update(camera, mousePos, mouseDiff);
+                    }
+                } else {
+                    if (rotationPoint != null) {
+                        rotationPoint.update(camera, mousePos, mouseDiff);
+                    }
+                }
             }
 
             //update the attached path if needed
