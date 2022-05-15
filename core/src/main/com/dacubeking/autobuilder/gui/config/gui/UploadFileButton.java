@@ -20,7 +20,7 @@ public class UploadFileButton extends AbstractGuiButton {
     private final ConfigGUI configGUI;
 
     public UploadFileButton(int x, int y, int width, int height, ConfigGUI configGUI) {
-        super(x, y, width, height, new Texture(Gdx.files.internal("upload-icon.png"), true));
+        super(x, y, width, height, new Texture(Gdx.files.internal("folder.png"), true));
         this.configGUI = configGUI;
     }
 

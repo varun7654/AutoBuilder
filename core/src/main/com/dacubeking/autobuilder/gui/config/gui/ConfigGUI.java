@@ -75,7 +75,7 @@ public class ConfigGUI {
             }
         }
 
-        uploadFileButton.render(shapeDrawer, batch, true);
+        uploadFileButton.render(shapeDrawer, batch);
 
 //        shapeDrawer.setColor(transparentWhite);
 //        FontRenderer.renderText(batch, shapeDrawer,
