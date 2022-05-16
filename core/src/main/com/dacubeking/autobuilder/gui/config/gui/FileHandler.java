@@ -1,5 +1,6 @@
 package com.dacubeking.autobuilder.gui.config.gui;
 
+import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Color;
 import com.dacubeking.autobuilder.gui.AutoBuilder;
 import com.dacubeking.autobuilder.gui.config.Config;
@@ -58,6 +59,7 @@ public class FileHandler {
 
                 NotificationHandler.addNotification(new Notification(Color.GREEN, "Loaded Autonomous: " + file.getName(),
                         3000));
+                Gdx.graphics.setTitle("Auto Builder - " + file.getAbsolutePath());
             } catch (IOException e) {
                 e.printStackTrace();
                 NotificationHandler.addNotification(
@@ -89,6 +91,7 @@ public class FileHandler {
         }
         AutoBuilder.getInstance().restoreState(autonomous);
         save();
+        Gdx.graphics.setTitle("Auto Builder - " + file.getAbsolutePath());
         NotificationHandler.addNotification(new Notification(Color.GREEN, "Created Autonomous: " + file.getName(),
                 3000));
     }
@@ -109,6 +112,7 @@ public class FileHandler {
         try {
             Autonomous autonomous = Serializer.deserializeAutoFromFile(pathFile);
             AutoBuilder.getInstance().restoreState(autonomous, false);
+            Gdx.graphics.setTitle("Auto Builder - " + pathFile.getAbsolutePath());
         } catch (IOException e) {
             e.printStackTrace();
             NotificationHandler.addNotification(
