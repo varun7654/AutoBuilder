@@ -211,7 +211,7 @@ public final class AutoBuilder extends ApplicationAdapter {
         Gdx.graphics.requestRendering();
     }
 
-    public static void somethingInputed() {
+    public static void somethingInputted() {
         if (!Gdx.graphics.isContinuousRendering()) justStartedRendering.set(true);
     }
 

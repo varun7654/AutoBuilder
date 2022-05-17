@@ -21,19 +21,19 @@ public class InputEventThrower implements InputProcessor {
 
     @Override
     public boolean keyDown(int keycode) {
-        AutoBuilder.somethingInputed();
+        AutoBuilder.somethingInputted();
         return false;
     }
 
     @Override
     public boolean keyUp(int keycode) {
-        AutoBuilder.somethingInputed();
+        AutoBuilder.somethingInputted();
         return false;
     }
 
     @Override
     public boolean keyTyped(char character) {
-        AutoBuilder.somethingInputed();
+        AutoBuilder.somethingInputted();
         iterableEventHandlers.clear();
         iterableEventHandlers.addAll(eventHandlers);
         try {
@@ -44,36 +44,35 @@ public class InputEventThrower implements InputProcessor {
             AutoBuilder.handleCrash(e);
         }
         return false;
-
     }
 
     @Override
     public boolean touchDown(int screenX, int screenY, int pointer, int button) {
-        AutoBuilder.somethingInputed();
+        AutoBuilder.somethingInputted();
         return false;
     }
 
     @Override
     public boolean touchUp(int screenX, int screenY, int pointer, int button) {
-        AutoBuilder.somethingInputed();
+        AutoBuilder.somethingInputted();
         return false;
     }
 
     @Override
     public boolean touchDragged(int screenX, int screenY, int pointer) {
-        AutoBuilder.somethingInputed();
+        AutoBuilder.somethingInputted();
         return false;
     }
 
     @Override
     public boolean mouseMoved(int screenX, int screenY) {
-        AutoBuilder.somethingInputed();
+        AutoBuilder.somethingInputted();
         return false;
     }
 
     @Override
     public boolean scrolled(float amountX, float amountY) {
-        AutoBuilder.somethingInputed();
+        AutoBuilder.somethingInputted();
         iterableEventHandlers.clear();
         iterableEventHandlers.addAll(eventHandlers);
         try {
