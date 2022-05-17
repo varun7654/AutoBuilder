@@ -193,7 +193,7 @@ public final class AutoBuilder extends ApplicationAdapter {
         if (config.isNetworkTablesEnabled()) networkTables.start(hudRenderer, drawableRenderer);
     }
 
-    long renderTimeMs = 0L;
+    long renderTimeNano = 0L;
     static Set<Object> continuousRendering = Collections.synchronizedSet(new HashSet<>());
 
     public static void enableContinuousRendering(Object obj) {
@@ -261,7 +261,7 @@ public final class AutoBuilder extends ApplicationAdapter {
         } catch (Exception e) {
             handleCrash(e);
         }
-        renderTimeMs = System.nanoTime() - prev;
+        renderTimeNano = System.nanoTime() - prev;
     }
 
     DecimalFormat df;
@@ -272,7 +272,7 @@ public final class AutoBuilder extends ApplicationAdapter {
         df.setMinimumFractionDigits(4);
     }
 
-    double[] frameTimes = new double[144 * 2];
+    double[] frameTimes = new double[60];
     int frameTimePos = 0;
 
 
@@ -341,7 +341,7 @@ public final class AutoBuilder extends ApplicationAdapter {
         }
 
         //Fps overlay
-        frameTimes[frameTimePos] = renderTimeMs * 0.000001;
+        frameTimes[frameTimePos] = renderTimeNano * 0.000001;
         frameTimePos++;
         if (frameTimePos == frameTimes.length) frameTimePos = 0;
         FontRenderer.renderText(hudBatch, null, 4, 4, new TextBlock(Fonts.JETBRAINS_MONO, 12,
