@@ -10,67 +10,64 @@ import com.dacubeking.autobuilder.gui.net.Serializer;
 import com.dacubeking.autobuilder.gui.pathing.PathRenderer;
 import com.dacubeking.autobuilder.gui.serialization.path.Autonomous;
 import com.dacubeking.autobuilder.gui.serialization.path.GuiSerializer;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 
 public class FileHandler {
-    private static boolean suppressNextAutoReload = true;
-
     public static void handleFile(File file) {
-        if (file.getName().equalsIgnoreCase("config.json")) {
+        try {
+            saveAuto(false);
+
+            System.out.println("Loading file: " + file.getPath());
+            Autonomous autonomous = (Autonomous) Serializer.deserializeFromFile(file, Autonomous.class);
+            if (file.getName().startsWith("NOTDEPLOYABLE")) {
+                if (new File(AutoBuilder.USER_DIRECTORY).equals(file.getParentFile())) {
+                    AutoBuilder.getConfig().setAuto(file.getName().substring(13));
+                } else {
+                    AutoBuilder.getConfig().setAuto(
+                            file.getParentFile().getAbsolutePath() + "/" + file.getName().substring(13));
+                }
+            } else {
+                if (new File(AutoBuilder.USER_DIRECTORY).equals(file.getParentFile())) {
+                    AutoBuilder.getConfig().setAuto(file.getName());
+                } else {
+                    AutoBuilder.getConfig().setAuto(file.getAbsolutePath());
+                }
+            }
+
+            AutoBuilder.getInstance().restoreState(autonomous);
+            saveConfig();
+            saveAuto(false);
+
+            NotificationHandler.addNotification(new Notification(Color.GREEN, "Loaded Autonomous: " + file.getName(),
+                    3000));
+            Gdx.graphics.setTitle("Auto Builder - " + file.getAbsolutePath());
+        } catch (IOException e) {
+            //Maybe it's a config file?
             try {
                 Config config = (Config) Serializer.deserializeFromFile(file, Config.class);
                 String auto = AutoBuilder.getConfig().getSelectedAuto();
                 AutoBuilder.getConfig().setConfig(config);
                 AutoBuilder.getConfig().setAuto(auto);
-                save();
-                NotificationHandler.addNotification(new Notification(Color.GREEN, "Loaded Config File: " + file.getAbsolutePath(),
-                        3000));
-            } catch (IOException e) {
-                e.printStackTrace();
-                NotificationHandler.addNotification(new Notification(Color.RED, "Failed to load config file: " + file.getName(),
-                        3000));
-            }
-        } else {
-            try {
-                save();
-
-                System.out.println("Loading file: " + file.getPath());
-                Autonomous autonomous = (Autonomous) Serializer.deserializeFromFile(file, Autonomous.class);
-                if (file.getName().startsWith("NOTDEPLOYABLE")) {
-                    if (new File(AutoBuilder.USER_DIRECTORY).equals(file.getParentFile())) {
-                        AutoBuilder.getConfig().setAuto(file.getName().substring(13));
-                    } else {
-                        AutoBuilder.getConfig().setAuto(
-                                file.getParentFile().getAbsolutePath() + "/" + file.getName().substring(13));
-                    }
-                } else {
-                    if (new File(AutoBuilder.USER_DIRECTORY).equals(file.getParentFile())) {
-                        AutoBuilder.getConfig().setAuto(file.getName());
-                    } else {
-                        AutoBuilder.getConfig().setAuto(file.getAbsolutePath());
-                    }
-                }
-
-                AutoBuilder.getInstance().restoreState(autonomous);
-                save();
-
-                NotificationHandler.addNotification(new Notification(Color.GREEN, "Loaded Autonomous: " + file.getName(),
-                        3000));
-                Gdx.graphics.setTitle("Auto Builder - " + file.getAbsolutePath());
-            } catch (IOException e) {
-                e.printStackTrace();
+                saveConfig();
                 NotificationHandler.addNotification(
-                        new Notification(Color.RED, "Failed to load autonomous file: " + file.getName(),
+                        new Notification(Color.GREEN, "Loaded Config File: " + file.getAbsolutePath(),
                                 3000));
+            } catch (IOException exception) {
+                exception.printStackTrace();
+                NotificationHandler.addNotification(
+                        new Notification(Color.RED, "Failed to load config/Autonomous file: " + file.getName(),
+                                3000));
+                e.printStackTrace();
             }
         }
     }
 
     public static void createNewAuto(File file) {
-        save();
+        saveAuto(false);
         if (!file.getName().endsWith(".json")) {
             file = new File(file.getAbsolutePath() + ".json");
         }
@@ -90,20 +87,17 @@ public class FileHandler {
             }
         }
         AutoBuilder.getInstance().restoreState(autonomous);
-        save();
+        saveConfig();
+        saveAuto(false);
         Gdx.graphics.setTitle("Auto Builder - " + file.getAbsolutePath());
         NotificationHandler.addNotification(new Notification(Color.GREEN, "Created Autonomous: " + file.getName(),
                 3000));
     }
 
     public static void reloadAuto() {
-        if (suppressNextAutoReload) {
-            suppressNextAutoReload = false;
-        } else {
-            System.out.println("Reloading autonomous");
-            if (loadAuto()) {
-                NotificationHandler.addNotification(new Notification(Color.GREEN, "Reloaded Autonomous", 3000));
-            }
+        System.out.println("Reloading autonomous");
+        if (loadAuto()) {
+            NotificationHandler.addNotification(new Notification(Color.GREEN, "Reloaded Autonomous", 3000));
         }
     }
 
@@ -134,16 +128,61 @@ public class FileHandler {
         }
     }
 
-    public static long lastSaveTime = -1;
+    public volatile static long lastSaveTime = -1;
 
-    public static void save() {
-        saveConfig();
-        saveAuto();
-        suppressNextAutoReload = true;
+    private static final Object autonomousToSaveLock = new Object();
+    private static @Nullable Autonomous autonomousToSave;
+
+    private static final Object saveLock = new Object();
+    static final Thread saveThread;
+
+    static {
+        saveThread = new Thread(() -> {
+            while (true) {
+                if (autonomousToSave == null) {
+                    synchronized (autonomousToSaveLock) {
+                        try {
+                            autonomousToSaveLock.wait();
+                        } catch (InterruptedException ignored) {
+                            //Don't care
+                        }
+                    }
+                }
+
+                Autonomous autonomous;
+                synchronized (autonomousToSaveLock) {
+                    autonomous = autonomousToSave;
+                    autonomousToSave = null;
+                }
+
+                if (autonomous == null) {
+                    continue;
+                }
+
+                synchronized (saveLock) {
+                    saveAuto(autonomous);
+                }
+            }
+        });
+        saveThread.start();
     }
 
-    public static void saveAuto() {
+    public static void saveAuto(boolean async) {
         Autonomous autonomous = GuiSerializer.serializeAutonomous(AutoBuilder.getInstance().pathGui.guiItems);
+        if (async) {
+            synchronized (autonomousToSaveLock) {
+                autonomousToSave = autonomous;
+                autonomousToSaveLock.notify();
+            }
+        } else {
+            synchronized (saveLock) {
+                saveAuto(autonomous);
+            }
+        }
+    }
+
+
+    private static void saveAuto(Autonomous autonomous) {
         File autoFile;
         autoFile = new File(
                 PathRenderer.config.getAutoPath().getParentFile().getAbsolutePath() + "/" +
@@ -156,21 +195,20 @@ public class FileHandler {
 
             if (autonomous.deployable) {
                 File fileToDelete = new File(
-                        PathRenderer.config.getAutoPath().getParentFile().getAbsolutePath() + "/NOTDEPLOYABLE" +
-                                new File(PathRenderer.config.getSelectedAuto()).getName());
+                        AutoBuilder.getConfig().getAutoPath().getParentFile().getAbsolutePath() + "/NOTDEPLOYABLE" +
+                                new File(AutoBuilder.getConfig().getSelectedAuto()).getName());
                 fileToDelete.delete();
             } else {
-                File fileToDelete = new File(PathRenderer.config.getSelectedAuto());
+                File fileToDelete = new File(AutoBuilder.getConfig().getSelectedAuto());
                 fileToDelete.delete();
             }
-            suppressNextAutoReload = true;
             lastSaveTime = System.currentTimeMillis();
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
 
-    public static void saveConfig() {
+    private static void saveConfig() {
         File configFile = new File(AutoBuilder.USER_DIRECTORY + "/config.json");
         File shooterConfig = PathRenderer.config.getShooterConfigPath();
 
@@ -178,41 +216,33 @@ public class FileHandler {
         shooterConfig.getParentFile().mkdirs();
         try {
             configFile.createNewFile();
-            Serializer.serializeToFile(PathRenderer.config, configFile);
+            Serializer.serializeToFile(AutoBuilder.getConfig(), configFile);
 
             if (AutoBuilder.getInstance().shooterGui != null) {
                 shooterConfig.createNewFile();
                 Serializer.serializeToFile(AutoBuilder.getInstance().shooterGui.getShooterConfig(), shooterConfig);
             }
-            supressNextConfigReload = true;
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
 
-    static boolean supressNextConfigReload = false;
-
     public static void reloadConfig() {
-        if (supressNextConfigReload) {
-            System.out.println("Suppressed reloading config");
-            supressNextConfigReload = false;
-        } else {
-            try {
-                Config config = (Config) Serializer.deserializeFromFile(new File(AutoBuilder.USER_DIRECTORY + "/config.json"),
-                        Config.class);
-                String auto = AutoBuilder.getConfig().getSelectedAuto();
-                AutoBuilder.getConfig().setConfig(config);
-                if (!auto.equals(config.getSelectedAuto())) {
-                    AutoBuilder.getConfig().setAuto(auto);
-                    save();
-                }
-                loadAuto();
-                saveAuto();
-                NotificationHandler.addNotification(new Notification(Color.GREEN, "Loaded Config", 3000));
-            } catch (IOException e) {
-                e.printStackTrace();
-                NotificationHandler.addNotification(new Notification(Color.RED, "Failed to reload config file", 3000));
+        try {
+            Config config = (Config) Serializer.deserializeFromFile(new File(AutoBuilder.USER_DIRECTORY + "/config.json"),
+                    Config.class);
+            String auto = AutoBuilder.getConfig().getSelectedAuto();
+            AutoBuilder.getConfig().setConfig(config);
+            if (!auto.equals(config.getSelectedAuto())) {
+                AutoBuilder.getConfig().setAuto(auto);
             }
+            loadAuto();
+            saveConfig();
+            saveAuto(false);
+            NotificationHandler.addNotification(new Notification(Color.GREEN, "Loaded Config", 3000));
+        } catch (IOException e) {
+            e.printStackTrace();
+            NotificationHandler.addNotification(new Notification(Color.RED, "Failed to reload config file", 3000));
         }
     }
 }

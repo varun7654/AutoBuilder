@@ -9,6 +9,7 @@ import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.scenes.scene2d.utils.ScissorStack;
 import com.badlogic.gdx.utils.Disposable;
 import com.dacubeking.autobuilder.gui.AutoBuilder;
+import com.dacubeking.autobuilder.gui.UndoHandler;
 import com.dacubeking.autobuilder.gui.gui.textrendering.FontRenderer;
 import com.dacubeking.autobuilder.gui.gui.textrendering.Fonts;
 import com.dacubeking.autobuilder.gui.gui.textrendering.TextBlock;
@@ -62,7 +63,10 @@ public abstract class AbstractGuiItem implements Disposable {
                       int drawStartY, int drawWidth, PathGui pathGui, Camera camera, boolean isLeftMouseJustUnpressed) {
         if (isLeftMouseJustUnpressed) {
             if (isMouseOver(drawStartX + drawWidth - 45, drawStartY - 40, drawWidth - 5, 40)) {
+                // Trash Icon (delete)
                 pathGui.guiItemsDeletions.add(this);
+                AutoBuilder.requestRendering();
+                UndoHandler.getInstance().somethingChanged();
             } else if (isMouseOver(drawStartX, drawStartY - 40, drawWidth - 5, 40)) {
                 setClosed(!isClosed());
             }

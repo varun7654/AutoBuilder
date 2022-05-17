@@ -505,7 +505,7 @@ public final class AutoBuilder extends ApplicationAdapter {
     @Override
     public void pause() {
         super.pause();
-        FileHandler.save();
+        FileHandler.saveAuto(false);
     }
 
     public static @NotNull

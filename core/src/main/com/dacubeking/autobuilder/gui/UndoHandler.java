@@ -66,7 +66,7 @@ public final class UndoHandler {
                 }
             }
 
-            FileHandler.save();
+            FileHandler.saveAuto(true);
         }
     }
 
@@ -83,6 +83,7 @@ public final class UndoHandler {
         //System.out.println("adding: " + newState);
         somethingChanged = false;
         lastUndoSaveTime = System.currentTimeMillis();
+        FileHandler.saveAuto(true);
     }
 
     public synchronized void restoreState(Autonomous autonomous, PathGui pathGui, @NotNull InputEventThrower inputEventThrower,
@@ -115,7 +116,6 @@ public final class UndoHandler {
 
     public synchronized void somethingChanged() {
         somethingChanged = true;
-        FileHandler.save();
     }
 
     public synchronized void clearUndoHistory() {

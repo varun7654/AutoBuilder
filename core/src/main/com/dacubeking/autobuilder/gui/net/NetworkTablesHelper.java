@@ -169,7 +169,7 @@ public final class NetworkTablesHelper {
 
 
     public void pushAutoData(List<AbstractGuiItem> guiItemList) {
-        FileHandler.save();
+        FileHandler.saveAuto(true);
         if (inst.isConnected()) {
             try {
                 String autonomousString = Serializer.serializeToString(

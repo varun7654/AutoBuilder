@@ -31,7 +31,8 @@ public class ConfigGUI {
             10, Gdx.graphics.getHeight() - 10
     });
 
-    long lastModified = 0;
+    long lastConfigModified = 0;
+    long lastAutoModified = 0;
 
     public boolean update() {
         uploadFileButton.checkHover();
@@ -42,15 +43,16 @@ public class ConfigGUI {
             long lastAutoModified = Files.getLastModifiedTime(AutoBuilder.getConfig().getAutoPath().toPath()).toMillis();
             long lastConfigModified =
                     Files.getLastModifiedTime(new File(AutoBuilder.USER_DIRECTORY + "/config.json").toPath()).toMillis();
-            long lastModified = Math.max(lastAutoModified, lastConfigModified);
-            if (lastModified != this.lastModified) {
-                if (lastAutoModified > lastConfigModified) {
-                    FileHandler.reloadAuto();
-                } else {
-                    FileHandler.reloadConfig();
-                }
-                this.lastModified = lastModified;
-            }
+//This is too problematic
+//            if (lastConfigModified > this.lastConfigModified) {
+//                this.lastConfigModified = lastConfigModified;
+//                FileHandler.reloadConfig();
+//            }
+//
+//            if (lastAutoModified > this.lastAutoModified) {
+//                this.lastAutoModified = lastAutoModified;
+//                FileHandler.reloadAuto();
+//            }
         } catch (Exception e) {
             e.printStackTrace();
         }
