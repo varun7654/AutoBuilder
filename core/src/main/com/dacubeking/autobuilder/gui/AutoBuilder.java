@@ -34,7 +34,6 @@ import com.dacubeking.autobuilder.gui.pathing.pointclicks.ClosePoint;
 import com.dacubeking.autobuilder.gui.pathing.pointclicks.CloseTrajectoryPoint;
 import com.dacubeking.autobuilder.gui.scripting.RobotCodeData;
 import com.dacubeking.autobuilder.gui.serialization.path.Autonomous;
-import com.dacubeking.autobuilder.gui.threading.ScheduledRendering;
 import com.dacubeking.autobuilder.gui.util.OsUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -44,10 +43,7 @@ import java.io.File;
 import java.io.IOException;
 import java.text.DecimalFormat;
 import java.util.*;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 
@@ -206,9 +202,11 @@ public final class AutoBuilder extends ApplicationAdapter {
         }
     }
 
+    private static final Runnable RENDER = () -> {};
+
     public static void requestRendering() {
-        if (!Gdx.graphics.isContinuousRendering()) justStartedRendering.set(true);
-        Gdx.graphics.requestRendering();
+        justStartedRendering.set(true);
+        Gdx.app.postRunnable(RENDER);
     }
 
     public static void somethingInputted() {
@@ -234,20 +232,22 @@ public final class AutoBuilder extends ApplicationAdapter {
 
     static ScheduledThreadPoolExecutor requestedRenderThread = new ScheduledThreadPoolExecutor(1);
 
+    static {
+        requestedRenderThread.setExecuteExistingDelayedTasksAfterShutdownPolicy(false);
+        requestedRenderThread.setContinueExistingPeriodicTasksAfterShutdownPolicy(false);
+        requestedRenderThread.setRemoveOnCancelPolicy(true);
+    }
+
     /**
      * @param delay in milliseconds. Will only be added if a more recent request has not been made.
      */
-    public static void scheduleRendering(long delay) {
-        Runnable runnable = requestedRenderThread.getQueue().peek();
-        if (runnable instanceof ScheduledRendering) {
-            ScheduledRendering scheduledRendering = (ScheduledRendering) runnable;
-            if (scheduledRendering.delay > delay) {
-                requestedRenderThread.getQueue().clear();
-                requestedRenderThread.schedule(new ScheduledRendering(delay), delay, TimeUnit.MILLISECONDS);
+    public synchronized static void scheduleRendering(long delay) {
+        @Nullable ScheduledFuture<?> runnable = (ScheduledFuture<?>) requestedRenderThread.getQueue().peek();
+        if (runnable == null || runnable.getDelay(TimeUnit.MILLISECONDS) > delay) {
+            if (runnable != null) {
+                runnable.cancel(false);
             }
-        } else {
-            requestedRenderThread.getQueue().clear();
-            requestedRenderThread.schedule(new ScheduledRendering(delay), delay, TimeUnit.MILLISECONDS);
+            requestedRenderThread.schedule(AutoBuilder::requestRendering, delay, TimeUnit.MILLISECONDS);
         }
     }
 
