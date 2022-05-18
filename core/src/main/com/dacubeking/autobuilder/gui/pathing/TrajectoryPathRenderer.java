@@ -9,7 +9,6 @@ import com.badlogic.gdx.math.Vector3;
 import com.dacubeking.autobuilder.gui.AutoBuilder;
 import com.dacubeking.autobuilder.gui.UndoHandler;
 import com.dacubeking.autobuilder.gui.events.movablepoint.MovablePointEventHandler;
-import com.dacubeking.autobuilder.gui.events.movablepoint.PointClickEvent;
 import com.dacubeking.autobuilder.gui.events.movablepoint.PointMoveEvent;
 import com.dacubeking.autobuilder.gui.events.pathchange.PathChangeListener;
 import com.dacubeking.autobuilder.gui.gui.hover.HoverManager;
@@ -403,10 +402,24 @@ public class TrajectoryPathRenderer implements MovablePointEventHandler, Seriali
         }
 
         MovablePointRenderer point = pointRenderList.get(selectionPointIndex);
-        point.update(camera, mousePos, mouseDiff);
+
+        ControlVector controlVector = controlVectors.get(selectionPointIndex);
+        Vector2 pos2 = point.getPos2();
+        float controlXPos = (float) (pos2.x + (controlVector.x[1] / AutoBuilder.CONTROL_VECTOR_SCALE));
+        float controlYPos = (float) (pos2.y + (controlVector.y[1] / AutoBuilder.CONTROL_VECTOR_SCALE));
+        controlPoint = new MovablePointRenderer(controlXPos, controlYPos, Color.GREEN, AutoBuilder.POINT_SIZE, this);
+
+
+        float rotationXPos = (float) (pos2.x + rotation2dList.get(selectionPointIndex).getCos());
+        float rotationYPos = (float) (pos2.y + rotation2dList.get(selectionPointIndex).getSin());
+        rotationPoint = new MovablePointRenderer(rotationXPos, rotationYPos, Color.BLUE, AutoBuilder.POINT_SIZE, this);
     }
 
-    boolean controlPointSelected = false;
+    private enum PointType {
+        CONTROL, ROTATION, POSITION
+    }
+
+    private PointType controlPointSelected = PointType.POSITION;
 
     /**
      * Update the point that is selected. This should be called every frame.
@@ -418,29 +431,32 @@ public class TrajectoryPathRenderer implements MovablePointEventHandler, Seriali
     public void updatePoint(OrthographicCamera camera, Vector3 mousePos, Vector3 mouseDiff) {
         if (selectionPointIndex != -1) {
             MovablePointRenderer selectedPoint = pointRenderList.get(selectionPointIndex);
-            selectedPoint.update(camera, mousePos, mouseDiff);
             if (Gdx.input.isButtonJustPressed(Buttons.LEFT)) {
                 float distToCtrlPoint = controlPoint != null ? controlPoint.getRenderPos3().dst2(mousePos) : Float.MAX_VALUE;
                 float distToRotPoint = rotationPoint != null ? rotationPoint.getRenderPos3().dst2(mousePos) : Float.MAX_VALUE;
+                float distToPoint = selectedPoint.getRenderPos3().dst2(mousePos);
 
-                if (distToCtrlPoint < distToRotPoint) {
-                    controlPointSelected = true;
-                } else if (distToRotPoint < distToCtrlPoint) {
-                    controlPointSelected = false;
-                }
-            }
-
-            if (Gdx.input.isButtonPressed(Buttons.LEFT)) {
-                if (controlPointSelected) {
-                    if (controlPoint != null) {
-                        controlPoint.update(camera, mousePos, mouseDiff);
-                    }
+                if (distToCtrlPoint < distToPoint && distToCtrlPoint < distToRotPoint) {
+                    controlPointSelected = PointType.CONTROL;
+                } else if (distToRotPoint < distToPoint && distToRotPoint < distToCtrlPoint) {
+                    controlPointSelected = PointType.ROTATION;
                 } else {
-                    if (rotationPoint != null) {
-                        rotationPoint.update(camera, mousePos, mouseDiff);
-                    }
+                    controlPointSelected = PointType.POSITION;
                 }
             }
+
+            if (controlPointSelected == PointType.CONTROL) {
+                if (controlPoint != null) {
+                    controlPoint.update(camera, mousePos, mouseDiff);
+                }
+            } else if (controlPointSelected == PointType.ROTATION) {
+                if (rotationPoint != null) {
+                    rotationPoint.update(camera, mousePos, mouseDiff);
+                }
+            } else {
+                selectedPoint.update(camera, mousePos, mouseDiff);
+            }
+
 
             //update the attached path if needed
             if (attachedPath != null && !mouseDiff.isZero()) {
@@ -488,25 +504,6 @@ public class TrajectoryPathRenderer implements MovablePointEventHandler, Seriali
     public void setRobotPathPreviewPoint(CloseTrajectoryPoint closePoint) {
         this.robotPreviewTime = closePoint.pointTime;
         this.robotPreviewIndex = closePoint.prevPointIndex;
-    }
-
-    @Override
-    public void onPointClick(@NotNull PointClickEvent event) {
-        if (pointRenderList.contains(event.getPoint())) { //Should Only be called once per path
-            if (event.isLeftClick()) {
-                selectionPointIndex = pointRenderList.indexOf(event.getPoint());
-                ControlVector controlVector = controlVectors.get(selectionPointIndex);
-
-                float controlXPos = (float) (event.getPos().x + (controlVector.x[1] / AutoBuilder.CONTROL_VECTOR_SCALE));
-                float controlYPos = (float) (event.getPos().y + (controlVector.y[1] / AutoBuilder.CONTROL_VECTOR_SCALE));
-                controlPoint = new MovablePointRenderer(controlXPos, controlYPos, Color.GREEN, AutoBuilder.POINT_SIZE, this);
-
-
-                float rotationXPos = (float) (event.getPos().x + rotation2dList.get(selectionPointIndex).getCos());
-                float rotationYPos = (float) (event.getPos().y + rotation2dList.get(selectionPointIndex).getSin());
-                rotationPoint = new MovablePointRenderer(rotationXPos, rotationYPos, Color.BLUE, AutoBuilder.POINT_SIZE, this);
-            }
-        }
     }
 
 

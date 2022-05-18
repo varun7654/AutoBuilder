@@ -8,7 +8,6 @@ import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.math.Vector3;
 import com.dacubeking.autobuilder.gui.UndoHandler;
 import com.dacubeking.autobuilder.gui.events.movablepoint.MovablePointEventHandler;
-import com.dacubeking.autobuilder.gui.events.movablepoint.PointClickEvent;
 import com.dacubeking.autobuilder.gui.events.movablepoint.PointMoveEvent;
 import org.jetbrains.annotations.NotNull;
 
@@ -43,11 +42,6 @@ public class MovablePointRenderer extends PointRenderer {
     public boolean update(@NotNull OrthographicCamera camera, @NotNull Vector3 mousePos, Vector3 mouseDiff) {
         if (Gdx.input.isButtonJustPressed(Input.Buttons.LEFT) || Gdx.input.isButtonJustPressed(Input.Buttons.RIGHT)) {
             if (new Vector3(mousePos).sub(getRenderPos3()).len2() < Math.pow(20 * camera.zoom, 2)) {
-                PointClickEvent event = new PointClickEvent(getPos2(), this, Gdx.input.isButtonJustPressed(Input.Buttons.LEFT),
-                        Gdx.input.isButtonJustPressed(Input.Buttons.RIGHT));
-                eventHandler.onPointClick(event);
-                this.setPosition(event.getPos());
-
                 if (Gdx.input.isButtonJustPressed(Input.Buttons.LEFT)) {
                     startPress.set(mousePos);
                     pressed = true;
