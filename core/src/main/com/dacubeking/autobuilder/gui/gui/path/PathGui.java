@@ -167,8 +167,8 @@ public class PathGui extends InputEventListener {
         }
         guiItemsDeletions.clear();
 
-        smoothScrollPos = (float) (smoothScrollPos + (scrollPos - smoothScrollPos) / Math.max(1,
-                0.05 / AutoBuilder.getDeltaTime()));
+        smoothScrollPos = (float) (smoothScrollPos + (scrollPos - smoothScrollPos) /
+                Math.max(1, 0.05 / AutoBuilder.getDeltaTime()));
 
         if (Math.abs(scrollPos - smoothScrollPos) < 1e-2) {
             AutoBuilder.disableContinuousRendering(this);
@@ -189,8 +189,8 @@ public class PathGui extends InputEventListener {
             pushAutoButton.checkClick(this);
         }
 
-        if (getMouseX() > panelX && getMouseX() < panelX + panelWidth &&
-                Gdx.input.getY() > panelY && Gdx.input.getY() < panelY + panelHeight) {
+        if (getMouseX() > panelX && getMouseX() < panelX + panelWidth && Gdx.input.getY() > panelY
+                && Gdx.input.getY() < panelY + panelHeight || draggingElement != null) {
             if (Gdx.input.isButtonJustPressed(Input.Buttons.LEFT)) {
                 mouseDownPos.x = getMouseX();
                 mouseDownPos.y = getMouseY();
