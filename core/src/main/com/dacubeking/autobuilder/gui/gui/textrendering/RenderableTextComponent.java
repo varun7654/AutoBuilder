@@ -11,8 +11,10 @@ import org.jetbrains.annotations.NotNull;
  * span multiple lines.
  */
 public class RenderableTextComponent {
-    public RenderableTextComponent(@NotNull String text, float x, float y, float endX, boolean isBold, boolean isItalic, boolean isUnderlined,
-                                   boolean isStrikethrough, @NotNull Color color, @NotNull Color underlineColor, @NotNull Color strikethroughColor, int size, @NotNull Fonts font, int row) {
+    public RenderableTextComponent(@NotNull String text, float x, float y, float endX, boolean isBold, boolean isItalic,
+                                   boolean isUnderlined, boolean isStrikethrough, boolean isHighlighted, @NotNull Color color,
+                                   @NotNull Color underlineColor, @NotNull Color strikethroughColor,
+                                   @NotNull Color highlightColor, int size, @NotNull Fonts font, int row) {
         this.text = text;
         this.x = x;
         this.y = y;
@@ -21,9 +23,11 @@ public class RenderableTextComponent {
         this.isItalic = isItalic;
         this.isUnderlined = isUnderlined;
         this.isStrikethrough = isStrikethrough;
+        this.isHighlighted = isHighlighted;
         this.color = color;
         this.underlineColor = underlineColor;
         this.strikethroughColor = strikethroughColor;
+        this.highlightColor = highlightColor;
         this.size = size;
         this.font = font;
         this.row = row;
@@ -70,6 +74,11 @@ public class RenderableTextComponent {
     final boolean isStrikethrough;
 
     /**
+     * Whether the text is highlighted.
+     */
+    final boolean isHighlighted;
+
+    /**
      * Color of the text.
      */
     @NotNull final Color color;
@@ -83,6 +92,11 @@ public class RenderableTextComponent {
      * Color of the strikethrough.
      */
     @NotNull final Color strikethroughColor;
+
+    /**
+     * The color of the highlight.
+     */
+    @NotNull final Color highlightColor;
 
     /**
      * Font size of the text.

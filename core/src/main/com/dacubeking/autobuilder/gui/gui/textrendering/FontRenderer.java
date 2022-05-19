@@ -27,12 +27,17 @@ public class FontRenderer {
     public static void renderText(@NotNull Batch batch, @Nullable ShapeDrawer shapeDrawer, float x, float y,
                                   @NotNull TextBlock textBlock) {
         for (RenderableTextComponent renderableTextComponent : textBlock.getRenderableTextComponents()) {
+
             BitmapFont fontToUse = renderableTextComponent.getBitmapFont();
             fontToUse.setColor(renderableTextComponent.color);
-            fontToUse.draw(batch, renderableTextComponent.text.replace("\n", ""), renderableTextComponent.x + x,
-                    renderableTextComponent.y + y + fontToUse.getCapHeight());
 
             if (shapeDrawer != null) {
+                if (renderableTextComponent.isHighlighted && renderableTextComponent.highlightColor.a > 0) {
+                    shapeDrawer.line(renderableTextComponent.x + x, renderableTextComponent.y + y + fontToUse.getCapHeight() / 2,
+                            renderableTextComponent.endX + x, renderableTextComponent.y + y + fontToUse.getCapHeight() / 2,
+                            renderableTextComponent.highlightColor, fontToUse.getLineHeight());
+                }
+
                 if (renderableTextComponent.isUnderlined && renderableTextComponent.underlineColor.a > 0) {
                     shapeDrawer.line(renderableTextComponent.x + x, renderableTextComponent.y + y,
                             renderableTextComponent.endX + x, renderableTextComponent.y + y,
@@ -45,6 +50,9 @@ public class FontRenderer {
                             renderableTextComponent.strikethroughColor, 2);
                 }
             }
+
+            fontToUse.draw(batch, renderableTextComponent.text.replace("\n", ""), renderableTextComponent.x + x,
+                    renderableTextComponent.y + y + fontToUse.getCapHeight());
         }
     }
 }

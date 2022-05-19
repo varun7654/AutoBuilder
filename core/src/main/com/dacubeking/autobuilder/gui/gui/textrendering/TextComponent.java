@@ -13,7 +13,7 @@ import java.util.OptionalInt;
  * need to create a new TextComponent for each part that contains different styling.
  */
 @SuppressWarnings("OptionalUsedAsFieldOrParameterType")
-public class TextComponent {
+public class TextComponent implements Cloneable {
     /**
      * The text that this component contains.
      */
@@ -40,6 +40,12 @@ public class TextComponent {
     public boolean isUnderlined = false;
 
     /**
+     * If the text in this component is highlighted.
+     */
+    public boolean isHighlighted = false;
+
+
+    /**
      * The color of the text in this component.
      */
     @NotNull public Color color = Color.BLACK;
@@ -63,6 +69,11 @@ public class TextComponent {
      * The optional color of the strikethrough in this component.
      */
     @NotNull public Optional<Color> strikethroughColor = Optional.empty();
+
+    /**
+     * The optional color of the highlight in this component.
+     */
+    @NotNull public Optional<Color> highlightColor = Optional.empty();
 
     /**
      * @param text  the text of this component.
@@ -160,6 +171,16 @@ public class TextComponent {
         return this;
     }
 
+
+    /**
+     * @param highlighted set if the text should be highlighted
+     * @return {@link TextComponent} this
+     */
+    public @NotNull TextComponent setHighlighted(boolean highlighted) {
+        isHighlighted = highlighted;
+        return this;
+    }
+
     public @NotNull Color getColor() {
         return color;
     }
@@ -223,8 +244,36 @@ public class TextComponent {
         return this;
     }
 
+    public @NotNull Color getHighlightColor() {
+        return highlightColor.orElse(color);
+    }
+
+    public TextComponent setHighlightColor(Color color) {
+        this.highlightColor = Optional.of(color);
+        return this;
+    }
+
     public TextComponent setFont(Fonts font) {
         this.font = Optional.of(font);
         return this;
+    }
+
+
+    @Override
+    public TextComponent clone() {
+        try {
+            TextComponent clone = (TextComponent) super.clone();
+            clone.color = new Color(color);
+            clone.underlineColor = Optional.ofNullable(
+                    underlineColor.isPresent() ? new Color(underlineColor.orElseThrow()) : null);
+            clone.strikethroughColor = Optional.ofNullable(
+                    strikethroughColor.isPresent() ? new Color(strikethroughColor.orElseThrow()) : null);
+            clone.highlightColor = Optional.ofNullable(
+                    highlightColor.isPresent() ? new Color(highlightColor.orElseThrow()) : null);
+
+            return clone;
+        } catch (CloneNotSupportedException e) {
+            throw new AssertionError();
+        }
     }
 }

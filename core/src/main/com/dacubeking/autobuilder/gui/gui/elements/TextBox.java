@@ -29,6 +29,7 @@ import java.awt.datatransfer.StringSelection;
 import java.awt.datatransfer.UnsupportedFlavorException;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -98,12 +99,26 @@ public class TextBox extends InputEventListener {
                 text = fireTextBoxClickEvent();
 
                 selectedPos = mouseIndexPos;
+                highlighting = false;
+                highlightPosBegin = mouseIndexPos;
+                highlightPosEnd = mouseIndexPos;
                 flashing = true;
                 nextFlashChange = System.currentTimeMillis() + 500;
                 AutoBuilder.scheduleRendering(500);
                 xPos = -1;
             } else {
                 selected = false;
+            }
+        } else if (Gdx.input.isButtonPressed(Input.Buttons.LEFT)) {
+            if (hovering) {
+                highlightPosEnd = mouseIndexPos;
+                selectedPos = mouseIndexPos;
+                if (highlightPosBegin - highlightPosEnd != 0) {
+                    highlighting = true;
+                }
+                flashing = true;
+                nextFlashChange = System.currentTimeMillis() + 500;
+                AutoBuilder.scheduleRendering(500);
             }
         }
 
@@ -239,23 +254,29 @@ public class TextBox extends InputEventListener {
         if (linting != null) {
             textComponents.clear();
             if (linting.size() > 0) {
-                textComponents.add(0, new TextComponent(text.substring(0, linting.get(0).index)).setUnderlined(false));
+                textComponents.addAll(
+                        addHighlight(new TextComponent(text.substring(0, linting.get(0).index)).setUnderlined(false),
+                                0, linting.get(0).index));
                 for (int i = 0; i < linting.size(); i++) {
                     if (linting.size() > i + 1 && linting.get(i + 1).index < text.length()) {
                         // Lint in between this error and the next error
                         if (mouseIndexPos >= linting.get(i).index && mouseIndexPos < linting.get(i + 1).index) {
                             lintingPos = linting.get(i);
                         }
-                        textComponents.add(i + 1, new TextComponent(
-                                text.substring(linting.get(i).index, linting.get(i + 1).index))
-                                .setUnderlined(true).setUnderlineColor(linting.get(i).underlineColor)
-                                .setColor(linting.get(i).color));
+                        textComponents.addAll(
+                                addHighlight(new TextComponent(
+                                                text.substring(linting.get(i).index, linting.get(i + 1).index))
+                                                .setUnderlined(true).setUnderlineColor(linting.get(i).underlineColor)
+                                                .setColor(linting.get(i).color),
+                                        linting.get(i).index, linting.get(i + 1).index));
                     } else {
                         //Lint the rest of the text
                         if (linting.get(i).index < text.length()) {
-                            textComponents.add(i + 1, new TextComponent(text.substring(linting.get(i).index))
-                                    .setUnderlined(true).setUnderlineColor(linting.get(i).underlineColor)
-                                    .setColor(linting.get(i).color));
+                            textComponents.addAll(
+                                    addHighlight(new TextComponent(text.substring(linting.get(i).index))
+                                                    .setUnderlined(true).setUnderlineColor(linting.get(i).underlineColor)
+                                                    .setColor(linting.get(i).color),
+                                            linting.get(i).index, text.length()));
                         }
 
                         if (mouseIndexPos >= linting.get(i).index) {
@@ -268,11 +289,13 @@ public class TextBox extends InputEventListener {
                 if (lintingPos != null && lintingPos.message != null &&
                         Math.abs(textBlock.getPositionOfIndex(mouseIndexPos).x - mousePos.x) < 7 &&
                         Math.abs(textBlock.getPositionOfIndex(mouseIndexPos).y - mousePos.y) < 20) {
-                    HoverManager.setHoverText(lintingPos.message); // TODO: Render this at a fixed position above the text
-                    // instead of being relative to the mouse
+                    if (!highlighting) {
+                        HoverManager.setHoverText(lintingPos.message); // TODO: Render this at a fixed position above the text
+                        // instead of being relative to the mouse
+                    }
                 }
             } else {
-                textComponents.add(0, new TextComponent(text));
+                textComponents.addAll(0, addHighlight(new TextComponent(text), 0, text.length()));
             }
 
             textBlock.setTextComponents(textComponents.toArray(new TextComponent[0]));
@@ -299,6 +322,54 @@ public class TextBox extends InputEventListener {
             }
         }
         return hovering;
+    }
+
+    int highlightPosBegin = 3;
+    int highlightPosEnd = 10;
+    boolean highlighting = false;
+
+    private final static Color HIGHLIGHT_COLOR = Color.valueOf("a6d2ffff");
+
+    private Collection<TextComponent> addHighlight(TextComponent textComponent, int startIndex, int endIndex) {
+
+        int highlightPosMin = Math.min(highlightPosBegin, highlightPosEnd);
+        int highlightPosMax = Math.max(highlightPosBegin, highlightPosEnd);
+        Collection<TextComponent> textComponents = new ArrayList<>();
+        if (!highlighting) {
+            textComponents.add(textComponent);
+            return textComponents;
+        }
+
+        if (startIndex < highlightPosMax && endIndex > highlightPosMin) {
+            if (highlightPosMin > startIndex) {
+                TextComponent sub1 = textComponent.clone();
+                sub1.setText(sub1.text.substring(0, highlightPosMin - startIndex));
+                sub1.setHighlighted(false);
+                textComponents.add(sub1);
+
+                TextComponent sub2 = textComponent.clone();
+                sub2.setText(sub2.text.substring(highlightPosMin - startIndex));
+                sub2.setHighlighted(true).setHighlightColor(HIGHLIGHT_COLOR);
+                startIndex = highlightPosMin;
+                textComponent = sub2;
+            } else {
+                textComponent.setHighlighted(true).setHighlightColor(HIGHLIGHT_COLOR);
+            }
+        }
+
+        if (startIndex <= highlightPosMax && endIndex > highlightPosMax) {
+            TextComponent sub1 = textComponent.clone();
+            sub1.setText(sub1.text.substring(0, highlightPosMax - startIndex));
+            sub1.setHighlighted(true).setHighlightColor(HIGHLIGHT_COLOR);
+            textComponents.add(sub1);
+
+            textComponent.setText(textComponent.text.substring(highlightPosMax - startIndex));
+            textComponent.setHighlighted(false);
+            textComponents.add(textComponent);
+        } else {
+            textComponents.add(textComponent);
+        }
+        return textComponents;
     }
 
     public void dispose() {
