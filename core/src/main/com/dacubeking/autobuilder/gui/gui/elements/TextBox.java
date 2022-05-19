@@ -32,8 +32,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
-import static com.dacubeking.autobuilder.gui.util.MouseUtil.getMouseX;
-import static com.dacubeking.autobuilder.gui.util.MouseUtil.getMouseY;
+import static com.dacubeking.autobuilder.gui.util.MouseUtil.*;
 
 
 /*
@@ -113,6 +112,13 @@ public class TextBox extends InputEventListener {
                 selectedPos++;
                 if (selectedPos > text.length()) {
                     selectedPos = text.length();
+                } else if (isControlPressed()) {
+                    boolean foundNonWhitespace = !Character.isWhitespace(text.charAt(selectedPos - 1));
+                    while (selectedPos < text.length() &&
+                            (!Character.isWhitespace(text.charAt(selectedPos)) || !foundNonWhitespace)) {
+                        if (!Character.isWhitespace(text.charAt(selectedPos))) foundNonWhitespace = true;
+                        selectedPos++;
+                    }
                 }
                 flashing = true;
                 nextFlashChange = System.currentTimeMillis() + 500;
@@ -124,6 +130,12 @@ public class TextBox extends InputEventListener {
                 selectedPos--;
                 if (selectedPos < 0) {
                     selectedPos = 0;
+                } else if (isControlPressed()) {
+                    boolean foundNonWhitespace = !Character.isWhitespace(text.charAt(selectedPos));
+                    while (selectedPos > 0 && (!Character.isWhitespace(text.charAt(selectedPos - 1)) || !foundNonWhitespace)) {
+                        if (!Character.isWhitespace(text.charAt(selectedPos - 1))) foundNonWhitespace = true;
+                        selectedPos--;
+                    }
                 }
                 flashing = true;
                 nextFlashChange = System.currentTimeMillis() + 500;
@@ -373,6 +385,9 @@ public class TextBox extends InputEventListener {
 
             if (System.currentTimeMillis() > nextKeyPressTimeMap.get(keyCode)) { // Key held down
                 nextKeyPressTimeMap.put(keyCode, System.currentTimeMillis() + KEY_PRESS_DELAY);
+                for (Long value : nextKeyPressTimeMap.values()) {
+                    AutoBuilder.scheduleRendering(value - System.currentTimeMillis());
+                }
                 return true;
             }
         } else { // Key released

@@ -242,6 +242,7 @@ public final class AutoBuilder extends ApplicationAdapter {
      * @param delay in milliseconds. Will only be added if a more recent request has not been made.
      */
     public synchronized static void scheduleRendering(long delay) {
+        if (delay < 0) return;
         @Nullable ScheduledFuture<?> runnable = (ScheduledFuture<?>) requestedRenderThread.getQueue().peek();
         if (runnable == null || runnable.getDelay(TimeUnit.MILLISECONDS) > delay) {
             if (runnable != null) {

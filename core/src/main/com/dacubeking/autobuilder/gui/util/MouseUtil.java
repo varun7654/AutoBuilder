@@ -1,6 +1,7 @@
 package com.dacubeking.autobuilder.gui.util;
 
 import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.Input.Keys;
 import com.badlogic.gdx.math.Vector2;
 
 public final class MouseUtil {
@@ -23,5 +24,9 @@ public final class MouseUtil {
     public static boolean isMouseOver(Vector2 mousePos, int x, int y, int width, int height) {
         return mousePos.x >= x && mousePos.x <= x + width &&
                 mousePos.y >= y && mousePos.y <= y + height;
+    }
+
+    public static boolean isControlPressed() {
+        return Gdx.input.isKeyPressed(Keys.CONTROL_LEFT) || Gdx.input.isKeyPressed(Keys.CONTROL_RIGHT);
     }
 }
