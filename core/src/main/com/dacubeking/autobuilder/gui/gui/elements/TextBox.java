@@ -110,6 +110,7 @@ public class TextBox extends InputEventListener {
                 xPos = -1;
             } else {
                 selected = false;
+                highlighting = false;
             }
         } else if (Gdx.input.isButtonPressed(Input.Buttons.LEFT)) {
             if (selected) {
