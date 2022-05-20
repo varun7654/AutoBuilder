@@ -56,6 +56,8 @@ public class TextBox extends InputEventListener {
     private final TextBlock cursorTextBlock;
     private float xPos = -1;
 
+    private static final String STOP_WORD_CHARS = ".?!,;:-+=()[]{}<>";
+
     Map<Integer, Boolean> keyPressedMap = new HashMap<>();
     Map<Integer, Long> nextKeyPressTimeMap = new HashMap<>();
 
@@ -130,9 +132,12 @@ public class TextBox extends InputEventListener {
                 if (selectedPos > text.length()) {
                     selectedPos = text.length();
                 } else if (isControlPressed()) {
-                    boolean foundNonWhitespace = !Character.isWhitespace(text.charAt(selectedPos - 1));
+                    boolean foundNonWhitespace = !Character.isWhitespace(text.charAt(selectedPos - 1))
+                            || STOP_WORD_CHARS.contains(String.valueOf(text.charAt(selectedPos - 1)));
                     while (selectedPos < text.length() &&
-                            (!Character.isWhitespace(text.charAt(selectedPos)) || !foundNonWhitespace)) {
+                            (!(Character.isWhitespace(text.charAt(selectedPos))
+                                    || STOP_WORD_CHARS.contains(String.valueOf(text.charAt(selectedPos - 1))))
+                                    || !foundNonWhitespace)) {
                         if (!Character.isWhitespace(text.charAt(selectedPos))) foundNonWhitespace = true;
                         selectedPos++;
                     }
@@ -154,8 +159,12 @@ public class TextBox extends InputEventListener {
                 if (selectedPos < 0) {
                     selectedPos = 0;
                 } else if (isControlPressed()) {
-                    boolean foundNonWhitespace = !Character.isWhitespace(text.charAt(selectedPos));
-                    while (selectedPos > 0 && (!Character.isWhitespace(text.charAt(selectedPos - 1)) || !foundNonWhitespace)) {
+                    boolean foundNonWhitespace = !Character.isWhitespace(text.charAt(selectedPos))
+                            || STOP_WORD_CHARS.contains(String.valueOf(text.charAt(selectedPos)));
+                    while (selectedPos > 0 &&
+                            (!(Character.isWhitespace(text.charAt(selectedPos - 1))
+                                    || STOP_WORD_CHARS.contains(String.valueOf(text.charAt(selectedPos - 1))))
+                                    || !foundNonWhitespace)) {
                         if (!Character.isWhitespace(text.charAt(selectedPos - 1))) foundNonWhitespace = true;
                         selectedPos--;
                     }
