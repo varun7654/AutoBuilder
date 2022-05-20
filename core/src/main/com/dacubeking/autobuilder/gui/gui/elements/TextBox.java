@@ -312,11 +312,11 @@ public class TextBox extends InputEventListener {
         if (selected && flashing) {
             if (selectedPos >= 0 && textBlock.getRenderableTextComponents().size() > 0) {
                 Vector2 cursorPos = textBlock.getPositionOfIndex(selectedPos);
-                FontRenderer.renderText(spriteBatch, shapeRenderer, drawStartX + 2 + cursorPos.x,
+                FontRenderer.renderText(spriteBatch, shapeRenderer, drawStartX + cursorPos.x,
                         drawStartY + textBlock.getDefaultSize() - textBlock.getDefaultLineSpacingSize() + 5 + cursorPos.y,
                         cursorTextBlock);
             } else {
-                FontRenderer.renderText(spriteBatch, shapeRenderer, drawStartX + 2,
+                FontRenderer.renderText(spriteBatch, shapeRenderer, drawStartX,
                         drawStartY + textBlock.getDefaultSize() - textBlock.getDefaultLineSpacingSize() + 5,
                         cursorTextBlock);
             }

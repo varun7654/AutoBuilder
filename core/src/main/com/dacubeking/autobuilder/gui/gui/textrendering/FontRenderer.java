@@ -51,8 +51,12 @@ public class FontRenderer {
                 }
             }
 
-            fontToUse.draw(batch, renderableTextComponent.text.replace("\n", ""), renderableTextComponent.x + x,
-                    renderableTextComponent.y + y + fontToUse.getCapHeight());
+            String text = renderableTextComponent.text.replace("\n", "");
+            if (text.length() > 0) {
+                fontToUse.draw(batch, text,
+                        renderableTextComponent.x + renderableTextComponent.getFontData().getGlyph(text.charAt(0)).xoffset + x,
+                        renderableTextComponent.y + y + fontToUse.getCapHeight());
+            }
         }
     }
 }
