@@ -42,6 +42,10 @@ public class MathUtil {
         return (x1 - x2) * (x1 - x2) + (y1 - y2) * (y1 - y2);
     }
 
+    public static double dist2(Vector2 v1, Vector2 v2) {
+        return (v1.x - v2.x) * (v1.x - v2.x) + (v1.y - v2.y) * (v1.y - v2.y);
+    }
+
     public static Vector3 toRenderVector3(Translation2d translation2d) {
         return new Vector3((float) translation2d.getX() * AutoBuilder.getConfig().getPointScaleFactor(),
                 (float) translation2d.getY() * AutoBuilder.getConfig().getPointScaleFactor(),

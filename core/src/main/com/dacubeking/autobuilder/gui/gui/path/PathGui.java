@@ -25,6 +25,7 @@ import java.util.List;
 import java.util.Random;
 import java.util.concurrent.ExecutorService;
 
+import static com.dacubeking.autobuilder.gui.util.MathUtil.dist2;
 import static com.dacubeking.autobuilder.gui.util.MouseUtil.*;
 import static java.awt.Color.HSBtoRGB;
 
@@ -93,6 +94,9 @@ public class PathGui extends InputEventListener {
         lastPath = null;
         boolean draggingElementSpotFound = false;
         TrajectoryItem lastDraggingElementTrajectory = null;
+
+        Vector2 mousePos = getMousePos();
+
         for (int i = 0; i < guiItems.size(); i++) {
             AbstractGuiItem guiItem = guiItems.get(i);
 
@@ -107,7 +111,7 @@ public class PathGui extends InputEventListener {
 
             if (draggingElement != null && !draggingElementSpotFound &&
                     (yPos - (guiItem.getHeight() / 2f) - (newDraggingElementIndex == i ? draggingElement.getHeight() : 0))
-                            < Gdx.graphics.getHeight() - Gdx.input.getY() - dragOffset.y) {
+                            < getMouseY() - dragOffset.y) {
                 yPos = yPos - 10 - draggingElement.getHeight();
                 newDraggingElementIndex = i;
                 draggingElementSpotFound = true;
@@ -119,7 +123,7 @@ public class PathGui extends InputEventListener {
 
             if (guiItem != draggingElement) {
                 yPos = yPos - 10 - guiItem.render(shapeRenderer, spriteBatch, panelX + 10, yPos, panelWidth - 20, this,
-                        camera, isLeftMouseJustUnpressed);
+                        camera, isLeftMouseJustUnpressed && dist2(mouseDownPos, mousePos) < 10);
             }
 
             if (guiItem instanceof TrajectoryItem) {

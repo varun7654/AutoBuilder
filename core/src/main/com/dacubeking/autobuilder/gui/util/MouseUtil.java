@@ -33,4 +33,8 @@ public final class MouseUtil {
     public static boolean isShiftPressed() {
         return Gdx.input.isKeyPressed(Keys.SHIFT_LEFT) || Gdx.input.isKeyPressed(Keys.SHIFT_RIGHT);
     }
+
+    public static Vector2 getMousePos() {
+        return new Vector2(getMouseX(), getMouseY());
+    }
 }
