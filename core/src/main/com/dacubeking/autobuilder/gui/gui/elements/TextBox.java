@@ -124,6 +124,8 @@ public class TextBox extends InputEventListener {
 
         if (selected) {
             if (getKeyPressed(Keys.RIGHT)) {
+                if (!highlighting) highlightPosBegin = selectedPos;
+
                 selectedPos++;
                 if (selectedPos > text.length()) {
                     selectedPos = text.length();
@@ -135,6 +137,10 @@ public class TextBox extends InputEventListener {
                         selectedPos++;
                     }
                 }
+
+                highlightPosEnd = selectedPos;
+                highlighting = isShiftPressed();
+
                 flashing = true;
                 nextFlashChange = System.currentTimeMillis() + 500;
                 AutoBuilder.scheduleRendering(500);
@@ -142,6 +148,8 @@ public class TextBox extends InputEventListener {
             }
 
             if (getKeyPressed(Keys.LEFT)) {
+                if (!highlighting) highlightPosBegin = selectedPos;
+
                 selectedPos--;
                 if (selectedPos < 0) {
                     selectedPos = 0;
@@ -152,6 +160,10 @@ public class TextBox extends InputEventListener {
                         selectedPos--;
                     }
                 }
+
+                highlightPosEnd = selectedPos;
+                highlighting = isShiftPressed();
+
                 flashing = true;
                 nextFlashChange = System.currentTimeMillis() + 500;
                 AutoBuilder.scheduleRendering(500);
@@ -160,9 +172,14 @@ public class TextBox extends InputEventListener {
 
             //Act like we click up on the previous line
             if (getKeyPressed(Keys.UP)) {
+                if (!highlighting) highlightPosBegin = selectedPos;
+
                 Vector2 pos = textBlock.getPositionOfIndex(selectedPos);
                 if (xPos == -1) xPos = pos.x;
-                selectedPos = textBlock.getIndexOfPosition(new Vector2(xPos, pos.y + textBlock.getDefaultLineSpacingSize() + 1));
+                selectedPos = textBlock.getIndexOfPosition(new Vector2(xPos, pos.y + textBlock.getDefaultLineSpacingSize() - 1));
+
+                highlightPosEnd = selectedPos;
+                highlighting = isShiftPressed();
 
                 flashing = true;
                 nextFlashChange = System.currentTimeMillis() + 500;
@@ -171,9 +188,14 @@ public class TextBox extends InputEventListener {
 
             //Act like we click down on the next line
             if (getKeyPressed(Keys.DOWN)) {
+                if (!highlighting) highlightPosBegin = selectedPos;
+
                 Vector2 pos = textBlock.getPositionOfIndex(selectedPos);
                 if (xPos == -1) xPos = pos.x;
                 selectedPos = textBlock.getIndexOfPosition(new Vector2(xPos, pos.y - textBlock.getDefaultLineSpacingSize() / 2));
+
+                highlightPosEnd = selectedPos;
+                highlighting = isShiftPressed();
 
                 flashing = true;
                 nextFlashChange = System.currentTimeMillis() + 500;
@@ -181,7 +203,11 @@ public class TextBox extends InputEventListener {
             }
 
             if (getKeyPressed(Keys.BACKSPACE)) {
-                if (selectedPos > 0) {
+                if (highlighting) {
+                    deleteHighlightedSection();
+                    fireTextChangeEvent();
+                    UndoHandler.getInstance().somethingChanged();
+                } else if (selectedPos > 0) {
                     text = text.substring(0, selectedPos - 1) + text.substring(selectedPos);
                     selectedPos--;
                     fireTextChangeEvent();
@@ -195,7 +221,11 @@ public class TextBox extends InputEventListener {
             }
 
             if (getKeyPressed(Keys.FORWARD_DEL)) {
-                if (selectedPos < text.length()) {
+                if (highlighting) {
+                    deleteHighlightedSection();
+                    fireTextChangeEvent();
+                    UndoHandler.getInstance().somethingChanged();
+                } else if (selectedPos < text.length()) {
                     text = text.substring(0, selectedPos) + text.substring(selectedPos + 1);
                     fireTextChangeEvent();
                     UndoHandler.getInstance().somethingChanged();
@@ -220,22 +250,33 @@ public class TextBox extends InputEventListener {
                 }
             }
 
-            if ((Gdx.input.isKeyPressed(Input.Keys.CONTROL_LEFT) || Gdx.input.isKeyPressed(Input.Keys.CONTROL_LEFT)) &&
-                    Gdx.input.isKeyJustPressed(Input.Keys.C)) {
+            if (isControlPressed() && (Gdx.input.isKeyJustPressed(Input.Keys.C) || Gdx.input.isKeyJustPressed(Input.Keys.X))) {
                 Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
                 int endPos = selectedPos;
                 int startPos = selectedPos;
-                while (endPos < text.length() && text.charAt(endPos) != '\n') {
-                    endPos++;
-                }
+                if (highlighting) {
+                    endPos = Math.max(highlightPosEnd, highlightPosBegin);
+                    startPos = Math.min(highlightPosEnd, highlightPosBegin);
+                } else {
+                    while (endPos < text.length() && text.charAt(endPos) != '\n') {
+                        endPos++;
+                    }
+                    if (endPos < text.length() && text.charAt(endPos) == '\n') endPos += 1; // Add the newline to the copied text
 
-                if (endPos < text.length() && text.charAt(endPos) == '\n') endPos += 1; // Add the newline to the copied text
-
-                while (startPos > 0 && text.charAt(startPos - 1) != '\n') {
-                    startPos--;
+                    while (startPos > 0 && text.charAt(startPos - 1) != '\n') {
+                        startPos--;
+                    }
                 }
 
                 clipboard.setContents(new StringSelection(text.substring(startPos, endPos)), null);
+
+                if (Gdx.input.isKeyPressed(Input.Keys.X)) {
+                    text = text.substring(0, startPos) + text.substring(endPos);
+                    selectedPos = startPos;
+                    highlighting = false;
+                    fireTextChangeEvent();
+                    UndoHandler.getInstance().somethingChanged();
+                }
             }
 
             if (nextFlashChange < System.currentTimeMillis()) {
@@ -380,6 +421,8 @@ public class TextBox extends InputEventListener {
     public void onKeyType(char character) {
         if (selected) {
             if (Character.getType(character) != Character.CONTROL) {
+                deleteHighlightedSection();
+
                 if (text.length() == selectedPos) {
                     text = text + character;
                 } else {
@@ -393,6 +436,7 @@ public class TextBox extends InputEventListener {
                 UndoHandler.getInstance().somethingChanged();
                 xPos = -1;
             } else if (Character.getName(character).equals("LINE FEED (LF)")) { //TODO: Make this not cringe
+                deleteHighlightedSection();
                 if (text.length() == selectedPos) {
                     text = text + '\n';
                 } else {
@@ -406,6 +450,16 @@ public class TextBox extends InputEventListener {
                 UndoHandler.getInstance().somethingChanged();
                 xPos = -1;
             }
+        }
+    }
+
+    private void deleteHighlightedSection() {
+        if (highlighting) {
+            int highlightPosMin = Math.min(highlightPosBegin, highlightPosEnd);
+            int highlightPosMax = Math.max(highlightPosBegin, highlightPosEnd);
+            text = text.substring(0, highlightPosMin) + text.substring(highlightPosMax);
+            selectedPos = highlightPosMin;
+            highlighting = false;
         }
     }
 
