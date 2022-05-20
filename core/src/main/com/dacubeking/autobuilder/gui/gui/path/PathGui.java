@@ -21,6 +21,7 @@ import org.jetbrains.annotations.Nullable;
 import space.earlygrey.shapedrawer.ShapeDrawer;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Random;
 import java.util.concurrent.ExecutorService;
@@ -31,7 +32,7 @@ import static java.awt.Color.HSBtoRGB;
 
 public class PathGui extends InputEventListener {
     final @NotNull ExecutorService executorService;
-    public @NotNull List<AbstractGuiItem> guiItems = new ArrayList<>();
+    public @NotNull List<AbstractGuiItem> guiItems = Collections.synchronizedList(new ArrayList<>());
     public ArrayList<AbstractGuiItem> guiItemsDeletions = new ArrayList<>();
     @NotNull AddPathButton addPathButton;
     @NotNull AddScriptButton addScriptButton;

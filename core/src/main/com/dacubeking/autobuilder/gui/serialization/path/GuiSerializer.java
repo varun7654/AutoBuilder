@@ -13,13 +13,15 @@ import java.util.concurrent.ExecutionException;
 import java.util.stream.Collectors;
 
 public class GuiSerializer {
-    public static Autonomous serializeAutonomousForDeployment(List<AbstractGuiItem> mutableGuiItemList) throws NotDeployableException {
+    public static Autonomous serializeAutonomousForDeployment(
+            List<AbstractGuiItem> mutableGuiItemList) throws NotDeployableException {
         List<AbstractAutonomousStep> autonomousSteps = new ArrayList<>();
         List<AbstractGuiItem> guiItemList = new ArrayList<>(mutableGuiItemList);
         for (AbstractGuiItem abstractGuiItem : guiItemList) {
             if (abstractGuiItem instanceof ScriptItem) {
                 ScriptItem scriptItem = (ScriptItem) abstractGuiItem;
-                autonomousSteps.add(new ScriptAutonomousStep(scriptItem.getText(), scriptItem.isClosed(), scriptItem.isValid(), scriptItem.getSendableScript()));
+                autonomousSteps.add(new ScriptAutonomousStep(scriptItem.getText(), scriptItem.isClosed(), scriptItem.isValid(),
+                        scriptItem.getSendableScript()));
             }
 
             if (abstractGuiItem instanceof TrajectoryItem) {
@@ -85,7 +87,7 @@ public class GuiSerializer {
         return new Autonomous(autonomousSteps);
     }
 
-    public static Autonomous serializeAutonomous(List<AbstractGuiItem> mutableGuiItemList) {
+    public static Autonomous serializeAutonomous(List<AbstractGuiItem> mutableGuiItemList, boolean autoSaving) {
         boolean deployable = true;
         List<AbstractAutonomousStep> autonomousSteps = new ArrayList<>();
         List<AbstractGuiItem> guiItemList = new ArrayList<>(mutableGuiItemList);
@@ -106,7 +108,12 @@ public class GuiSerializer {
 
                 List<Trajectory.State> states = null;
                 try {
-                    states = trajectoryItem.getPathRenderer().getNotNullTrajectory().getStates();
+                    Trajectory trajectory = trajectoryItem.getPathRenderer().getTrajectory();
+                    if (trajectory != null && autoSaving) {
+                        states = trajectory.getStates();
+                    } else {
+                        states = trajectoryItem.getPathRenderer().getNotNullTrajectory().getStates();
+                    }
                 } catch (ExecutionException e) {
                     deployable = false;
                 }

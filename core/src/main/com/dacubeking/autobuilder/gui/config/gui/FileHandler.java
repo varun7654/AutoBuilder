@@ -10,7 +10,6 @@ import com.dacubeking.autobuilder.gui.net.Serializer;
 import com.dacubeking.autobuilder.gui.pathing.PathRenderer;
 import com.dacubeking.autobuilder.gui.serialization.path.Autonomous;
 import com.dacubeking.autobuilder.gui.serialization.path.GuiSerializer;
-import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.io.IOException;
@@ -131,36 +130,30 @@ public class FileHandler {
     public volatile static long lastSaveTime = -1;
 
     private static final Object autonomousToSaveLock = new Object();
-    private static @Nullable Autonomous autonomousToSave;
 
     private static final Object saveLock = new Object();
     static final Thread saveThread;
+    private static volatile boolean requestSave = false;
 
     static {
         saveThread = new Thread(() -> {
             while (true) {
-                if (autonomousToSave == null) {
-                    synchronized (autonomousToSaveLock) {
-                        try {
-                            autonomousToSaveLock.wait();
-                        } catch (InterruptedException ignored) {
-                            //Don't care
-                        }
-                    }
+                while (!requestSave) {
+                    Thread.onSpinWait();
                 }
 
-                Autonomous autonomous;
+                Autonomous autonomous = GuiSerializer.serializeAutonomous(AutoBuilder.getInstance().pathGui.guiItems, true);
                 synchronized (autonomousToSaveLock) {
-                    autonomous = autonomousToSave;
-                    autonomousToSave = null;
-                }
-
-                if (autonomous == null) {
-                    continue;
+                    requestSave = false;
                 }
 
                 synchronized (saveLock) {
                     saveAuto(autonomous);
+                }
+
+                try {
+                    Thread.sleep(5000);
+                } catch (InterruptedException ignored) {
                 }
             }
         });
@@ -168,14 +161,13 @@ public class FileHandler {
     }
 
     public static void saveAuto(boolean async) {
-        Autonomous autonomous = GuiSerializer.serializeAutonomous(AutoBuilder.getInstance().pathGui.guiItems);
         if (async) {
             synchronized (autonomousToSaveLock) {
-                autonomousToSave = autonomous;
-                autonomousToSaveLock.notify();
+                requestSave = true;
             }
         } else {
             synchronized (saveLock) {
+                Autonomous autonomous = GuiSerializer.serializeAutonomous(AutoBuilder.getInstance().pathGui.guiItems, async);
                 saveAuto(autonomous);
             }
         }

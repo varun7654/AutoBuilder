@@ -8,6 +8,7 @@ import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.math.Vector3;
 import com.dacubeking.autobuilder.gui.AutoBuilder;
 import com.dacubeking.autobuilder.gui.UndoHandler;
+import com.dacubeking.autobuilder.gui.config.gui.FileHandler;
 import com.dacubeking.autobuilder.gui.events.movablepoint.MovablePointEventHandler;
 import com.dacubeking.autobuilder.gui.events.movablepoint.PointMoveEvent;
 import com.dacubeking.autobuilder.gui.events.pathchange.PathChangeListener;
@@ -24,6 +25,7 @@ import com.dacubeking.autobuilder.gui.pathing.pointclicks.CloseTrajectoryPoint;
 import com.dacubeking.autobuilder.gui.util.MathUtil;
 import com.dacubeking.autobuilder.gui.wpi.math.geometry.Pose2d;
 import com.dacubeking.autobuilder.gui.wpi.math.geometry.Rotation2d;
+import com.dacubeking.autobuilder.gui.wpi.math.spline.Spline;
 import com.dacubeking.autobuilder.gui.wpi.math.spline.Spline.ControlVector;
 import com.dacubeking.autobuilder.gui.wpi.math.spline.SplineParameterizer.MalformedSplineException;
 import com.dacubeking.autobuilder.gui.wpi.math.trajectory.Trajectory;
@@ -39,15 +41,17 @@ import space.earlygrey.shapedrawer.ShapeDrawer;
 import java.io.Serializable;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class TrajectoryPathRenderer implements MovablePointEventHandler, Serializable, PathRenderer {
     @NotNull private final Color color;
-    @NotNull private final ControlVectorList controlVectors;
+    @NotNull private final List<Spline.ControlVector> controlVectors;
     @NotNull private final List<Rotation2d> rotation2dList;
     @NotNull private final List<MovablePointRenderer> pointRenderList;
     @NotNull private final ExecutorService executorService;
@@ -80,7 +84,7 @@ public class TrajectoryPathRenderer implements MovablePointEventHandler, Seriali
                                   @NotNull ExecutorService executorService, float velocityStart, float velocityEnd,
                                   @NotNull List<TrajectoryConstraint> constraints) {
         this.color = color;
-        this.controlVectors = pointList;
+        this.controlVectors = (List<ControlVector>) Collections.synchronizedList(pointList);
         this.rotation2dList = rotation2dList;
 
         pointRenderList = new ArrayList<>();
@@ -459,7 +463,7 @@ public class TrajectoryPathRenderer implements MovablePointEventHandler, Seriali
 
 
             //update the attached path if needed
-            if (attachedPath != null && !mouseDiff.isZero()) {
+            if (attachedPath != null && !mouseDiff.isZero() && Gdx.input.isButtonPressed(Buttons.LEFT)) {
                 if (isAttachedPathEnd) {
                     ControlVector attachedPathControlVector = attachedPath.controlVectors.get(
                             attachedPath.controlVectors.size() - 1);
@@ -564,9 +568,17 @@ public class TrajectoryPathRenderer implements MovablePointEventHandler, Seriali
         updatePath(true);
     }
 
+    AtomicInteger updateRequestedPathCounter = new AtomicInteger(0);
+    AtomicInteger updatedPathCounter = new AtomicInteger(0);
+
     public void updatePath(boolean updateListener) {
+        updateRequestedPathCounter.incrementAndGet();
         // Generate the new path on another thread
         completableFutureTrajectory = CompletableFuture.supplyAsync(() -> {
+            if (updatedPathCounter.get() == updateRequestedPathCounter.get()) {
+                return trajectory;
+            }
+            updatedPathCounter.set(updateRequestedPathCounter.get());
             TrajectoryConfig trajectoryConfig = new TrajectoryConfig(config.getPathingConfig().maxVelocityMetersPerSecond,
                     config.getPathingConfig().maxAccelerationMetersPerSecondSq);
             for (TrajectoryConstraint trajectoryConstraint : config.getPathingConfig().trajectoryConstraints) {
@@ -583,7 +595,7 @@ public class TrajectoryPathRenderer implements MovablePointEventHandler, Seriali
 
             Trajectory trajectory;
             try {
-                trajectory = TrajectoryGenerator.generateTrajectory(controlVectors, trajectoryConfig);
+                trajectory = TrajectoryGenerator.generateTrajectory(new ControlVectorList(controlVectors), trajectoryConfig);
             } catch (MalformedSplineException e) {
                 NotificationHandler.addNotification(new Notification(Color.RED, "Could not parameterize a malformed spline",
                         3000));
@@ -592,9 +604,11 @@ public class TrajectoryPathRenderer implements MovablePointEventHandler, Seriali
             }
 
             AutoBuilder.requestRendering();
-
-            return this.trajectory = trajectory;
+            this.trajectory = trajectory;
+            return trajectory;
         }, executorService);
+
+        completableFutureTrajectory.thenRun(() -> FileHandler.saveAuto(true));
 
 
         if (updateListener && pathChangeListener != null) pathChangeListener.onPathChange();
@@ -605,7 +619,7 @@ public class TrajectoryPathRenderer implements MovablePointEventHandler, Seriali
         try {
             return completableFutureTrajectory.get();
         } catch (InterruptedException e) {
-            return null; //Should never happen
+            throw new RuntimeException(e);
         }
     }
 
@@ -614,7 +628,7 @@ public class TrajectoryPathRenderer implements MovablePointEventHandler, Seriali
         return trajectory;
     }
 
-    public @NotNull ControlVectorList getControlVectors() {
+    public @NotNull List<Spline.ControlVector> getControlVectors() {
         return controlVectors;
     }
 

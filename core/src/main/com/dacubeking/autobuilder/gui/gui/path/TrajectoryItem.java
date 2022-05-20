@@ -23,6 +23,7 @@ import com.dacubeking.autobuilder.gui.pathing.TimedRotation;
 import com.dacubeking.autobuilder.gui.pathing.TrajectoryPathRenderer;
 import com.dacubeking.autobuilder.gui.util.RoundedShapeRenderer;
 import com.dacubeking.autobuilder.gui.wpi.math.geometry.Rotation2d;
+import com.dacubeking.autobuilder.gui.wpi.math.spline.Spline;
 import com.dacubeking.autobuilder.gui.wpi.math.spline.Spline.ControlVector;
 import com.dacubeking.autobuilder.gui.wpi.math.trajectory.TrajectoryGenerator.ControlVectorList;
 import com.dacubeking.autobuilder.gui.wpi.math.trajectory.constraint.TrajectoryConstraint;
@@ -118,7 +119,7 @@ public class TrajectoryItem extends AbstractGuiItem implements PathChangeListene
             renderHeader(shapeRenderer, spriteBatch, drawStartX, drawStartY, drawWidth, trashTexture, warningTexture,
                     trajectoryPathRenderer.getColor(), title, checkWarning(pathGui));
         } else {
-            ControlVectorList controlVectors = trajectoryPathRenderer.getControlVectors();
+            List<Spline.ControlVector> controlVectors = trajectoryPathRenderer.getControlVectors();
             shapeRenderer.setColor(LIGHT_GREY);
             RoundedShapeRenderer.roundedRect(shapeRenderer, drawStartX + 5,
                     drawStartY - (30 * (AutoBuilder.getConfig().isHolonomic() ? 2 : 3) + (controlVectors.size() * 60) + 40) - 8,
@@ -200,7 +201,7 @@ public class TrajectoryItem extends AbstractGuiItem implements PathChangeListene
     private boolean checkWarning(PathGui pathGui) {
         TrajectoryItem lastTrajectoryItem = pathGui.getLastPath();
         if (lastTrajectoryItem != null) {
-            ControlVectorList lastControlVectors = lastTrajectoryItem.getPathRenderer().getControlVectors();
+            List<Spline.ControlVector> lastControlVectors = lastTrajectoryItem.getPathRenderer().getControlVectors();
             ControlVector lastPoint = lastControlVectors.get(lastControlVectors.size() - 1);
             ControlVector nextPoint = trajectoryPathRenderer.getControlVectors().get(0);
             if (AutoBuilder.getConfig().isHolonomic()) {
