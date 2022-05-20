@@ -112,7 +112,7 @@ public class TextBox extends InputEventListener {
                 selected = false;
             }
         } else if (Gdx.input.isButtonPressed(Input.Buttons.LEFT)) {
-            if (hovering) {
+            if (selected) {
                 highlightPosEnd = mouseIndexPos;
                 selectedPos = mouseIndexPos;
                 if (highlightPosBegin - highlightPosEnd != 0) {

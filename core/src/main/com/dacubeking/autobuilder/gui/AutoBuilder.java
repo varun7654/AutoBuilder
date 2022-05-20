@@ -396,8 +396,8 @@ public final class AutoBuilder extends ApplicationAdapter {
         boolean pointAdded = false;
         //Check if we need to delete/add a point
 
-        if (Gdx.app.getInput().isButtonJustPressed(Input.Buttons.RIGHT) ||
-                Gdx.app.getInput().isButtonJustPressed(Input.Buttons.LEFT)) {
+        if ((Gdx.app.getInput().isButtonJustPressed(Input.Buttons.RIGHT) ||
+                Gdx.app.getInput().isButtonJustPressed(Input.Buttons.LEFT)) && !onGui) {
             if (lastSelectedPoint == null ||
                     !lastSelectedPoint.parentTrajectoryPathRenderer.isTouchingSomething(mousePos, maxDistance)) {
                 removeLastSelectedPoint();
@@ -445,29 +445,31 @@ public final class AutoBuilder extends ApplicationAdapter {
             somethingMoved = Gdx.input.isButtonJustPressed(Input.Buttons.LEFT);
         }
 
-        //Get all close points on all the trajectories and find the closest one.
-        ArrayList<CloseTrajectoryPoint> closeTrajectoryPoints = new ArrayList<>();
-        for (AbstractGuiItem guiItem : pathGui.guiItems) {
-            if (guiItem instanceof TrajectoryItem) {
-                TrajectoryPathRenderer trajectoryPathRenderer = ((TrajectoryItem) guiItem).getPathRenderer();
-                closeTrajectoryPoints.addAll(trajectoryPathRenderer.getCloseTrajectoryPoints(maxDistance, mousePos));
+        if (!onGui) {
+            //Get all close points on all the trajectories and find the closest one.
+            ArrayList<CloseTrajectoryPoint> closeTrajectoryPoints = new ArrayList<>();
+            for (AbstractGuiItem guiItem : pathGui.guiItems) {
+                if (guiItem instanceof TrajectoryItem) {
+                    TrajectoryPathRenderer trajectoryPathRenderer = ((TrajectoryItem) guiItem).getPathRenderer();
+                    closeTrajectoryPoints.addAll(trajectoryPathRenderer.getCloseTrajectoryPoints(maxDistance, mousePos));
+                }
             }
-        }
-        closeTrajectoryPoints.addAll(drivenPathRenderer.getCloseTrajectoryPoints(maxDistance, mousePos));
-        Collections.sort(closeTrajectoryPoints);
+            closeTrajectoryPoints.addAll(drivenPathRenderer.getCloseTrajectoryPoints(maxDistance, mousePos));
+            Collections.sort(closeTrajectoryPoints);
 
-        if (closeTrajectoryPoints.size() > 0) {
-            //We're hovering over a trajectory
-            CloseTrajectoryPoint closeTrajectoryPoint = closeTrajectoryPoints.get(0);
-            if (Gdx.app.getInput().isButtonJustPressed(Input.Buttons.RIGHT) && !pointAdded &&
-                    closeTrajectoryPoint.parentTrajectoryPathRenderer instanceof TrajectoryPathRenderer) {
-                //Should we add a point?
-                ((TrajectoryPathRenderer) closeTrajectoryPoint.parentTrajectoryPathRenderer).addPoint(closeTrajectoryPoint);
-                removeLastSelectedPoint();
-            }
-            //Render the path preview
-            if (lastSelectedPoint == null) {
-                closeTrajectoryPoint.parentTrajectoryPathRenderer.setRobotPathPreviewPoint(closeTrajectoryPoint);
+            if (closeTrajectoryPoints.size() > 0) {
+                //We're hovering over a trajectory
+                CloseTrajectoryPoint closeTrajectoryPoint = closeTrajectoryPoints.get(0);
+                if (Gdx.app.getInput().isButtonJustPressed(Input.Buttons.RIGHT) && !pointAdded &&
+                        closeTrajectoryPoint.parentTrajectoryPathRenderer instanceof TrajectoryPathRenderer) {
+                    //Should we add a point?
+                    ((TrajectoryPathRenderer) closeTrajectoryPoint.parentTrajectoryPathRenderer).addPoint(closeTrajectoryPoint);
+                    removeLastSelectedPoint();
+                }
+                //Render the path preview
+                if (lastSelectedPoint == null) {
+                    closeTrajectoryPoint.parentTrajectoryPathRenderer.setRobotPathPreviewPoint(closeTrajectoryPoint);
+                }
             }
         }
     }
