@@ -67,16 +67,20 @@ public class HoverManager {
                 flippedLastTime = false;
             }
 
-            shapeDrawer.filledRectangle(hoverPosition.x - ((width + 6) / 2), hoverPosition.y - 1,
-                    width + 6, height + 6, Color.BLACK);
+            shapeDrawer.filledRectangle(
+                    Math.round(hoverPosition.x - ((width + 6) / 2)), Math.round(hoverPosition.y - 1),
+                    Math.round(width + 6), Math.round(height + 6),
+                    Color.BLACK);
 
-            shapeDrawer.filledRectangle(hoverPosition.x - ((width + 4) / 2),
-                    hoverPosition.y, width + 4, height + 4, Color.WHITE);
+            shapeDrawer.filledRectangle(
+                    Math.round(hoverPosition.x - ((width + 4) / 2)), Math.round(hoverPosition.y),
+                    Math.round(width + 4), Math.round(height + 4),
+                    Color.WHITE);
 
             FontRenderer.renderText(batch, shapeDrawer,
-                    hoverPosition.x - (width / 2),
-                    hoverPosition.y + hoverText.getHeight() - FontHandler.getFont(
-                            hoverText.getDefaultFont(), false, false, hoverText.getDefaultSize()).getCapHeight(),
+                    Math.round(hoverPosition.x - (width / 2)),
+                    Math.round(hoverPosition.y + hoverText.getHeight() - FontHandler.getFont(hoverText.getDefaultFont(),
+                            false, false, hoverText.getDefaultSize()).getCapHeight()),
                     hoverText);
         }
         hoverShown = false;
