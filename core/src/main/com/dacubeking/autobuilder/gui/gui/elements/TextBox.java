@@ -351,7 +351,7 @@ public class TextBox extends InputEventListener {
 
             textBlock.setTextComponents(textComponents.toArray(new TextComponent[0]));
         } else {
-            textBlock.setTextInComponent(0, text);
+            textBlock.setTextComponents(addHighlight(new TextComponent(text), 0, text.length()).toArray(new TextComponent[0]));
         }
 
         RoundedShapeRenderer.roundedRect(shapeRenderer, drawStartX, drawStartY - textBlock.getHeight(), drawWidth,
