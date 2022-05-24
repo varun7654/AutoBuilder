@@ -12,10 +12,8 @@ import com.dacubeking.autobuilder.gui.events.input.InputEventListener;
 import com.dacubeking.autobuilder.gui.events.input.InputEventThrower;
 import com.dacubeking.autobuilder.gui.events.input.TextChangeListener;
 import com.dacubeking.autobuilder.gui.gui.hover.HoverManager;
-import com.dacubeking.autobuilder.gui.gui.textrendering.FontRenderer;
-import com.dacubeking.autobuilder.gui.gui.textrendering.Fonts;
-import com.dacubeking.autobuilder.gui.gui.textrendering.TextBlock;
 import com.dacubeking.autobuilder.gui.gui.textrendering.TextComponent;
+import com.dacubeking.autobuilder.gui.gui.textrendering.*;
 import com.dacubeking.autobuilder.gui.scripting.util.LintingPos;
 import com.dacubeking.autobuilder.gui.util.RoundedShapeRenderer;
 import org.jetbrains.annotations.NotNull;
@@ -363,13 +361,14 @@ public class TextBox extends InputEventListener {
         if (selected && flashing) {
             if (selectedPos >= 0 && textBlock.getRenderableTextComponents().size() > 0) {
                 Vector2 cursorPos = textBlock.getPositionOfIndex(selectedPos);
-                FontRenderer.renderText(spriteBatch, shapeRenderer, drawStartX + cursorPos.x,
-                        drawStartY + textBlock.getDefaultSize() - textBlock.getDefaultLineSpacingSize() + 5 + cursorPos.y,
-                        cursorTextBlock);
+                float cursorHeight = FontHandler.getFont(Fonts.JETBRAINS_MONO, false, false).getFont(fontSize).getLineHeight();
+                shapeRenderer.filledRectangle((int) (drawStartX + cursorPos.x + 3),
+                        (int) (drawStartY - textBlock.getDefaultSize() + cursorPos.y),
+                        2f, (int) cursorHeight - 2, Color.BLACK);
             } else {
-                FontRenderer.renderText(spriteBatch, shapeRenderer, drawStartX,
-                        drawStartY + textBlock.getDefaultSize() - textBlock.getDefaultLineSpacingSize() + 5,
-                        cursorTextBlock);
+                shapeRenderer.filledRectangle((int) (drawStartX + 3),
+                        (int) (drawStartY - textBlock.getDefaultSize() + 3),
+                        2f, 2, Color.BLACK);
             }
         }
         return hovering;
