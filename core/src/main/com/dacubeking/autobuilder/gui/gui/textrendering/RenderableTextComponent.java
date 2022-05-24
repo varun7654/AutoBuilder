@@ -33,6 +33,29 @@ public class RenderableTextComponent {
         this.row = row;
     }
 
+    public RenderableTextComponent(@NotNull String text, float x, float y, float endX, TextComponent textComponent, int row,
+                                   int defaultSize, Fonts defaultFont) {
+
+        this(
+                text,
+                x,
+                y,
+                endX,
+                textComponent.isBold,
+                textComponent.isItalic,
+                textComponent.isUnderlined,
+                textComponent.isStrikethrough,
+                textComponent.isHighlighted,
+                textComponent.color,
+                textComponent.getUnderlineColor(),
+                textComponent.getStrikethroughColor(),
+                textComponent.getHighlightColor(),
+                textComponent.size.orElse(defaultSize),
+                textComponent.font.orElse(defaultFont),
+                row
+        );
+    }
+
     /**
      * The text that should be rendered.
      */

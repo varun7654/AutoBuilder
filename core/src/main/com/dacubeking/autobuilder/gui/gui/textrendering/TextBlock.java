@@ -96,6 +96,7 @@ public class TextBlock {
      * Updates the text block. Converts the {@link  TextComponent}s into the {@link RenderableTextComponent}s that are used to
      * render
      */
+    //TODO: Rewrite this method to have line breaks work properly with multiple text components.
     public void update() {
         //TODO: Figure why we get empty text components that contain only a single space.
         renderableTextComponents.clear();
