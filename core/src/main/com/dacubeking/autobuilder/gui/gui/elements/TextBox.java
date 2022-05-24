@@ -51,7 +51,6 @@ public class TextBox extends InputEventListener {
     private int selectedPos = 0;
     private final int fontSize;
     TextBlock textBlock;
-    private final TextBlock cursorTextBlock;
     private float xPos = -1;
 
     private static final String STOP_WORD_CHARS = ".?!,;:-+=()[]{}<>";
@@ -72,7 +71,6 @@ public class TextBox extends InputEventListener {
         this.textChangeListener = textChangeListener;
         this.fontSize = fontSize;
         textBlock = new TextBlock(Fonts.JETBRAINS_MONO, fontSize, 350, new TextComponent(text).setColor(Color.BLACK));
-        cursorTextBlock = new TextBlock(Fonts.JETBRAINS_MONO, fontSize, new TextComponent("|").setColor(Color.BLACK));
         eventThrower.register(this);
     }
 
