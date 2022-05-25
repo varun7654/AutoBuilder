@@ -399,8 +399,10 @@ public class TrajectoryPathRenderer implements MovablePointEventHandler, Seriali
                 otherPathPose2d = attachedPath.controlVectors.get(0);
             }
 
-            if (!(Math.abs(selectedPoint.getPos2().sub((float) otherPathPose2d.x[0], (float) otherPathPose2d.y[0]).len2())
-                    < Math.pow((20 / config.getPointScaleFactor() * camera.zoom), 2))) {
+            if (Math.abs(selectedPoint.getPos2().sub((float) otherPathPose2d.x[0], (float) otherPathPose2d.y[0]).len2())
+                    < Math.pow((20 / config.getPointScaleFactor() * camera.zoom), 2)) {
+                updateConnectedPath(selectedPoint);
+            } else {
                 attachedPath = null;
             }
         }
@@ -463,41 +465,46 @@ public class TrajectoryPathRenderer implements MovablePointEventHandler, Seriali
 
 
             //update the attached path if needed
-            if (attachedPath != null && !mouseDiff.isZero() && Gdx.input.isButtonPressed(Buttons.LEFT)) {
-                if (isAttachedPathEnd) {
-                    ControlVector attachedPathControlVector = attachedPath.controlVectors.get(
-                            attachedPath.controlVectors.size() - 1);
-
-                    Vector2 attachedPathVector = new Vector2((float) attachedPathControlVector.x[1],
-                            (float) attachedPathControlVector.y[1]);
-                    if (!config.isHolonomic()) {
-                        ControlVector thisControlVector = controlVectors.get(0);
-                        attachedPathVector.setAngleRad((float) Math.atan2(thisControlVector.y[1], thisControlVector.x[1]));
-                    }
-
-                    attachedPath.controlVectors.set(attachedPath.controlVectors.size() - 1, new ControlVector(
-                            new double[]{selectedPoint.getPos2().x, attachedPathVector.x, attachedPathControlVector.x[2]},
-                            new double[]{selectedPoint.getPos2().y, attachedPathVector.y, attachedPathControlVector.y[2]}));
-                    attachedPath.pointRenderList.get(attachedPath.pointRenderList.size() - 1)
-                            .setPosition(selectedPoint.getPos2());
-                } else {
-                    ControlVector attachedPathControlVector = attachedPath.controlVectors.get(0);
-
-                    Vector2 attachedPathVector = new Vector2((float) attachedPathControlVector.x[1],
-                            (float) attachedPathControlVector.y[1]);
-                    if (!config.isHolonomic()) {
-                        ControlVector thisControlVector = controlVectors.get(controlVectors.size() - 1);
-                        attachedPathVector.setAngleRad((float) Math.atan2(thisControlVector.y[1], thisControlVector.x[1]));
-                    }
-
-                    attachedPath.controlVectors.set(0, new ControlVector(
-                            new double[]{selectedPoint.getPos2().x, attachedPathVector.x, attachedPathControlVector.x[2]},
-                            new double[]{selectedPoint.getPos2().y, attachedPathVector.y, attachedPathControlVector.y[2]}));
-                    attachedPath.pointRenderList.get(0).setPosition(selectedPoint.getPos2());
-                }
-                attachedPath.updatePath();
+            if ((!mouseDiff.isZero() || (isAttachedPathEnd)) && Gdx.input.isButtonPressed(Buttons.LEFT)) {
+                updateConnectedPath(selectedPoint);
             }
         }
+    }
+
+    private void updateConnectedPath(MovablePointRenderer selectedPoint) {
+        if (attachedPath == null) return;
+        if (isAttachedPathEnd) {
+            ControlVector attachedPathControlVector = attachedPath.controlVectors.get(
+                    attachedPath.controlVectors.size() - 1);
+
+            Vector2 attachedPathVector = new Vector2((float) attachedPathControlVector.x[1],
+                    (float) attachedPathControlVector.y[1]);
+            if (!config.isHolonomic()) {
+                ControlVector thisControlVector = controlVectors.get(0);
+                attachedPathVector.setAngleRad((float) Math.atan2(thisControlVector.y[1], thisControlVector.x[1]));
+            }
+
+            attachedPath.controlVectors.set(attachedPath.controlVectors.size() - 1, new ControlVector(
+                    new double[]{selectedPoint.getPos2().x, attachedPathVector.x, attachedPathControlVector.x[2]},
+                    new double[]{selectedPoint.getPos2().y, attachedPathVector.y, attachedPathControlVector.y[2]}));
+            attachedPath.pointRenderList.get(attachedPath.pointRenderList.size() - 1)
+                    .setPosition(selectedPoint.getPos2());
+        } else {
+            ControlVector attachedPathControlVector = attachedPath.controlVectors.get(0);
+
+            Vector2 attachedPathVector = new Vector2((float) attachedPathControlVector.x[1],
+                    (float) attachedPathControlVector.y[1]);
+            if (!config.isHolonomic()) {
+                ControlVector thisControlVector = controlVectors.get(controlVectors.size() - 1);
+                attachedPathVector.setAngleRad((float) Math.atan2(thisControlVector.y[1], thisControlVector.x[1]));
+            }
+
+            attachedPath.controlVectors.set(0, new ControlVector(
+                    new double[]{selectedPoint.getPos2().x, attachedPathVector.x, attachedPathControlVector.x[2]},
+                    new double[]{selectedPoint.getPos2().y, attachedPathVector.y, attachedPathControlVector.y[2]}));
+            attachedPath.pointRenderList.get(0).setPosition(selectedPoint.getPos2());
+        }
+        attachedPath.updatePath();
     }
 
     /**
