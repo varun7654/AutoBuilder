@@ -43,6 +43,8 @@ public class ShooterGui extends InputEventListener implements NumberTextboxChang
     private final CameraHandler cameraHandler;
     ShooterGuiOpenIcon openIcon = new ShooterGuiOpenIcon(10, 10, 40, 40);
 
+    private final Object drawingLoadingSymbolRenderingKey = new Object();
+
 
     ArrayList<NumberTextBox> textBoxes = new ArrayList<>();
 
@@ -162,6 +164,9 @@ public class ShooterGui extends InputEventListener implements NumberTextboxChang
             lastUpdateId = (int) networkTablesHelper.getShooterConfigStatusId();
             networkTablesHelper.setShooterConfig(shooterConfig);
             nextNetworkTablesPush = Long.MAX_VALUE;
+            System.out.println("Pushed shooter config to network tables");
+        } else if (nextNetworkTablesPush != Long.MAX_VALUE) {
+            AutoBuilder.scheduleRendering(nextNetworkTablesPush - System.currentTimeMillis());
         }
         return panelOpen;
     }
@@ -316,6 +321,9 @@ public class ShooterGui extends InputEventListener implements NumberTextboxChang
             shapeDrawer.setColor(Color.BLACK);
             shapeDrawer.arc(panelX + panelWidth - 20, panelY + 20, 10,
                     (float) -((System.currentTimeMillis() / 300d) % (Math.PI * 2)), (float) (Math.PI * 3) / 2, 4);
+            AutoBuilder.enableContinuousRendering(drawingLoadingSymbolRenderingKey);
+        } else {
+            AutoBuilder.disableContinuousRendering(drawingLoadingSymbolRenderingKey);
         }
     }
 
@@ -387,6 +395,7 @@ public class ShooterGui extends InputEventListener implements NumberTextboxChang
                 }
             }
             nextNetworkTablesPush = System.currentTimeMillis() + 500;
+            AutoBuilder.scheduleRendering(500);
         } catch (NumberFormatException ignored) {
 
         }
