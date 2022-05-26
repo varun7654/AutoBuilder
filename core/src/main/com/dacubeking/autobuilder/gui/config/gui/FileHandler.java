@@ -18,7 +18,9 @@ import java.util.ArrayList;
 public class FileHandler {
     public static void handleFile(File file) {
         try {
-            saveAuto(false);
+            if (!file.getAbsolutePath().equals(AutoBuilder.getConfig().getAutoPath().getAbsolutePath())) {
+                saveAuto(false);
+            }
 
             System.out.println("Loading file: " + file.getPath());
             Autonomous autonomous = (Autonomous) Serializer.deserializeFromFile(file, Autonomous.class);
@@ -149,6 +151,7 @@ public class FileHandler {
 
                 synchronized (saveLock) {
                     saveAuto(autonomous);
+                    saveConfig();
                 }
 
                 try {
@@ -169,6 +172,7 @@ public class FileHandler {
             synchronized (saveLock) {
                 Autonomous autonomous = GuiSerializer.serializeAutonomous(AutoBuilder.getInstance().pathGui.guiItems, async);
                 saveAuto(autonomous);
+                saveConfig();
             }
         }
     }
