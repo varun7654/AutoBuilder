@@ -13,14 +13,16 @@ A gui tool that makes desigining and testing autos easier
 
 
 ## Want more info? Take a look at our wiki!
-[About](https://github.com/FRC3476/AutoBuilder/wiki/About)
+- [About](https://github.com/FRC3476/AutoBuilder/wiki/About)
 
-[Building this project](https://github.com/FRC3476/AutoBuilder/wiki/Building-this-project)
+- [Building this project](https://github.com/FRC3476/AutoBuilder/wiki/Building-this-project)
 
-[How this project works](https://github.com/FRC3476/AutoBuilder/wiki/How-this-project-works)
+- [How this project works](https://github.com/FRC3476/AutoBuilder/wiki/How-this-project-works)
 
-[Integrating this project into your robot code](https://github.com/FRC3476/AutoBuilder/wiki/Integrating-this-project-into-your-robot-code)
+- [Integrating this project into your robot code](https://github.com/FRC3476/AutoBuilder/wiki/Integrating-this-project-into-your-robot-code)
 
-[Set up the GUI](https://github.com/FRC3476/AutoBuilder/wiki/Set-up-the-GUI)
+- [Set up the GUI](https://github.com/FRC3476/AutoBuilder/wiki/Set-up-the-GUI)
 
-[Controls ](https://github.com/FRC3476/AutoBuilder/wiki/Controls)
+- [Controls](https://github.com/FRC3476/AutoBuilder/wiki/Controls)
+
+- [Set up your first Auto!](https://github.com/FRC3476/AutoBuilder/wiki/Create-your-first-Auto!)
