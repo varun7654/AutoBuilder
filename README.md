@@ -15,7 +15,7 @@ A gui tool that makes desigining and testing autos easier
 ## Want more info? Take a look at our wiki!
 - [About](https://github.com/FRC3476/AutoBuilder/wiki/About)
 
-- [Building this project](https://github.com/FRC3476/AutoBuilder/wiki/Building-this-project)
+- [Building and Downloading this project](https://github.com/FRC3476/AutoBuilder/wiki/Building-and-Downloading-this-project)
 
 - [How this project works](https://github.com/FRC3476/AutoBuilder/wiki/How-this-project-works)
 
