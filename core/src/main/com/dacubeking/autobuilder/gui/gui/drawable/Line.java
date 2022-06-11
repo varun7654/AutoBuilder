@@ -43,6 +43,8 @@ public class Line extends Drawable {
         if (split.length != 3) {
             return null;
         }
-        return new Line(new Vector2().fromString(split[0]), new Vector2().fromString(split[1]), Color.valueOf(split[2]));
+        return new Line(new Vector2().fromString(split[0]).scl(AutoBuilder.getConfig().getPointScaleFactor()),
+                new Vector2().fromString(split[1]).scl(AutoBuilder.getConfig().getPointScaleFactor()),
+                Color.valueOf(split[2]));
     }
 }

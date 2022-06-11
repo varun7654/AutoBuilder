@@ -4,6 +4,7 @@ import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.g2d.Batch;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.utils.Array;
+import com.dacubeking.autobuilder.gui.AutoBuilder;
 import space.earlygrey.shapedrawer.ShapeDrawer;
 
 
@@ -40,7 +41,7 @@ public class Path extends Drawable {
         Vector2[] vertices = new Vector2[split.length - 1];
 
         for (int i = 0; i < split.length - 1; i++) {
-            vertices[i] = new Vector2().fromString(split[i]);
+            vertices[i] = new Vector2().fromString(split[i]).scl(AutoBuilder.getConfig().getPointScaleFactor());
         }
 
         return new Path(vertices, Color.valueOf(split[split.length - 1]));

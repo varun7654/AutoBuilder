@@ -43,11 +43,11 @@ public final class NetworkTablesHelper {
     NetworkTableEntry shooterConfigStatusEntry = inst.getTable("limelightgui").getEntry("shooterconfigStatus");
 
     NetworkTableEntry hudElementsEntry = autoData.getEntry("hudElements");
-    NetworkTableEntry drawablesEntry = autoData.getEntry("drawables");
+    NetworkTableEntry drawablesEntry = NetworkTableInstance.getDefault().getEntry("autodata/drawables");
 
     NetworkTableEntry enabledTable = autoData.getEntry("enabled");
 
-    NetworkTableEntry robotPositionsEntry = autoData.getEntry("robotPositions");
+    NetworkTableEntry robotPositionsEntry = NetworkTableInstance.getDefault().getEntry("autodata/robotPositions");
 
     public boolean isEnabled() {
         return enabled;
@@ -97,6 +97,7 @@ public final class NetworkTablesHelper {
                     }
                 });
                 robotPositions.add(positionsList);
+                AutoBuilder.requestRendering();
             }
         }, EntryListenerFlags.kNew | EntryListenerFlags.kUpdate | EntryListenerFlags.kImmediate | EntryListenerFlags.kLocal);
 
@@ -132,11 +133,10 @@ public final class NetworkTablesHelper {
         }, EntryListenerFlags.kNew | EntryListenerFlags.kUpdate | EntryListenerFlags.kImmediate | EntryListenerFlags.kLocal);
 
         drawablesEntry.addListener(entryNotification -> {
-            @Nullable String drawablesString = entryNotification.getEntry().getString(null);
+            @Nullable String[] drawablesString = entryNotification.getEntry().getStringArray(null);
             if (drawablesString != null) {
-                String[] drawablesStringArray = drawablesString.split(";");
-                ArrayList<Drawable> drawables = new ArrayList<>(drawablesStringArray.length);
-                for (String s : drawablesStringArray) {
+                ArrayList<Drawable> drawables = new ArrayList<>(drawablesString.length);
+                for (String s : drawablesString) {
                     switch (s.charAt(0)) {
                         case 'R':
                             drawables.add(Rectangle.fromString(s));
@@ -153,6 +153,7 @@ public final class NetworkTablesHelper {
                     }
                 }
                 drawableRenderer.setDrawables(drawables);
+                AutoBuilder.requestRendering();
             }
         }, EntryListenerFlags.kNew | EntryListenerFlags.kUpdate | EntryListenerFlags.kImmediate | EntryListenerFlags.kLocal);
 

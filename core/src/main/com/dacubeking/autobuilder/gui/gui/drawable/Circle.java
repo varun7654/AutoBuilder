@@ -42,6 +42,9 @@ public class Circle extends Drawable {
     @Override
     public void draw(ShapeDrawer drawer, Batch batch) {
         drawer.setColor(color);
-        drawer.circle(center.x, center.y, radius, AutoBuilder.LINE_THICKNESS);
+        drawer.circle(center.x * AutoBuilder.getConfig().getPointScaleFactor(),
+                center.y * AutoBuilder.getConfig().getPointScaleFactor(),
+                radius * AutoBuilder.getConfig().getPointScaleFactor(),
+                AutoBuilder.LINE_THICKNESS);
     }
 }

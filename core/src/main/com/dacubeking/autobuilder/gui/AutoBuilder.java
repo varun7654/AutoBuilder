@@ -307,6 +307,7 @@ public final class AutoBuilder extends ApplicationAdapter {
         //Draw the robot path
         drivenPathRenderer.render(shapeRenderer, cam);
 
+        drawableRenderer.render(shapeRenderer, batch);
         batch.end();
 
 
@@ -364,9 +365,7 @@ public final class AutoBuilder extends ApplicationAdapter {
         configGUI.draw(hudShapeRenderer, hudBatch, hudCam);
         HoverManager.render(hudBatch, hudShapeRenderer);
         hudRenderer.render(hudShapeRenderer, hudBatch, (shooterGui != null && shooterGui.isPanelOpen()) ? 340 : 0);
-
         notificationHandler.processNotification(hudShapeRenderer, hudBatch);
-
         hudBatch.end();
         justStartedRendering.set(false);
     }
