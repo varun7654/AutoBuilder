@@ -3,6 +3,8 @@ A gui tool that makes desigining and testing autos easier
 
 ![image](https://user-images.githubusercontent.com/59785640/149383948-6ea7169f-2ebd-47ba-807d-9e4fc47ca578.png)
 
+**This is the code for the gui _only_. To see the code running on the robot look [here](https://github.com/FRC3476/AutoBuilder-RobotSide).**
+
 ## Features
 1. Interactive gui for designing robot autos.
 2. Supports holomonic & differental drivebases.
