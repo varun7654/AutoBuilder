@@ -53,6 +53,9 @@ public class TrajectoryItem extends AbstractGuiItem implements PathChangeListene
     private final @NotNull NumberTextBox startVelocityTextBox;
     private final @NotNull NumberTextBox endVelocityTextBox;
 
+    private static final TextComponent warningText =
+            new TextComponent("This path does not begin at the end of the previous path");
+
 
     public TrajectoryItem(@NotNull PathGui pathGui, @NotNull InputEventThrower eventThrower,
                           @NotNull CameraHandler cameraHandler) {
@@ -117,7 +120,7 @@ public class TrajectoryItem extends AbstractGuiItem implements PathChangeListene
         }
         if (isFullyClosed()) {
             renderHeader(shapeRenderer, spriteBatch, drawStartX, drawStartY, drawWidth, trashTexture, warningTexture,
-                    trajectoryPathRenderer.getColor(), title, checkWarning(pathGui));
+                    trajectoryPathRenderer.getColor(), title, checkWarning(pathGui), warningText);
         } else {
             List<Spline.ControlVector> controlVectors = trajectoryPathRenderer.getControlVectors();
             shapeRenderer.setColor(LIGHT_GREY);
@@ -127,7 +130,7 @@ public class TrajectoryItem extends AbstractGuiItem implements PathChangeListene
                     30 * (AutoBuilder.getConfig().isHolonomic() ? 2 : 3) + (controlVectors.size() * 60) + 13, 2);
 
             renderHeader(shapeRenderer, spriteBatch, drawStartX, drawStartY, drawWidth, trashTexture, warningTexture,
-                    trajectoryPathRenderer.getColor(), title, checkWarning(pathGui));
+                    trajectoryPathRenderer.getColor(), title, checkWarning(pathGui), warningText);
 
             if (trajectoryPathRenderer.getSelectionPoint() >= 0) {
                 RoundedShapeRenderer.roundedRect(shapeRenderer, drawStartX + 5,

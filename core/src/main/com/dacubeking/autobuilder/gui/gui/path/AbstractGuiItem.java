@@ -10,6 +10,7 @@ import com.badlogic.gdx.scenes.scene2d.utils.ScissorStack;
 import com.badlogic.gdx.utils.Disposable;
 import com.dacubeking.autobuilder.gui.AutoBuilder;
 import com.dacubeking.autobuilder.gui.UndoHandler;
+import com.dacubeking.autobuilder.gui.gui.hover.HoverManager;
 import com.dacubeking.autobuilder.gui.gui.textrendering.FontRenderer;
 import com.dacubeking.autobuilder.gui.gui.textrendering.Fonts;
 import com.dacubeking.autobuilder.gui.gui.textrendering.TextBlock;
@@ -62,7 +63,7 @@ public abstract class AbstractGuiItem implements Disposable {
     public int render(@NotNull ShapeDrawer shapeRenderer, @NotNull PolygonSpriteBatch spriteBatch, int drawStartX,
                       int drawStartY, int drawWidth, PathGui pathGui, Camera camera, boolean isLeftMouseJustUnpressed) {
         if (isLeftMouseJustUnpressed) {
-            if (isMouseOver(drawStartX + drawWidth - 45, drawStartY - 40, drawWidth - 5, 40)) {
+            if (isMouseOver(drawStartX + drawWidth - 45, drawStartY - 40, TRASH_ICON_WIDTH, 40)) {
                 // Trash Icon (delete)
                 pathGui.guiItemsDeletions.add(this);
                 AutoBuilder.requestRendering();
@@ -71,6 +72,7 @@ public abstract class AbstractGuiItem implements Disposable {
                 setClosed(!isClosed());
             }
         }
+
         if (isClosed()) {
             if (openHeight > 0) {
                 openHeight -= getOpenHeight() * AutoBuilder.getDeltaTime() * 15;
@@ -102,19 +104,26 @@ public abstract class AbstractGuiItem implements Disposable {
         }
     }
 
+    private static final float TRASH_ICON_HEIGHT = 36;
+    private static final float TRASH_ICON_WIDTH = trashTexture.getWidth() * (TRASH_ICON_HEIGHT / trashTexture.getHeight());
+
     public void renderHeader(ShapeDrawer shapeRenderer, @NotNull PolygonSpriteBatch spriteBatch, float drawStartX,
                              float drawStartY, float drawWidth, Texture trashTexture, Texture warningTexture,
-                             Color headerColor, String headerText, boolean warning) {
+                             Color headerColor, String headerText, boolean warning, TextComponent warningText) {
         shapeRenderer.setColor(headerColor);
         RoundedShapeRenderer.roundedRect(shapeRenderer, drawStartX, drawStartY - 40, drawWidth, 40, 2, headerColor);
 
         headerTextBlock.setTextInComponent(0, headerText);
         FontRenderer.renderText(spriteBatch, shapeRenderer, drawStartX + 5, drawStartY - 31, headerTextBlock);
         spriteBatch.draw(trashTexture, drawStartX + drawWidth - 45, drawStartY - 38,
-                trashTexture.getWidth() * (36f / trashTexture.getHeight()), 36);
+                TRASH_ICON_WIDTH, TRASH_ICON_HEIGHT);
         if (warning) {
             spriteBatch.draw(warningTexture, drawStartX + drawWidth - 10, drawStartY - 10,
                     warningTexture.getWidth() * (18f / warningTexture.getHeight()), 18);
+
+            if (isMouseOver(drawStartX + drawWidth - 10, drawStartY - 10, 20, 20)) {
+                HoverManager.setHoverText(new TextBlock(Fonts.ROBOTO, 12, warningText));
+            }
         }
     }
 

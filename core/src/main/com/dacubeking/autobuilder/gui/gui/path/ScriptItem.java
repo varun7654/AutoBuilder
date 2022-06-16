@@ -8,6 +8,7 @@ import com.dacubeking.autobuilder.gui.AutoBuilder;
 import com.dacubeking.autobuilder.gui.events.input.InputEventThrower;
 import com.dacubeking.autobuilder.gui.events.input.TextChangeListener;
 import com.dacubeking.autobuilder.gui.gui.elements.TextBox;
+import com.dacubeking.autobuilder.gui.gui.textrendering.TextComponent;
 import com.dacubeking.autobuilder.gui.scripting.Parser;
 import com.dacubeking.autobuilder.gui.scripting.sendable.SendableScript;
 import com.dacubeking.autobuilder.gui.scripting.util.LintingPos;
@@ -30,6 +31,9 @@ public class ScriptItem extends AbstractGuiItem implements TextChangeListener {
 
     CompletableFuture<SendableScript> latestSendableScript;
 
+    private static final TextComponent warningText =
+            new TextComponent("You script contains errors. Hover over the text underlined in red to get more info.");
+
     public ScriptItem(@NotNull InputEventThrower inputEventThrower) {
         textBox = new TextBox("", inputEventThrower, true, this, 16);
     }
@@ -49,7 +53,7 @@ public class ScriptItem extends AbstractGuiItem implements TextChangeListener {
                 isLeftMouseJustUnpressed);
         if (isFullyClosed()) {
             renderHeader(shapeRenderer, spriteBatch, drawStartX, drawStartY, drawWidth, trashTexture, warningTexture,
-                    LIGHT_BLUE, "Script", error);
+                    LIGHT_BLUE, "Script", error, warningText);
         } else {
             synchronized (linting) {
                 synchronizedLinting.clear();
@@ -63,7 +67,7 @@ public class ScriptItem extends AbstractGuiItem implements TextChangeListener {
 
             textBox.draw(shapeRenderer, spriteBatch, drawStartX + 10, drawStartY - 43, drawWidth - 15, synchronizedLinting);
             renderHeader(shapeRenderer, spriteBatch, drawStartX, drawStartY, drawWidth, trashTexture, warningTexture,
-                    LIGHT_BLUE, "Script", error);
+                    LIGHT_BLUE, "Script", error, warningText);
         }
         spriteBatch.flush();
         if (pop == 1) ScissorStack.popScissors();

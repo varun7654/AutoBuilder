@@ -21,6 +21,11 @@ public final class MouseUtil {
                 getMouseY() >= y && getMouseY() <= y + height;
     }
 
+    public static boolean isMouseOver(float x, float y, float width, float height) {
+        return getMouseX() >= x && getMouseX() <= x + width &&
+                getMouseY() >= y && getMouseY() <= y + height;
+    }
+
     public static boolean isMouseOver(Vector2 mousePos, int x, int y, int width, int height) {
         return mousePos.x >= x && mousePos.x <= x + width &&
                 mousePos.y >= y && mousePos.y <= y + height;
