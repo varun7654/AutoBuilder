@@ -25,6 +25,6 @@ A gui tool that makes desigining and testing autos easier
 
 - [Set up the GUI](https://github.com/FRC3476/AutoBuilder/wiki/Set-up-the-GUI)
 
-- [Controls](https://github.com/FRC3476/AutoBuilder/wiki/Controls)
-
 - [Set up your first Auto!](https://github.com/FRC3476/AutoBuilder/wiki/Create-your-first-Auto!)
+
+- [Controls](https://github.com/FRC3476/AutoBuilder/wiki/Controls)
