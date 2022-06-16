@@ -21,7 +21,7 @@ plugins {
 allprojects {
     apply plugin: "eclipse"
 
-    version = '1.0.0'
+    version = '1.0.1'
     ext {
         appName = "AutoBuilder"
         gdxVersion = '1.10.0'
