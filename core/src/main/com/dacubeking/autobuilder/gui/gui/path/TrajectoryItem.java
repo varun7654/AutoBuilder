@@ -317,6 +317,7 @@ public class TrajectoryItem extends AbstractGuiItem implements PathChangeListene
 
             cameraHandler.ensureOnScreen(point.getRenderPos3());
             trajectoryPathRenderer.updatePath(false);
+            trajectoryPathRenderer.updatePointHandles();
         } catch (NumberFormatException ignored) {
         }
     }

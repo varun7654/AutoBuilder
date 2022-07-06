@@ -621,6 +621,30 @@ public class TrajectoryPathRenderer implements MovablePointEventHandler, Seriali
         if (updateListener && pathChangeListener != null) pathChangeListener.onPathChange();
     }
 
+
+    /**
+     * If a point is currently selected, it will update the positions of the handles to match the values stored in the
+     * trajectory.
+     */
+    public void updatePointHandles() {
+        if (controlPoint != null) {
+            MovablePointRenderer point = pointRenderList.get(selectionPointIndex);
+
+            ControlVector controlVector = controlVectors.get(selectionPointIndex);
+            Vector2 pos2 = point.getPos2();
+            float controlXPos = (float) (pos2.x + (controlVector.x[1] / AutoBuilder.CONTROL_VECTOR_SCALE));
+            float controlYPos = (float) (pos2.y + (controlVector.y[1] / AutoBuilder.CONTROL_VECTOR_SCALE));
+            controlPoint.setPosition(controlXPos, controlYPos);
+
+
+            if (rotationPoint != null) {
+                float rotationXPos = (float) (pos2.x + rotation2dList.get(selectionPointIndex).getCos());
+                float rotationYPos = (float) (pos2.y + rotation2dList.get(selectionPointIndex).getSin());
+                rotationPoint.setPosition(rotationXPos, rotationYPos);
+            }
+        }
+    }
+
     @NotNull
     public Trajectory getNotNullTrajectory() throws ExecutionException {
         try {
