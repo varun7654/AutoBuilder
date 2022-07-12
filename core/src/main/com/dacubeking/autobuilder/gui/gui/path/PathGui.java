@@ -157,13 +157,11 @@ public class PathGui extends InputEventListener {
                 (draggingElement != null ? draggingElement.getOpenHeight() + 40 : 0)); //Add the height of the dragging element
     }
 
-    boolean isLeftMousePressed = false;
     boolean isLeftMouseJustUnpressed = false;
 
     public boolean update() {
-        isLeftMouseJustUnpressed = !Gdx.input.isButtonPressed(Input.Buttons.LEFT) && isLeftMousePressed;
-        isLeftMousePressed = Gdx.input.isButtonPressed(Input.Buttons.LEFT);
-
+        isLeftMouseJustUnpressed = isIsLeftMouseJustUnpressed();
+        
         for (AbstractGuiItem guiItemsDeletion : guiItemsDeletions) {
             guiItemsDeletion.dispose();
             guiItems.remove(guiItemsDeletion);

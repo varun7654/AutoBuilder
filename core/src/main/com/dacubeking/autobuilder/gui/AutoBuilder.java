@@ -34,6 +34,7 @@ import com.dacubeking.autobuilder.gui.pathing.pointclicks.ClosePoint;
 import com.dacubeking.autobuilder.gui.pathing.pointclicks.CloseTrajectoryPoint;
 import com.dacubeking.autobuilder.gui.scripting.RobotCodeData;
 import com.dacubeking.autobuilder.gui.serialization.path.Autonomous;
+import com.dacubeking.autobuilder.gui.util.MouseUtil;
 import com.dacubeking.autobuilder.gui.util.OsUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -376,6 +377,7 @@ public final class AutoBuilder extends ApplicationAdapter {
     boolean somethingMoved = false;
 
     private void update() {
+        MouseUtil.update();
         undoHandler.update(pathGui, cameraHandler);
         boolean onGui = pathGui.update();
         if (shooterGui != null) onGui = onGui | shooterGui.update();

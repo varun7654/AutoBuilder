@@ -1,6 +1,7 @@
 package com.dacubeking.autobuilder.gui.util;
 
 import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.Input;
 import com.badlogic.gdx.Input.Keys;
 import com.badlogic.gdx.math.Vector2;
 
@@ -41,5 +42,18 @@ public final class MouseUtil {
 
     public static Vector2 getMousePos() {
         return new Vector2(getMouseX(), getMouseY());
+    }
+
+    private static boolean isLeftMousePressed = false;
+
+    private static boolean isLeftMouseJustUnpressed = false;
+
+    public static void update() {
+        isLeftMouseJustUnpressed = !Gdx.input.isButtonPressed(Input.Buttons.LEFT) && isLeftMousePressed;
+        isLeftMousePressed = Gdx.input.isButtonPressed(Input.Buttons.LEFT);
+    }
+
+    public static boolean isIsLeftMouseJustUnpressed() {
+        return isLeftMouseJustUnpressed;
     }
 }
