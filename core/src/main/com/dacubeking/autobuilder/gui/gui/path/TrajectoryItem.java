@@ -8,7 +8,6 @@ import com.badlogic.gdx.scenes.scene2d.utils.ScissorStack;
 import com.dacubeking.autobuilder.gui.AutoBuilder;
 import com.dacubeking.autobuilder.gui.CameraHandler;
 import com.dacubeking.autobuilder.gui.UndoHandler;
-import com.dacubeking.autobuilder.gui.events.input.InputEventThrower;
 import com.dacubeking.autobuilder.gui.events.input.NumberTextboxChangeListener;
 import com.dacubeking.autobuilder.gui.events.pathchange.PathChangeListener;
 import com.dacubeking.autobuilder.gui.gui.elements.CheckBox;
@@ -47,7 +46,6 @@ public class TrajectoryItem extends AbstractGuiItem implements PathChangeListene
 
     private @NotNull final TrajectoryPathRenderer trajectoryPathRenderer;
     private final @NotNull List<List<NumberTextBox>> textBoxes = new ArrayList<>();
-    private final @NotNull InputEventThrower eventThrower;
     private final @NotNull CameraHandler cameraHandler;
     private final @NotNull CheckBox reversedCheckBox = new CheckBox(0, 0, 30, 30);
     private final @NotNull NumberTextBox startVelocityTextBox;
@@ -57,9 +55,7 @@ public class TrajectoryItem extends AbstractGuiItem implements PathChangeListene
             new TextComponent("This path does not begin at the end of the previous path");
 
 
-    public TrajectoryItem(@NotNull PathGui pathGui, @NotNull InputEventThrower eventThrower,
-                          @NotNull CameraHandler cameraHandler) {
-        this.eventThrower = eventThrower;
+    public TrajectoryItem(@NotNull PathGui pathGui, @NotNull CameraHandler cameraHandler) {
         this.cameraHandler = cameraHandler;
         ControlVectorList controlVectorList = new ControlVectorList();
         controlVectorList.add(new ControlVector(new double[]{0, 2, 0}, new double[]{0, 0, 0}));
@@ -72,16 +68,15 @@ public class TrajectoryItem extends AbstractGuiItem implements PathChangeListene
                 pathGui.executorService, 0, 0, new ArrayList<>());
         trajectoryPathRenderer.setPathChangeListener(this);
 
-        startVelocityTextBox = new NumberTextBox(df.format(getPathRenderer().getVelocityStart()), eventThrower, this, 0, 0, 18);
-        endVelocityTextBox = new NumberTextBox(df.format(getPathRenderer().getVelocityEnd()), eventThrower, this, 0, 0, 18);
+        startVelocityTextBox = new NumberTextBox(df.format(getPathRenderer().getVelocityStart()), this, 0, 0, 18);
+        endVelocityTextBox = new NumberTextBox(df.format(getPathRenderer().getVelocityEnd()), this, 0, 0, 18);
     }
 
-    public TrajectoryItem(PathGui pathGui, @NotNull InputEventThrower eventThrower, @NotNull CameraHandler cameraHandler,
+    public TrajectoryItem(PathGui pathGui, @NotNull CameraHandler cameraHandler,
                           @NotNull ControlVectorList controlVectors, @NotNull List<TimedRotation> rotation2dList,
                           boolean reversed,
                           Color color, boolean closed, float velocityStart, float velocityEnd,
                           @NotNull List<TrajectoryConstraint> constraints) {
-        this.eventThrower = eventThrower;
         this.cameraHandler = cameraHandler;
 
         this.trajectoryPathRenderer = new TrajectoryPathRenderer(color, controlVectors,
@@ -97,8 +92,8 @@ public class TrajectoryItem extends AbstractGuiItem implements PathChangeListene
         trajectoryPathRenderer.setPathChangeListener(this);
         this.setInitialClosed(closed);
 
-        startVelocityTextBox = new NumberTextBox(df.format(getPathRenderer().getVelocityStart()), eventThrower, this, 0, 0, 18);
-        endVelocityTextBox = new NumberTextBox(df.format(getPathRenderer().getVelocityEnd()), eventThrower, this, 0, 0, 18);
+        startVelocityTextBox = new NumberTextBox(df.format(getPathRenderer().getVelocityStart()), this, 0, 0, 18);
+        endVelocityTextBox = new NumberTextBox(df.format(getPathRenderer().getVelocityEnd()), this, 0, 0, 18);
     }
 
     private static final TextBlock X_TEXT = new TextBlock(Fonts.ROBOTO, 13, new TextComponent("X (meters)"));
@@ -238,14 +233,14 @@ public class TrajectoryItem extends AbstractGuiItem implements PathChangeListene
         for (int i = 0; i < trajectoryPathRenderer.getControlVectors().size(); i++) {
             ControlVector controlVector = trajectoryPathRenderer.getControlVectors().get(i);
             Rotation2d rotation = trajectoryPathRenderer.getRotations().get(i);
-            NumberTextBox xBox = new NumberTextBox(df.format(controlVector.x[0]), eventThrower, this, i, 0, 18);
-            NumberTextBox yBox = new NumberTextBox(df.format(controlVector.y[0]), eventThrower, this, i, 1, 18);
+            NumberTextBox xBox = new NumberTextBox(df.format(controlVector.x[0]), this, i, 0, 18);
+            NumberTextBox yBox = new NumberTextBox(df.format(controlVector.y[0]), this, i, 1, 18);
             double rotationDegrees = AutoBuilder.getConfig().isHolonomic() ?
                     rotation.getDegrees() : Math.toDegrees(Math.atan2(controlVector.y[1], controlVector.x[1]));
-            NumberTextBox rotationBox = new NumberTextBox(df.format(rotationDegrees), eventThrower, this, i, 2, 18);
+            NumberTextBox rotationBox = new NumberTextBox(df.format(rotationDegrees), this, i, 2, 18);
 
-            NumberTextBox xControlBox = new NumberTextBox(df.format(controlVector.x[1]), eventThrower, this, i, 3, 18);
-            NumberTextBox yControlBox = new NumberTextBox(df.format(controlVector.y[1]), eventThrower, this, i, 4, 18);
+            NumberTextBox xControlBox = new NumberTextBox(df.format(controlVector.x[1]), this, i, 3, 18);
+            NumberTextBox yControlBox = new NumberTextBox(df.format(controlVector.y[1]), this, i, 4, 18);
 
             textBoxes.add(Arrays.asList(xBox, yBox, rotationBox, xControlBox, yControlBox));
         }

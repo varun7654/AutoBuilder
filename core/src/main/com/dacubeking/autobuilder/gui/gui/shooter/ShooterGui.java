@@ -39,7 +39,6 @@ import static com.dacubeking.autobuilder.gui.util.MouseUtil.getMouseY;
 public class ShooterGui extends InputEventListener implements NumberTextboxChangeListener {
 
     private final Viewport hudViewport;
-    private final InputEventThrower inputEventThrower;
     private final CameraHandler cameraHandler;
     ShooterGuiOpenIcon openIcon = new ShooterGuiOpenIcon(10, 10, 40, 40);
 
@@ -91,26 +90,23 @@ public class ShooterGui extends InputEventListener implements NumberTextboxChang
         df.setMinimumFractionDigits(2);
     }
 
-    public ShooterGui(Viewport hudViewport, InputEventThrower inputEventThrower, CameraHandler cameraHandler) {
-        this(hudViewport, inputEventThrower, cameraHandler, new ShooterConfig());
+    public ShooterGui(Viewport hudViewport, CameraHandler cameraHandler) {
+        this(hudViewport, cameraHandler, new ShooterConfig());
     }
 
-    public ShooterGui(Viewport hudViewport, InputEventThrower inputEventThrower,
-                      CameraHandler cameraHandler, ShooterConfig shooterConfig) {
+    public ShooterGui(Viewport hudViewport, CameraHandler cameraHandler, ShooterConfig shooterConfig) {
 
         this.hudViewport = hudViewport;
-
-        this.inputEventThrower = inputEventThrower;
         this.cameraHandler = cameraHandler;
 
-        inputEventThrower.register(this);
+        InputEventThrower.register(this);
 
         updateScreen(Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
         this.shooterConfig = shooterConfig;
         for (int i = 0; i <= shooterConfig.getShooterConfigs().size(); i++) {
-            textBoxes.add(new NumberTextBox("", inputEventThrower, this, i, 0, 15));
-            textBoxes.add(new NumberTextBox("", inputEventThrower, this, i, 1, 15));
-            textBoxes.add(new NumberTextBox("", inputEventThrower, this, i, 2, 15));
+            textBoxes.add(new NumberTextBox("", this, i, 0, 15));
+            textBoxes.add(new NumberTextBox("", this, i, 1, 15));
+            textBoxes.add(new NumberTextBox("", this, i, 2, 15));
         }
 
         networkTablesHelper.setShooterConfig(shooterConfig);
@@ -353,7 +349,7 @@ public class ShooterGui extends InputEventListener implements NumberTextboxChang
         for (NumberTextBox textBox : textBoxes) {
             textBox.dispose();
         }
-        inputEventThrower.unRegister(this);
+        InputEventThrower.unRegister(this);
         checkBox.dispose();
         TRASH_TEXTURE.dispose();
     }
@@ -376,9 +372,9 @@ public class ShooterGui extends InputEventListener implements NumberTextboxChang
                         break;
                 }
 
-                textBoxes.add(new NumberTextBox("", inputEventThrower, this, shooterConfig.getShooterConfigs().size(), 0, 15));
-                textBoxes.add(new NumberTextBox("", inputEventThrower, this, shooterConfig.getShooterConfigs().size(), 1, 15));
-                textBoxes.add(new NumberTextBox("", inputEventThrower, this, shooterConfig.getShooterConfigs().size(), 2, 15));
+                textBoxes.add(new NumberTextBox("", this, shooterConfig.getShooterConfigs().size(), 0, 15));
+                textBoxes.add(new NumberTextBox("", this, shooterConfig.getShooterConfigs().size(), 1, 15));
+                textBoxes.add(new NumberTextBox("", this, shooterConfig.getShooterConfigs().size(), 2, 15));
                 updateSortedList();
             } else {
                 switch (column) {

@@ -5,7 +5,6 @@ import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.g2d.PolygonSpriteBatch;
 import com.badlogic.gdx.scenes.scene2d.utils.ScissorStack;
 import com.dacubeking.autobuilder.gui.AutoBuilder;
-import com.dacubeking.autobuilder.gui.events.input.InputEventThrower;
 import com.dacubeking.autobuilder.gui.events.input.TextChangeListener;
 import com.dacubeking.autobuilder.gui.gui.elements.TextBox;
 import com.dacubeking.autobuilder.gui.gui.textrendering.TextComponent;
@@ -34,12 +33,12 @@ public class ScriptItem extends AbstractGuiItem implements TextChangeListener {
     private static final TextComponent warningText =
             new TextComponent("You script contains errors. Hover over the text underlined in red to get more info.");
 
-    public ScriptItem(@NotNull InputEventThrower inputEventThrower) {
-        textBox = new TextBox("", inputEventThrower, true, this, 16);
+    public ScriptItem() {
+        textBox = new TextBox("", true, this, 16);
     }
 
-    public ScriptItem(@NotNull InputEventThrower inputEventThrower, String text, boolean closed, boolean valid) {
-        textBox = new TextBox(text, inputEventThrower, true, this, 16);
+    public ScriptItem(String text, boolean closed, boolean valid) {
+        textBox = new TextBox(text, true, this, 16);
         error = !valid;
         this.setInitialClosed(closed);
 

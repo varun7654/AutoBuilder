@@ -38,8 +38,6 @@ import static com.dacubeking.autobuilder.gui.util.MouseUtil.*;
 TODO: Still kinda ugly
  */
 public class TextBox extends InputEventListener {
-    @NotNull
-    private final InputEventThrower eventThrower;
     private final boolean wrapText;
     @Nullable
     private final TextChangeListener textChangeListener;
@@ -63,15 +61,13 @@ public class TextBox extends InputEventListener {
     private static final long KEY_PRESS_DELAY = 25;
     private static final long INITIAL_KEY_PRESS_DELAY = 400;
 
-    public TextBox(@NotNull String text, @NotNull InputEventThrower eventThrower, boolean wrapText,
-                   @Nullable TextChangeListener textChangeListener, int fontSize) {
+    public TextBox(@NotNull String text, boolean wrapText, @Nullable TextChangeListener textChangeListener, int fontSize) {
         this.text = text;
-        this.eventThrower = eventThrower;
         this.wrapText = wrapText;
         this.textChangeListener = textChangeListener;
         this.fontSize = fontSize;
         textBlock = new TextBlock(Fonts.JETBRAINS_MONO, fontSize, 350, new TextComponent(text).setColor(Color.BLACK));
-        eventThrower.register(this);
+        InputEventThrower.register(this);
     }
 
 
@@ -421,7 +417,7 @@ public class TextBox extends InputEventListener {
     }
 
     public void dispose() {
-        eventThrower.unRegister(this);
+        InputEventThrower.unRegister(this);
     }
 
     @Override

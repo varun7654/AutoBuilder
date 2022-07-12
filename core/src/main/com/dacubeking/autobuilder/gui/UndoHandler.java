@@ -4,7 +4,6 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
 import com.badlogic.gdx.graphics.Color;
 import com.dacubeking.autobuilder.gui.config.gui.FileHandler;
-import com.dacubeking.autobuilder.gui.events.input.InputEventThrower;
 import com.dacubeking.autobuilder.gui.gui.path.AbstractGuiItem;
 import com.dacubeking.autobuilder.gui.gui.path.PathGui;
 import com.dacubeking.autobuilder.gui.gui.path.ScriptItem;
@@ -35,8 +34,7 @@ public final class UndoHandler {
         return undoHandler;
     }
 
-    public synchronized void update(PathGui pathGui, @NotNull InputEventThrower inputEventThrower,
-                                    @NotNull CameraHandler cameraHandler) {
+    public synchronized void update(PathGui pathGui, @NotNull CameraHandler cameraHandler) {
         if (somethingChanged && System.currentTimeMillis() - lastUndoSaveTime > UNDO_SAVE_INTERVAL) {
             saveCurrentState(pathGui);
         }
@@ -49,7 +47,7 @@ public final class UndoHandler {
             if ((Gdx.input.isKeyPressed(Input.Keys.SHIFT_LEFT) || Gdx.input.isKeyPressed(Input.Keys.SHIFT_RIGHT))) {
                 pointer--;
                 if (pointer >= 0) {
-                    restoreState(undoHistory.get(pointer), pathGui, inputEventThrower, cameraHandler);
+                    restoreState(undoHistory.get(pointer), pathGui, cameraHandler);
                     //System.out.println("redoing to: " + undoHistory.get(pointer));
                 } else {
                     pointer = 0;
@@ -59,7 +57,7 @@ public final class UndoHandler {
                 //System.out.println(undoHistory);
                 pointer++;
                 if (pointer < undoHistory.size()) {
-                    restoreState(undoHistory.get(pointer), pathGui, inputEventThrower, cameraHandler);
+                    restoreState(undoHistory.get(pointer), pathGui, cameraHandler);
                     //System.out.println("undoing to: " + undoHistory.get(pointer));
                 } else {
                     pointer = undoHistory.size() - 1;
@@ -86,7 +84,7 @@ public final class UndoHandler {
         FileHandler.saveAuto(true);
     }
 
-    public synchronized void restoreState(Autonomous autonomous, PathGui pathGui, @NotNull InputEventThrower inputEventThrower,
+    public synchronized void restoreState(Autonomous autonomous, PathGui pathGui,
                                           @NotNull CameraHandler cameraHandler) {
         List<AbstractGuiItem> guiItemList = new ArrayList<>();
         for (AbstractAutonomousStep autonomousStep : autonomous.getAutonomousSteps()) {
@@ -94,7 +92,7 @@ public final class UndoHandler {
                 TrajectoryAutonomousStep trajectoryAutonomousStep = (TrajectoryAutonomousStep) autonomousStep;
                 Color color = new Color().fromHsv(trajectoryAutonomousStep.getColor(), 1, 1);
                 color.set(color.r, color.g, color.b, 1);
-                TrajectoryItem trajectoryItem = new TrajectoryItem(pathGui, inputEventThrower, cameraHandler,
+                TrajectoryItem trajectoryItem = new TrajectoryItem(pathGui, cameraHandler,
                         new ControlVectorList(trajectoryAutonomousStep.getControlVectors()),
                         trajectoryAutonomousStep.getRotations(),
                         trajectoryAutonomousStep.isReversed(), color, trajectoryAutonomousStep.isClosed(),
@@ -103,7 +101,7 @@ public final class UndoHandler {
                 guiItemList.add(trajectoryItem);
             } else if (autonomousStep instanceof ScriptAutonomousStep) {
                 ScriptAutonomousStep scriptAutonomousStep = (ScriptAutonomousStep) autonomousStep;
-                ScriptItem scriptItem = new ScriptItem(inputEventThrower, scriptAutonomousStep.getScript(),
+                ScriptItem scriptItem = new ScriptItem(scriptAutonomousStep.getScript(),
                         scriptAutonomousStep.isClosed(), scriptAutonomousStep.isValid());
                 guiItemList.add(scriptItem);
             }

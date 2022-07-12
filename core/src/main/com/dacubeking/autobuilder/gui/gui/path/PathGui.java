@@ -8,7 +8,6 @@ import com.badlogic.gdx.graphics.g2d.PolygonSpriteBatch;
 import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.scenes.scene2d.utils.ScissorStack;
-import com.badlogic.gdx.utils.viewport.Viewport;
 import com.dacubeking.autobuilder.gui.AutoBuilder;
 import com.dacubeking.autobuilder.gui.CameraHandler;
 import com.dacubeking.autobuilder.gui.UndoHandler;
@@ -62,17 +61,16 @@ public class PathGui extends InputEventListener {
         color.fromHsv(1, 1, 1);
     }
 
-    public PathGui(@NotNull Viewport viewport, @NotNull InputEventThrower eventThrower,
-                   @NotNull ExecutorService executorService, @NotNull CameraHandler cameraHandler) {
+    public PathGui(@NotNull ExecutorService executorService, @NotNull CameraHandler cameraHandler) {
 
 
-        addPathButton = new AddPathButton(0, 0, 40, 40, eventThrower, cameraHandler);
-        addScriptButton = new AddScriptButton(0, 0, 40, 40, eventThrower);
+        addPathButton = new AddPathButton(0, 0, 40, 40, cameraHandler);
+        addScriptButton = new AddScriptButton(0, 0, 40, 40);
         pushAutoButton = new PushAutoButton(0, 0, 40, 40);
 
         updateScreen(Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
 
-        eventThrower.register(this);
+        InputEventThrower.register(this);
 
         this.executorService = executorService;
     }

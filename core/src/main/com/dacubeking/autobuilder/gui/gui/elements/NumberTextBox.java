@@ -1,7 +1,6 @@
 package com.dacubeking.autobuilder.gui.gui.elements;
 
 import com.dacubeking.autobuilder.gui.UndoHandler;
-import com.dacubeking.autobuilder.gui.events.input.InputEventThrower;
 import com.dacubeking.autobuilder.gui.events.input.NumberTextboxChangeListener;
 import org.jetbrains.annotations.NotNull;
 
@@ -12,9 +11,11 @@ public class NumberTextBox extends TextBox {
     private final int column;
     private final UndoHandler undoHandler = UndoHandler.getInstance();
 
-    public NumberTextBox(@NotNull String text, @NotNull InputEventThrower eventThrower,
-                         @NotNull NumberTextboxChangeListener numberTextboxChangeListener, int row, int column, int fontSize) {
-        super(text, eventThrower, false, null, fontSize);
+    public NumberTextBox(@NotNull String text,
+                         @NotNull NumberTextboxChangeListener numberTextboxChangeListener,
+                         int row,
+                         int column, int fontSize) {
+        super(text, false, null, fontSize);
         this.numberTextboxChangeListener = numberTextboxChangeListener;
         this.row = row;
         this.column = column;

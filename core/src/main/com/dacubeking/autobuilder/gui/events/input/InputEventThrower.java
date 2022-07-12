@@ -5,17 +5,19 @@ import com.dacubeking.autobuilder.gui.AutoBuilder;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 public class InputEventThrower implements InputProcessor {
 
-    @NotNull ArrayList<InputEventListener> eventHandlers = new ArrayList<>();
-    @NotNull ArrayList<InputEventListener> iterableEventHandlers = new ArrayList<>();
+    @NotNull static final List<InputEventListener> eventHandlers = Collections.synchronizedList(new ArrayList<>());
+    @NotNull final List<InputEventListener> iterableEventHandlers = new ArrayList<>();
 
-    public void register(@NotNull InputEventListener eventHandler) {
+    public static void register(@NotNull InputEventListener eventHandler) {
         eventHandlers.add(eventHandler);
     }
 
-    public void unRegister(@NotNull InputEventListener eventHandler) {
+    public static void unRegister(@NotNull InputEventListener eventHandler) {
         eventHandlers.remove(eventHandler);
     }
 
@@ -35,7 +37,10 @@ public class InputEventThrower implements InputProcessor {
     public boolean keyTyped(char character) {
         AutoBuilder.somethingInputted();
         iterableEventHandlers.clear();
-        iterableEventHandlers.addAll(eventHandlers);
+        synchronized (eventHandlers) {
+            iterableEventHandlers.addAll(eventHandlers);
+        }
+
         try {
             for (InputEventListener eventHandler : iterableEventHandlers) {
                 eventHandler.onKeyType(character);
@@ -74,7 +79,9 @@ public class InputEventThrower implements InputProcessor {
     public boolean scrolled(float amountX, float amountY) {
         AutoBuilder.somethingInputted();
         iterableEventHandlers.clear();
-        iterableEventHandlers.addAll(eventHandlers);
+        synchronized (eventHandlers) {
+            iterableEventHandlers.addAll(eventHandlers);
+        }
         try {
             for (InputEventListener eventHandler : iterableEventHandlers) {
                 eventHandler.onScroll(amountX, amountY);

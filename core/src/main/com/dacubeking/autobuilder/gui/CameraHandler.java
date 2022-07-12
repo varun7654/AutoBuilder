@@ -30,14 +30,14 @@ public class CameraHandler extends InputEventListener {
     float targetY;
     Vector3 worldPosOfTargetScreenPos = new Vector3();
 
-    public CameraHandler(@NotNull OrthographicCamera cam, @NotNull InputEventThrower inputEventThrower) {
+    public CameraHandler(@NotNull OrthographicCamera cam) {
         this.cam = cam;
         lastMousePos = new Vector2(Gdx.input.getX(), Gdx.input.getY());
         mousePos = new Vector2(Gdx.input.getX(), Gdx.input.getY());
         oldMouseWorldPos = new Vector3();
         newMouseWorldPos = new Vector3();
         zoomMousePos = new Vector2();
-        inputEventThrower.register(this);
+        InputEventThrower.register(this);
         targetX = cam.position.x;
         targetY = cam.position.y;
     }
@@ -77,7 +77,7 @@ public class CameraHandler extends InputEventListener {
 
         if (Gdx.input.isButtonJustPressed(Input.Buttons.LEFT) && !(moving | onGui)) {
             mouseHeldLastFrame = true;
-        } else if (moving){
+        } else if (moving) {
             mouseHeldLastFrame = false;
         }
 
@@ -98,7 +98,8 @@ public class CameraHandler extends InputEventListener {
 
         lastMousePos.set(Gdx.input.getX(), Gdx.input.getY());
 
-        if (Math.abs(targetX - cam.position.x) < 1e-2 && Math.abs(targetY - cam.position.y) < 1e-2 && Math.abs(this.zoom - cam.zoom) < 1e-4) {
+        if (Math.abs(targetX - cam.position.x) < 1e-2 && Math.abs(targetY - cam.position.y) < 1e-2 && Math.abs(
+                this.zoom - cam.zoom) < 1e-4) {
             AutoBuilder.disableContinuousRendering(this);
         } else {
             AutoBuilder.enableContinuousRendering(this);

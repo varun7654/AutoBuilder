@@ -150,7 +150,7 @@ public final class AutoBuilder extends ApplicationAdapter {
         cam.position.x = Gdx.graphics.getWidth() / 2f;
         cam.position.y = Gdx.graphics.getHeight() / 2f;
         viewport = new ExtendViewport(Gdx.graphics.getWidth(), Gdx.graphics.getHeight(), cam);
-        cameraHandler = new CameraHandler(cam, inputEventThrower);
+        cameraHandler = new CameraHandler(cam);
 
         Gdx.gl.glClearColor(0f, 0f, 0f, 1f);
 
@@ -162,7 +162,7 @@ public final class AutoBuilder extends ApplicationAdapter {
 
         origin = new PointRenderer(0, 0, Color.ORANGE, POINT_SIZE);
 
-        pathGui = new PathGui(hudViewport, inputEventThrower, asyncPathingService, cameraHandler);
+        pathGui = new PathGui(asyncPathingService, cameraHandler);
 
         FileHandler.loadAuto();
 
@@ -177,10 +177,10 @@ public final class AutoBuilder extends ApplicationAdapter {
             try {
                 ShooterConfig shooterConfig = (ShooterConfig) Serializer.deserializeFromFile(shooterConfigFile,
                         ShooterConfig.class);
-                shooterGui = new ShooterGui(hudViewport, inputEventThrower, cameraHandler, shooterConfig);
+                shooterGui = new ShooterGui(hudViewport, cameraHandler, shooterConfig);
             } catch (IOException e) {
                 e.printStackTrace();
-                shooterGui = new ShooterGui(hudViewport, inputEventThrower, cameraHandler);
+                shooterGui = new ShooterGui(hudViewport, cameraHandler);
             }
         }
         configGUI = new ConfigGUI();
@@ -376,7 +376,7 @@ public final class AutoBuilder extends ApplicationAdapter {
     boolean somethingMoved = false;
 
     private void update() {
-        undoHandler.update(pathGui, inputEventThrower, cameraHandler);
+        undoHandler.update(pathGui, cameraHandler);
         boolean onGui = pathGui.update();
         if (shooterGui != null) onGui = onGui | shooterGui.update();
         onGui = onGui | configGUI.update();
@@ -530,7 +530,7 @@ public final class AutoBuilder extends ApplicationAdapter {
     }
 
     public void restoreState(Autonomous autonomous, boolean clearUndoHistory) {
-        undoHandler.restoreState(autonomous, pathGui, inputEventThrower, cameraHandler);
+        undoHandler.restoreState(autonomous, pathGui, cameraHandler);
         if (clearUndoHistory) {
             undoHandler.clearUndoHistory();
             undoHandler.somethingChanged();
