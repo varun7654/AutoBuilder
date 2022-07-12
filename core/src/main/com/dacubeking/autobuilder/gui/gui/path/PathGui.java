@@ -161,7 +161,7 @@ public class PathGui extends InputEventListener {
 
     public boolean update() {
         isLeftMouseJustUnpressed = isIsLeftMouseJustUnpressed();
-        
+
         for (AbstractGuiItem guiItemsDeletion : guiItemsDeletions) {
             guiItemsDeletion.dispose();
             guiItems.remove(guiItemsDeletion);

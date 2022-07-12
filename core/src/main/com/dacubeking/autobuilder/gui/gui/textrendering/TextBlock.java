@@ -73,6 +73,10 @@ public class TextBlock {
         this.wrapWidth = wrapWidth;
     }
 
+    public static TextBlock from(String string) {
+        return new TextBlock(Fonts.ROBOTO, 14, new TextComponent(string));
+    }
+
     /**
      * Gets the text {@link RenderableTextComponent}s that are used to create this text block.
      *
@@ -321,8 +325,8 @@ public class TextBlock {
     }
 
     /**
-     * @return a mutable list of all the text components that are used to create this text block. If this list is modified, {@link
-     * #setDirty()} must be called.
+     * @return a mutable list of all the text components that are used to create this text block. If this list is modified,
+     * {@link #setDirty()} must be called.
      */
     public TextComponent[] getTextComponents() {
         return textComponents;

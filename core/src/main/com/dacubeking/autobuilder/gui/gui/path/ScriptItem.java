@@ -1,25 +1,46 @@
 package com.dacubeking.autobuilder.gui.gui.path;
 
+import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Camera;
 import com.badlogic.gdx.graphics.Color;
+import com.badlogic.gdx.graphics.Texture;
+import com.badlogic.gdx.graphics.Texture.TextureFilter;
 import com.badlogic.gdx.graphics.g2d.PolygonSpriteBatch;
 import com.badlogic.gdx.scenes.scene2d.utils.ScissorStack;
 import com.dacubeking.autobuilder.gui.AutoBuilder;
 import com.dacubeking.autobuilder.gui.events.input.TextChangeListener;
 import com.dacubeking.autobuilder.gui.gui.elements.TextBox;
+import com.dacubeking.autobuilder.gui.gui.hover.HoverManager;
+import com.dacubeking.autobuilder.gui.gui.notification.Notification;
+import com.dacubeking.autobuilder.gui.gui.notification.NotificationHandler;
+import com.dacubeking.autobuilder.gui.gui.textrendering.TextBlock;
 import com.dacubeking.autobuilder.gui.gui.textrendering.TextComponent;
 import com.dacubeking.autobuilder.gui.scripting.Parser;
+import com.dacubeking.autobuilder.gui.scripting.RobotCodeData;
 import com.dacubeking.autobuilder.gui.scripting.sendable.SendableScript;
 import com.dacubeking.autobuilder.gui.scripting.util.LintingPos;
+import com.dacubeking.autobuilder.gui.util.MouseUtil;
+import com.dacubeking.autobuilder.gui.util.OsUtil;
 import com.dacubeking.autobuilder.gui.util.RoundedShapeRenderer;
 import org.jetbrains.annotations.NotNull;
 import space.earlygrey.shapedrawer.ShapeDrawer;
 
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.util.ArrayList;
+import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 
 public class ScriptItem extends AbstractGuiItem implements TextChangeListener {
+
+    private static final Texture openIcon = new Texture(Gdx.files.internal("open.png"), true);
+
+    static {
+        openIcon.setFilter(TextureFilter.MipMapLinearLinear, TextureFilter.MipMapLinearLinear);
+    }
+
     private static final Color LIGHT_BLUE = Color.valueOf("86CDF9");
 
     TextBox textBox;
@@ -45,6 +66,8 @@ public class ScriptItem extends AbstractGuiItem implements TextChangeListener {
         onTextChange(text, textBox);
     }
 
+    private final String tempAutoLocation = "C:\\Users\\varun\\Documents\\GitHub\\FRC-2022\\src\\main\\java\\tmp";
+
     @Override
     public int render(@NotNull ShapeDrawer shapeRenderer, @NotNull PolygonSpriteBatch spriteBatch, int drawStartX, int drawStartY,
                       int drawWidth, PathGui pathGui, Camera camera, boolean isLeftMouseJustUnpressed) {
@@ -67,10 +90,77 @@ public class ScriptItem extends AbstractGuiItem implements TextChangeListener {
             textBox.draw(shapeRenderer, spriteBatch, drawStartX + 10, drawStartY - 43, drawWidth - 15, synchronizedLinting);
             renderHeader(shapeRenderer, spriteBatch, drawStartX, drawStartY, drawWidth, trashTexture, warningTexture,
                     LIGHT_BLUE, "Script", error, warningText);
+
+            if (MouseUtil.isMouseOver(drawStartX + drawWidth - 27, drawStartY - 61, 20, 20)) {
+                spriteBatch.setColor(1, 1, 1, 1f);
+                HoverManager.setHoverText(TextBlock.from("Open in VS Code"));
+                if (MouseUtil.isIsLeftMouseJustUnpressed()) {
+                    CompletableFuture.runAsync(() -> {
+                        try {
+                            String randomFileName = "autoScript" + UUID.randomUUID().toString().replace("-", "");
+                            File file = new File(tempAutoLocation + "\\" + randomFileName + ".java");
+                            new File(tempAutoLocation).mkdirs();
+                            file.createNewFile();
+                            try (FileWriter fileWriter = new FileWriter(file)) {
+                                StringBuilder instances = new StringBuilder();
+                                StringBuilder imports = new StringBuilder();
+                                for (String accessibleClass : RobotCodeData.accessibleClasses) {
+                                    imports.append("import ").append(accessibleClass).append(";\n");
+                                    String plainClass = getLast(accessibleClass.split("\\."));
+                                    instances.append("         ").append(plainClass).append(" ")
+                                            .append(makeFirstLower(plainClass))
+                                            .append(" = AutonomousContainer.getInstance().getAccessibleInstances().get(\"")
+                                            .append(plainClass).append("\");\n");
+                                }
+
+                                fileWriter.write(
+                                        "package frc.tmp;" +
+                                                "\n" +
+                                                imports.toString() +
+                                                "\n" +
+                                                "public class " + randomFileName + " implements Runnable {\n" +
+                                                "    @Override\n" +
+                                                "    public void run() {\n" +
+                                                "    //This code is automatically generated by the AutoBuilder.\n" +
+                                                instances.toString() + "\n" +
+                                                "    //Write your code here\n" +
+                                                textBox.getText() + "\n" +
+                                                "    }\n" +
+                                                "}\n"
+                                );
+                            } catch (IOException e) {
+                                e.printStackTrace();
+                            }
+
+                            if (OsUtil.isWindows) {
+                                Runtime.getRuntime().exec("cmd /c code " + file.getAbsolutePath());
+                            } else {
+                                Runtime.getRuntime().exec("sh -c code");
+                            }
+                        } catch (IOException e) {
+                            NotificationHandler.addNotification(new Notification(Color.RED, "Failed to open VS Code!", 3000));
+                            e.printStackTrace();
+                        }
+                    });
+                }
+            } else {
+                spriteBatch.setColor(1, 1, 1, 0.2f);
+            }
+            spriteBatch.draw(openIcon, drawStartX + drawWidth - 27, drawStartY - 61, 20, 20);
+            spriteBatch.setColor(1, 1, 1, 1f);
         }
         spriteBatch.flush();
         if (pop == 1) ScissorStack.popScissors();
         return getHeight();
+    }
+
+    private String makeFirstLower(String string) {
+        if (string.length() == 0) return "";
+        return string.substring(0, 1).toLowerCase() + string.substring(1);
+    }
+
+    private String getLast(String[] array) {
+        return array[array.length - 1];
     }
 
 
