@@ -18,7 +18,9 @@ import space.earlygrey.shapedrawer.ShapeDrawer;
 
 import java.text.DecimalFormat;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Random;
 
 import static com.dacubeking.autobuilder.gui.util.MouseUtil.isControlPressed;
 
@@ -65,7 +67,7 @@ public class DrivenPathRenderer implements PathRenderer {
 
                     for (int j = 0; j < robotPositions.get(i).size(); j++) {
                         RobotPosition robotPosition = robotPositions.get(i).get(j);
-                        renderRobotBoundingBox(shapeRenderer, robotPosition, getColor(j));
+                        renderRobotBoundingBox(shapeRenderer, robotPosition, getColor(robotPosition.name));
 
                         textComponents.add(new TextComponent(robotPosition.name + " @").setBold(true).setSize(15));
                         addTextComponents(robotPosition, textComponents);
@@ -81,24 +83,26 @@ public class DrivenPathRenderer implements PathRenderer {
         if (robotPositions.size() - 1 > 0) {
             List<RobotPosition> positions = robotPositions.get(
                     robotPositions.size() - 1);
-            for (int i = 0; i < positions.size(); i++) {
-                RobotPosition robotPosition = positions.get(i);
-                renderRobotBoundingBox(shapeRenderer, robotPosition, getColor(i));
+            for (RobotPosition robotPosition : positions) {
+                renderRobotBoundingBox(shapeRenderer, robotPosition, getColor(robotPosition.name));
             }
         }
         robotPreviewIndex = -1;
     }
 
-    List<Color> colors = new ArrayList<>();
+    private HashMap<String, Color> colors = new HashMap<>();
+    private int colorIndex = 0;
 
-    private Color getColor(int i) {
-        if (colors.size() <= i) {
+    private Color getColor(String name) {
+        if (!colors.containsKey(name)) {
             // Lazy generate colors as needed
-            Color color = new Color().fromHsv((180 + 71 * i) % 360, 1, 1);
+            Random random = new Random(name.hashCode());
+            Color color = new Color().fromHsv(random.nextFloat(360), 1, 1);
             color.a = 1;
-            colors.add(color);
+            colors.put(name, color);
+            colorIndex += 1;
         }
-        return colors.get(i);
+        return colors.get(name);
     }
 
 
