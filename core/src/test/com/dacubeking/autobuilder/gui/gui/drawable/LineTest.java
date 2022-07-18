@@ -13,8 +13,8 @@ class LineTest {
     void fromString() {
         Line line = Line.fromString("L:(1.0,2.0),(3.0,4.0),#eb2d4e");
         assertNotNull(line);
-        assertEquals(line.start, new Vector2(1, 2));
-        assertEquals(line.end, new Vector2(3, 4));
+        assertEquals(new Vector2(1, 2), line.start);
+        assertEquals(new Vector2(3, 4), line.end);
         assertEquals(Color.valueOf("#eb2d4e"), line.color);
     }
 

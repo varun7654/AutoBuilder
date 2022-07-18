@@ -34,7 +34,10 @@ public class Line extends Drawable {
     @Override
     public void draw(ShapeDrawer drawer, Batch batch) {
         drawer.setColor(color);
-        drawer.line(start.x, start.y, end.x, end.y, AutoBuilder.LINE_THICKNESS);
+        drawer.line(start.x * AutoBuilder.getConfig().getPointScaleFactor(),
+                start.y * AutoBuilder.getConfig().getPointScaleFactor(),
+                end.x * AutoBuilder.getConfig().getPointScaleFactor(),
+                end.y * AutoBuilder.getConfig().getPointScaleFactor(), AutoBuilder.LINE_THICKNESS);
     }
 
     public static @Nullable Line fromString(String line) {
@@ -43,8 +46,6 @@ public class Line extends Drawable {
         if (split.length != 3) {
             return null;
         }
-        return new Line(new Vector2().fromString(split[0]).scl(AutoBuilder.getConfig().getPointScaleFactor()),
-                new Vector2().fromString(split[1]).scl(AutoBuilder.getConfig().getPointScaleFactor()),
-                Color.valueOf(split[2]));
+        return new Line(new Vector2().fromString(split[0]), new Vector2().fromString(split[1]), Color.valueOf(split[2]));
     }
 }
