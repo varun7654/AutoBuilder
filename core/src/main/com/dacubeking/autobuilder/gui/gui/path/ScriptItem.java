@@ -35,6 +35,7 @@ public class ScriptItem extends AbstractGuiItem implements TextChangeListener {
 
     public ScriptItem() {
         textBox = new TextBox("", true, this, 16);
+        this.openHeight = getOpenHeight();
     }
 
     public ScriptItem(String text, boolean closed, boolean valid) {
@@ -43,6 +44,7 @@ public class ScriptItem extends AbstractGuiItem implements TextChangeListener {
         this.setInitialClosed(closed);
 
         onTextChange(text, textBox);
+        this.openHeight = getOpenHeight();
     }
 
     @Override

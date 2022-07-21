@@ -19,6 +19,7 @@ public class AddPathButton extends AbstractGuiButton {
     public boolean checkClick(@NotNull PathGui pathGui) {
         if (super.checkClick()) {
             pathGui.guiItems.add(new TrajectoryItem(pathGui, cameraHandler));
+            pathGui.scrollToBottom();
             UndoHandler.getInstance().somethingChanged();
             return true;
         }

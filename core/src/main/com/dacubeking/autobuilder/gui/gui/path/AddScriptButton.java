@@ -14,6 +14,7 @@ public class AddScriptButton extends AbstractGuiButton {
     public boolean checkClick(@NotNull PathGui pathGui) {
         if (super.checkClick()) {
             pathGui.guiItems.add(new ScriptItem());
+            pathGui.scrollToBottom();
             UndoHandler.getInstance().somethingChanged();
             return true;
         }

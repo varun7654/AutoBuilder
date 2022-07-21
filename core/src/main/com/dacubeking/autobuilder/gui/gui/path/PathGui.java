@@ -161,7 +161,7 @@ public class PathGui extends InputEventListener {
 
     public boolean update() {
         isLeftMouseJustUnpressed = isIsLeftMouseJustUnpressed();
-        
+
         for (AbstractGuiItem guiItemsDeletion : guiItemsDeletions) {
             guiItemsDeletion.dispose();
             guiItems.remove(guiItemsDeletion);
@@ -219,6 +219,15 @@ public class PathGui extends InputEventListener {
         }
 
         return onGui;
+    }
+
+
+    public void scrollToBottom() {
+        int yPos = Gdx.graphics.getHeight() - 20 + (int) smoothScrollPos;
+        for (AbstractGuiItem guiItem : guiItems) {
+            yPos = yPos - 10 - guiItem.getHeight();
+        }
+        scrollPos = Math.max(0, -(yPos - (int) smoothScrollPos - 10));
     }
 
     public void updateScreen(int width, int height) {
