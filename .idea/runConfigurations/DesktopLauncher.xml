@@ -4,6 +4,7 @@
     <option name="ALTERNATIVE_JRE_PATH_ENABLED" value="true" />
     <option name="MAIN_CLASS_NAME" value="com.dacubeking.autobuilder.gui.desktop.DesktopLauncher" />
     <module name="AutoBuilder.desktop.main" />
+    <option name="PROGRAM_PARAMETERS" value="-XX:+UseZGC" />
     <extension name="coverage">
       <pattern>
         <option name="PATTERN" value="com.dacubeking.autobuilder.gui.desktop.*" />

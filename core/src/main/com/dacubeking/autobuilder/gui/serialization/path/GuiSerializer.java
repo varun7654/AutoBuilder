@@ -18,15 +18,12 @@ public class GuiSerializer {
         List<AbstractAutonomousStep> autonomousSteps = new ArrayList<>();
         List<AbstractGuiItem> guiItemList = new ArrayList<>(mutableGuiItemList);
         for (AbstractGuiItem abstractGuiItem : guiItemList) {
-            if (abstractGuiItem instanceof ScriptItem) {
-                ScriptItem scriptItem = (ScriptItem) abstractGuiItem;
+            if (abstractGuiItem instanceof ScriptItem scriptItem) {
                 autonomousSteps.add(new ScriptAutonomousStep(scriptItem.getText(), scriptItem.isClosed(), scriptItem.isValid(),
                         scriptItem.getSendableScript()));
             }
 
-            if (abstractGuiItem instanceof TrajectoryItem) {
-                TrajectoryItem trajectoryItem = (TrajectoryItem) abstractGuiItem;
-
+            if (abstractGuiItem instanceof TrajectoryItem trajectoryItem) {
                 try {
                     autonomousSteps.add(new TrajectoryAutonomousStep(
                             trajectoryItem.getPathRenderer().getNotNullTrajectory().getStates(),
@@ -44,8 +41,7 @@ public class GuiSerializer {
             }
         }
         for (AbstractAutonomousStep autonomousStep : autonomousSteps) {
-            if (autonomousStep instanceof ScriptAutonomousStep) {
-                ScriptAutonomousStep scriptAutonomousStep = (ScriptAutonomousStep) autonomousStep;
+            if (autonomousStep instanceof ScriptAutonomousStep scriptAutonomousStep) {
                 if (!scriptAutonomousStep.getSendableScript().isDeployable()) {
                     throw new NotDeployableException("Script is not deployable");
                 }
@@ -58,8 +54,7 @@ public class GuiSerializer {
         List<AbstractAutonomousStep> autonomousSteps = new ArrayList<>();
         List<AbstractGuiItem> guiItemList = new ArrayList<>(mutableGuiItemList);
         for (AbstractGuiItem abstractGuiItem : guiItemList) {
-            if (abstractGuiItem instanceof ScriptItem) {
-                ScriptItem scriptItem = (ScriptItem) abstractGuiItem;
+            if (abstractGuiItem instanceof ScriptItem scriptItem) {
                 autonomousSteps.add(new ScriptAutonomousStep(
                         scriptItem.getText(),
                         scriptItem.isClosed(),
@@ -67,8 +62,7 @@ public class GuiSerializer {
                         scriptItem.getSendableScript()));
             }
 
-            if (abstractGuiItem instanceof TrajectoryItem) {
-                TrajectoryItem trajectoryItem = (TrajectoryItem) abstractGuiItem;
+            if (abstractGuiItem instanceof TrajectoryItem trajectoryItem) {
                 float[] color = new float[3];
                 trajectoryItem.getPathRenderer().getColor().toHsv(color);
                 autonomousSteps.add(new TrajectoryAutonomousStep(
@@ -92,8 +86,7 @@ public class GuiSerializer {
         List<AbstractAutonomousStep> autonomousSteps = new ArrayList<>();
         List<AbstractGuiItem> guiItemList = new ArrayList<>(mutableGuiItemList);
         for (AbstractGuiItem abstractGuiItem : guiItemList) {
-            if (abstractGuiItem instanceof ScriptItem) {
-                ScriptItem scriptItem = (ScriptItem) abstractGuiItem;
+            if (abstractGuiItem instanceof ScriptItem scriptItem) {
                 autonomousSteps.add(new ScriptAutonomousStep(
                         scriptItem.getText(),
                         scriptItem.isClosed(),
@@ -101,8 +94,7 @@ public class GuiSerializer {
                         scriptItem.getSendableScript()));
             }
 
-            if (abstractGuiItem instanceof TrajectoryItem) {
-                TrajectoryItem trajectoryItem = (TrajectoryItem) abstractGuiItem;
+            if (abstractGuiItem instanceof TrajectoryItem trajectoryItem) {
                 float[] color = new float[3];
                 trajectoryItem.getPathRenderer().getColor().toHsv(color);
 
@@ -135,8 +127,7 @@ public class GuiSerializer {
         Autonomous autonomous = new Autonomous(autonomousSteps);
 
         for (AbstractAutonomousStep autonomousStep : autonomous.getAutonomousSteps()) {
-            if (autonomousStep instanceof ScriptAutonomousStep) {
-                ScriptAutonomousStep scriptAutonomousStep = (ScriptAutonomousStep) autonomousStep;
+            if (autonomousStep instanceof ScriptAutonomousStep scriptAutonomousStep) {
                 if (!scriptAutonomousStep.getSendableScript().isDeployable()) deployable = false;
             }
         }

@@ -56,9 +56,9 @@ public class DrivenPathRenderer implements PathRenderer {
 //                    nextPointLeft.x, nextPointLeft.y
 //            });
 
-                shapeRenderer.line((float) (pos1.x * config.getPointScaleFactor()),
-                        (float) (pos1.y * config.getPointScaleFactor()),
-                        (float) (pos2.x * config.getPointScaleFactor()), (float) (pos2.y * config.getPointScaleFactor()),
+                shapeRenderer.line((float) (pos1.x() * config.getPointScaleFactor()),
+                        (float) (pos1.y() * config.getPointScaleFactor()),
+                        (float) (pos2.x() * config.getPointScaleFactor()), (float) (pos2.y() * config.getPointScaleFactor()),
                         Color.WHITE,
                         AutoBuilder.LINE_THICKNESS);
 
@@ -67,9 +67,9 @@ public class DrivenPathRenderer implements PathRenderer {
 
                     for (int j = 0; j < robotPositions.get(i).size(); j++) {
                         RobotPosition robotPosition = robotPositions.get(i).get(j);
-                        renderRobotBoundingBox(shapeRenderer, robotPosition, getColor(robotPosition.name));
+                        renderRobotBoundingBox(shapeRenderer, robotPosition, getColor(robotPosition.name()));
 
-                        textComponents.add(new TextComponent(robotPosition.name + " @").setBold(true).setSize(15));
+                        textComponents.add(new TextComponent(robotPosition.name() + " @").setBold(true).setSize(15));
                         addTextComponents(robotPosition, textComponents);
                     }
 
@@ -84,13 +84,13 @@ public class DrivenPathRenderer implements PathRenderer {
             List<RobotPosition> positions = robotPositions.get(
                     robotPositions.size() - 1);
             for (RobotPosition robotPosition : positions) {
-                renderRobotBoundingBox(shapeRenderer, robotPosition, getColor(robotPosition.name));
+                renderRobotBoundingBox(shapeRenderer, robotPosition, getColor(robotPosition.name()));
             }
         }
         robotPreviewIndex = -1;
     }
 
-    private HashMap<String, Color> colors = new HashMap<>();
+    private final HashMap<String, Color> colors = new HashMap<>();
     private int colorIndex = 0;
 
     private Color getColor(String name) {
@@ -110,35 +110,35 @@ public class DrivenPathRenderer implements PathRenderer {
         nextPointLeft.set(0, -AutoBuilder.LINE_THICKNESS / 2);
         nextPointRight.set(0, AutoBuilder.LINE_THICKNESS / 2);
 
-        nextPointLeft.rotateRad((float) pos.theta);
-        nextPointRight.rotateRad((float) pos.theta);
+        nextPointLeft.rotateRad((float) pos.theta());
+        nextPointRight.rotateRad((float) pos.theta());
 
-        nextPointLeft.add((float) (pos.x * config.getPointScaleFactor()), (float) (pos.y * config.getPointScaleFactor()));
-        nextPointRight.add((float) (pos.x * config.getPointScaleFactor()), (float) (pos.y * config.getPointScaleFactor()));
+        nextPointLeft.add((float) (pos.x() * config.getPointScaleFactor()), (float) (pos.y() * config.getPointScaleFactor()));
+        nextPointRight.add((float) (pos.x() * config.getPointScaleFactor()), (float) (pos.y() * config.getPointScaleFactor()));
     }
 
     private void renderRobotBoundingBox(@NotNull ShapeDrawer shapeRenderer, RobotPosition pos1,
                                         Color color) {
         renderRobotBoundingBox(
-                new Vector2((float) (pos1.x * config.getPointScaleFactor()),
-                        (float) (pos1.y * config.getPointScaleFactor())),
-                (float) pos1.theta, shapeRenderer, color, Color.WHITE);
+                new Vector2((float) (pos1.x() * config.getPointScaleFactor()),
+                        (float) (pos1.y() * config.getPointScaleFactor())),
+                (float) pos1.theta(), shapeRenderer, color, Color.WHITE);
     }
 
     private void addTextComponents(RobotPosition robotPosition, List<TextComponent> textComponents) {
-        textComponents.add(new TextComponent(df.format(robotPosition.time) + "s\n").setSize(15));
+        textComponents.add(new TextComponent(df.format(robotPosition.time()) + "s\n").setSize(15));
         textComponents.add(new TextComponent("x: ").setBold(true));
-        textComponents.add(new TextComponent(df.format(robotPosition.x) + "m"));
+        textComponents.add(new TextComponent(df.format(robotPosition.x()) + "m"));
         textComponents.add(new TextComponent(" y: ").setBold(true));
-        textComponents.add(new TextComponent(df.format(robotPosition.y) + "m"));
+        textComponents.add(new TextComponent(df.format(robotPosition.y()) + "m"));
         textComponents.add(new TextComponent(" theta: ").setBold(true));
-        textComponents.add(new TextComponent(df.format(Math.toDegrees(robotPosition.theta)) + "°\n"));
+        textComponents.add(new TextComponent(df.format(Math.toDegrees(robotPosition.theta())) + "°\n"));
         textComponents.add(new TextComponent("Vx: ").setBold(true));
-        textComponents.add(new TextComponent(df.format(robotPosition.vx) + "m/s\n"));
+        textComponents.add(new TextComponent(df.format(robotPosition.vx()) + "m/s\n"));
         textComponents.add(new TextComponent("Vy: ").setBold(true));
-        textComponents.add(new TextComponent(df.format(robotPosition.vy) + "m/s\n"));
+        textComponents.add(new TextComponent(df.format(robotPosition.vy()) + "m/s\n"));
         textComponents.add(new TextComponent("Vtheta: ").setBold(true));
-        textComponents.add(new TextComponent(df.format(Math.toDegrees(robotPosition.vtheta)) + "°/s\n"));
+        textComponents.add(new TextComponent(df.format(Math.toDegrees(robotPosition.vtheta())) + "°/s\n"));
     }
 
     @Override
@@ -154,8 +154,8 @@ public class DrivenPathRenderer implements PathRenderer {
         synchronized (robotPositions) {
             for (int i = 0; i < robotPositions.size(); i++) {
                 RobotPosition robotPosition = robotPositions.get(i).get(0);
-                float len2 = mousePos.dst2((float) (robotPosition.x * config.getPointScaleFactor()),
-                        (float) (robotPosition.y * config.getPointScaleFactor()), 0);
+                float len2 = mousePos.dst2((float) (robotPosition.x() * config.getPointScaleFactor()),
+                        (float) (robotPosition.y() * config.getPointScaleFactor()), 0);
                 if (len2 < maxDistance2) {
                     points.add(new CloseTrajectoryPoint(len2, this, i, 0));
                 }
@@ -166,7 +166,7 @@ public class DrivenPathRenderer implements PathRenderer {
 
     @Override
     public void setRobotPathPreviewPoint(CloseTrajectoryPoint closePoint) {
-        robotPreviewIndex = closePoint.prevPointIndex;
+        robotPreviewIndex = closePoint.prevPointIndex();
     }
 
     @Override

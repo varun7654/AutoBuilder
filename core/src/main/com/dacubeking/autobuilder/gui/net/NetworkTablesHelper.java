@@ -88,12 +88,12 @@ public final class NetworkTablesHelper {
                     }
                 }
                 positionsList.sort((o1, o2) -> {
-                    if (o1.name.equals("Robot Position")) { // Always put robot position first
+                    if (o1.name().equals("Robot Position")) { // Always put robot position first
                         return -1;
-                    } else if (o2.name.equals("Robot Position")) {
+                    } else if (o2.name().equals("Robot Position")) {
                         return 1;
                     } else {
-                        return o1.name.compareTo(o2.name);
+                        return o1.name().compareTo(o2.name());
                     }
                 });
                 robotPositions.add(positionsList);
@@ -138,18 +138,10 @@ public final class NetworkTablesHelper {
                 ArrayList<Drawable> drawables = new ArrayList<>(drawablesString.length);
                 for (String s : drawablesString) {
                     switch (s.charAt(0)) {
-                        case 'R':
-                            drawables.add(Rectangle.fromString(s));
-                            break;
-                        case 'P':
-                            drawables.add(Path.fromString(s));
-                            break;
-                        case 'C':
-                            drawables.add(Circle.fromString(s));
-                            break;
-                        case 'L':
-                            drawables.add(Line.fromString(s));
-                            break;
+                        case 'R' -> drawables.add(Rectangle.fromString(s));
+                        case 'P' -> drawables.add(Path.fromString(s));
+                        case 'C' -> drawables.add(Circle.fromString(s));
+                        case 'L' -> drawables.add(Line.fromString(s));
                     }
                 }
                 drawableRenderer.setDrawables(drawables);
@@ -223,8 +215,8 @@ public final class NetworkTablesHelper {
     }
 
     /**
-     * It is imperative that the user manually synchronize on the returned list when traversing it via {@link Iterator}, {@link
-     * Spliterator} or {@link Stream}:
+     * It is imperative that the user manually synchronize on the returned list when traversing it via {@link Iterator},
+     * {@link Spliterator} or {@link Stream}:
      * <pre>
      *  List list = Collections.synchronizedList(new ArrayList());
      *      ...

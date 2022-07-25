@@ -66,14 +66,13 @@ public class UploadFileButton extends AbstractGuiButton {
 
     private static @Nullable File getFile(int result, PointerBuffer path) {
         switch (result) {
-            case NFD_OKAY:
+            case NFD_OKAY -> {
                 nNFD_Free(path.get(0));
                 return new File(path.getStringUTF8());
-            case NFD_CANCEL:
-                System.out.println("User pressed cancel opening file.");
-                break;
-            default: // NFD_ERROR
-                System.err.format("Error: %s\n", NFD_GetError());
+            }
+            case NFD_CANCEL -> System.out.println("User pressed cancel opening file.");
+            default -> // NFD_ERROR
+                    System.err.format("Error: %s\n", NFD_GetError());
         }
         return null;
     }

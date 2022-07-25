@@ -400,7 +400,7 @@ public final class AutoBuilder extends ApplicationAdapter {
         if ((Gdx.app.getInput().isButtonJustPressed(Input.Buttons.RIGHT) ||
                 Gdx.app.getInput().isButtonJustPressed(Input.Buttons.LEFT)) && !onGui) {
             if (lastSelectedPoint == null ||
-                    !lastSelectedPoint.parentTrajectoryPathRenderer.isTouchingSomething(mousePos, maxDistance)) {
+                    !lastSelectedPoint.parentTrajectoryPathRenderer().isTouchingSomething(mousePos, maxDistance)) {
                 removeLastSelectedPoint();
 
                 //Get all close points and find the closest one.
@@ -415,17 +415,15 @@ public final class AutoBuilder extends ApplicationAdapter {
 
                 //If we have a close point, select it/delete it
                 if (closePoints.size() > 0) {
-                    float closestDistance = closePoints.get(0).len2 + 0.5f;
-                    closePoints = closePoints.stream().filter(closePoint -> closePoint.len2 < closestDistance)
+                    float closestDistance = closePoints.get(0).len2() + 0.5f;
+                    closePoints = closePoints.stream().filter(closePoint -> closePoint.len2() < closestDistance)
                             .collect(Collectors.toList());
 
                     lastCloseishPointSelectionIndex++;
                     if (lastCloseishPointSelectionIndex >= closePoints.size()) lastCloseishPointSelectionIndex = 0;
 
                     ClosePoint closestPoint = closePoints.get(lastCloseishPointSelectionIndex);
-                    if (closestPoint.parentTrajectoryPathRenderer instanceof TrajectoryPathRenderer) {
-                        TrajectoryPathRenderer trajectoryPathRenderer =
-                                (TrajectoryPathRenderer) closestPoint.parentTrajectoryPathRenderer;
+                    if (closestPoint.parentTrajectoryPathRenderer() instanceof TrajectoryPathRenderer trajectoryPathRenderer) {
                         if (Gdx.app.getInput().isButtonJustPressed(Input.Buttons.RIGHT)) {
                             trajectoryPathRenderer.deletePoint(closestPoint);
                             pointAdded = true;
@@ -442,7 +440,7 @@ public final class AutoBuilder extends ApplicationAdapter {
         }
         //If we have a selected point, update it every frame
         if (lastSelectedPoint != null) {
-            lastSelectedPoint.parentTrajectoryPathRenderer.updatePoint(cam, mousePos, mouseDiff);
+            lastSelectedPoint.parentTrajectoryPathRenderer().updatePoint(cam, mousePos, mouseDiff);
             somethingMoved = Gdx.input.isButtonJustPressed(Input.Buttons.LEFT);
         }
 
@@ -462,22 +460,22 @@ public final class AutoBuilder extends ApplicationAdapter {
                 //We're hovering over a trajectory
                 CloseTrajectoryPoint closeTrajectoryPoint = closeTrajectoryPoints.get(0);
                 if (Gdx.app.getInput().isButtonJustPressed(Input.Buttons.RIGHT) && !pointAdded &&
-                        closeTrajectoryPoint.parentTrajectoryPathRenderer instanceof TrajectoryPathRenderer) {
+                        closeTrajectoryPoint.parentTrajectoryPathRenderer() instanceof TrajectoryPathRenderer) {
                     //Should we add a point?
-                    ((TrajectoryPathRenderer) closeTrajectoryPoint.parentTrajectoryPathRenderer).addPoint(closeTrajectoryPoint);
+                    ((TrajectoryPathRenderer) closeTrajectoryPoint.parentTrajectoryPathRenderer()).addPoint(closeTrajectoryPoint);
                     removeLastSelectedPoint();
                 }
                 //Render the path preview
                 if (lastSelectedPoint == null) {
-                    closeTrajectoryPoint.parentTrajectoryPathRenderer.setRobotPathPreviewPoint(closeTrajectoryPoint);
+                    closeTrajectoryPoint.parentTrajectoryPathRenderer().setRobotPathPreviewPoint(closeTrajectoryPoint);
                 }
             }
         }
     }
 
     public void removeLastSelectedPoint() {
-        if (lastSelectedPoint != null && lastSelectedPoint.parentTrajectoryPathRenderer instanceof TrajectoryPathRenderer) {
-            ((TrajectoryPathRenderer) lastSelectedPoint.parentTrajectoryPathRenderer).removeSelection();
+        if (lastSelectedPoint != null && lastSelectedPoint.parentTrajectoryPathRenderer() instanceof TrajectoryPathRenderer) {
+            ((TrajectoryPathRenderer) lastSelectedPoint.parentTrajectoryPathRenderer()).removeSelection();
             lastSelectedPoint = null;
         }
     }

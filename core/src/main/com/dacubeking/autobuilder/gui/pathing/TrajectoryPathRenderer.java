@@ -278,14 +278,14 @@ public class TrajectoryPathRenderer implements MovablePointEventHandler, Seriali
      */
     public void deletePoint(ClosePoint closePoint) {
         if (controlVectors.size() > 2) {
-            if (selectionPointIndex > closePoint.index) {
+            if (selectionPointIndex > closePoint.index()) {
                 selectionPointIndex--;
-            } else if (selectionPointIndex == closePoint.index) {
+            } else if (selectionPointIndex == closePoint.index()) {
                 removeSelection();
             }
-            pointRenderList.remove(closePoint.index);
-            controlVectors.remove(closePoint.index);
-            rotation2dList.remove(closePoint.index);
+            pointRenderList.remove(closePoint.index());
+            controlVectors.remove(closePoint.index());
+            rotation2dList.remove(closePoint.index());
             pointDeleted = true;
             updatePath();
         }
@@ -298,8 +298,8 @@ public class TrajectoryPathRenderer implements MovablePointEventHandler, Seriali
      */
     public void addPoint(CloseTrajectoryPoint closePoint) {
         assert trajectory != null;
-        double time = closePoint.pointTime;
-        State newPoint = trajectory.sample(closePoint.pointTime);
+        double time = closePoint.pointTime();
+        State newPoint = trajectory.sample(closePoint.pointTime());
 
         Vector2 controlVector;
 
@@ -314,22 +314,22 @@ public class TrajectoryPathRenderer implements MovablePointEventHandler, Seriali
             controlVector = new Vector2(1, 0);
         }
 
-        controlVectors.add(closePoint.prevPointIndex + 1,
+        controlVectors.add(closePoint.prevPointIndex() + 1,
                 new ControlVector(
                         new double[]{newPoint.poseMeters.getX(), controlVector.x, 0},
                         new double[]{newPoint.poseMeters.getY(), controlVector.y, 0}
                 ));
 
-        pointRenderList.add(closePoint.prevPointIndex + 1,
+        pointRenderList.add(closePoint.prevPointIndex() + 1,
                 new MovablePointRenderer(
                         (float) newPoint.poseMeters.getX(),
                         (float) newPoint.poseMeters.getY(),
                         color, AutoBuilder.POINT_SIZE, this
                 ));
 
-        rotation2dList.add(closePoint.prevPointIndex + 1, newPoint.poseMeters.getRotation());
+        rotation2dList.add(closePoint.prevPointIndex() + 1, newPoint.poseMeters.getRotation());
 
-        if (selectionPointIndex > closePoint.prevPointIndex) selectionPointIndex++;
+        if (selectionPointIndex > closePoint.prevPointIndex()) selectionPointIndex++;
         updatePath();
         UndoHandler.getInstance().somethingChanged();
     }
@@ -355,7 +355,7 @@ public class TrajectoryPathRenderer implements MovablePointEventHandler, Seriali
      */
     public void selectPoint(@NotNull ClosePoint closePoint, @NotNull OrthographicCamera camera, @NotNull Vector3 mousePos,
                             @NotNull Vector3 mouseDiff, @NotNull List<AbstractGuiItem> itemList) {
-        selectionPointIndex = closePoint.index;
+        selectionPointIndex = closePoint.index();
         attachedPath = null;
 
         //get the path renderer of the previous/next path if needed
@@ -513,8 +513,8 @@ public class TrajectoryPathRenderer implements MovablePointEventHandler, Seriali
      */
     @Override
     public void setRobotPathPreviewPoint(CloseTrajectoryPoint closePoint) {
-        this.robotPreviewTime = closePoint.pointTime;
-        this.robotPreviewIndex = closePoint.prevPointIndex;
+        this.robotPreviewTime = closePoint.pointTime();
+        this.robotPreviewIndex = closePoint.prevPointIndex();
     }
 
 

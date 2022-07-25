@@ -4,15 +4,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.regex.Pattern;
 
-public class StringIndex {
-
-    public final int index;
-    public final String string;
-
-    public StringIndex(int index, String string) {
-        this.index = index;
-        this.string = string;
-    }
+public record StringIndex(int index, String string) {
 
     public static @NotNull StringIndex[] splitWithIndex(@NotNull String string, Pattern pattern, int offset) {
         String[] parts = pattern.split(string);
@@ -33,5 +25,4 @@ public class StringIndex {
     public String toString() {
         return string;
     }
-
 }

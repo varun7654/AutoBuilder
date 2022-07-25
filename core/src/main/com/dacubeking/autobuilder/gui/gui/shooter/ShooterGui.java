@@ -361,15 +361,9 @@ public class ShooterGui extends InputEventListener implements NumberTextboxChang
             if (row == shooterConfig.getShooterConfigs().size()) {
                 //We are editing the blank row at the end and need to add a new row
                 switch (column) {
-                    case 0:
-                        shooterConfig.getShooterConfigs().add(new ShooterPreset(0, 0, parsedNumber));
-                        break;
-                    case 1:
-                        shooterConfig.getShooterConfigs().add(new ShooterPreset(0, parsedNumber, 0));
-                        break;
-                    case 2:
-                        shooterConfig.getShooterConfigs().add(new ShooterPreset(parsedNumber, 0, 0));
-                        break;
+                    case 0 -> shooterConfig.getShooterConfigs().add(new ShooterPreset(0, 0, parsedNumber));
+                    case 1 -> shooterConfig.getShooterConfigs().add(new ShooterPreset(0, parsedNumber, 0));
+                    case 2 -> shooterConfig.getShooterConfigs().add(new ShooterPreset(parsedNumber, 0, 0));
                 }
 
                 textBoxes.add(new NumberTextBox("", this, shooterConfig.getShooterConfigs().size(), 0, 15));
@@ -378,16 +372,12 @@ public class ShooterGui extends InputEventListener implements NumberTextboxChang
                 updateSortedList();
             } else {
                 switch (column) {
-                    case 0:
+                    case 0 -> {
                         shooterConfig.getShooterConfigs().get(row).setDistance(parsedNumber);
                         updateSortedList();
-                        break;
-                    case 1:
-                        shooterConfig.getShooterConfigs().get(row).setFlywheelSpeed(parsedNumber);
-                        break;
-                    case 2:
-                        shooterConfig.getShooterConfigs().get(row).setHoodEjectAngle(parsedNumber);
-                        break;
+                    }
+                    case 1 -> shooterConfig.getShooterConfigs().get(row).setFlywheelSpeed(parsedNumber);
+                    case 2 -> shooterConfig.getShooterConfigs().get(row).setHoodEjectAngle(parsedNumber);
                 }
             }
             nextNetworkTablesPush = System.currentTimeMillis() + 500;
