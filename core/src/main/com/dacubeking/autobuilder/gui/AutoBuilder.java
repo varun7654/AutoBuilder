@@ -5,6 +5,7 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Graphics;
 import com.badlogic.gdx.Input;
 import com.badlogic.gdx.graphics.*;
+import com.badlogic.gdx.graphics.Cursor.SystemCursor;
 import com.badlogic.gdx.graphics.g2d.PolygonSpriteBatch;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.math.Vector3;
@@ -258,6 +259,7 @@ public final class AutoBuilder extends ApplicationAdapter {
         long prev = System.nanoTime();
         try {
             Gdx.graphics.setForegroundFPS(fps);
+            setMouseCursor(SystemCursor.Arrow);
             update();
             draw();
         } catch (Exception e) {
@@ -369,6 +371,8 @@ public final class AutoBuilder extends ApplicationAdapter {
         notificationHandler.processNotification(hudShapeRenderer, hudBatch);
         hudBatch.end();
         justStartedRendering.set(false);
+
+        Gdx.graphics.setSystemCursor(systemCursor);
     }
 
     int lastCloseishPointSelectionIndex = 0;
@@ -478,6 +482,12 @@ public final class AutoBuilder extends ApplicationAdapter {
             ((TrajectoryPathRenderer) lastSelectedPoint.parentTrajectoryPathRenderer()).removeSelection();
             lastSelectedPoint = null;
         }
+    }
+
+    private static SystemCursor systemCursor = SystemCursor.Arrow;
+
+    public static void setMouseCursor(SystemCursor cursor) {
+        systemCursor = cursor;
     }
 
     @Override

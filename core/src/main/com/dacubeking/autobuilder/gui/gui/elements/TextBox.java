@@ -4,6 +4,7 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
 import com.badlogic.gdx.Input.Keys;
 import com.badlogic.gdx.graphics.Color;
+import com.badlogic.gdx.graphics.Cursor.SystemCursor;
 import com.badlogic.gdx.graphics.g2d.Batch;
 import com.badlogic.gdx.math.Vector2;
 import com.dacubeking.autobuilder.gui.AutoBuilder;
@@ -84,8 +85,13 @@ public class TextBox extends InputEventListener {
                 && getMouseY() > drawStartY - getHeight() + 8
                 && getMouseY() < drawStartY + 4;
 
+
         Vector2 mousePos = new Vector2(getMouseX() - (drawStartX + 4),
                 (getMouseY()) - (drawStartY - textBlock.getDefaultSize() + 4));
+
+        if (hovering) {
+            AutoBuilder.setMouseCursor(SystemCursor.Ibeam);
+        }
         int mouseIndexPos = textBlock.getIndexOfPosition(mousePos);
         if (Gdx.input.isButtonJustPressed(Input.Buttons.LEFT)) {
             if (hovering) {

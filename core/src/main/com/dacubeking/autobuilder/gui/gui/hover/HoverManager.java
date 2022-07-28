@@ -51,7 +51,7 @@ public class HoverManager {
 
     public static void render(Batch batch, ShapeDrawer shapeDrawer) {
         if (hoverShown) {
-            if (hoverOnMouse) hoverPosition.set(getMouseX(), getMouseY() + 4);
+            if (hoverOnMouse) hoverPosition.set(getMouseX(), getMouseY() + 10);
             float width = hoverText.getWidth();
             float height = hoverText.getHeight();
 
