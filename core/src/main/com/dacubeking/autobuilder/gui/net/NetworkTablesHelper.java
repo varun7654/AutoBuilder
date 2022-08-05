@@ -42,7 +42,7 @@ public final class NetworkTablesHelper {
     NetworkTableEntry shooterConfigEntry = inst.getTable("limelightgui").getEntry("shooterconfig");
     NetworkTableEntry shooterConfigStatusEntry = inst.getTable("limelightgui").getEntry("shooterconfigStatus");
 
-    NetworkTableEntry hudElementsEntry = autoData.getEntry("hudElements");
+    NetworkTableEntry hudElementsEntry = NetworkTableInstance.getDefault().getEntry("autodata/hudElements");
     NetworkTableEntry drawablesEntry = NetworkTableInstance.getDefault().getEntry("autodata/drawables");
 
     NetworkTableEntry enabledTable = autoData.getEntry("enabled");
