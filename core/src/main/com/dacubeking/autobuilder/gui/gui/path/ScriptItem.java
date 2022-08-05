@@ -42,9 +42,7 @@ public class ScriptItem extends AbstractGuiItem implements TextChangeListener {
         textBox = new TextBox(text, true, this, 16);
         error = !valid;
         this.setInitialClosed(closed);
-
         onTextChange(text, textBox);
-        this.openHeight = getOpenHeight();
     }
 
     @Override
@@ -61,6 +59,7 @@ public class ScriptItem extends AbstractGuiItem implements TextChangeListener {
                 synchronizedLinting.addAll(linting);
             }
 
+            textBox.update(drawWidth - 15);
             int height = (int) (textBox.getHeight() + 8);
             shapeRenderer.setColor(LIGHT_GREY);
             RoundedShapeRenderer.roundedRect(shapeRenderer, drawStartX + 5, (drawStartY - 40) - height, drawWidth - 5, height + 5,

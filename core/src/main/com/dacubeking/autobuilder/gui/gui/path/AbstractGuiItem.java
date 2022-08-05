@@ -43,7 +43,7 @@ public abstract class AbstractGuiItem implements Disposable {
     }
 
     public boolean isFullyClosed() {
-        return closed && openHeight == 0;
+        return closed && openHeight <= 1;
     }
 
     public void setClosed(boolean closed) {

@@ -88,8 +88,7 @@ public final class UndoHandler {
                                           @NotNull CameraHandler cameraHandler) {
         List<AbstractGuiItem> guiItemList = new ArrayList<>();
         for (AbstractAutonomousStep autonomousStep : autonomous.getAutonomousSteps()) {
-            if (autonomousStep instanceof TrajectoryAutonomousStep) {
-                TrajectoryAutonomousStep trajectoryAutonomousStep = (TrajectoryAutonomousStep) autonomousStep;
+            if (autonomousStep instanceof TrajectoryAutonomousStep trajectoryAutonomousStep) {
                 Color color = new Color().fromHsv(trajectoryAutonomousStep.getColor(), 1, 1);
                 color.set(color.r, color.g, color.b, 1);
                 TrajectoryItem trajectoryItem = new TrajectoryItem(pathGui, cameraHandler,
@@ -99,8 +98,7 @@ public final class UndoHandler {
                         trajectoryAutonomousStep.getVelocityStart(), trajectoryAutonomousStep.getVelocityEnd(),
                         trajectoryAutonomousStep.getConstraints());
                 guiItemList.add(trajectoryItem);
-            } else if (autonomousStep instanceof ScriptAutonomousStep) {
-                ScriptAutonomousStep scriptAutonomousStep = (ScriptAutonomousStep) autonomousStep;
+            } else if (autonomousStep instanceof ScriptAutonomousStep scriptAutonomousStep) {
                 ScriptItem scriptItem = new ScriptItem(scriptAutonomousStep.getScript(),
                         scriptAutonomousStep.isClosed(), scriptAutonomousStep.isValid());
                 guiItemList.add(scriptItem);
