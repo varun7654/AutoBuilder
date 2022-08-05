@@ -73,24 +73,18 @@ public abstract class AbstractGuiItem implements Disposable {
             }
         }
 
-        if (isClosed()) {
-            if (openHeight > 0) {
-                openHeight -= getOpenHeight() * AutoBuilder.getDeltaTime() * 15;
-                AutoBuilder.enableContinuousRendering(this);
-            }
-            if (openHeight <= 0) {
-                openHeight = 0;
-                AutoBuilder.disableContinuousRendering(this);
-            }
-        } else {
-            if (openHeight < getOpenHeight()) {
-                openHeight += getOpenHeight() * AutoBuilder.getDeltaTime() * 15;
-                AutoBuilder.enableContinuousRendering(this);
-            }
-            if (openHeight >= getOpenHeight()) {
-                openHeight = getOpenHeight();
-                AutoBuilder.disableContinuousRendering(this);
-            }
+        double targetHeight = isClosed() ? 0 : getOpenHeight();
+
+        if (openHeight > targetHeight) {
+            openHeight -= Math.min(400 * AutoBuilder.getDeltaTime() *
+                    Math.min(12, (openHeight - targetHeight) / 20), openHeight - targetHeight);
+            AutoBuilder.enableContinuousRendering(this);
+        }
+
+        if (openHeight < targetHeight) {
+            openHeight += Math.min(400 * AutoBuilder.getDeltaTime() *
+                    Math.min(12, (targetHeight - openHeight) / 20), targetHeight - openHeight);
+            AutoBuilder.enableContinuousRendering(this);
         }
 
         Rectangle scissor = new Rectangle();
