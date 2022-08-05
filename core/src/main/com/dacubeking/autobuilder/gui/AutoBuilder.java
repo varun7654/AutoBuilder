@@ -125,7 +125,8 @@ public final class AutoBuilder extends ApplicationAdapter {
 
         fps = Gdx.graphics.getDisplayMode().refreshRate;
         Gdx.graphics.setForegroundFPS(Gdx.graphics.getDisplayMode().refreshRate);
-        Gdx.graphics.setContinuousRendering(false);
+        Gdx.graphics.setContinuousRendering(true);
+        enableContinuousRendering(this);
 
         FontHandler.updateFonts();
         RobotCodeData.initData();
@@ -260,6 +261,7 @@ public final class AutoBuilder extends ApplicationAdapter {
         try {
             Gdx.graphics.setForegroundFPS(fps);
             setMouseCursor(SystemCursor.Arrow);
+            if (Gdx.graphics.getFrameId() == 700) disableContinuousRendering(this);
             update();
             draw();
         } catch (Exception e) {
@@ -321,7 +323,7 @@ public final class AutoBuilder extends ApplicationAdapter {
         TextBlock timeText = new TextBlock(Fonts.ROBOTO, 18, new TextComponent("Total Driving Time: " +
                 df.format(pathTime) + "s", Color.WHITE).setBold(true));
 
-        FontRenderer.renderText(hudBatch, shapeRenderer, Gdx.graphics.getWidth() - timeText.getWidth() - 420,
+        FontRenderer.renderText(hudBatch, shapeRenderer, pathGui.getPanelX() - timeText.getWidth() - 10,
                 60, timeText);
 
         String lastSave;
@@ -508,7 +510,10 @@ public final class AutoBuilder extends ApplicationAdapter {
         if (width == 0 || height == 0) return;
         hudViewport.update(width, height, true);
         viewport.update(width, height, false);
+        updateScreens(width, height);
+    }
 
+    public void updateScreens(int width, int height) {
         pathGui.updateScreen(width, height);
         if (shooterGui != null) shooterGui.updateScreen(width, height);
         configGUI.updateScreen(width, height);

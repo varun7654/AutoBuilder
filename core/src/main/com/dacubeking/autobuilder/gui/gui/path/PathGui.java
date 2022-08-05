@@ -2,8 +2,10 @@ package com.dacubeking.autobuilder.gui.gui.path;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
+import com.badlogic.gdx.Input.Buttons;
 import com.badlogic.gdx.graphics.Camera;
 import com.badlogic.gdx.graphics.Color;
+import com.badlogic.gdx.graphics.Cursor.SystemCursor;
 import com.badlogic.gdx.graphics.g2d.PolygonSpriteBatch;
 import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.math.Vector2;
@@ -14,6 +16,7 @@ import com.dacubeking.autobuilder.gui.UndoHandler;
 import com.dacubeking.autobuilder.gui.events.input.InputEventListener;
 import com.dacubeking.autobuilder.gui.events.input.InputEventThrower;
 import com.dacubeking.autobuilder.gui.util.MathUtil;
+import com.dacubeking.autobuilder.gui.util.MouseUtil;
 import com.dacubeking.autobuilder.gui.util.RoundedShapeRenderer;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -44,9 +47,10 @@ public class PathGui extends InputEventListener {
     @NotNull Vector2 dragOffset = new Vector2();
     boolean wasDraggingElementClosed;
     @NotNull Color color = new Color(1, 1, 1, 1);
+
     private int panelX;
     private int panelY;
-    private int panelWidth;
+    private int panelWidth = 400;
     private int panelHeight;
     private float smoothScrollPos = 0;
     private float scrollPos = 0;
@@ -154,10 +158,12 @@ public class PathGui extends InputEventListener {
         }
 
         maxScroll = Math.max(0, -(yPos - (int) smoothScrollPos - 10) +
-                (draggingElement != null ? draggingElement.getOpenHeight() + 40 : 0)); //Add the height of the dragging element
+                //Add the height of the dragging element
+                (draggingElement != null ? draggingElement.getOpenHeight(getGuiItemWidth()) + 40 : 0));
     }
 
     boolean isLeftMouseJustUnpressed = false;
+    boolean clickedOnEdgeOfPanel = false;
 
     public boolean update() {
         isLeftMouseJustUnpressed = isIsLeftMouseJustUnpressed();
@@ -190,8 +196,7 @@ public class PathGui extends InputEventListener {
             pushAutoButton.checkClick(this);
         }
 
-        if (getMouseX() > panelX && getMouseX() < panelX + panelWidth && Gdx.input.getY() > panelY
-                && Gdx.input.getY() < panelY + panelHeight || draggingElement != null) {
+        if (MouseUtil.isMouseOver(panelX, panelY, panelWidth, panelHeight) || clickedInsidePanel) {
             if (Gdx.input.isButtonJustPressed(Input.Buttons.LEFT)) {
                 mouseDownPos.x = getMouseX();
                 mouseDownPos.y = getMouseY();
@@ -199,7 +204,7 @@ public class PathGui extends InputEventListener {
                 clickedInsidePanel = true;
             } else if (clickedInsidePanel && Gdx.input.isButtonPressed(Input.Buttons.LEFT)) {
                 if (MathUtil.len2(mouseDownPos, getMouseX(), getMouseY()) > 100) {
-                    dragging = true;
+                    dragging = !clickedOnEdgeOfPanel;
                 }
             } else {
                 clickedInsidePanel = false;
@@ -215,6 +220,21 @@ public class PathGui extends InputEventListener {
                 }
             }
 
+            if (MouseUtil.isMouseOver(panelX, panelY, 9, panelHeight) &&
+                    (Gdx.input.isButtonJustPressed(Buttons.LEFT) || !Gdx.input.isButtonJustPressed(Buttons.LEFT))) {
+                AutoBuilder.setMouseCursor(SystemCursor.HorizontalResize);
+                if (Gdx.input.isButtonJustPressed(Buttons.LEFT)) {
+                    clickedOnEdgeOfPanel = true;
+                }
+            }
+
+            if (clickedOnEdgeOfPanel && Gdx.input.isButtonPressed(Buttons.LEFT)) {
+                AutoBuilder.setMouseCursor(SystemCursor.HorizontalResize);
+                panelWidth = Gdx.graphics.getWidth() - getMouseX() - 10;
+                AutoBuilder.getInstance().updateScreens(Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
+            } else {
+                clickedOnEdgeOfPanel = false;
+            }
             return true;
         }
 
@@ -231,20 +251,29 @@ public class PathGui extends InputEventListener {
     }
 
     public void updateScreen(int width, int height) {
-        panelX = (width - 410);
-        panelY = 10;
-        panelWidth = 400;
+        panelWidth = Math.min(Math.max(panelWidth, 15), width - 20);
         panelHeight = height - 20;
+        panelX = (width - panelWidth - 10);
+        panelY = 10;
 
-        addPathButton.setX(panelX - 10 - addPathButton.getWidth());
-        addPathButton.setY(10);
-        addScriptButton.setX(addPathButton.getX() - 10 - addScriptButton.getWidth());
-        addScriptButton.setY(10);
-        pushAutoButton.setX(addScriptButton.getX() - 10 - pushAutoButton.getWidth());
-        pushAutoButton.setY(10);
 
-        clipBounds = new Rectangle(pushAutoButton.getX() - 500, panelY, panelWidth + panelX - pushAutoButton.getX() + 500,
-                panelHeight);
+        addPathButton.setPosition(panelX - 10 - addPathButton.getWidth(), 10);
+        addScriptButton.setPosition(addPathButton.getX() - 10 - addScriptButton.getWidth(), 10);
+        pushAutoButton.setPosition(addScriptButton.getX() - 10 - pushAutoButton.getWidth(), 10);
+
+        clipBounds = new Rectangle(0, panelY, width, panelHeight);
+    }
+
+    public Vector2 getPushAutoButtonPos() {
+        return new Vector2(pushAutoButton.getX(), pushAutoButton.getY());
+    }
+
+    public int getPanelX() {
+        return panelX;
+    }
+
+    public int getGuiItemWidth() {
+        return panelWidth - 20;
     }
 
     public void dispose() {

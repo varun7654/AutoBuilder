@@ -15,7 +15,7 @@ public class NumberTextBox extends TextBox {
                          @NotNull NumberTextboxChangeListener numberTextboxChangeListener,
                          int row,
                          int column, int fontSize) {
-        super(text, false, null, fontSize);
+        super(text, true, null, fontSize);
         this.numberTextboxChangeListener = numberTextboxChangeListener;
         this.row = row;
         this.column = column;

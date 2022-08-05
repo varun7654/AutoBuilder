@@ -35,14 +35,14 @@ public class ScriptItem extends AbstractGuiItem implements TextChangeListener {
 
     public ScriptItem() {
         textBox = new TextBox("", true, this, 16);
-        this.openHeight = getOpenHeight();
+        this.setInitialClosed(false);
     }
 
     public ScriptItem(String text, boolean closed, boolean valid) {
         textBox = new TextBox(text, true, this, 16);
         error = !valid;
-        this.setInitialClosed(closed);
         onTextChange(text, textBox);
+        this.setInitialClosed(closed);
     }
 
     @Override
@@ -62,8 +62,8 @@ public class ScriptItem extends AbstractGuiItem implements TextChangeListener {
             textBox.update(drawWidth - 15);
             int height = (int) (textBox.getHeight() + 8);
             shapeRenderer.setColor(LIGHT_GREY);
-            RoundedShapeRenderer.roundedRect(shapeRenderer, drawStartX + 5, (drawStartY - 40) - height, drawWidth - 5, height + 5,
-                    2);
+            RoundedShapeRenderer.roundedRect(shapeRenderer, drawStartX + 5, drawStartY - getHeight(),
+                    drawWidth - 5, getHeight(), 2);
 
             textBox.draw(shapeRenderer, spriteBatch, drawStartX + 10, drawStartY - 43, drawWidth - 15, synchronizedLinting);
             renderHeader(shapeRenderer, spriteBatch, drawStartX, drawStartY, drawWidth, trashTexture, warningTexture,
@@ -106,8 +106,9 @@ public class ScriptItem extends AbstractGuiItem implements TextChangeListener {
     }
 
     @Override
-    public int getOpenHeight() {
-        return (int) (textBox.getHeight() + 8);
+    public int getOpenHeight(float drawWidth) {
+        textBox.update(drawWidth - 15);
+        return (int) (textBox.getHeight());
     }
 
     @Override

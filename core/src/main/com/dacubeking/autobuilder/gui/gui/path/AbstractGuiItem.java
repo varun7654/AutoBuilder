@@ -58,7 +58,7 @@ public abstract class AbstractGuiItem implements Disposable {
         AutoBuilder.disableContinuousRendering(this);
     }
 
-    abstract public int getOpenHeight();
+    abstract public int getOpenHeight(float drawWidth);
 
     public int render(@NotNull ShapeDrawer shapeRenderer, @NotNull PolygonSpriteBatch spriteBatch, int drawStartX,
                       int drawStartY, int drawWidth, PathGui pathGui, Camera camera, boolean isLeftMouseJustUnpressed) {
@@ -73,7 +73,7 @@ public abstract class AbstractGuiItem implements Disposable {
             }
         }
 
-        double targetHeight = isClosed() ? 0 : getOpenHeight();
+        float targetHeight = isClosed() ? 0 : getOpenHeight(drawWidth);
 
         if (openHeight > targetHeight) {
             openHeight -= Math.min(400 * AutoBuilder.getDeltaTime() *
@@ -85,6 +85,11 @@ public abstract class AbstractGuiItem implements Disposable {
             openHeight += Math.min(400 * AutoBuilder.getDeltaTime() *
                     Math.min(12, (targetHeight - openHeight) / 20), targetHeight - openHeight);
             AutoBuilder.enableContinuousRendering(this);
+        }
+
+        if (Math.abs(openHeight - targetHeight) < 1) {
+            openHeight = targetHeight;
+            AutoBuilder.disableContinuousRendering(this);
         }
 
         Rectangle scissor = new Rectangle();
@@ -130,7 +135,7 @@ public abstract class AbstractGuiItem implements Disposable {
         if (closed) {
             openHeight = 0;
         } else {
-            openHeight = getOpenHeight();
+            openHeight = getOpenHeight(AutoBuilder.getInstance().pathGui.getGuiItemWidth());
         }
     }
 }

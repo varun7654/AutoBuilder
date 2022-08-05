@@ -79,6 +79,7 @@ public class TextBox extends InputEventListener {
      */
     public boolean draw(@NotNull ShapeDrawer shapeRenderer, @NotNull Batch spriteBatch, float drawStartX,
                         float drawStartY, float drawWidth, @Nullable ArrayList<LintingPos> linting) {
+        textBlock.setWrapWidth(Math.max(drawWidth - 8, 20));
         textBlock.update();
 
         boolean hovering = getMouseX() > drawStartX && getMouseX() < drawStartX + drawWidth
@@ -484,6 +485,11 @@ public class TextBox extends InputEventListener {
 
     public float getHeight() {
         return textBlock.getHeight() + 8;
+    }
+
+    public void update(float drawWidth) {
+        textBlock.setWrapWidth(Math.max(drawWidth - 8, 20));
+        textBlock.update();
     }
 
     public @NotNull String getText() {

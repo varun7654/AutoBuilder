@@ -99,7 +99,9 @@ public class ConfigGUI {
     }
 
     public void updateScreen(int width, int height) {
-        uploadFileButton.setPosition(width - uploadFileButton.getWidth() - 410 - 160, 10);
+        uploadFileButton.setPosition(
+                AutoBuilder.getInstance().pathGui.getPushAutoButtonPos().x - 10 - uploadFileButton.getWidth(),
+                10);
     }
 
     @Nullable CompletableFuture<File> completableNewAutoFile;
