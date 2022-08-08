@@ -396,7 +396,7 @@ public final class AutoBuilder extends ApplicationAdapter {
         mouseDiff.set(mousePos).sub(lastMousePos);
 
         //Figure out the max distance a point can be from the mouse
-        float maxDistance = (float) Math.pow(20 * cam.zoom, 2);
+        float maxDistance = (float) Math.pow(Math.max(20 * cam.zoom, POINT_SIZE), 2);
 
         drivenPathRenderer.update();
 
@@ -405,22 +405,24 @@ public final class AutoBuilder extends ApplicationAdapter {
 
         if ((Gdx.app.getInput().isButtonJustPressed(Input.Buttons.RIGHT) ||
                 Gdx.app.getInput().isButtonJustPressed(Input.Buttons.LEFT)) && !onGui) {
-            if (lastSelectedPoint == null ||
-                    !lastSelectedPoint.parentTrajectoryPathRenderer().isTouchingSomething(mousePos, maxDistance)) {
-                removeLastSelectedPoint();
+            double distToClosestPointNotMainPoint = lastSelectedPoint == null ? Double.MAX_VALUE :
+                    (lastSelectedPoint.parentTrajectoryPathRenderer().distToClosestPointNotMainPoint(mousePos));
+            if (distToClosestPointNotMainPoint > maxDistance) removeLastSelectedPoint();
 
-                //Get all close points and find the closest one.
-                List<ClosePoint> closePoints = new ArrayList<>();
-                for (AbstractGuiItem guiItem : pathGui.guiItems) {
-                    if (guiItem instanceof TrajectoryItem) {
-                        TrajectoryPathRenderer trajectoryPathRenderer = ((TrajectoryItem) guiItem).getPathRenderer();
-                        closePoints.addAll(trajectoryPathRenderer.getClosePoints(maxDistance, mousePos));
-                    }
+            //Get all close points and find the closest one.
+            List<ClosePoint> closePoints = new ArrayList<>();
+            for (AbstractGuiItem guiItem : pathGui.guiItems) {
+                if (guiItem instanceof TrajectoryItem) {
+                    TrajectoryPathRenderer trajectoryPathRenderer = ((TrajectoryItem) guiItem).getPathRenderer();
+                    closePoints.addAll(trajectoryPathRenderer.getClosePoints(maxDistance, mousePos));
                 }
-                Collections.sort(closePoints);
+            }
+            Collections.sort(closePoints);
 
-                //If we have a close point, select it/delete it
-                if (closePoints.size() > 0) {
+            //If we have a close point, select it/delete it
+            if (closePoints.size() > 0) {
+                if (closePoints.get(0).len2() < distToClosestPointNotMainPoint) {
+                    removeLastSelectedPoint();
                     float closestDistance = closePoints.get(0).len2() + 0.5f;
                     closePoints = closePoints.stream().filter(closePoint -> closePoint.len2() < closestDistance)
                             .collect(Collectors.toList());

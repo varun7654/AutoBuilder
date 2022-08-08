@@ -42,11 +42,10 @@ public interface PathRenderer {
     void setRobotPathPreviewPoint(CloseTrajectoryPoint closePoint);
 
     /**
-     * @param mousePos     current mouse position
-     * @param maxDistance2 the maximum distance to the mouse position squared
-     * @return True if the rotation or control point is being touched.
+     * @param mousePos current mouse position
+     * @return the distance to the closest point that isn't a main point on the path
      */
-    boolean isTouchingSomething(Vector3 mousePos, float maxDistance2);
+    double distToClosestPointNotMainPoint(Vector3 mousePos);
 
 
     /**

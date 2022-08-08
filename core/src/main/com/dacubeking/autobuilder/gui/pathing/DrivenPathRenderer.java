@@ -170,8 +170,8 @@ public class DrivenPathRenderer implements PathRenderer {
     }
 
     @Override
-    public boolean isTouchingSomething(Vector3 mousePos, float maxDistance2) {
-        return false;
+    public double distToClosestPointNotMainPoint(Vector3 mousePos) {
+        return Double.MAX_VALUE;
     }
 
     public void update() {

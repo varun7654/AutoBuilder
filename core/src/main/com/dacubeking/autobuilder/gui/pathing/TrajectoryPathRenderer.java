@@ -335,15 +335,16 @@ public class TrajectoryPathRenderer implements MovablePointEventHandler, Seriali
     }
 
     /**
-     * @param mousePos     current mouse position
-     * @param maxDistance2 the maximum distance to the mouse position squared
-     * @return True if the rotation or control point is being touched.
+     * @param mousePos current mouse position
+     * @return The distance to the closest point that is either the rotation or control point. If neither exist
+     * <code>Double.MAX_VALUE</code>
      */
     @Override
-    public boolean isTouchingSomething(Vector3 mousePos, float maxDistance2) {
-        if (controlPoint != null && controlPoint.getRenderPos3().dst2(mousePos) < maxDistance2) return true;
-        if (rotationPoint != null && rotationPoint.getRenderPos3().dst2(mousePos) < maxDistance2) return true;
-        return false;
+    public double distToClosestPointNotMainPoint(Vector3 mousePos) {
+        if (rotationPoint == null && controlPoint == null) return Double.MAX_VALUE;
+        if (rotationPoint == null) return controlPoint.getRenderPos3().dst2(mousePos);
+        if (controlPoint == null) return rotationPoint.getRenderPos3().dst2(mousePos);
+        return Math.min(rotationPoint.getRenderPos3().dst2(mousePos), controlPoint.getRenderPos3().dst2(mousePos));
     }
 
     /**
