@@ -10,9 +10,10 @@ public final class NTUtil {
         NetworkTableValue value = entry.getValue();
         return switch (value.getType()) {
             case kBoolean -> entry.getBoolean(false) ? "true" : "false";
-            case kDouble -> String.valueOf(entry.getDouble(0));
+            case kDouble -> String.valueOf(decimalFormat.format(entry.getDouble(0)));
             case kString -> entry.getString("");
-            default -> "invalid type";
+            case kUnassigned -> "Unassigned";
+            default -> "Invalid type";
         };
     }
 }
