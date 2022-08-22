@@ -125,18 +125,21 @@ public class CameraHandler extends InputEventListener {
         float targetScreenY = Gdx.graphics.getHeight() - screenPos.y;
 
         //Check screen bounds and if were outside of it set a target screen pos thats inside the screen
-        if (screenPos.x < 25) {
-            targetScreenX = 50;
-        } else if (screenPos.x > Gdx.graphics.getWidth() - 500) {
-            targetScreenX = Gdx.graphics.getWidth() - 525;
+        if (Gdx.graphics.getHeight() > 50 && AutoBuilder.getInstance().pathGui.getPanelX() > 50) {
+            if (screenPos.x < 25) {
+                targetScreenX = 25;
+            } else if (screenPos.x > AutoBuilder.getInstance().pathGui.getPanelX() - 25) {
+                targetScreenX = AutoBuilder.getInstance().pathGui.getPanelX() - 25;
+            }
+
+            if (screenPos.y < 25) {
+                targetScreenY = Gdx.graphics.getHeight() - 25;
+            } else if (screenPos.y > Gdx.graphics.getHeight() - 25) {
+                targetScreenY = 25;
+            }
         }
 
-        if (screenPos.y < 25) {
-            targetScreenY = Gdx.graphics.getHeight() - 50;
-        } else if (screenPos.y > Gdx.graphics.getHeight() - 25) {
-            targetScreenY = 50;
-        }
-
+        
         worldPosOfTargetScreenPos.set(targetScreenX, targetScreenY, 0);
         cam.unproject(worldPosOfTargetScreenPos); //Find the world position of where we want the point on the screen
 
