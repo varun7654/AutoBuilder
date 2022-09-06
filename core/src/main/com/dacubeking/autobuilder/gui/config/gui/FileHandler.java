@@ -130,6 +130,8 @@ public class FileHandler {
     }
 
     public volatile static long lastSaveTime = -1;
+    public volatile static boolean saving = false;
+    public volatile static boolean savingError = false;
 
     private static final Object autonomousToSaveLock = new Object();
 
@@ -150,8 +152,11 @@ public class FileHandler {
                 }
 
                 synchronized (saveLock) {
-                    saveAuto(autonomous);
-                    saveConfig();
+                    saving = true;
+                    boolean error = saveAuto(autonomous);
+                    error = saveConfig() || error;
+                    savingError = error;
+                    saving = false;
                 }
 
                 try {
@@ -178,7 +183,7 @@ public class FileHandler {
     }
 
 
-    private static void saveAuto(Autonomous autonomous) {
+    private static boolean saveAuto(Autonomous autonomous) {
         File autoFile;
         autoFile = new File(
                 PathRenderer.config.getAutoPath().getParentFile().getAbsolutePath() + "/" +
@@ -201,10 +206,12 @@ public class FileHandler {
             lastSaveTime = System.currentTimeMillis();
         } catch (IOException e) {
             e.printStackTrace();
+            return false;
         }
+        return true;
     }
 
-    private static void saveConfig() {
+    private static boolean saveConfig() {
         File configFile = new File(AutoBuilder.USER_DIRECTORY + "/config.json");
         File shooterConfig = PathRenderer.config.getShooterConfigPath();
 
@@ -220,7 +227,9 @@ public class FileHandler {
             }
         } catch (IOException e) {
             e.printStackTrace();
+            return false;
         }
+        return true;
     }
 
     public static void reloadConfig() {

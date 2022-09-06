@@ -6,6 +6,7 @@ import com.badlogic.gdx.Graphics;
 import com.badlogic.gdx.Input;
 import com.badlogic.gdx.graphics.*;
 import com.badlogic.gdx.graphics.Cursor.SystemCursor;
+import com.badlogic.gdx.graphics.Texture.TextureFilter;
 import com.badlogic.gdx.graphics.g2d.PolygonSpriteBatch;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.math.Vector3;
@@ -117,7 +118,6 @@ public final class AutoBuilder extends ApplicationAdapter {
 
     @Override
     public void create() {
-
         Thread.currentThread().setUncaughtExceptionHandler((t, e) -> handleCrash(e));
         Gdx.graphics.setForegroundFPS(Gdx.graphics.getDisplayMode().refreshRate);
         Gdx.graphics.setVSync(false);
@@ -328,7 +328,11 @@ public final class AutoBuilder extends ApplicationAdapter {
 
         String lastSave;
         long saveTimeDiff = System.currentTimeMillis() - FileHandler.lastSaveTime;
-        if (FileHandler.lastSaveTime == -1) {
+        if (FileHandler.saving) {
+            lastSave = "Saving now";
+        } else if (FileHandler.savingError) {
+            lastSave = "Error saving";
+        } else if (FileHandler.lastSaveTime == -1) {
             lastSave = "Never";
         } else if (saveTimeDiff < 3000) {
             lastSave = "Just now";
