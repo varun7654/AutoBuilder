@@ -20,13 +20,15 @@ public class HudRenderer {
         float xOffset = hudXOffset + 5;
 
         float yOffset = Gdx.graphics.getHeight() - 35;
+        boolean justStarted = true;
         for (HudElement hudElement : hudElements) {
-            hudElement.render(shapeDrawer, batch, xOffset, yOffset);
-            xOffset += hudElement.width + 5;
-            if (xOffset > AutoBuilder.getInstance().pathGui.getPanelX()) {
+            if (xOffset > AutoBuilder.getInstance().pathGui.getPanelX() && !justStarted) {
                 xOffset = hudXOffset + 5;
                 yOffset -= 35; // Element has width 30 + 5 padding
             }
+            hudElement.render(shapeDrawer, batch, xOffset, yOffset);
+            xOffset += hudElement.width + 5;
+            justStarted = false;
         }
     }
 }
