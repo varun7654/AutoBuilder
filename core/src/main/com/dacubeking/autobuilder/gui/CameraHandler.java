@@ -24,6 +24,8 @@ public class CameraHandler extends InputEventListener {
     float lastZoom = 1;
     @NotNull Vector2 zoomMousePos;
 
+    @NotNull Vector2 mouseVelocity = new Vector2();
+
     boolean mouseHeldLastFrame = false;
 
     float targetX;
@@ -85,21 +87,27 @@ public class CameraHandler extends InputEventListener {
             Vector2 deltaPos = mousePos.sub(lastMousePos);
             cam.position.x = cam.position.x - (deltaPos.x * cam.zoom * (720f / Gdx.graphics.getHeight()));
             cam.position.y = cam.position.y + (deltaPos.y * cam.zoom * (720f / Gdx.graphics.getHeight()));
-            cam.update();
             targetX = cam.position.x;
             targetY = cam.position.y;
-        } else {
+            mouseVelocity.set(deltaPos.x, deltaPos.y);
+        } else if (!(targetX == cam.position.x && targetY == cam.position.y)) {
             // Smoothly move camera to target position
             mouseHeldLastFrame = false;
             cam.position.x = cam.position.x + ((targetX - cam.position.x) / (Math.max(1, 0.1f / AutoBuilder.getDeltaTime())));
             cam.position.y = cam.position.y + ((targetY - cam.position.y) / (Math.max(1, 0.1f / AutoBuilder.getDeltaTime())));
-            cam.update();
+        } else if (!Gdx.input.isButtonPressed(Input.Buttons.LEFT)) {
+            mouseVelocity.set(mouseVelocity.x * 0.95f, mouseVelocity.y * 0.95f);
+            cam.position.x = cam.position.x - mouseVelocity.x * cam.zoom * (720f / Gdx.graphics.getHeight());
+            cam.position.y = cam.position.y + mouseVelocity.y * cam.zoom * (720f / Gdx.graphics.getHeight());
+            targetX = cam.position.x;
+            targetY = cam.position.y;
         }
+        cam.update();
 
         lastMousePos.set(Gdx.input.getX(), Gdx.input.getY());
 
         if (Math.abs(targetX - cam.position.x) < 1e-2 && Math.abs(targetY - cam.position.y) < 1e-2 && Math.abs(
-                this.zoom - cam.zoom) < 1e-4) {
+                this.zoom - cam.zoom) < 1e-4 && mouseVelocity.len2() < 1e-4) {
             AutoBuilder.disableContinuousRendering(this);
         } else {
             AutoBuilder.enableContinuousRendering(this);
@@ -139,7 +147,7 @@ public class CameraHandler extends InputEventListener {
             }
         }
 
-        
+
         worldPosOfTargetScreenPos.set(targetScreenX, targetScreenY, 0);
         cam.unproject(worldPosOfTargetScreenPos); //Find the world position of where we want the point on the screen
 
