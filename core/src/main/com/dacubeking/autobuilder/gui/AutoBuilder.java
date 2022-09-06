@@ -146,8 +146,8 @@ public final class AutoBuilder extends ApplicationAdapter {
         batch = new PolygonSpriteBatch();
         shapeRenderer = new ShapeDrawer(batch, region);
 
-        field = new Texture(Gdx.files.internal("field22.png"), false);
-        field.setFilter(Texture.TextureFilter.Linear, Texture.TextureFilter.Nearest);
+        field = new Texture(Gdx.files.internal("field22.png"), true);
+        field.setFilter(TextureFilter.MipMapLinearLinear, Texture.TextureFilter.Nearest);
 
         cam = new OrthographicCamera(Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
         cam.position.x = Gdx.graphics.getWidth() / 2f;
