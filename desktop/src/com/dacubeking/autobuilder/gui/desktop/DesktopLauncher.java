@@ -26,6 +26,7 @@ public class DesktopLauncher {
                 }
             }
         });
+        config.setWindowSizeLimits(200, 200, 100000, 10000);
 
         new Lwjgl3Application(app, config);
     }
