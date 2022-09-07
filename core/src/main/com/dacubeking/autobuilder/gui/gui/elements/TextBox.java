@@ -52,7 +52,7 @@ public class TextBox extends InputEventListener {
     TextBlock textBlock;
     private float xPos = -1;
 
-    private static final String STOP_WORD_CHARS = ".?!,;:-+=()[]{}<>";
+    private static final String STOP_WORD_CHARS = ".?!,;:-+=()[]{}<> ";
 
     Map<Integer, Boolean> keyPressedMap = new HashMap<>();
     Map<Integer, Long> nextKeyPressTimeMap = new HashMap<>();
@@ -73,6 +73,11 @@ public class TextBox extends InputEventListener {
 
 
     //TODO: Fix Text Going outside the box
+
+    int clickCount = 0;
+    long lastClickTime = 0;
+
+    int lastClickPos = 0;
 
     /**
      * @return if the mouse is hovering over the textbox
@@ -99,10 +104,31 @@ public class TextBox extends InputEventListener {
                 selected = true;
                 text = fireTextBoxClickEvent();
 
-                selectedPos = mouseIndexPos;
-                highlighting = false;
-                highlightPosBegin = mouseIndexPos;
-                highlightPosEnd = mouseIndexPos;
+                if (lastClickTime + 500 > System.currentTimeMillis() && lastClickPos == mouseIndexPos) {
+                    clickCount = (clickCount + 1) % 3;
+                } else {
+                    clickCount = 0;
+                }
+                System.out.println(clickCount);
+
+                if (clickCount == 0) {
+                    selectedPos = mouseIndexPos;
+                    highlighting = false;
+                    highlightPosBegin = mouseIndexPos;
+                    highlightPosEnd = mouseIndexPos;
+                } else if (clickCount == 1) {
+                    selectedPos = mouseIndexPos;
+                    highlighting = true;
+                    highlightPosBegin = getPreviousPositionOfCharacter(mouseIndexPos, STOP_WORD_CHARS, false);
+                    highlightPosEnd = getNextPositionOfCharacter(mouseIndexPos, STOP_WORD_CHARS, false);
+                } else if (clickCount == 2) {
+                    selectedPos = mouseIndexPos;
+                    highlighting = true;
+                    highlightPosBegin = getPreviousPositionOfCharacter(mouseIndexPos, "\n", false);
+                    highlightPosEnd = getNextPositionOfCharacter(mouseIndexPos, "\n", true);
+                }
+                lastClickTime = System.currentTimeMillis();
+                lastClickPos = mouseIndexPos;
                 flashing = true;
                 nextFlashChange = System.currentTimeMillis() + 500;
                 AutoBuilder.scheduleRendering(500);
@@ -112,7 +138,7 @@ public class TextBox extends InputEventListener {
                 highlighting = false;
             }
         } else if (Gdx.input.isButtonPressed(Input.Buttons.LEFT)) {
-            if (selected) {
+            if (selected && clickCount == 0) {
                 highlightPosEnd = mouseIndexPos;
                 selectedPos = mouseIndexPos;
                 if (highlightPosBegin - highlightPosEnd != 0) {
@@ -259,6 +285,12 @@ public class TextBox extends InputEventListener {
                 }
             }
 
+            if (isControlPressed() && getKeyPressed(Keys.A)) {
+                highlightPosBegin = 0;
+                highlightPosEnd = text.length();
+                highlighting = true;
+            }
+
             if (isControlPressed() && (Gdx.input.isKeyJustPressed(Input.Keys.C) || Gdx.input.isKeyJustPressed(Input.Keys.X))) {
                 Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
                 int endPos = selectedPos;
@@ -267,14 +299,8 @@ public class TextBox extends InputEventListener {
                     endPos = Math.max(highlightPosEnd, highlightPosBegin);
                     startPos = Math.min(highlightPosEnd, highlightPosBegin);
                 } else {
-                    while (endPos < text.length() && text.charAt(endPos) != '\n') {
-                        endPos++;
-                    }
-                    if (endPos < text.length() && text.charAt(endPos) == '\n') endPos += 1; // Add the newline to the copied text
-
-                    while (startPos > 0 && text.charAt(startPos - 1) != '\n') {
-                        startPos--;
-                    }
+                    endPos = getNextPositionOfCharacter(endPos, "\n", true);
+                    startPos = getPreviousPositionOfCharacter(startPos, "\n", false);
                 }
 
                 clipboard.setContents(new StringSelection(text.substring(startPos, endPos)), null);
@@ -285,6 +311,10 @@ public class TextBox extends InputEventListener {
                     highlighting = false;
                     fireTextChangeEvent();
                     UndoHandler.getInstance().somethingChanged();
+                } else {
+                    highlightPosBegin = startPos;
+                    highlightPosEnd = endPos;
+                    highlighting = true;
                 }
             }
 
@@ -373,6 +403,28 @@ public class TextBox extends InputEventListener {
             }
         }
         return hovering;
+    }
+
+    private int getPreviousPositionOfCharacter(int startPos, String stopChars, boolean include) {
+        int pos = startPos;
+        while (pos > 0 && !stopChars.contains(String.valueOf(text.charAt(pos - 1)))) {
+            pos--;
+        }
+        if (include && pos > 0) {
+            pos--;
+        }
+        return pos;
+    }
+
+    private int getNextPositionOfCharacter(int endPos, String stopChars, boolean include) {
+        int pos = endPos;
+        while (pos < text.length() && !stopChars.contains(String.valueOf(text.charAt(pos)))) {
+            pos++;
+        }
+        if (include && pos < text.length()) {
+            pos += 1; // Add the newline to the copied text
+        }
+        return pos;
     }
 
     int highlightPosBegin = 3;
