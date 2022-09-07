@@ -96,7 +96,8 @@ public class CameraHandler extends InputEventListener {
             cam.position.x = cam.position.x + ((targetX - cam.position.x) / (Math.max(1, 0.1f / AutoBuilder.getDeltaTime())));
             cam.position.y = cam.position.y + ((targetY - cam.position.y) / (Math.max(1, 0.1f / AutoBuilder.getDeltaTime())));
         } else if (!Gdx.input.isButtonPressed(Input.Buttons.LEFT)) {
-            mouseVelocity.set(mouseVelocity.x * 0.95f, mouseVelocity.y * 0.95f);
+            float speedMultiplier = Math.max(0, 1 - AutoBuilder.getDeltaTime() * 7);
+            mouseVelocity.set(mouseVelocity.x * speedMultiplier, mouseVelocity.y * speedMultiplier);
             cam.position.x = cam.position.x - mouseVelocity.x * cam.zoom * (720f / Gdx.graphics.getHeight());
             cam.position.y = cam.position.y + mouseVelocity.y * cam.zoom * (720f / Gdx.graphics.getHeight());
             targetX = cam.position.x;
