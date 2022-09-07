@@ -153,8 +153,8 @@ public class FileHandler {
 
                 synchronized (saveLock) {
                     saving = true;
-                    boolean error = saveAuto(autonomous);
-                    error = saveConfig() || error;
+                    boolean error = !saveAuto(autonomous);
+                    error = !saveConfig() || error;
                     savingError = error;
                     saving = false;
                 }
