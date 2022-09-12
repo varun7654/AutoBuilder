@@ -145,9 +145,9 @@ public class PathGui extends InputEventListener {
                     panelWidth - 20, this, camera, false);
 
             if (getMouseY() < panelY + 15) {
-                onScroll(0, 0.1f);
+                scrollPathGui(0.1f);
             } else if (getMouseY() > panelY + panelHeight - 15) {
-                onScroll(0, -0.1f);
+                scrollPathGui(-0.1f);
             }
         }
 
@@ -288,8 +288,12 @@ public class PathGui extends InputEventListener {
     public void onScroll(float amountX, float amountY) {
         if (getMouseX() > panelX && getMouseX() < panelX + panelWidth &&
                 getMouseY() > panelY && getMouseY() < panelY + panelHeight) {
-            scrollPos = MathUtil.clamp(scrollPos + amountY * 80, 0, Math.max(scrollPos, maxScroll));
+            scrollPathGui(amountY);
         }
+    }
+
+    public void scrollPathGui(float amountY) {
+        scrollPos = MathUtil.clamp(scrollPos + amountY * 80, 0, Math.max(scrollPos, maxScroll));
     }
 
 
