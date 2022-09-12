@@ -25,15 +25,15 @@ tasks.named('test') {
 dependencies {
     implementation group: 'org.ejml', name: 'ejml-all', version: '0.41'
     implementation 'org.jetbrains:annotations:23.0.0'
-    implementation 'org.junit.jupiter:junit-jupiter:5.8.2'
+    implementation 'org.junit.jupiter:junit-jupiter:5.9.0'
     testImplementation 'junit:junit:4.13.2'
-    testImplementation 'org.mockito:mockito-core:4.5.1'
+    testImplementation 'org.mockito:mockito-core:4.7.0'
     compileOnly 'org.projectlombok:lombok:1.18.24'
     implementation 'com.google.guava:guava:31.1-jre'
 
-    api "com.fasterxml.jackson.core:jackson-annotations:2.10.0"
-    api "com.fasterxml.jackson.core:jackson-core:2.10.0"
-    api "com.fasterxml.jackson.core:jackson-databind:2.10.0"
+    api 'com.fasterxml.jackson.core:jackson-annotations:2.13.4'
+    api 'com.fasterxml.jackson.core:jackson-core:2.13.4'
+    api 'com.fasterxml.jackson.core:jackson-databind:2.13.4'
 
     // Add ntcore-java
     implementation "edu.wpi.first.ntcore:ntcore-java:2021.3.1"
