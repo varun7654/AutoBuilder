@@ -52,7 +52,7 @@ public class TextBox extends InputEventListener {
     TextBlock textBlock;
     private float xPos = -1;
 
-    private static final String STOP_WORD_CHARS = ".?!,;:-+=()[]{}<> ";
+    private static final String STOP_WORD_CHARS = ".?!,;:-+=()[]{}<> \n";
 
     Map<Integer, Boolean> keyPressedMap = new HashMap<>();
     Map<Integer, Long> nextKeyPressTimeMap = new HashMap<>();
