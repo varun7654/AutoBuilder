@@ -36,31 +36,67 @@ public class DrivenPathRenderer implements PathRenderer {
     @NotNull Vector2 lastPointRight = new Vector2();
     @NotNull Vector2 nextPointLeft = new Vector2();
     @NotNull Vector2 nextPointRight = new Vector2();
+    @NotNull Vector2 currPointLeft = new Vector2();
+    @NotNull Vector2 currPointRight = new Vector2();
 
     @Override
     public void render(@NotNull ShapeDrawer shapeRenderer, @NotNull OrthographicCamera cam) {
         List<List<RobotPosition>> robotPositions = networkTables.getRobotPositions();
+
         synchronized (robotPositions) {
+            if (robotPositions.size() > 0) {
+                RobotPosition initialPos = robotPositions.get(0).get(0);
+                lastPointLeft.set((float) (initialPos.x() * config.getPointScaleFactor()),
+                        (float) (initialPos.x() * config.getPointScaleFactor()));
+                lastPointRight.set((float) (initialPos.x() * config.getPointScaleFactor()),
+                        (float) (initialPos.x() * config.getPointScaleFactor()));
+            }
+
             for (int i = 0; i < robotPositions.size() - 1; i++) {
                 RobotPosition pos1 = robotPositions.get(i).get(0);
-                //getPerfectConnectingPoints(pos1, lastPointLeft, lastPointRight);
 
                 RobotPosition pos2 = robotPositions.get(i + 1).get(0);
-//            getPerfectConnectingPoints(pos2, nextPointLeft, nextPointRight);
-//
-//            shapeRenderer.setColor(Color.WHITE);
-//            shapeRenderer.polygon(new float[]{
-//                    lastPointLeft.x, lastPointLeft.y,
-//                    lastPointRight.x, lastPointRight.y,
-//                    nextPointRight.x, nextPointRight.y,
-//                    nextPointLeft.x, nextPointLeft.y
-//            });
+                nextPointLeft.set(0, -AutoBuilder.LINE_THICKNESS / 2);
+                nextPointRight.set(0, AutoBuilder.LINE_THICKNESS / 2);
 
-                shapeRenderer.line((float) (pos1.x() * config.getPointScaleFactor()),
-                        (float) (pos1.y() * config.getPointScaleFactor()),
-                        (float) (pos2.x() * config.getPointScaleFactor()), (float) (pos2.y() * config.getPointScaleFactor()),
-                        Color.WHITE,
-                        AutoBuilder.LINE_THICKNESS);
+                currPointLeft.set(0, -AutoBuilder.LINE_THICKNESS / 2);
+                currPointRight.set(0, AutoBuilder.LINE_THICKNESS / 2);
+
+                float angle = (float) Math.atan2(pos1.y() - pos2.y(), pos1.x() - pos2.x());
+
+                if (i < robotPositions.size() - 2) {
+                    RobotPosition pos3 = robotPositions.get(i + 2).get(0);
+                }
+
+                nextPointLeft.rotateRad(angle);
+                nextPointRight.rotateRad(angle);
+
+                currPointLeft.rotateRad(angle);
+                currPointRight.rotateRad(angle);
+
+                nextPointLeft.add((float) (pos2.x() * config.getPointScaleFactor()),
+                        (float) (pos2.y() * config.getPointScaleFactor()));
+                nextPointRight.add((float) (pos2.x() * config.getPointScaleFactor()),
+                        (float) (pos2.y() * config.getPointScaleFactor()));
+
+                currPointLeft.add((float) (pos1.x() * config.getPointScaleFactor()),
+                        (float) (pos1.y() * config.getPointScaleFactor()));
+                currPointRight.add((float) (pos1.x() * config.getPointScaleFactor()),
+                        (float) (pos1.y() * config.getPointScaleFactor()));
+
+
+                shapeRenderer.setColor(Color.WHITE);
+                shapeRenderer.filledPolygon(new float[]{
+                        lastPointRight.x, lastPointRight.y,
+                        currPointRight.x, currPointRight.y,
+                        nextPointRight.x, nextPointRight.y,
+                        nextPointLeft.x, nextPointLeft.y,
+                        currPointLeft.x, currPointLeft.y,
+                        lastPointLeft.x, lastPointLeft.y,
+                });
+
+                lastPointLeft.set(nextPointLeft);
+                lastPointRight.set(nextPointRight);
 
                 if (i == robotPreviewIndex) {
                     ArrayList<TextComponent> textComponents = new ArrayList<>();
@@ -103,18 +139,6 @@ public class DrivenPathRenderer implements PathRenderer {
             colorIndex += 1;
         }
         return colors.get(name);
-    }
-
-
-    private void getPerfectConnectingPoints(RobotPosition pos, Vector2 nextPointLeft, Vector2 nextPointRight) {
-        nextPointLeft.set(0, -AutoBuilder.LINE_THICKNESS / 2);
-        nextPointRight.set(0, AutoBuilder.LINE_THICKNESS / 2);
-
-        nextPointLeft.rotateRad((float) pos.theta());
-        nextPointRight.rotateRad((float) pos.theta());
-
-        nextPointLeft.add((float) (pos.x() * config.getPointScaleFactor()), (float) (pos.y() * config.getPointScaleFactor()));
-        nextPointRight.add((float) (pos.x() * config.getPointScaleFactor()), (float) (pos.y() * config.getPointScaleFactor()));
     }
 
     private void renderRobotBoundingBox(@NotNull ShapeDrawer shapeRenderer, RobotPosition pos1,
