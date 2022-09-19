@@ -11,6 +11,9 @@ import com.dacubeking.autobuilder.gui.gui.notification.NotificationHandler;
 import com.dacubeking.autobuilder.gui.gui.path.AbstractGuiItem;
 import com.dacubeking.autobuilder.gui.gui.shooter.ShooterConfig;
 import com.dacubeking.autobuilder.gui.pathing.RobotPosition;
+import com.dacubeking.autobuilder.gui.serialization.path.Autonomous;
+import com.dacubeking.autobuilder.gui.serialization.path.GuiSerializer;
+import com.dacubeking.autobuilder.gui.serialization.path.NotDeployableException;
 import edu.wpi.first.networktables.EntryListenerFlags;
 import edu.wpi.first.networktables.NetworkTable;
 import edu.wpi.first.networktables.NetworkTableEntry;
@@ -198,26 +201,26 @@ public final class NetworkTablesHelper {
 
     public void pushAutoData(List<AbstractGuiItem> guiItemList) {
         FileHandler.saveAuto(true);
-//        if (inst != null && inst.isConnected()) {
-//            try {
-//                String autonomousString = Serializer.serializeToString(
-//                        GuiSerializer.serializeAutonomousForDeployment(guiItemList));
-//                autoPath.setString(autonomousString);
-//                Autonomous autonomous = Serializer.deserializeAuto(autoPath.getString(null));
-//                System.out.println("Sent Data: " + autonomous);
-//
-//                NotificationHandler.addNotification(new Notification(LIGHT_GREEN, "Auto Uploaded", 2000));
-//            } catch (IOException | ClassNotFoundException e) {
-//                e.printStackTrace();
-//                NotificationHandler.addNotification(new Notification(Color.RED, "Auto Failed to Upload", 2000));
-//            } catch (NotDeployableException e) {
-//                NotificationHandler.addNotification(
-//                        new Notification(Color.RED, "Your autonomous contains errors: Cannot deploy!", 2000));
-//            }
-//        } else {
-//            System.out.println("Cannot Send Data; Not Connected");
-//            NotificationHandler.addNotification(new Notification(Color.RED, "Auto Failed to Upload: NOT CONNECTED", 2000));
-//        }
+        if (inst != null && inst.isConnected()) {
+            try {
+                String autonomousString = Serializer.serializeToString(
+                        GuiSerializer.serializeAutonomousForDeployment(guiItemList));
+                autoPath.setString(autonomousString);
+                Autonomous autonomous = Serializer.deserializeAuto(autoPath.getString(null));
+                System.out.println("Sent Data: " + autonomous);
+
+                NotificationHandler.addNotification(new Notification(LIGHT_GREEN, "Auto Uploaded", 2000));
+            } catch (IOException | ClassNotFoundException e) {
+                e.printStackTrace();
+                NotificationHandler.addNotification(new Notification(Color.RED, "Auto Failed to Upload", 2000));
+            } catch (NotDeployableException e) {
+                NotificationHandler.addNotification(
+                        new Notification(Color.RED, "Your autonomous contains errors: Cannot deploy!", 2000));
+            }
+        } else {
+            System.out.println("Cannot Send Data; Not Connected");
+            NotificationHandler.addNotification(new Notification(Color.RED, "Auto Failed to Upload: NOT CONNECTED", 2000));
+        }
     }
 
 
