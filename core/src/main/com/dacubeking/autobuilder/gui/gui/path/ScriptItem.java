@@ -19,6 +19,8 @@ import java.util.ArrayList;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 
+import static com.dacubeking.autobuilder.gui.util.Colors.LIGHT_GREY;
+
 public class ScriptItem extends AbstractGuiItem implements TextChangeListener {
     private static final Color LIGHT_BLUE = Color.valueOf("86CDF9");
 

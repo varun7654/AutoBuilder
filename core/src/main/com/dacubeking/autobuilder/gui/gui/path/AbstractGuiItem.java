@@ -22,8 +22,6 @@ import space.earlygrey.shapedrawer.ShapeDrawer;
 import static com.dacubeking.autobuilder.gui.util.MouseUtil.isMouseOver;
 
 public abstract class AbstractGuiItem implements Disposable {
-
-    protected static final @NotNull Color LIGHT_GREY = Color.valueOf("E9E9E9");
     static protected final Texture trashTexture;
     static protected final Texture warningTexture;
 

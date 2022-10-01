@@ -32,6 +32,11 @@ public final class MouseUtil {
                 mousePos.y >= y && mousePos.y <= y + height;
     }
 
+    public static boolean isMouseOver(Vector2 mousePos, float x, float y, float width, float height) {
+        return mousePos.x >= x && mousePos.x <= x + width &&
+                mousePos.y >= y && mousePos.y <= y + height;
+    }
+
     public static boolean isControlPressed() {
         return Gdx.input.isKeyPressed(Keys.CONTROL_LEFT) || Gdx.input.isKeyPressed(Keys.CONTROL_RIGHT);
     }

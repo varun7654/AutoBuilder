@@ -35,6 +35,8 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import static com.dacubeking.autobuilder.gui.util.Colors.LIGHT_GREY;
+
 public class TrajectoryItem extends AbstractGuiItem implements PathChangeListener, NumberTextboxChangeListener {
     public static final TextBlock END_VELOCITY_LABEL = new TextBlock(Fonts.ROBOTO, 22,
             new TextComponent("End Velocity:").setBold(true).setColor(Color.BLACK));
