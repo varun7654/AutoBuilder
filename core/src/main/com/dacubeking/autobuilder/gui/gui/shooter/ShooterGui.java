@@ -303,7 +303,7 @@ public class ShooterGui extends ScrollableGui implements NumberTextboxChangeList
                 panelY + panelHeight + smoothScrollPos - 7 + heightOffset - yOffset * 27, 95, null)) {
             HoverManager.setHoverText(distanceHoverText,
                     panelX + 5 + (98 * xOffset) + 95 / 2f,
-                    panelY + panelHeight + smoothScrollPos + 2 - yOffset * 27);
+                    panelY + panelHeight + smoothScrollPos + 2 - yOffset * 27 + heightOffset);
         }
     }
 
