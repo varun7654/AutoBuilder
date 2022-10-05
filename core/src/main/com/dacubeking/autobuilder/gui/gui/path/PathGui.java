@@ -31,6 +31,7 @@ import java.util.List;
 import java.util.Random;
 import java.util.concurrent.ExecutorService;
 
+import static com.dacubeking.autobuilder.gui.gui.GuiConstants.BUTTON_SPACING;
 import static com.dacubeking.autobuilder.gui.util.MathUtil.dist2;
 import static com.dacubeking.autobuilder.gui.util.MouseUtil.*;
 import static java.awt.Color.HSBtoRGB;
@@ -325,9 +326,9 @@ public class PathGui extends InputEventListener {
         panelY = 10;
 
 
-        addPathButton.setPosition(panelX - 10 - addPathButton.getWidth(), 10);
-        addScriptButton.setPosition(addPathButton.getX() - 10 - addScriptButton.getWidth(), 10);
-        pushAutoButton.setPosition(addScriptButton.getX() - 10 - pushAutoButton.getWidth(), 10);
+        addPathButton.setPosition(panelX - BUTTON_SPACING - addPathButton.getWidth(), BUTTON_SPACING);
+        addScriptButton.setPosition(addPathButton.getX() - BUTTON_SPACING - addScriptButton.getWidth(), BUTTON_SPACING);
+        pushAutoButton.setPosition(addScriptButton.getX() - BUTTON_SPACING - pushAutoButton.getWidth(), BUTTON_SPACING);
 
         clipBounds = new Rectangle(0, panelY, width, panelHeight);
     }

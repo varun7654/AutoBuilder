@@ -11,11 +11,11 @@ import com.badlogic.gdx.scenes.scene2d.utils.ScissorStack;
 import com.badlogic.gdx.utils.viewport.Viewport;
 import com.dacubeking.autobuilder.gui.AutoBuilder;
 import com.dacubeking.autobuilder.gui.CameraHandler;
-import com.dacubeking.autobuilder.gui.events.input.InputEventListener;
 import com.dacubeking.autobuilder.gui.events.input.InputEventThrower;
 import com.dacubeking.autobuilder.gui.events.input.NumberTextboxChangeListener;
 import com.dacubeking.autobuilder.gui.gui.elements.CheckBox;
 import com.dacubeking.autobuilder.gui.gui.elements.NumberTextBox;
+import com.dacubeking.autobuilder.gui.gui.elements.ScrollableGui;
 import com.dacubeking.autobuilder.gui.gui.hover.HoverManager;
 import com.dacubeking.autobuilder.gui.gui.textrendering.FontRenderer;
 import com.dacubeking.autobuilder.gui.gui.textrendering.Fonts;
@@ -23,7 +23,6 @@ import com.dacubeking.autobuilder.gui.gui.textrendering.TextBlock;
 import com.dacubeking.autobuilder.gui.gui.textrendering.TextComponent;
 import com.dacubeking.autobuilder.gui.net.NetworkTablesHelper;
 import com.dacubeking.autobuilder.gui.serialization.shooter.ShooterPreset;
-import com.dacubeking.autobuilder.gui.util.MathUtil;
 import com.dacubeking.autobuilder.gui.util.RoundedShapeRenderer;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -33,14 +32,14 @@ import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Collections;
 
+import static com.dacubeking.autobuilder.gui.gui.GuiConstants.BUTTON_SIZE;
 import static com.dacubeking.autobuilder.gui.util.MouseUtil.getMouseX;
 import static com.dacubeking.autobuilder.gui.util.MouseUtil.getMouseY;
 
-public class ShooterGui extends InputEventListener implements NumberTextboxChangeListener {
+public class ShooterGui extends ScrollableGui implements NumberTextboxChangeListener {
 
     private final Viewport hudViewport;
     private final CameraHandler cameraHandler;
-    ShooterGuiOpenIcon openIcon = new ShooterGuiOpenIcon(10, 10, 40, 40);
 
     private final Object drawingLoadingSymbolRenderingKey = new Object();
 
@@ -49,20 +48,12 @@ public class ShooterGui extends InputEventListener implements NumberTextboxChang
 
     protected static final @NotNull Color LIGHT_GREY = Color.valueOf("E9E9E9");
     private static final @NotNull Color LIGHT_BLUE = Color.valueOf("5cccff");
-    boolean panelOpen = false;
-    private float panelX;
-    private float panelY;
-    private float panelWidth;
-    private float panelHeight;
-    private @NotNull Rectangle clipBounds;
-    private float scrollPos;
-    private float smoothScrollPos;
     private long nextNetworkTablesPush = 0;
     private int lastUpdateId = 0;
     private final CheckBox checkBox;
     boolean limelightForceOn = false;
     private final TextBlock shooterConfigText = new TextBlock(Fonts.ROBOTO, 40,
-            new TextComponent("Shooter Config").setColor(Color.BLACK));
+            new TextComponent("Shooter Config").setColor(Color.BLACK).setBold(true));
     private final TextBlock limelightLedOnText = new TextBlock(Fonts.ROBOTO, 25,
             new TextComponent("Limelight LED On"));
     private final TextBlock distanceHoverText = new TextBlock(Fonts.ROBOTO, 13,
@@ -82,6 +73,8 @@ public class ShooterGui extends InputEventListener implements NumberTextboxChang
         TRASH_TEXTURE.setFilter(Texture.TextureFilter.MipMap, Texture.TextureFilter.Nearest);
     }
 
+    private float heightOffset = -53;
+
     private final DecimalFormat df;
 
     {
@@ -95,7 +88,7 @@ public class ShooterGui extends InputEventListener implements NumberTextboxChang
     }
 
     public ShooterGui(Viewport hudViewport, CameraHandler cameraHandler, ShooterConfig shooterConfig) {
-
+        super(new ShooterGuiOpenIcon(), AutoBuilder.getInstance().settingsGui);
         this.hudViewport = hudViewport;
         this.cameraHandler = cameraHandler;
 
@@ -112,7 +105,7 @@ public class ShooterGui extends InputEventListener implements NumberTextboxChang
         networkTablesHelper.setShooterConfig(shooterConfig);
         updateSortedList();
 
-        checkBox = new CheckBox(panelX, panelY, 30, 30); //temp positions
+        checkBox = new CheckBox(panelX, panelY, BUTTON_SIZE, BUTTON_SIZE); //temp positions
         networkTablesHelper.setLimelightForcedOn(false);
     }
 
@@ -120,33 +113,11 @@ public class ShooterGui extends InputEventListener implements NumberTextboxChang
      * @return returns true if the gui is just opening
      */
     public boolean update() {
-        openIcon.checkHover();
-        if (Gdx.input.isButtonJustPressed(Input.Buttons.LEFT)) {
-            if (openIcon.checkClick() && !panelOpen) {
-                panelOpen = true;
-                scrollPos = 0;
-                smoothScrollPos = 0;
-            }
-
-            if (!(getMouseX() >= panelX && getMouseX() <= panelX + panelWidth &&
-                    getMouseY() >= panelY && getMouseY() <= panelY + panelHeight)) {
-                //We clicked outside the panel
-                panelOpen = false;
-            }
-        }
-
-        scrollPos = MathUtil.clamp(scrollPos, -65, -65 + (shooterConfig.getShooterConfigs().size() + 1) * 27);
-        smoothScrollPos = (float) (smoothScrollPos + (scrollPos - smoothScrollPos) / Math.max(1,
-                0.05 / AutoBuilder.getDeltaTime()));
-
-        if (Math.abs(smoothScrollPos - scrollPos) < 1e-2) {
-            AutoBuilder.disableContinuousRendering(this);
-        } else {
-            AutoBuilder.enableContinuousRendering(this);
-        }
+        super.update((shooterConfig.getShooterConfigs().size() + 5) * 27);
         if (panelOpen) {
-            checkBox.setX(panelWidth + panelX - 59);
-            checkBox.setY(-3 + panelY + panelHeight + smoothScrollPos - (shooterConfig.getShooterConfigs().size() + 2) * 27);
+            checkBox.setX(panelWidth + panelX - 69);
+            checkBox.setY(
+                    panelY + panelHeight + smoothScrollPos - (shooterConfig.getShooterConfigs().size() + 2) * 27 + heightOffset - 12);
             checkBox.checkHover();
 
             if (checkBox.checkClick()) {
@@ -178,7 +149,7 @@ public class ShooterGui extends InputEventListener implements NumberTextboxChang
     ArrayList<ShooterPreset> sortedShooterConfigs = new ArrayList<>();
 
     public void render(ShapeDrawer shapeDrawer, Batch spriteBatch, Camera camera) {
-        if (!panelOpen) openIcon.render(shapeDrawer, spriteBatch);
+        super.render(shapeDrawer, spriteBatch);
         clickedOnTextBoxThisFrame = false;
         spriteBatch.flush();
 
@@ -189,7 +160,7 @@ public class ShooterGui extends InputEventListener implements NumberTextboxChang
             index = -(index + 1);
         }
         ShooterPreset interpolatedShooterPreset = new ShooterPreset(0, 0, 0);
-        double percentIn = 0;
+        float percentIn = 0;
         if (sortedShooterConfigs.size() > 0) {
             if (sortedShooterConfigs.get(0).getDistance() >= distance) {
                 interpolatedShooterPreset = sortedShooterConfigs.get(0);
@@ -200,8 +171,8 @@ public class ShooterGui extends InputEventListener implements NumberTextboxChang
                 percentIn = 0;
             } else {
                 //One of the above 2 if statements will true if there is only 1 element in the list
-                percentIn = (distance - sortedShooterConfigs.get(index - 1).getDistance()) /
-                        (sortedShooterConfigs.get(index).getDistance() - sortedShooterConfigs.get(index - 1).getDistance());
+                percentIn = (float) ((distance - sortedShooterConfigs.get(index - 1).getDistance()) /
+                        (sortedShooterConfigs.get(index).getDistance() - sortedShooterConfigs.get(index - 1).getDistance()));
                 interpolatedShooterPreset = interpolateShooterPreset(sortedShooterConfigs.get(index - 1),
                         sortedShooterConfigs.get(index), percentIn);
             }
@@ -231,7 +202,7 @@ public class ShooterGui extends InputEventListener implements NumberTextboxChang
                 renderTextBox((i * 3), 2, shapeDrawer, spriteBatch, i, hoodEjectAngleHoverText);
 
                 spriteBatch.draw(TRASH_TEXTURE, panelX + 5 + (98 * 3),
-                        panelY + panelHeight + smoothScrollPos - ((i + 1) * 27) + 4, 20, 20);
+                        panelY + panelHeight + smoothScrollPos - ((i + 1) * 27) + 4 + heightOffset, 20, 20);
             }
 
             //Render the last row of (blank) textboxes that are used for entering new items
@@ -257,7 +228,7 @@ public class ShooterGui extends InputEventListener implements NumberTextboxChang
                         getMouseY() > panelY && getMouseY() < panelY + panelHeight) {
                     //We are clicking in the column with the trash (delete) icons
                     int indexToDelete = (int) Math.floor(
-                            ((panelY + panelHeight) - ((getMouseY()) - smoothScrollPos)) / 27); // Get the index of
+                            ((panelY + panelHeight) - ((getMouseY() - heightOffset) - smoothScrollPos)) / 27); // Get the index of
                     // the item we want to delete
                     if (indexToDelete >= 0 && indexToDelete < shooterConfig.getShooterConfigs().size()) {
                         shooterConfig.getShooterConfigs().remove(indexToDelete);
@@ -273,20 +244,24 @@ public class ShooterGui extends InputEventListener implements NumberTextboxChang
             if (sortedShooterConfigs.size() > 0) {
 
                 float[] vertices = {
-                        panelX, (float) (panelY + panelHeight + smoothScrollPos - (index - 1 + percentIn) * 27) - 14.5f,
                         //Bottom left corner
-                        panelX, (float) (panelY + panelHeight + smoothScrollPos - (index - 1 + percentIn) * 27) - 10.5f, //Top
-                        // left corner
+                        panelX,
+                        panelY + panelHeight + smoothScrollPos - (index - 1 + percentIn) * 27 - 14.5f + heightOffset,
+                        //Top left corner
+                        panelX,
+                        panelY + panelHeight + smoothScrollPos - (index - 1 + percentIn) * 27 - 10.5f + heightOffset,
+                        //Top right corner
                         panelX + panelWidth + 135,
-                        (float) (panelY + panelHeight + smoothScrollPos - (index - 1 + percentIn) * 27) - 10.5f, //Top right
-                        // corner
+                        panelY + panelHeight + smoothScrollPos - (index - 1 + percentIn) * 27 - 10.5f + heightOffset,
+                        //Bottom right corner
                         panelX + panelWidth + 135,
-                        (float) (panelY + panelHeight + smoothScrollPos - (index - 1 + percentIn) * 27) - 48, //Bottom right
-                        // corner
+                        panelY + panelHeight + smoothScrollPos - (index - 1 + percentIn) * 27 - 48 + heightOffset,
+                        //Bend 1
                         panelX + panelWidth + 20,
-                        (float) (panelY + panelHeight + smoothScrollPos - (index - 1 + percentIn) * 27) - 48f, //Bend 1
+                        (panelY + panelHeight + smoothScrollPos - (index - 1 + percentIn) * 27) - 48f + heightOffset,
+                        //Bend 2
                         panelX + panelWidth,
-                        (float) (panelY + panelHeight + smoothScrollPos - (index - 1 + percentIn) * 27) - 14.5f, //Bend 2
+                        panelY + panelHeight + smoothScrollPos - (index - 1 + percentIn) * 27 - 14.5f + heightOffset,
                 };
                 LIGHT_BLUE.a = 0.8f;
                 shapeDrawer.setColor(LIGHT_BLUE);
@@ -294,7 +269,7 @@ public class ShooterGui extends InputEventListener implements NumberTextboxChang
 
                 FontRenderer.renderText(spriteBatch, shapeDrawer,
                         panelX + panelWidth + 23,
-                        (float) (panelY + panelHeight + smoothScrollPos - (index - 1 + percentIn) * 27) - 25f,
+                        panelY + panelHeight + smoothScrollPos - (index - 1 + percentIn) * 27 - 25f + heightOffset,
                         Fonts.ROBOTO, 17,
                         //@formatter:off
                         new TextComponent(df.format(interpolatedShooterPreset.getFlywheelSpeed())).setBold(true).setColor(Color.WHITE),
@@ -310,7 +285,6 @@ public class ShooterGui extends InputEventListener implements NumberTextboxChang
             }
         }
 
-        spriteBatch.setShader(null);
         int currId = (int) networkTablesHelper.getShooterConfigStatusId();
         int statusId = (int) networkTablesHelper.getShooterConfigStatus();
         if ((lastUpdateId == currId || statusId != 1) && networkTablesHelper.isConnected()) {
@@ -326,26 +300,15 @@ public class ShooterGui extends InputEventListener implements NumberTextboxChang
     private void renderTextBox(int i, int xOffset, ShapeDrawer shapeDrawer, Batch spriteBatch, int yOffset,
                                TextBlock distanceHoverText) {
         if (textBoxes.get(i + xOffset).draw(shapeDrawer, spriteBatch, panelX + 5 + (98 * xOffset),
-                panelY + panelHeight + smoothScrollPos - 7 - yOffset * 27, 95, null)) {
+                panelY + panelHeight + smoothScrollPos - 7 + heightOffset - yOffset * 27, 95, null)) {
             HoverManager.setHoverText(distanceHoverText,
                     panelX + 5 + (98 * xOffset) + 95 / 2f,
                     panelY + panelHeight + smoothScrollPos + 2 - yOffset * 27);
         }
     }
 
-
-    public void updateScreen(int width, int height) {
-        panelX = 10;
-        panelY = 10;
-        panelWidth = 325;
-        panelHeight = height - 20;
-
-        clipBounds = new Rectangle(10, panelY, panelWidth + panelX + 500,
-                panelHeight - 40);
-    }
-
     public void dispose() {
-        openIcon.dispose();
+        super.dispose();
         for (NumberTextBox textBox : textBoxes) {
             textBox.dispose();
         }
@@ -399,16 +362,12 @@ public class ShooterGui extends InputEventListener implements NumberTextboxChang
         clickedOnTextBoxThisFrame = true;
         if (row >= shooterConfig.getShooterConfigs().size()) return text;
 
-        switch (column) {
-            case 0:
-                return String.valueOf(shooterConfig.getShooterConfigs().get(row).getDistance());
-            case 1:
-                return String.valueOf(shooterConfig.getShooterConfigs().get(row).getFlywheelSpeed());
-            case 2:
-                return String.valueOf(shooterConfig.getShooterConfigs().get(row).getHoodEjectAngle());
-            default:
-                return text;
-        }
+        return switch (column) {
+            case 0 -> String.valueOf(shooterConfig.getShooterConfigs().get(row).getDistance());
+            case 1 -> String.valueOf(shooterConfig.getShooterConfigs().get(row).getFlywheelSpeed());
+            case 2 -> String.valueOf(shooterConfig.getShooterConfigs().get(row).getHoodEjectAngle());
+            default -> text;
+        };
     }
 
     public void updateSortedList() {

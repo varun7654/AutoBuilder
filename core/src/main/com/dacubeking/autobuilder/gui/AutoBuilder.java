@@ -24,6 +24,7 @@ import com.dacubeking.autobuilder.gui.gui.notification.NotificationHandler;
 import com.dacubeking.autobuilder.gui.gui.path.AbstractGuiItem;
 import com.dacubeking.autobuilder.gui.gui.path.PathGui;
 import com.dacubeking.autobuilder.gui.gui.path.TrajectoryItem;
+import com.dacubeking.autobuilder.gui.gui.settings.SettingsGui;
 import com.dacubeking.autobuilder.gui.gui.shooter.ShooterConfig;
 import com.dacubeking.autobuilder.gui.gui.shooter.ShooterGui;
 import com.dacubeking.autobuilder.gui.gui.textrendering.*;
@@ -84,6 +85,7 @@ public final class AutoBuilder extends ApplicationAdapter {
     @NotNull public static final ExecutorService asyncParsingService = Executors.newFixedThreadPool(1);
     @NotNull public PathGui pathGui;
     @Nullable public ShooterGui shooterGui;
+    @NotNull public SettingsGui settingsGui;
     @NotNull InputEventThrower inputEventThrower = new InputEventThrower();
     @NotNull public UndoHandler undoHandler = UndoHandler.getInstance();
     @NotNull NetworkTablesHelper networkTables = NetworkTablesHelper.getInstance();
@@ -172,6 +174,8 @@ public final class AutoBuilder extends ApplicationAdapter {
         drivenPathRenderer = new DrivenPathRenderer();
         hudRenderer = new HudRenderer();
         drawableRenderer = new DrawableRenderer();
+
+        settingsGui = new SettingsGui();
 
         if (config.isShooterConfigEnabled()) {
             File shooterConfigFile = config.getShooterConfigPath();
@@ -368,9 +372,13 @@ public final class AutoBuilder extends ApplicationAdapter {
                 new TextComponent(lastSave).setColor(Color.WHITE).setBold(true)));
 
         pathGui.render(hudShapeRenderer, hudBatch, hudCam);
+
         if (shooterGui != null) { //If the shooter gui is null, it means its disabled
             shooterGui.render(hudShapeRenderer, hudBatch, hudCam);
         }
+
+        settingsGui.render(hudShapeRenderer, hudBatch);
+
         configGUI.draw(hudShapeRenderer, hudBatch, hudCam);
         hudRenderer.render(hudShapeRenderer, hudBatch, (shooterGui != null && shooterGui.isPanelOpen()) ? 340 : 0);
         HoverManager.render(hudBatch, hudShapeRenderer);
@@ -390,6 +398,7 @@ public final class AutoBuilder extends ApplicationAdapter {
         MouseUtil.update();
         undoHandler.update(pathGui, cameraHandler);
         boolean onGui = pathGui.update();
+        onGui = onGui | settingsGui.update();
         if (shooterGui != null) onGui = onGui | shooterGui.update();
         onGui = onGui | configGUI.update();
         lastMousePos.set(mousePos);
