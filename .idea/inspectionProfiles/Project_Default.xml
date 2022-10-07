@@ -16,7 +16,6 @@
     </inspection_tool>
     <inspection_tool class="AssignmentToStaticFieldFromInstanceMethod" enabled="true" level="WARNING" enabled_by_default="true" />
     <inspection_tool class="AssignmentToSuperclassField" enabled="true" level="WEAK WARNING" enabled_by_default="true" />
-    <inspection_tool class="AutoCloseableResource" enabled="true" level="WARNING" enabled_by_default="true" />
     <inspection_tool class="ChainedEquality" enabled="true" level="WARNING" enabled_by_default="true" />
     <inspection_tool class="ClassComplexity" enabled="true" level="WEAK WARNING" enabled_by_default="true">
       <option name="m_limit" value="80" />
@@ -26,7 +25,7 @@
       <option name="m_includeLibraryClasses" value="false" />
       <option name="m_limit" value="15" />
     </inspection_tool>
-    <inspection_tool class="ClassInheritanceDepth" enabled="true" level="WEAK WARNING" enabled_by_default="true">
+    <inspection_tool class="ClassInheritanceDepth" enabled="false" level="WEAK WARNING" enabled_by_default="false">
       <option name="m_limit" value="2" />
     </inspection_tool>
     <inspection_tool class="ClassNestingDepth" enabled="true" level="WEAK WARNING" enabled_by_default="true">

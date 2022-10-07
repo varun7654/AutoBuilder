@@ -15,6 +15,7 @@ import com.dacubeking.autobuilder.gui.events.input.InputEventThrower;
 import com.dacubeking.autobuilder.gui.events.input.NumberTextboxChangeListener;
 import com.dacubeking.autobuilder.gui.gui.elements.CheckBox;
 import com.dacubeking.autobuilder.gui.gui.elements.NumberTextBox;
+import com.dacubeking.autobuilder.gui.gui.elements.PositionedNumberTextBox;
 import com.dacubeking.autobuilder.gui.gui.elements.ScrollableGui;
 import com.dacubeking.autobuilder.gui.gui.hover.HoverManager;
 import com.dacubeking.autobuilder.gui.gui.textrendering.FontRenderer;
@@ -33,8 +34,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 
 import static com.dacubeking.autobuilder.gui.gui.GuiConstants.BUTTON_SIZE;
-import static com.dacubeking.autobuilder.gui.util.MouseUtil.getMouseX;
-import static com.dacubeking.autobuilder.gui.util.MouseUtil.getMouseY;
+import static com.dacubeking.autobuilder.gui.util.MouseUtil.*;
 
 public class ShooterGui extends ScrollableGui implements NumberTextboxChangeListener {
 
@@ -87,7 +87,7 @@ public class ShooterGui extends ScrollableGui implements NumberTextboxChangeList
         this(hudViewport, cameraHandler, new ShooterConfig());
     }
 
-    public ShooterGui(Viewport hudViewport, CameraHandler cameraHandler, ShooterConfig shooterConfig) {
+    public ShooterGui(Viewport hudViewport, CameraHandler cameraHandler, @NotNull ShooterConfig shooterConfig) {
         super(new ShooterGuiOpenIcon(), AutoBuilder.getInstance().settingsGui);
         this.hudViewport = hudViewport;
         this.cameraHandler = cameraHandler;
@@ -97,9 +97,9 @@ public class ShooterGui extends ScrollableGui implements NumberTextboxChangeList
         updateScreen(Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
         this.shooterConfig = shooterConfig;
         for (int i = 0; i <= shooterConfig.getShooterConfigs().size(); i++) {
-            textBoxes.add(new NumberTextBox("", this, i, 0, 15));
-            textBoxes.add(new NumberTextBox("", this, i, 1, 15));
-            textBoxes.add(new NumberTextBox("", this, i, 2, 15));
+            textBoxes.add(new PositionedNumberTextBox("", this, i, 0, 15));
+            textBoxes.add(new PositionedNumberTextBox("", this, i, 1, 15));
+            textBoxes.add(new PositionedNumberTextBox("", this, i, 2, 15));
         }
 
         networkTablesHelper.setShooterConfig(shooterConfig);
@@ -136,14 +136,6 @@ public class ShooterGui extends ScrollableGui implements NumberTextboxChangeList
             AutoBuilder.scheduleRendering(nextNetworkTablesPush - System.currentTimeMillis());
         }
         return panelOpen;
-    }
-
-    @Override
-    public void onScroll(float amountX, float amountY) {
-        if (getMouseX() > panelX && getMouseX() < panelX + panelWidth &&
-                getMouseY() > panelY && getMouseY() < panelY + panelHeight) {
-            scrollPos = scrollPos + amountY * 20;
-        }
     }
 
     ArrayList<ShooterPreset> sortedShooterConfigs = new ArrayList<>();
@@ -188,6 +180,8 @@ public class ShooterGui extends ScrollableGui implements NumberTextboxChangeList
             Rectangle scissors = new Rectangle();
             ScissorStack.calculateScissors(camera, spriteBatch.getTransformMatrix(), clipBounds, scissors);
             boolean pop = ScissorStack.pushScissors(scissors);
+
+            boolean isMouseOnPanel = isMouseOver(getMousePos(), panelX, panelY, panelWidth, panelHeight);
             for (int i = 0; i < shooterConfig.getShooterConfigs().size(); i++) {
                 //Update the text of the textboxes and render them
                 textBoxes.get((i * 3) + 0).setText(String.valueOf(shooterConfig.getShooterConfigs().get(i).getDistance()));
@@ -195,11 +189,11 @@ public class ShooterGui extends ScrollableGui implements NumberTextboxChangeList
                 textBoxes.get((i * 3) + 2).setText(String.valueOf(shooterConfig.getShooterConfigs().get(i).getHoodEjectAngle()));
 
 
-                renderTextBox((i * 3), 0, shapeDrawer, spriteBatch, i, distanceHoverText);
+                renderTextBox((i * 3), 0, shapeDrawer, spriteBatch, i, distanceHoverText, isMouseOnPanel);
 
-                renderTextBox((i * 3), 1, shapeDrawer, spriteBatch, i, flywheelSpeedHoverText);
+                renderTextBox((i * 3), 1, shapeDrawer, spriteBatch, i, flywheelSpeedHoverText, isMouseOnPanel);
 
-                renderTextBox((i * 3), 2, shapeDrawer, spriteBatch, i, hoodEjectAngleHoverText);
+                renderTextBox((i * 3), 2, shapeDrawer, spriteBatch, i, hoodEjectAngleHoverText, isMouseOnPanel);
 
                 spriteBatch.draw(TRASH_TEXTURE, panelX + 5 + (98 * 3),
                         panelY + panelHeight + smoothScrollPos - ((i + 1) * 27) + 4 + heightOffset, 20, 20);
@@ -211,12 +205,12 @@ public class ShooterGui extends ScrollableGui implements NumberTextboxChangeList
             textBoxes.get(shooterConfig.getShooterConfigs().size() * 3 + 2).setText("");
 
             renderTextBox(shooterConfig.getShooterConfigs().size() * 3, 0, shapeDrawer, spriteBatch,
-                    shooterConfig.getShooterConfigs().size(), distanceHoverText);
+                    shooterConfig.getShooterConfigs().size(), distanceHoverText, isMouseOnPanel);
             renderTextBox(shooterConfig.getShooterConfigs().size() * 3, 1, shapeDrawer, spriteBatch,
-                    shooterConfig.getShooterConfigs().size(), flywheelSpeedHoverText);
+                    shooterConfig.getShooterConfigs().size(), flywheelSpeedHoverText, isMouseOnPanel);
 
             renderTextBox(shooterConfig.getShooterConfigs().size() * 3, 2, shapeDrawer, spriteBatch,
-                    shooterConfig.getShooterConfigs().size(), hoodEjectAngleHoverText);
+                    shooterConfig.getShooterConfigs().size(), hoodEjectAngleHoverText, isMouseOnPanel);
 
 
             checkBox.render(shapeDrawer, spriteBatch, limelightForceOn);
@@ -298,12 +292,14 @@ public class ShooterGui extends ScrollableGui implements NumberTextboxChangeList
     }
 
     private void renderTextBox(int i, int xOffset, ShapeDrawer shapeDrawer, Batch spriteBatch, int yOffset,
-                               TextBlock distanceHoverText) {
+                               TextBlock distanceHoverText, boolean isMouseOnScreen) {
         if (textBoxes.get(i + xOffset).draw(shapeDrawer, spriteBatch, panelX + 5 + (98 * xOffset),
                 panelY + panelHeight + smoothScrollPos - 7 + heightOffset - yOffset * 27, 95, null)) {
-            HoverManager.setHoverText(distanceHoverText,
-                    panelX + 5 + (98 * xOffset) + 95 / 2f,
-                    panelY + panelHeight + smoothScrollPos + 2 - yOffset * 27 + heightOffset);
+            if (isMouseOnScreen) {
+                HoverManager.setHoverText(distanceHoverText,
+                        panelX + 5 + (98 * xOffset) + 95 / 2f,
+                        panelY + panelHeight + smoothScrollPos + 2 - yOffset * 27 + heightOffset);
+            }
         }
     }
 
@@ -329,9 +325,9 @@ public class ShooterGui extends ScrollableGui implements NumberTextboxChangeList
                     case 2 -> shooterConfig.getShooterConfigs().add(new ShooterPreset(parsedNumber, 0, 0));
                 }
 
-                textBoxes.add(new NumberTextBox("", this, shooterConfig.getShooterConfigs().size(), 0, 15));
-                textBoxes.add(new NumberTextBox("", this, shooterConfig.getShooterConfigs().size(), 1, 15));
-                textBoxes.add(new NumberTextBox("", this, shooterConfig.getShooterConfigs().size(), 2, 15));
+                textBoxes.add(new PositionedNumberTextBox("", this, shooterConfig.getShooterConfigs().size(), 0, 15));
+                textBoxes.add(new PositionedNumberTextBox("", this, shooterConfig.getShooterConfigs().size(), 1, 15));
+                textBoxes.add(new PositionedNumberTextBox("", this, shooterConfig.getShooterConfigs().size(), 2, 15));
                 updateSortedList();
             } else {
                 switch (column) {

@@ -12,6 +12,7 @@ import com.dacubeking.autobuilder.gui.events.input.NumberTextboxChangeListener;
 import com.dacubeking.autobuilder.gui.events.pathchange.PathChangeListener;
 import com.dacubeking.autobuilder.gui.gui.elements.CheckBox;
 import com.dacubeking.autobuilder.gui.gui.elements.NumberTextBox;
+import com.dacubeking.autobuilder.gui.gui.elements.PositionedNumberTextBox;
 import com.dacubeking.autobuilder.gui.gui.hover.HoverManager;
 import com.dacubeking.autobuilder.gui.gui.textrendering.FontRenderer;
 import com.dacubeking.autobuilder.gui.gui.textrendering.Fonts;
@@ -81,8 +82,8 @@ public class TrajectoryItem extends AbstractGuiItem implements PathChangeListene
                 pathGui.executorService, 0, 0, new ArrayList<>());
         trajectoryPathRenderer.setPathChangeListener(this);
 
-        startVelocityTextBox = new NumberTextBox(df.format(getPathRenderer().getVelocityStart()), this, 0, 0, 18);
-        endVelocityTextBox = new NumberTextBox(df.format(getPathRenderer().getVelocityEnd()), this, 0, 0, 18);
+        startVelocityTextBox = new PositionedNumberTextBox(df.format(getPathRenderer().getVelocityStart()), this, 0, 0, 18);
+        endVelocityTextBox = new PositionedNumberTextBox(df.format(getPathRenderer().getVelocityEnd()), this, 0, 0, 18);
         setInitialClosed(false);
     }
 
@@ -104,8 +105,8 @@ public class TrajectoryItem extends AbstractGuiItem implements PathChangeListene
         }
 
         trajectoryPathRenderer.setPathChangeListener(this);
-        startVelocityTextBox = new NumberTextBox(df.format(getPathRenderer().getVelocityStart()), this, 0, 0, 18);
-        endVelocityTextBox = new NumberTextBox(df.format(getPathRenderer().getVelocityEnd()), this, 0, 0, 18);
+        startVelocityTextBox = new PositionedNumberTextBox(df.format(getPathRenderer().getVelocityStart()), this, 0, 0, 18);
+        endVelocityTextBox = new PositionedNumberTextBox(df.format(getPathRenderer().getVelocityEnd()), this, 0, 0, 18);
         setInitialClosed(closed);
     }
 
@@ -247,14 +248,14 @@ public class TrajectoryItem extends AbstractGuiItem implements PathChangeListene
         for (int i = 0; i < trajectoryPathRenderer.getControlVectors().size(); i++) {
             ControlVector controlVector = trajectoryPathRenderer.getControlVectors().get(i);
             Rotation2d rotation = trajectoryPathRenderer.getRotations().get(i);
-            NumberTextBox xBox = new NumberTextBox(df.format(controlVector.x[0]), this, i, 0, 18);
-            NumberTextBox yBox = new NumberTextBox(df.format(controlVector.y[0]), this, i, 1, 18);
+            NumberTextBox xBox = new PositionedNumberTextBox(df.format(controlVector.x[0]), this, i, 0, 18);
+            NumberTextBox yBox = new PositionedNumberTextBox(df.format(controlVector.y[0]), this, i, 1, 18);
             double rotationDegrees = AutoBuilder.getConfig().isHolonomic() ?
                     rotation.getDegrees() : Math.toDegrees(Math.atan2(controlVector.y[1], controlVector.x[1]));
-            NumberTextBox rotationBox = new NumberTextBox(df.format(rotationDegrees), this, i, 2, 18);
+            NumberTextBox rotationBox = new PositionedNumberTextBox(df.format(rotationDegrees), this, i, 2, 18);
 
-            NumberTextBox xControlBox = new NumberTextBox(df.format(controlVector.x[1]), this, i, 3, 18);
-            NumberTextBox yControlBox = new NumberTextBox(df.format(controlVector.y[1]), this, i, 4, 18);
+            NumberTextBox xControlBox = new PositionedNumberTextBox(df.format(controlVector.x[1]), this, i, 3, 18);
+            NumberTextBox yControlBox = new PositionedNumberTextBox(df.format(controlVector.y[1]), this, i, 4, 18);
 
             textBoxes.add(Arrays.asList(xBox, yBox, rotationBox, xControlBox, yControlBox));
         }

@@ -7,6 +7,7 @@ import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.utils.Disposable;
 import com.dacubeking.autobuilder.gui.AutoBuilder;
 import com.dacubeking.autobuilder.gui.events.input.InputEventListener;
+import com.dacubeking.autobuilder.gui.events.input.InputEventThrower;
 import com.dacubeking.autobuilder.gui.util.MathUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -35,6 +36,7 @@ public abstract class ScrollableGui extends InputEventListener implements Dispos
         this.openButton = openButton;
         this.previousElement = previousElement;
         updateScreen(Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
+        InputEventThrower.register(this);
     }
 
     public void render(ShapeDrawer shapeDrawer, Batch batch) {
@@ -42,23 +44,23 @@ public abstract class ScrollableGui extends InputEventListener implements Dispos
     }
 
     public void updateScreen(int width, int height) {
-        panelX = 10;
-        panelY = openButton.getTopY() + BUTTON_SPACING;
-        panelWidth = 325;
-        panelHeight = height - openButton.getTopY() - BUTTON_SPACING * 2;
-
-        clipBounds = new Rectangle(10, panelY, Gdx.graphics.getWidth(), panelHeight - 40);
         if (previousElement == null) {
             openButton.setPosition(BUTTON_SPACING, BUTTON_SPACING);
         } else {
             openButton.setPosition(previousElement.openButton.getRightX() + BUTTON_SPACING, BUTTON_SPACING);
         }
-
         openButton.setSize(BUTTON_SIZE, BUTTON_SIZE);
+
+        panelX = 10;
+        panelY = openButton.getTopY() + BUTTON_SPACING;
+        panelWidth = 325;
+        panelHeight = height - openButton.getTopY() - BUTTON_SPACING * 2;
+        clipBounds = new Rectangle(panelX, panelY, Gdx.graphics.getWidth(), panelHeight);
     }
 
     public void dispose() {
         openButton.dispose();
+        InputEventThrower.unRegister(this);
     }
 
     public void update(float maxScrollPos) {
@@ -85,6 +87,14 @@ public abstract class ScrollableGui extends InputEventListener implements Dispos
             AutoBuilder.disableContinuousRendering(this);
         } else {
             AutoBuilder.enableContinuousRendering(this);
+        }
+    }
+
+    @Override
+    public void onScroll(float amountX, float amountY) {
+        if (getMouseX() > panelX && getMouseX() < panelX + panelWidth &&
+                getMouseY() > panelY && getMouseY() < panelY + panelHeight) {
+            scrollPos = scrollPos + amountY * 20;
         }
     }
 }

@@ -377,7 +377,7 @@ public final class AutoBuilder extends ApplicationAdapter {
             shooterGui.render(hudShapeRenderer, hudBatch, hudCam);
         }
 
-        settingsGui.render(hudShapeRenderer, hudBatch);
+        settingsGui.render(hudShapeRenderer, hudBatch, hudCam);
 
         configGUI.draw(hudShapeRenderer, hudBatch, hudCam);
         hudRenderer.render(hudShapeRenderer, hudBatch, (shooterGui != null && shooterGui.isPanelOpen()) ? 340 : 0);
@@ -532,6 +532,7 @@ public final class AutoBuilder extends ApplicationAdapter {
         pathGui.updateScreen(width, height);
         if (shooterGui != null) shooterGui.updateScreen(width, height);
         configGUI.updateScreen(width, height);
+        settingsGui.updateScreen(width, height);
     }
 
     @Override
