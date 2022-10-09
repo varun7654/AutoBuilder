@@ -16,7 +16,7 @@ import com.dacubeking.autobuilder.gui.events.input.NumberTextboxChangeListener;
 import com.dacubeking.autobuilder.gui.gui.elements.CheckBox;
 import com.dacubeking.autobuilder.gui.gui.elements.NumberTextBox;
 import com.dacubeking.autobuilder.gui.gui.elements.PositionedNumberTextBox;
-import com.dacubeking.autobuilder.gui.gui.elements.ScrollableGui;
+import com.dacubeking.autobuilder.gui.gui.elements.scrollablegui.ScrollableGui;
 import com.dacubeking.autobuilder.gui.gui.hover.HoverManager;
 import com.dacubeking.autobuilder.gui.gui.textrendering.FontRenderer;
 import com.dacubeking.autobuilder.gui.gui.textrendering.Fonts;

@@ -1,8 +1,11 @@
-package com.dacubeking.autobuilder.gui;
+package com.dacubeking.autobuilder.gui.undo;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
 import com.badlogic.gdx.graphics.Color;
+import com.dacubeking.autobuilder.gui.AutoBuilder;
+import com.dacubeking.autobuilder.gui.CameraHandler;
+import com.dacubeking.autobuilder.gui.config.Config;
 import com.dacubeking.autobuilder.gui.config.gui.FileHandler;
 import com.dacubeking.autobuilder.gui.gui.path.AbstractGuiItem;
 import com.dacubeking.autobuilder.gui.gui.path.PathGui;
@@ -18,7 +21,7 @@ import java.util.List;
 public final class UndoHandler {
     private static final int MAX_UNDO_HISTORY = 1000;
     private static final UndoHandler undoHandler = new UndoHandler();
-    private @NotNull List<Autonomous> undoHistory = new ArrayList<>();
+    private @NotNull List<UndoState> undoHistory = new ArrayList<>(MAX_UNDO_HISTORY);
     int pointer = 0;
     private boolean somethingChanged = false;
 
@@ -69,25 +72,26 @@ public final class UndoHandler {
     }
 
     private synchronized void saveCurrentState(PathGui pathGui) {
-        Autonomous newState = GuiSerializer.serializeAutonomousForUndoHistory(pathGui.guiItems);
+        Autonomous newAutonomousState = GuiSerializer.serializeAutonomousForUndoHistory(pathGui.guiItems);
         while (pointer > 0) {
             undoHistory.remove(0);
             pointer--;
         }
+        UndoState newState = new UndoState(newAutonomousState, new Config(AutoBuilder.getConfig()));
         undoHistory.add(0, newState);
         if (undoHistory.size() > MAX_UNDO_HISTORY) {
             undoHistory.remove(undoHistory.size() - 1);
         }
-        //System.out.println("adding: " + newState);
+        // System.out.println("adding: " + newState);
         somethingChanged = false;
         lastUndoSaveTime = System.currentTimeMillis();
         FileHandler.saveAuto(true);
     }
 
-    public synchronized void restoreState(Autonomous autonomous, PathGui pathGui,
+    public synchronized void restoreState(UndoState undoState, PathGui pathGui,
                                           @NotNull CameraHandler cameraHandler) {
         List<AbstractGuiItem> guiItemList = new ArrayList<>();
-        for (AbstractAutonomousStep autonomousStep : autonomous.getAutonomousSteps()) {
+        for (AbstractAutonomousStep autonomousStep : undoState.autonomous().getAutonomousSteps()) {
             if (autonomousStep instanceof TrajectoryAutonomousStep trajectoryAutonomousStep) {
                 Color color = new Color().fromHsv(trajectoryAutonomousStep.getColor(), 1, 1);
                 color.set(color.r, color.g, color.b, 1);
@@ -108,10 +112,16 @@ public final class UndoHandler {
             guiItem.dispose();
         }
         pathGui.guiItems = guiItemList;
+        AutoBuilder.getConfig().setConfig(undoState.config());
+        AutoBuilder.getInstance().settingsGui.updateValues();
     }
 
     public synchronized void somethingChanged() {
         somethingChanged = true;
+    }
+
+    public synchronized void forceCreateUndoState(PathGui pathGui) {
+        saveCurrentState(pathGui);
     }
 
     public synchronized void clearUndoHistory() {

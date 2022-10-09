@@ -37,6 +37,8 @@ import com.dacubeking.autobuilder.gui.pathing.pointclicks.ClosePoint;
 import com.dacubeking.autobuilder.gui.pathing.pointclicks.CloseTrajectoryPoint;
 import com.dacubeking.autobuilder.gui.scripting.RobotCodeData;
 import com.dacubeking.autobuilder.gui.serialization.path.Autonomous;
+import com.dacubeking.autobuilder.gui.undo.UndoHandler;
+import com.dacubeking.autobuilder.gui.undo.UndoState;
 import com.dacubeking.autobuilder.gui.util.MouseUtil;
 import com.dacubeking.autobuilder.gui.util.OsUtil;
 import org.jetbrains.annotations.NotNull;
@@ -169,13 +171,13 @@ public final class AutoBuilder extends ApplicationAdapter {
 
         pathGui = new PathGui(asyncPathingService, cameraHandler);
 
+        settingsGui = new SettingsGui();
+        
         FileHandler.loadAuto();
 
         drivenPathRenderer = new DrivenPathRenderer();
         hudRenderer = new HudRenderer();
         drawableRenderer = new DrawableRenderer();
-
-        settingsGui = new SettingsGui();
 
         if (config.isShooterConfigEnabled()) {
             File shooterConfigFile = config.getShooterConfigPath();
@@ -191,7 +193,7 @@ public final class AutoBuilder extends ApplicationAdapter {
             }
         }
         configGUI = new ConfigGUI();
-        undoHandler.somethingChanged();
+        undoHandler.forceCreateUndoState(pathGui);
 
         if (config.isNetworkTablesEnabled()) networkTables.start(hudRenderer, drawableRenderer);
     }
@@ -561,10 +563,10 @@ public final class AutoBuilder extends ApplicationAdapter {
     }
 
     public void restoreState(Autonomous autonomous, boolean clearUndoHistory) {
-        undoHandler.restoreState(autonomous, pathGui, cameraHandler);
+        undoHandler.restoreState(new UndoState(autonomous, config), pathGui, cameraHandler);
         if (clearUndoHistory) {
             undoHandler.clearUndoHistory();
-            undoHandler.somethingChanged();
         }
+        undoHandler.forceCreateUndoState(pathGui);
     }
 }

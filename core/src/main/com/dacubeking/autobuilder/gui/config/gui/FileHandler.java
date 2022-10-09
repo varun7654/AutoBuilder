@@ -10,6 +10,7 @@ import com.dacubeking.autobuilder.gui.net.Serializer;
 import com.dacubeking.autobuilder.gui.pathing.PathRenderer;
 import com.dacubeking.autobuilder.gui.serialization.path.Autonomous;
 import com.dacubeking.autobuilder.gui.serialization.path.GuiSerializer;
+import com.dacubeking.autobuilder.gui.undo.UndoHandler;
 
 import java.io.File;
 import java.io.IOException;
@@ -39,7 +40,7 @@ public class FileHandler {
                 }
             }
 
-            AutoBuilder.getInstance().restoreState(autonomous);
+            AutoBuilder.getInstance().restoreState(autonomous, false);
             saveConfig();
             saveAuto(false);
 
@@ -57,6 +58,7 @@ public class FileHandler {
                 NotificationHandler.addNotification(
                         new Notification(Color.GREEN, "Loaded Config File: " + file.getAbsolutePath(),
                                 3000));
+                UndoHandler.getInstance().forceCreateUndoState(AutoBuilder.getInstance().pathGui);
             } catch (IOException exception) {
                 exception.printStackTrace();
                 NotificationHandler.addNotification(

@@ -1,4 +1,4 @@
-package com.dacubeking.autobuilder.gui.gui.elements;
+package com.dacubeking.autobuilder.gui.gui.elements.scrollablegui;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
@@ -8,6 +8,7 @@ import com.badlogic.gdx.utils.Disposable;
 import com.dacubeking.autobuilder.gui.AutoBuilder;
 import com.dacubeking.autobuilder.gui.events.input.InputEventListener;
 import com.dacubeking.autobuilder.gui.events.input.InputEventThrower;
+import com.dacubeking.autobuilder.gui.gui.elements.AbstractGuiButton;
 import com.dacubeking.autobuilder.gui.util.MathUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;

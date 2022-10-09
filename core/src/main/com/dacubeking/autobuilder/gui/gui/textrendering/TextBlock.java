@@ -321,8 +321,8 @@ public class TextBlock {
     }
 
     /**
-     * @return a mutable list of all the text components that are used to create this text block. If this list is modified, {@link
-     * #setDirty()} must be called.
+     * @return a mutable list of all the text components that are used to create this text block. If this list is modified,
+     * {@link #setDirty()} must be called.
      */
     public TextComponent[] getTextComponents() {
         return textComponents;
@@ -366,6 +366,14 @@ public class TextBlock {
                 (largestFontSize * lineSpacing) - renderableTextComponents.get(renderableTextComponents.size() - 1).y;
     }
 
+    float getBottomPaddingCache = -1;
+
+    public float getBottomPaddingAmount() {
+        if (getBottomPaddingCache != -1) return getBottomPaddingCache;
+        return getBottomPaddingCache =
+                renderableTextComponents.get(renderableTextComponents.size() - 1).getFontData().lineHeight / 4;
+    }
+
     /**
      * Marks the data in this object as needing to be recalculated.
      */
@@ -374,6 +382,7 @@ public class TextBlock {
         getPositionOfIndexCache.clear();
         getHeightCache = -1;
         width = -1;
+        getBottomPaddingCache = -1;
     }
 
     public void setDirtyIfTrue(boolean dirty) {

@@ -3,8 +3,8 @@ package com.dacubeking.autobuilder.gui.gui.path;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Texture;
 import com.dacubeking.autobuilder.gui.CameraHandler;
-import com.dacubeking.autobuilder.gui.UndoHandler;
 import com.dacubeking.autobuilder.gui.gui.elements.AbstractGuiButton;
+import com.dacubeking.autobuilder.gui.undo.UndoHandler;
 import org.jetbrains.annotations.NotNull;
 
 public class AddPathButton extends AbstractGuiButton {

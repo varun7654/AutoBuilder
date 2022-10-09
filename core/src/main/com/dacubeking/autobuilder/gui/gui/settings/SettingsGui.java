@@ -7,13 +7,12 @@ import com.badlogic.gdx.graphics.g2d.PolygonSpriteBatch;
 import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.scenes.scene2d.utils.ScissorStack;
-import com.dacubeking.autobuilder.gui.gui.elements.ScrollableGui;
-import com.dacubeking.autobuilder.gui.gui.textrendering.FontRenderer;
-import com.dacubeking.autobuilder.gui.gui.textrendering.Fonts;
-import com.dacubeking.autobuilder.gui.gui.textrendering.TextBlock;
+import com.dacubeking.autobuilder.gui.AutoBuilder;
+import com.dacubeking.autobuilder.gui.gui.elements.IntegerNumberTextBox;
+import com.dacubeking.autobuilder.gui.gui.elements.TextBox;
+import com.dacubeking.autobuilder.gui.gui.elements.scrollablegui.*;
 import com.dacubeking.autobuilder.gui.gui.textrendering.TextComponent;
 import com.dacubeking.autobuilder.gui.util.RoundedShapeRenderer;
-import org.jetbrains.annotations.NotNull;
 import space.earlygrey.shapedrawer.ShapeDrawer;
 
 import java.util.ArrayList;
@@ -27,20 +26,65 @@ public class SettingsGui extends ScrollableGui {
     private ArrayList<GuiElement> guiItems = new ArrayList<>();
 
     {
-        guiItems.add(new GuiElement() {
-            private static final TextBlock teamNumberText = new TextBlock(Fonts.ROBOTO, 20,
-                    new TextComponent("Team Number: ", Color.BLACK).setBold(false));
-            //private static final PathNumberTextBox teamNumberTextBox = new NumberTextBox(AutoBuilder.getConfig()
-            // .getTeamNumber())
+        updateGuiItems();
+    }
 
-            @Override
-            public float render(@NotNull ShapeDrawer shapeRenderer, @NotNull PolygonSpriteBatch spriteBatch, float drawStartX,
-                                float drawStartY, float drawWidth, Camera camera, boolean isLeftMouseJustUnpressed) {
-                FontRenderer.renderText(spriteBatch, shapeRenderer, drawStartX + 10, drawStartY - teamNumberText.getHeight(),
-                        teamNumberText);
-                return teamNumberText.getHeight();
-            }
-        });
+
+    private final LabeledTextInputField teamNumberInputField = new LabeledTextInputField(
+            new TextComponent("Team Number: ", Color.BLACK).setBold(false),
+            new IntegerNumberTextBox(String.valueOf(AutoBuilder.getConfig().getTeamNumber()), true,
+                    (this::updateTeamNumber), (TextBox::getText), 16),
+            100f);
+
+    private final LabeledTextInputField robotLengthField = new LabeledTextInputField(
+            new TextComponent("Robot Length: ", Color.BLACK).setBold(false),
+            new IntegerNumberTextBox(String.valueOf(AutoBuilder.getConfig().getRobotLength()), true,
+                    (this::updateRobotLength), (TextBox::getText), 16),
+            100f);
+
+    private final LabeledTextInputField robotWidthField = new LabeledTextInputField(
+            new TextComponent("Robot Width: ", Color.BLACK).setBold(false),
+            new IntegerNumberTextBox(String.valueOf(AutoBuilder.getConfig().getRobotWidth()), true,
+                    (this::updateRobotWidth), (TextBox::getText), 16),
+            100f);
+
+    private final LabeledTextInputField pointScaleFactorField = new LabeledTextInputField(
+            new TextComponent("Point Scale Factor: ", Color.BLACK).setBold(false),
+            new IntegerNumberTextBox(String.valueOf(AutoBuilder.getConfig().getPointScaleFactor()), true,
+                    (this::updatePointScaleFactor), (TextBox::getText), 16),
+            100f);
+
+    private final LabeledTextInputField originX = new LabeledTextInputField(
+            new TextComponent("Origin X: ", Color.BLACK).setBold(false),
+            new IntegerNumberTextBox(String.valueOf(AutoBuilder.getConfig().getOriginX()), true,
+                    (this::updateOriginX), (TextBox::getText), 16),
+            100f);
+
+    private final LabeledTextInputField originY = new LabeledTextInputField(
+            new TextComponent("Origin Y: ", Color.BLACK).setBold(false),
+            new IntegerNumberTextBox(String.valueOf(AutoBuilder.getConfig().getOriginY()), true,
+                    (this::updateOriginY), (TextBox::getText), 16),
+            100f);
+
+    private final LabeledCheckbox isHolonomicCheckbox = new LabeledCheckbox(
+            new TextComponent("Is Holonomic: ", Color.BLACK).setBold(false),
+            this::updateIsHolonomic, AutoBuilder.getConfig().isHolonomic());
+
+    public void updateGuiItems() {
+        guiItems.clear();
+        guiItems.add(new TextGuiElement(new TextComponent("Settings", Color.BLACK).setBold(true).setSize(35)));
+        guiItems.add(new TextGuiElement(new TextComponent("Basics", Color.BLACK).setBold(true).setSize(23)));
+        guiItems.add(new DividerGuiElement());
+        guiItems.add(teamNumberInputField);
+        guiItems.add(robotLengthField);
+        guiItems.add(robotWidthField);
+        guiItems.add(isHolonomicCheckbox);
+
+        guiItems.add(new TextGuiElement(new TextComponent("Rendering Config", Color.BLACK).setBold(true).setSize(23)));
+        guiItems.add(new DividerGuiElement());
+        guiItems.add(pointScaleFactorField);
+        guiItems.add(originX);
+        guiItems.add(originY);
     }
 
     private float maxScroll = 0;
@@ -51,11 +95,9 @@ public class SettingsGui extends ScrollableGui {
 
     public boolean update() {
         super.update(10000);
+        updateGuiItems();
         return panelOpen;
     }
-
-    private static final TextBlock settingsText = new TextBlock(Fonts.ROBOTO, 35,
-            new TextComponent("Settings", Color.BLACK).setBold(true));
 
     private final Vector2 mouseDownPos = new Vector2();
 
@@ -64,8 +106,6 @@ public class SettingsGui extends ScrollableGui {
         if (panelOpen) {
             shapeDrawer.setColor(Color.WHITE);
             RoundedShapeRenderer.roundedRect(shapeDrawer, panelX, panelY, panelWidth, panelHeight, 5);
-            FontRenderer.renderText(batch, shapeDrawer, panelX + 5, panelY + panelHeight - settingsText.getHeight() - 5,
-                    settingsText);
             Rectangle scissors = new Rectangle();
 
             ScissorStack.calculateScissors(camera, batch.getTransformMatrix(), clipBounds, scissors);
@@ -76,7 +116,7 @@ public class SettingsGui extends ScrollableGui {
             Vector2 mousePos = getMousePos();
 
             for (GuiElement guiItem : guiItems) {
-                yPos = yPos - 10 - guiItem.render(shapeDrawer, batch, panelX + 10, yPos, panelWidth - 20,
+                yPos = yPos - 3 - guiItem.render(shapeDrawer, batch, panelX, yPos, panelWidth,
                         camera, isIsLeftMouseJustUnpressed() && dist2(mouseDownPos, mousePos) < 10);
             }
 
@@ -88,5 +128,80 @@ public class SettingsGui extends ScrollableGui {
 
             maxScroll = Math.max(0, -(yPos - (int) smoothScrollPos - 10));
         }
+    }
+
+    public void updateValues() {
+        teamNumberInputField.textBox.setText(String.valueOf(AutoBuilder.getConfig().getTeamNumber()));
+        robotLengthField.textBox.setText(String.valueOf(AutoBuilder.getConfig().getRobotLength()));
+        robotWidthField.textBox.setText(String.valueOf(AutoBuilder.getConfig().getRobotWidth()));
+        isHolonomicCheckbox.setCheckBox(AutoBuilder.getConfig().isHolonomic());
+
+        pointScaleFactorField.textBox.setText(String.valueOf(AutoBuilder.getConfig().getPointScaleFactor()));
+        originX.textBox.setText(String.valueOf(AutoBuilder.getConfig().getOriginX()));
+        originY.textBox.setText(String.valueOf(AutoBuilder.getConfig().getOriginY()));
+    }
+
+    public void updateTeamNumber(TextBox textBox) {
+        try {
+            int teamNumber = Integer.parseInt(textBox.getText());
+            AutoBuilder.getConfig().setTeamNumber(teamNumber);
+            teamNumberInputField.setValid(true);
+        } catch (NumberFormatException e) {
+            teamNumberInputField.setValid(false);
+        }
+    }
+
+    public void updateRobotLength(TextBox textBox) {
+        try {
+            float length = Float.parseFloat(textBox.getText());
+            AutoBuilder.getConfig().setRobotLength(length);
+            robotLengthField.setValid(true);
+        } catch (NumberFormatException e) {
+            robotLengthField.setValid(false);
+        }
+    }
+
+    public void updateRobotWidth(TextBox textBox) {
+        try {
+            float width = Float.parseFloat(textBox.getText());
+            AutoBuilder.getConfig().setRobotWidth(width);
+            robotWidthField.setValid(true);
+        } catch (NumberFormatException e) {
+            robotWidthField.setValid(false);
+        }
+    }
+
+    public void updatePointScaleFactor(TextBox textBox) {
+        try {
+            float scaleFactor = Float.parseFloat(textBox.getText());
+            AutoBuilder.getConfig().setPointScaleFactor(scaleFactor);
+            pointScaleFactorField.setValid(true);
+        } catch (NumberFormatException e) {
+            pointScaleFactorField.setValid(false);
+        }
+    }
+
+    public void updateOriginX(TextBox textBox) {
+        try {
+            float originX = Float.parseFloat(textBox.getText());
+            AutoBuilder.getConfig().setOriginX(originX);
+            this.originX.setValid(true);
+        } catch (NumberFormatException e) {
+            this.originX.setValid(false);
+        }
+    }
+
+    public void updateOriginY(TextBox textBox) {
+        try {
+            float originY = Float.parseFloat(textBox.getText());
+            AutoBuilder.getConfig().setOriginY(originY);
+            this.originY.setValid(true);
+        } catch (NumberFormatException e) {
+            this.originY.setValid(false);
+        }
+    }
+
+    public void updateIsHolonomic(boolean isHolonomic) {
+        AutoBuilder.getConfig().setHolonomic(isHolonomic);
     }
 }

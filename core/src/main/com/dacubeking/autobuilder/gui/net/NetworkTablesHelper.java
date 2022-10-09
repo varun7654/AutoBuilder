@@ -86,6 +86,7 @@ public final class NetworkTablesHelper {
     public void start(HudRenderer hudRenderer, @NotNull DrawableRenderer drawableRenderer) {
         new Thread(() -> {
             inst = NetworkTableInstance.getDefault();
+            inst.startClientTeam(AutoBuilder.getConfig().getTeamNumber());
             autoData = inst.getTable("autodata");
             autoPath = autoData.getEntry("autoPath");
             smartDashboardTable = inst.getTable("SmartDashboard");
@@ -101,7 +102,6 @@ public final class NetworkTablesHelper {
             distanceEntry = smartDashboardTable.getEntry("Shooter Distance to Target");
 
 
-            inst.startClientTeam(AutoBuilder.getConfig().getTeamNumber());
             enabledTable.addListener(entryNotification -> {
                 if (entryNotification.getEntry().getBoolean(false)) {
                     if (!enabled) {

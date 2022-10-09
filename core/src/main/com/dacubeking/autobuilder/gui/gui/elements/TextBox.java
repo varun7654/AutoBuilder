@@ -8,7 +8,6 @@ import com.badlogic.gdx.graphics.Cursor.SystemCursor;
 import com.badlogic.gdx.graphics.g2d.Batch;
 import com.badlogic.gdx.math.Vector2;
 import com.dacubeking.autobuilder.gui.AutoBuilder;
-import com.dacubeking.autobuilder.gui.UndoHandler;
 import com.dacubeking.autobuilder.gui.events.input.InputEventListener;
 import com.dacubeking.autobuilder.gui.events.input.InputEventThrower;
 import com.dacubeking.autobuilder.gui.events.input.TextChangeListener;
@@ -16,6 +15,7 @@ import com.dacubeking.autobuilder.gui.gui.hover.HoverManager;
 import com.dacubeking.autobuilder.gui.gui.textrendering.TextComponent;
 import com.dacubeking.autobuilder.gui.gui.textrendering.*;
 import com.dacubeking.autobuilder.gui.scripting.util.LintingPos;
+import com.dacubeking.autobuilder.gui.undo.UndoHandler;
 import com.dacubeking.autobuilder.gui.util.RoundedShapeRenderer;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -27,10 +27,9 @@ import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.StringSelection;
 import java.awt.datatransfer.UnsupportedFlavorException;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
+import java.util.function.Consumer;
+import java.util.function.Function;
 
 import static com.dacubeking.autobuilder.gui.util.MouseUtil.*;
 
@@ -40,8 +39,8 @@ TODO: Still kinda ugly
  */
 public class TextBox extends InputEventListener {
     private final boolean wrapText;
-    @Nullable
-    private final TextChangeListener textChangeListener;
+    @NotNull private final Consumer<TextBox> textChangeCallback;
+    @NotNull private final Function<TextBox, String> textBoxClickCallback;
     @NotNull
     protected String text;
     private boolean selected = false;
@@ -62,10 +61,44 @@ public class TextBox extends InputEventListener {
     private static final long KEY_PRESS_DELAY = 25;
     private static final long INITIAL_KEY_PRESS_DELAY = 400;
 
+    @Nullable private Color outlineColor;
+
+    public TextBox setOutlineColor(@Nullable Color outlineColor) {
+        this.outlineColor = outlineColor;
+        return this;
+    }
+
+    public @Nullable Color getOutlineColor() {
+        return outlineColor;
+    }
+
     public TextBox(@NotNull String text, boolean wrapText, @Nullable TextChangeListener textChangeListener, int fontSize) {
         this.text = text;
         this.wrapText = wrapText;
-        this.textChangeListener = textChangeListener;
+        this.textChangeCallback = (textBox) -> {
+            if (textChangeListener != null) {
+                textChangeListener.onTextChange(textBox.text, textBox);
+            }
+        };
+
+        this.textBoxClickCallback = (textBox) -> {
+            if (textChangeListener != null) {
+                return textChangeListener.onTextBoxClick(textBox.text, textBox);
+            }
+            return null;
+        };
+
+        this.fontSize = fontSize;
+        textBlock = new TextBlock(Fonts.JETBRAINS_MONO, fontSize, 350, new TextComponent(text).setColor(Color.BLACK));
+        InputEventThrower.register(this);
+    }
+
+    public TextBox(@NotNull String text, boolean wrapText, @NotNull Consumer<TextBox> textChangeCallback,
+                   @NotNull Function<TextBox, String> onTextBoxClickCallback, int fontSize) {
+        this.text = text;
+        this.wrapText = wrapText;
+        this.textChangeCallback = textChangeCallback;
+        this.textBoxClickCallback = onTextBoxClickCallback;
         this.fontSize = fontSize;
         textBlock = new TextBlock(Fonts.JETBRAINS_MONO, fontSize, 350, new TextComponent(text).setColor(Color.BLACK));
         InputEventThrower.register(this);
@@ -109,7 +142,7 @@ public class TextBox extends InputEventListener {
                 } else {
                     clickCount = 0;
                 }
-                System.out.println(clickCount);
+                //System.out.println(clickCount);
 
                 if (clickCount == 0) {
                     selectedPos = mouseIndexPos;
@@ -383,6 +416,12 @@ public class TextBox extends InputEventListener {
             textBlock.setTextComponents(addHighlight(new TextComponent(text), 0, text.length()).toArray(new TextComponent[0]));
         }
 
+        if (outlineColor != null) {
+            RoundedShapeRenderer.roundedRect(shapeRenderer,
+                    drawStartX - 2, drawStartY - getHeight() + 6,
+                    drawWidth + 4, getHeight() + 4, 3, Color.BLACK);
+        }
+
         RoundedShapeRenderer.roundedRect(shapeRenderer, drawStartX, drawStartY - textBlock.getHeight(), drawWidth,
                 textBlock.getHeight() + 8, 2, Color.WHITE);
 
@@ -526,13 +565,12 @@ public class TextBox extends InputEventListener {
     }
 
     protected void fireTextChangeEvent() {
-        assert textChangeListener != null;
-        textChangeListener.onTextChange(text, this);
+        textChangeCallback.accept(this);
     }
 
     protected String fireTextBoxClickEvent() {
-        assert textChangeListener != null;
-        return textChangeListener.onTextBoxClick(text, this);
+        String text = textBoxClickCallback.apply(this);
+        return Objects.requireNonNullElseGet(text, () -> this.text); // If the text is null return what we already have
     }
 
     public float getHeight() {
@@ -554,9 +592,11 @@ public class TextBox extends InputEventListener {
      * @param text text to set
      */
     public void setText(@NotNull String text) {
-        if (!this.selected) {
-            this.text = text;
+        if (selected) {
+            highlighting = false;
+            selectedPos = text.length();
         }
+        this.text = text;
     }
 
     @Override

@@ -3,6 +3,7 @@ package com.dacubeking.autobuilder.gui.config;
 
 import com.dacubeking.autobuilder.gui.AutoBuilder;
 import com.fasterxml.jackson.annotation.*;
+import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -68,6 +69,13 @@ public class Config {
 
     public Config() {
         this(null, null, null, null, null, null, null, null, null, null, null, null, null, null, null);
+    }
+
+    public Config(@NotNull Config config) {
+        this(config.scriptMethods, config.selectedAutoFile, config.shooterConfigFile, config.teamNumber, config.robotLength,
+                config.robotWidth, config.pointScaleFactor, config.originX, config.originY, config.pathingConfig,
+                config.networkTablesEnabled, config.robotCodeDataFile, config.reflectionEnabled, config.isHolonomic,
+                config.shooterConfigEnabled);
     }
 
     @JsonProperty("scriptMethods")
@@ -227,5 +235,33 @@ public class Config {
 
     public void setAuto(String auto) {
         this.selectedAutoFile = auto;
+    }
+
+    public void setTeamNumber(int teamNumber) {
+        this.teamNumber = teamNumber;
+    }
+
+    public void setRobotLength(float robotLength) {
+        this.robotLength = robotLength;
+    }
+
+    public void setRobotWidth(float robotWidth) {
+        this.robotWidth = robotWidth;
+    }
+
+    public void setPointScaleFactor(float pointScaleFactor) {
+        this.pointScaleFactor = pointScaleFactor;
+    }
+
+    public void setOriginX(float originX) {
+        this.originX = originX;
+    }
+
+    public void setOriginY(float originY) {
+        this.originY = originY;
+    }
+
+    public void setHolonomic(boolean isHolonomic) {
+        this.isHolonomic = isHolonomic;
     }
 }
