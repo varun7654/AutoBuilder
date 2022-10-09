@@ -251,19 +251,37 @@ public class TrajectoryPathRenderer implements MovablePointEventHandler, Seriali
         if (trajectory != null) {
             ArrayList<CloseTrajectoryPoint> closePoints = new ArrayList<>();
             int currentIndexPos = 0;
-            for (State state : trajectory.getStates()) {
-                Vector3 renderVector = MathUtil.toRenderVector3(state.poseMeters);
-
+            Vector2 mousePosVector2 = new Vector2(mousePos.x, mousePos.y);
+            for (int i = 0; i < trajectory.getStates().size() - 1; i++) {
+                State state = trajectory.getStates().get(i);
+                State stateNext = trajectory.getStates().get(i + 1);
+                Vector2 renderVector = MathUtil.toRenderVector2(state.poseMeters);
+                Vector2 renderVectorNext = MathUtil.toRenderVector2(stateNext.poseMeters);
                 if (currentIndexPos + 1 < controlVectors.size() &&
-                        MathUtil.toRenderVector3(controlVectors.get(currentIndexPos + 1).x[0],
+                        MathUtil.toRenderVector2(controlVectors.get(currentIndexPos + 1).x[0],
                                         controlVectors.get(currentIndexPos + 1).y[0])
                                 .dst2(renderVector) < 8f * state.velocityMetersPerSecond) {
                     currentIndexPos++;
                 }
 
-                float distanceToMouse2 = renderVector.dst2(mousePos);
+                Vector2 closestPoint = MathUtil.getClosestPointOnSegment(renderVector, renderVectorNext, mousePosVector2);
+
+                double time = state.timeSeconds;
+                if (!(closestPoint.epsilonEquals(renderVector, 0.01f) || closestPoint.epsilonEquals(renderVectorNext, 0.01f))) {
+                    Vector2 distanceBetweenStates = renderVectorNext.cpy().sub(renderVector);
+                    float distanceToClosestPoint = renderVector.dst(closestPoint);
+                    float lenBetweenStates = distanceBetweenStates.len();
+                    double interpolationAmount = distanceToClosestPoint / lenBetweenStates;
+
+                    time = state.timeSeconds + interpolationAmount * (stateNext.timeSeconds - state.timeSeconds);
+                } else if (closestPoint.epsilonEquals(renderVectorNext, 0.01f)) {
+                    time = stateNext.timeSeconds;
+                }
+
+
+                float distanceToMouse2 = closestPoint.dst2(mousePosVector2);
                 if (distanceToMouse2 < maxDistance2) {
-                    closePoints.add(new CloseTrajectoryPoint(distanceToMouse2, this, currentIndexPos, state.timeSeconds));
+                    closePoints.add(new CloseTrajectoryPoint(distanceToMouse2, this, currentIndexPos, time));
                 }
             }
             return closePoints;

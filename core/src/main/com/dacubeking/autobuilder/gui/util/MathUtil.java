@@ -5,6 +5,8 @@ import com.badlogic.gdx.math.Vector3;
 import com.dacubeking.autobuilder.gui.AutoBuilder;
 import com.dacubeking.autobuilder.gui.wpi.math.geometry.Pose2d;
 import com.dacubeking.autobuilder.gui.wpi.math.geometry.Translation2d;
+import org.jetbrains.annotations.Contract;
+import org.jetbrains.annotations.NotNull;
 
 public class MathUtil {
     public static float clamp(float val, float min, float max) {
@@ -19,16 +21,19 @@ public class MathUtil {
         return Math.max(min, Math.min(max, val));
     }
 
-    public static float len2(Vector2 vec, float x, float y) {
+    @Contract(pure = true)
+    public static float len2(@NotNull Vector2 vec, float x, float y) {
         return ((x - vec.x) * (x - vec.x)) + ((y - vec.y) * (y - vec.y));
     }
 
-    public static Vector2 toRenderVector2(Pose2d poseMeters) {
+    @Contract("_ -> new")
+    public static @NotNull Vector2 toRenderVector2(@NotNull Pose2d poseMeters) {
         return new Vector2((float) poseMeters.getTranslation().getX() * AutoBuilder.getConfig().getPointScaleFactor(),
                 (float) poseMeters.getTranslation().getY() * AutoBuilder.getConfig().getPointScaleFactor());
     }
 
-    public static Vector3 toRenderVector3(Pose2d poseMeters) {
+    @Contract("_ -> new")
+    public static @NotNull Vector3 toRenderVector3(@NotNull Pose2d poseMeters) {
         return new Vector3((float) poseMeters.getTranslation().getX() * AutoBuilder.getConfig().getPointScaleFactor(),
                 (float) poseMeters.getTranslation().getY() * AutoBuilder.getConfig().getPointScaleFactor(),
                 0);
@@ -42,19 +47,72 @@ public class MathUtil {
         return (x1 - x2) * (x1 - x2) + (y1 - y2) * (y1 - y2);
     }
 
-    public static double dist2(Vector2 v1, Vector2 v2) {
+    @Contract(pure = true)
+    public static double dist2(@NotNull Vector2 v1, @NotNull Vector2 v2) {
         return (v1.x - v2.x) * (v1.x - v2.x) + (v1.y - v2.y) * (v1.y - v2.y);
     }
 
-    public static Vector3 toRenderVector3(Translation2d translation2d) {
+    @Contract("_ -> new")
+    public static @NotNull Vector3 toRenderVector3(@NotNull Translation2d translation2d) {
         return new Vector3((float) translation2d.getX() * AutoBuilder.getConfig().getPointScaleFactor(),
                 (float) translation2d.getY() * AutoBuilder.getConfig().getPointScaleFactor(),
                 0);
     }
 
-    public static Vector3 toRenderVector3(double x, double y) {
+    @Contract("_, _ -> new")
+    public static @NotNull Vector3 toRenderVector3(double x, double y) {
         return new Vector3((float) x * AutoBuilder.getConfig().getPointScaleFactor(),
                 (float) y * AutoBuilder.getConfig().getPointScaleFactor(),
                 0);
+    }
+
+    @Contract("_, _ -> new")
+    public static @NotNull Vector2 toRenderVector2(double x, double y) {
+        return new Vector2((float) x * AutoBuilder.getConfig().getPointScaleFactor(),
+                (float) y * AutoBuilder.getConfig().getPointScaleFactor());
+    }
+
+    /**
+     * Returns closest point on segment to point
+     *
+     * @param ss - segment start point
+     * @param se - segment end point
+     * @param p  - point to found that is the closest point on segment
+     * @return closest point on segment to p
+     */
+    public static Vector2 getClosestPointOnSegment(Vector2 ss, Vector2 se, Vector2 p) {
+        return getClosestPointOnSegment(ss.x, ss.y, se.x, se.y, p.x, p.y);
+    }
+
+    /**
+     * Returns closest point on segment to point
+     *
+     * @param sx1 - segment x coord 1
+     * @param sy1 - segment y coord 1
+     * @param sx2 - segment x coord 2
+     * @param sy2 - segment y coord 2
+     * @param px  - point x coord
+     * @param py  - point y coord
+     * @return closets point on segment to point
+     */
+    public static Vector2 getClosestPointOnSegment(float sx1, float sy1, float sx2, float sy2, float px, float py) {
+        float xDelta = sx2 - sx1;
+        float yDelta = sy2 - sy1;
+
+        if ((xDelta == 0) && (yDelta == 0)) {
+            return new Vector2(sx1, sy1);
+        }
+
+        double u = ((px - sx1) * xDelta + (py - sy1) * yDelta) / (xDelta * xDelta + yDelta * yDelta);
+
+        final Vector2 closestPoint;
+        if (u < 0) {
+            closestPoint = new Vector2(sx1, sy1);
+        } else if (u > 1) {
+            closestPoint = new Vector2(sx2, sy2);
+        } else {
+            closestPoint = new Vector2((float) (sx1 + u * xDelta), (float) (sy1 + u * yDelta));
+        }
+        return closestPoint;
     }
 }
