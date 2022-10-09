@@ -264,4 +264,8 @@ public class Config {
     public void setHolonomic(boolean isHolonomic) {
         this.isHolonomic = isHolonomic;
     }
+
+    public void setNetworkTablesEnabled(boolean networkTablesEnabled) {
+        this.networkTablesEnabled = networkTablesEnabled;
+    }
 }

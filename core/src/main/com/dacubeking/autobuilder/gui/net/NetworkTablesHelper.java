@@ -278,4 +278,14 @@ public final class NetworkTablesHelper {
         if (inst == null) return false;
         return inst.isConnected();
     }
+
+    public void disconnectClient() {
+        if (inst != null) {
+            // Run this action in another thread since it will block the current thread for ~1s
+            // This is to prevent the UI from freezing
+            // Not really worried about the new thread being created since this function requires a user action & shouldn't be
+            // called often
+            new Thread(() -> inst.stopClient()).start();
+        }
+    }
 }

@@ -12,6 +12,7 @@ import com.dacubeking.autobuilder.gui.gui.elements.IntegerNumberTextBox;
 import com.dacubeking.autobuilder.gui.gui.elements.TextBox;
 import com.dacubeking.autobuilder.gui.gui.elements.scrollablegui.*;
 import com.dacubeking.autobuilder.gui.gui.textrendering.TextComponent;
+import com.dacubeking.autobuilder.gui.net.NetworkTablesHelper;
 import com.dacubeking.autobuilder.gui.util.RoundedShapeRenderer;
 import space.earlygrey.shapedrawer.ShapeDrawer;
 
@@ -70,6 +71,10 @@ public class SettingsGui extends ScrollableGui {
             new TextComponent("Is Holonomic: ", Color.BLACK).setBold(false),
             this::updateIsHolonomic, AutoBuilder.getConfig().isHolonomic());
 
+    private final LabeledCheckbox networkTablesEnabledCheckbox = new LabeledCheckbox(
+            new TextComponent("NetworkTables Enabled: ", Color.BLACK).setBold(false),
+            this::updateNetworkTablesEnabled, AutoBuilder.getConfig().isNetworkTablesEnabled());
+
     public void updateGuiItems() {
         guiItems.clear();
         guiItems.add(new TextGuiElement(new TextComponent("Settings", Color.BLACK).setBold(true).setSize(35)));
@@ -85,6 +90,7 @@ public class SettingsGui extends ScrollableGui {
         guiItems.add(pointScaleFactorField);
         guiItems.add(originX);
         guiItems.add(originY);
+        guiItems.add(networkTablesEnabledCheckbox);
     }
 
     private float maxScroll = 0;
@@ -94,7 +100,7 @@ public class SettingsGui extends ScrollableGui {
     }
 
     public boolean update() {
-        super.update(10000);
+        super.update(maxScroll);
         updateGuiItems();
         return panelOpen;
     }
@@ -139,6 +145,7 @@ public class SettingsGui extends ScrollableGui {
         pointScaleFactorField.textBox.setText(String.valueOf(AutoBuilder.getConfig().getPointScaleFactor()));
         originX.textBox.setText(String.valueOf(AutoBuilder.getConfig().getOriginX()));
         originY.textBox.setText(String.valueOf(AutoBuilder.getConfig().getOriginY()));
+        networkTablesEnabledCheckbox.setCheckBox(AutoBuilder.getConfig().isNetworkTablesEnabled());
     }
 
     public void updateTeamNumber(TextBox textBox) {
@@ -203,5 +210,15 @@ public class SettingsGui extends ScrollableGui {
 
     public void updateIsHolonomic(boolean isHolonomic) {
         AutoBuilder.getConfig().setHolonomic(isHolonomic);
+    }
+
+    public void updateNetworkTablesEnabled(boolean networkTablesEnabled) {
+        AutoBuilder.getConfig().setNetworkTablesEnabled(networkTablesEnabled);
+        if (networkTablesEnabled) {
+            NetworkTablesHelper.getInstance().start(AutoBuilder.getInstance().hudRenderer,
+                    AutoBuilder.getInstance().drawableRenderer);
+        } else {
+            NetworkTablesHelper.getInstance().disconnectClient();
+        }
     }
 }
