@@ -7,7 +7,6 @@ import com.dacubeking.autobuilder.gui.config.Config;
 import com.dacubeking.autobuilder.gui.gui.notification.Notification;
 import com.dacubeking.autobuilder.gui.gui.notification.NotificationHandler;
 import com.dacubeking.autobuilder.gui.net.Serializer;
-import com.dacubeking.autobuilder.gui.pathing.PathRenderer;
 import com.dacubeking.autobuilder.gui.serialization.path.Autonomous;
 import com.dacubeking.autobuilder.gui.serialization.path.GuiSerializer;
 import com.dacubeking.autobuilder.gui.undo.UndoHandler;
@@ -58,7 +57,7 @@ public class FileHandler {
                 NotificationHandler.addNotification(
                         new Notification(Color.GREEN, "Loaded Config File: " + file.getAbsolutePath(),
                                 3000));
-                UndoHandler.getInstance().forceCreateUndoState(AutoBuilder.getInstance().pathGui);
+                UndoHandler.getInstance().forceCreateUndoState();
             } catch (IOException exception) {
                 exception.printStackTrace();
                 NotificationHandler.addNotification(
@@ -188,9 +187,9 @@ public class FileHandler {
     private static boolean saveAuto(Autonomous autonomous) {
         File autoFile;
         autoFile = new File(
-                PathRenderer.config.getAutoPath().getParentFile().getAbsolutePath() + "/" +
+                AutoBuilder.getConfig().getAutoPath().getParentFile().getAbsolutePath() + "/" +
                         (autonomous.deployable ? "" : "NOTDEPLOYABLE") + new File(
-                        PathRenderer.config.getSelectedAuto()).getName());
+                        AutoBuilder.getConfig().getSelectedAuto()).getName());
         autoFile.getParentFile().mkdirs();
 
         try {
@@ -215,7 +214,7 @@ public class FileHandler {
 
     private static boolean saveConfig() {
         File configFile = new File(AutoBuilder.USER_DIRECTORY + "/config.json");
-        File shooterConfig = PathRenderer.config.getShooterConfigPath();
+        File shooterConfig = AutoBuilder.getConfig().getShooterConfigPath();
 
         configFile.getParentFile().mkdirs();
         shooterConfig.getParentFile().mkdirs();

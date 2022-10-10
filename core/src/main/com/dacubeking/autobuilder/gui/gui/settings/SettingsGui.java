@@ -13,6 +13,7 @@ import com.dacubeking.autobuilder.gui.gui.elements.TextBox;
 import com.dacubeking.autobuilder.gui.gui.elements.scrollablegui.*;
 import com.dacubeking.autobuilder.gui.gui.textrendering.TextComponent;
 import com.dacubeking.autobuilder.gui.net.NetworkTablesHelper;
+import com.dacubeking.autobuilder.gui.undo.UndoHandler;
 import com.dacubeking.autobuilder.gui.util.RoundedShapeRenderer;
 import space.earlygrey.shapedrawer.ShapeDrawer;
 
@@ -210,6 +211,7 @@ public class SettingsGui extends ScrollableGui {
 
     public void updateIsHolonomic(boolean isHolonomic) {
         AutoBuilder.getConfig().setHolonomic(isHolonomic);
+        UndoHandler.getInstance().reloadState();
     }
 
     public void updateNetworkTablesEnabled(boolean networkTablesEnabled) {
@@ -220,5 +222,6 @@ public class SettingsGui extends ScrollableGui {
         } else {
             NetworkTablesHelper.getInstance().disconnectClient();
         }
+        UndoHandler.getInstance().somethingChanged();
     }
 }

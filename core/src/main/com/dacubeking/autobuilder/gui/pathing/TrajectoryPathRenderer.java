@@ -7,6 +7,7 @@ import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.math.Vector3;
 import com.dacubeking.autobuilder.gui.AutoBuilder;
+import com.dacubeking.autobuilder.gui.config.Config;
 import com.dacubeking.autobuilder.gui.config.gui.FileHandler;
 import com.dacubeking.autobuilder.gui.events.movablepoint.MovablePointEventHandler;
 import com.dacubeking.autobuilder.gui.events.movablepoint.PointMoveEvent;
@@ -110,6 +111,9 @@ public class TrajectoryPathRenderer implements MovablePointEventHandler, Seriali
 
     @Override
     public void render(@NotNull ShapeDrawer renderer, @NotNull OrthographicCamera cam) {
+        Config config = AutoBuilder.getConfig();
+        float pointScaleFactor = config.getPointScaleFactor();
+
         //Get the first 2 points of the line at t = 0
         lastPointLeft.set(0, -AutoBuilder.LINE_THICKNESS / 2);
         lastPointRight.set(0, AutoBuilder.LINE_THICKNESS / 2);
@@ -119,10 +123,10 @@ public class TrajectoryPathRenderer implements MovablePointEventHandler, Seriali
                 lastPointLeft.rotateRad((float) states.get(0).poseMeters.getRotation().getRadians());
                 lastPointRight.rotateRad((float) states.get(0).poseMeters.getRotation().getRadians());
 
-                lastPointLeft.add((float) states.get(0).poseMeters.getTranslation().getX() * config.getPointScaleFactor(),
-                        (float) states.get(0).poseMeters.getTranslation().getY() * config.getPointScaleFactor());
-                lastPointRight.add((float) states.get(0).poseMeters.getTranslation().getX() * config.getPointScaleFactor(),
-                        (float) states.get(0).poseMeters.getTranslation().getY() * config.getPointScaleFactor());
+                lastPointLeft.add((float) states.get(0).poseMeters.getTranslation().getX() * pointScaleFactor,
+                        (float) states.get(0).poseMeters.getTranslation().getY() * pointScaleFactor);
+                lastPointRight.add((float) states.get(0).poseMeters.getTranslation().getX() * pointScaleFactor,
+                        (float) states.get(0).poseMeters.getTranslation().getY() * pointScaleFactor);
 
                 for (State state : states) {
                     Pose2d cur = state.poseMeters;
@@ -143,10 +147,10 @@ public class TrajectoryPathRenderer implements MovablePointEventHandler, Seriali
                     nextPointLeft.rotateRad((float) cur.getRotation().getRadians());
                     nextPointRight.rotateRad((float) cur.getRotation().getRadians());
 
-                    nextPointLeft.add((float) cur.getTranslation().getX() * config.getPointScaleFactor(),
-                            (float) cur.getTranslation().getY() * config.getPointScaleFactor());
-                    nextPointRight.add((float) cur.getTranslation().getX() * config.getPointScaleFactor(),
-                            (float) cur.getTranslation().getY() * config.getPointScaleFactor());
+                    nextPointLeft.add((float) cur.getTranslation().getX() * pointScaleFactor,
+                            (float) cur.getTranslation().getY() * pointScaleFactor);
+                    nextPointRight.add((float) cur.getTranslation().getX() * pointScaleFactor,
+                            (float) cur.getTranslation().getY() * pointScaleFactor);
 
                     //Render the line
                     renderer.setColor(speedColor);
@@ -419,7 +423,7 @@ public class TrajectoryPathRenderer implements MovablePointEventHandler, Seriali
             }
 
             if (Math.abs(selectedPoint.getPos2().sub((float) otherPathPose2d.x[0], (float) otherPathPose2d.y[0]).len2())
-                    < Math.pow((20 / config.getPointScaleFactor() * camera.zoom), 2)) {
+                    < Math.pow((20 / AutoBuilder.getConfig().getPointScaleFactor() * camera.zoom), 2)) {
                 updateConnectedPath(selectedPoint);
             } else {
                 attachedPath = null;
@@ -492,6 +496,7 @@ public class TrajectoryPathRenderer implements MovablePointEventHandler, Seriali
 
     private void updateConnectedPath(MovablePointRenderer selectedPoint) {
         if (attachedPath == null) return;
+        Config config = AutoBuilder.getConfig();
         if (isAttachedPathEnd) {
             ControlVector attachedPathControlVector = attachedPath.controlVectors.get(
                     attachedPath.controlVectors.size() - 1);
@@ -605,6 +610,7 @@ public class TrajectoryPathRenderer implements MovablePointEventHandler, Seriali
                 return trajectory;
             }
             updatedPathCounter.set(updateRequestedPathCounter.get());
+            Config config = AutoBuilder.getConfig();
             TrajectoryConfig trajectoryConfig = new TrajectoryConfig(config.getPathingConfig().maxVelocityMetersPerSecond,
                     config.getPathingConfig().maxAccelerationMetersPerSecondSq);
             for (TrajectoryConstraint trajectoryConstraint : config.getPathingConfig().trajectoryConstraints) {
@@ -615,7 +621,7 @@ public class TrajectoryPathRenderer implements MovablePointEventHandler, Seriali
                 trajectoryConfig.addConstraint(constraint);
             }
 
-            trajectoryConfig.setReversed(isReversed());
+            trajectoryConfig.setReversed(isReversed() && !config.isHolonomic());
             trajectoryConfig.setStartVelocity(velocityStart);
             trajectoryConfig.setEndVelocity(velocityEnd);
 

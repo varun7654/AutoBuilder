@@ -99,7 +99,7 @@ public class TrajectoryItem extends AbstractGuiItem implements PathChangeListene
                 pathGui.executorService, velocityStart, velocityEnd, constraints);
 
         if (AutoBuilder.getConfig().isHolonomic()) {
-            trajectoryPathRenderer.setReversed(false);
+            trajectoryPathRenderer.setReversed(reversed);
         } else {
             trajectoryPathRenderer.setReversed(reversed);
         }

@@ -120,12 +120,17 @@ public final class UndoHandler {
         somethingChanged = true;
     }
 
-    public synchronized void forceCreateUndoState(PathGui pathGui) {
-        saveCurrentState(pathGui);
+    public synchronized void forceCreateUndoState() {
+        saveCurrentState(AutoBuilder.getInstance().pathGui);
     }
 
     public synchronized void clearUndoHistory() {
         undoHistory.clear();
         pointer = 0;
+    }
+
+    public void reloadState() {
+        forceCreateUndoState();
+        restoreState(undoHistory.get(pointer), AutoBuilder.getInstance().pathGui, AutoBuilder.getInstance().cameraHandler);
     }
 }

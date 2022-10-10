@@ -79,7 +79,7 @@ public final class AutoBuilder extends ApplicationAdapter {
     @NotNull private final Vector3 mouseDiff = new Vector3();
     @NotNull OrthographicCamera cam;
     @NotNull Viewport viewport;
-    @NotNull CameraHandler cameraHandler;
+    @NotNull public CameraHandler cameraHandler;
     @NotNull Viewport hudViewport;
     @NotNull OrthographicCamera hudCam;
     @NotNull PointRenderer origin;
@@ -172,7 +172,7 @@ public final class AutoBuilder extends ApplicationAdapter {
         pathGui = new PathGui(asyncPathingService, cameraHandler);
 
         settingsGui = new SettingsGui();
-        
+
         FileHandler.loadAuto();
 
         drivenPathRenderer = new DrivenPathRenderer();
@@ -193,7 +193,7 @@ public final class AutoBuilder extends ApplicationAdapter {
             }
         }
         configGUI = new ConfigGUI();
-        undoHandler.forceCreateUndoState(pathGui);
+        undoHandler.forceCreateUndoState();
 
         if (config.isNetworkTablesEnabled()) networkTables.start(hudRenderer, drawableRenderer);
     }
@@ -567,6 +567,6 @@ public final class AutoBuilder extends ApplicationAdapter {
         if (clearUndoHistory) {
             undoHandler.clearUndoHistory();
         }
-        undoHandler.forceCreateUndoState(pathGui);
+        undoHandler.forceCreateUndoState();
     }
 }

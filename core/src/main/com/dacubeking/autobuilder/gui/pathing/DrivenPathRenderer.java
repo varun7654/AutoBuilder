@@ -44,12 +44,16 @@ public class DrivenPathRenderer implements PathRenderer {
         List<List<RobotPosition>> robotPositions = networkTables.getRobotPositions();
 
         synchronized (robotPositions) {
+            float robotWidth = AutoBuilder.getConfig().getRobotWidth();
+            float robotLength = AutoBuilder.getConfig().getRobotLength();
+            float pointScaleFactor = AutoBuilder.getConfig().getPointScaleFactor();
+
             if (robotPositions.size() > 0) {
                 RobotPosition initialPos = robotPositions.get(0).get(0);
-                lastPointLeft.set((float) (initialPos.x() * config.getPointScaleFactor()),
-                        (float) (initialPos.x() * config.getPointScaleFactor()));
-                lastPointRight.set((float) (initialPos.x() * config.getPointScaleFactor()),
-                        (float) (initialPos.x() * config.getPointScaleFactor()));
+                lastPointLeft.set((float) (initialPos.x() * pointScaleFactor),
+                        (float) (initialPos.x() * pointScaleFactor));
+                lastPointRight.set((float) (initialPos.x() * pointScaleFactor),
+                        (float) (initialPos.x() * pointScaleFactor));
             }
 
             for (int i = 0; i < robotPositions.size() - 1; i++) {
@@ -74,15 +78,15 @@ public class DrivenPathRenderer implements PathRenderer {
                 currPointLeft.rotateRad(angle);
                 currPointRight.rotateRad(angle);
 
-                nextPointLeft.add((float) (pos2.x() * config.getPointScaleFactor()),
-                        (float) (pos2.y() * config.getPointScaleFactor()));
-                nextPointRight.add((float) (pos2.x() * config.getPointScaleFactor()),
-                        (float) (pos2.y() * config.getPointScaleFactor()));
+                nextPointLeft.add((float) (pos2.x() * pointScaleFactor),
+                        (float) (pos2.y() * pointScaleFactor));
+                nextPointRight.add((float) (pos2.x() * pointScaleFactor),
+                        (float) (pos2.y() * pointScaleFactor));
 
-                currPointLeft.add((float) (pos1.x() * config.getPointScaleFactor()),
-                        (float) (pos1.y() * config.getPointScaleFactor()));
-                currPointRight.add((float) (pos1.x() * config.getPointScaleFactor()),
-                        (float) (pos1.y() * config.getPointScaleFactor()));
+                currPointLeft.add((float) (pos1.x() * pointScaleFactor),
+                        (float) (pos1.y() * pointScaleFactor));
+                currPointRight.add((float) (pos1.x() * pointScaleFactor),
+                        (float) (pos1.y() * pointScaleFactor));
 
 
                 shapeRenderer.setColor(Color.WHITE);
@@ -144,8 +148,8 @@ public class DrivenPathRenderer implements PathRenderer {
     private void renderRobotBoundingBox(@NotNull ShapeDrawer shapeRenderer, RobotPosition pos1,
                                         Color color) {
         renderRobotBoundingBox(
-                new Vector2((float) (pos1.x() * config.getPointScaleFactor()),
-                        (float) (pos1.y() * config.getPointScaleFactor())),
+                new Vector2((float) (pos1.x() * AutoBuilder.getConfig().getPointScaleFactor()),
+                        (float) (pos1.y() * AutoBuilder.getConfig().getPointScaleFactor())),
                 (float) pos1.theta(), shapeRenderer, color, Color.WHITE);
     }
 
@@ -178,8 +182,8 @@ public class DrivenPathRenderer implements PathRenderer {
         synchronized (robotPositions) {
             for (int i = 0; i < robotPositions.size(); i++) {
                 RobotPosition robotPosition = robotPositions.get(i).get(0);
-                float len2 = mousePos.dst2((float) (robotPosition.x() * config.getPointScaleFactor()),
-                        (float) (robotPosition.y() * config.getPointScaleFactor()), 0);
+                float len2 = mousePos.dst2((float) (robotPosition.x() * AutoBuilder.getConfig().getPointScaleFactor()),
+                        (float) (robotPosition.y() * AutoBuilder.getConfig().getPointScaleFactor()), 0);
                 if (len2 < maxDistance2) {
                     points.add(new CloseTrajectoryPoint(len2, this, i, 0));
                 }

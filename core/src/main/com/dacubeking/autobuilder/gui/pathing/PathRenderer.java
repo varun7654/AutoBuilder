@@ -5,7 +5,6 @@ import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.math.Vector3;
 import com.dacubeking.autobuilder.gui.AutoBuilder;
-import com.dacubeking.autobuilder.gui.config.Config;
 import com.dacubeking.autobuilder.gui.pathing.pointclicks.CloseTrajectoryPoint;
 import org.jetbrains.annotations.NotNull;
 import space.earlygrey.shapedrawer.ShapeDrawer;
@@ -15,8 +14,6 @@ import java.util.ArrayList;
 public interface PathRenderer {
 
     void render(@NotNull ShapeDrawer renderer, @NotNull OrthographicCamera cam);
-
-    Config config = AutoBuilder.getConfig();
 
     /**
      * Update the point that is selected. This should be called every frame.
@@ -57,14 +54,17 @@ public interface PathRenderer {
      */
     default void renderRobotBoundingBox(Vector2 origin, float rotation, @NotNull ShapeDrawer renderer, Color mainColor,
                                         Color secondaryColor) {
-        Vector2 leftTop = new Vector2(origin).add(-(config.getRobotWidth() / 2) * config.getPointScaleFactor(),
-                (config.getRobotLength() / 2) * config.getPointScaleFactor());
-        Vector2 rightTop = new Vector2(origin).add((config.getRobotWidth() / 2) * config.getPointScaleFactor(),
-                (config.getRobotLength() / 2) * config.getPointScaleFactor());
-        Vector2 leftBottom = new Vector2(origin).add(-(config.getRobotWidth() / 2) * config.getPointScaleFactor(),
-                -(config.getRobotLength() / 2) * config.getPointScaleFactor());
-        Vector2 rightBottom = new Vector2(origin).add((config.getRobotWidth() / 2) * config.getPointScaleFactor(),
-                -(config.getRobotLength() / 2) * config.getPointScaleFactor());
+        float robotWidth = AutoBuilder.getConfig().getRobotWidth();
+        float robotLength = AutoBuilder.getConfig().getRobotLength();
+        float pointScaleFactor = AutoBuilder.getConfig().getPointScaleFactor();
+        Vector2 leftTop = new Vector2(origin).add(-(robotWidth / 2) * pointScaleFactor,
+                (robotLength / 2) * pointScaleFactor);
+        Vector2 rightTop = new Vector2(origin).add((robotWidth / 2) * pointScaleFactor,
+                (robotLength / 2) * pointScaleFactor);
+        Vector2 leftBottom = new Vector2(origin).add(-(robotWidth / 2) * pointScaleFactor,
+                -(robotLength / 2) * pointScaleFactor);
+        Vector2 rightBottom = new Vector2(origin).add((robotWidth / 2) * pointScaleFactor,
+                -(robotLength / 2) * pointScaleFactor);
 
         leftTop.rotateAroundRad(origin, rotation);
         rightTop.rotateAroundRad(origin, rotation);
