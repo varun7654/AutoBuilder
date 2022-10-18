@@ -73,9 +73,9 @@ public class Config {
 
     public Config(@NotNull Config config) {
         this(config.scriptMethods, config.selectedAutoFile, config.shooterConfigFile, config.teamNumber, config.robotLength,
-                config.robotWidth, config.pointScaleFactor, config.originX, config.originY, config.pathingConfig,
-                config.networkTablesEnabled, config.robotCodeDataFile, config.reflectionEnabled, config.isHolonomic,
-                config.shooterConfigEnabled);
+                config.robotWidth, config.pointScaleFactor, config.originX, config.originY,
+                new PathingConfig(config.pathingConfig), config.networkTablesEnabled, config.robotCodeDataFile,
+                config.reflectionEnabled, config.isHolonomic, config.shooterConfigEnabled);
     }
 
     @JsonProperty("scriptMethods")
@@ -267,5 +267,9 @@ public class Config {
 
     public void setNetworkTablesEnabled(boolean networkTablesEnabled) {
         this.networkTablesEnabled = networkTablesEnabled;
+    }
+
+    public void setPathingConfig(PathingConfig pathingConfig) {
+        this.pathingConfig = pathingConfig;
     }
 }

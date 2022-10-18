@@ -51,4 +51,9 @@ public class PathingConfig {
     public PathingConfig() {
         this(null, null, null);
     }
+
+    public PathingConfig(PathingConfig pathingConfig) {
+        this(pathingConfig.maxVelocityMetersPerSecond, pathingConfig.maxAccelerationMetersPerSecondSq,
+                new ArrayList<>(pathingConfig.trajectoryConstraints));
+    }
 }
