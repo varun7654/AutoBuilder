@@ -89,7 +89,7 @@ public class CameraHandler extends InputEventListener {
             cam.position.y = cam.position.y + (deltaPos.y * cam.zoom * (720f / Gdx.graphics.getHeight()));
             targetX = cam.position.x;
             targetY = cam.position.y;
-            mouseVelocity.set(deltaPos.x * AutoBuilder.getDeltaTime(), deltaPos.y * AutoBuilder.getDeltaTime());
+            mouseVelocity.set(deltaPos.x / AutoBuilder.getDeltaTime(), deltaPos.y / AutoBuilder.getDeltaTime());
         } else if (!(targetX == cam.position.x && targetY == cam.position.y)) {
             // Smoothly move camera to target position
             cam.position.x = cam.position.x + ((targetX - cam.position.x) / (Math.max(1, 0.1f / AutoBuilder.getDeltaTime())));
@@ -99,9 +99,9 @@ public class CameraHandler extends InputEventListener {
             float speedMultiplier = Math.max(0, 1 - AutoBuilder.getDeltaTime() * 7);
             mouseVelocity.set(mouseVelocity.x * speedMultiplier, mouseVelocity.y * speedMultiplier);
             cam.position.x =
-                    cam.position.x - (mouseVelocity.x / AutoBuilder.getDeltaTime()) * cam.zoom * (720f / Gdx.graphics.getHeight());
+                    cam.position.x - (mouseVelocity.x * AutoBuilder.getDeltaTime()) * cam.zoom * (720f / Gdx.graphics.getHeight());
             cam.position.y =
-                    cam.position.y + (mouseVelocity.y / AutoBuilder.getDeltaTime()) * cam.zoom * (720f / Gdx.graphics.getHeight());
+                    cam.position.y + (mouseVelocity.y * AutoBuilder.getDeltaTime()) * cam.zoom * (720f / Gdx.graphics.getHeight());
             targetX = cam.position.x;
             targetY = cam.position.y;
         }
