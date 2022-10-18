@@ -140,17 +140,26 @@ public class FileHandler {
     static final Thread saveThread;
     private static volatile boolean requestSave = false;
 
+    private static final Object autoSaveNotificationObject = new Object();
+
     static {
         saveThread = new Thread(() -> {
+            main:
             while (true) {
                 while (!requestSave) {
-                    Thread.onSpinWait();
+                    try {
+                        synchronized (autonomousToSaveLock) {
+                            autonomousToSaveLock.wait();
+                        }
+                    } catch (InterruptedException ignored) {
+                        break main;
+                    }
                 }
 
-                Autonomous autonomous = GuiSerializer.serializeAutonomous(AutoBuilder.getInstance().pathGui.guiItems, true);
                 synchronized (autonomousToSaveLock) {
                     requestSave = false;
                 }
+                Autonomous autonomous = GuiSerializer.serializeAutonomous(AutoBuilder.getInstance().pathGui.guiItems, true);
 
                 synchronized (saveLock) {
                     saving = true;
@@ -163,8 +172,10 @@ public class FileHandler {
                 try {
                     Thread.sleep(5000);
                 } catch (InterruptedException ignored) {
+                    break;
                 }
             }
+            System.out.println("Save thread exited");
         });
         saveThread.start();
     }
@@ -173,6 +184,7 @@ public class FileHandler {
         if (async) {
             synchronized (autonomousToSaveLock) {
                 requestSave = true;
+                autonomousToSaveLock.notifyAll();
             }
         } else {
             synchronized (saveLock) {
