@@ -95,7 +95,7 @@ public abstract class ScrollableGui extends InputEventListener implements Dispos
     public void onScroll(float amountX, float amountY) {
         if (getMouseX() > panelX && getMouseX() < panelX + panelWidth &&
                 getMouseY() > panelY && getMouseY() < panelY + panelHeight) {
-            scrollPos = scrollPos + amountY * 20;
+            scrollPos = scrollPos + amountY * 80;
         }
     }
 }
