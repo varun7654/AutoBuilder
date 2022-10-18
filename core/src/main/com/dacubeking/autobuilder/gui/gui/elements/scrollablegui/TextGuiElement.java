@@ -12,7 +12,7 @@ import space.earlygrey.shapedrawer.ShapeDrawer;
 public class TextGuiElement implements GuiElement {
 
     public TextGuiElement(TextComponent... textComponent) {
-        text = new TextBlock(Fonts.ROBOTO, 18, textComponent);
+        text = new TextBlock(Fonts.ROBOTO, 17, textComponent);
     }
 
     public final TextBlock text;
@@ -23,9 +23,16 @@ public class TextGuiElement implements GuiElement {
 //        shapeRenderer.line(drawStartX, drawStartY, drawStartX + drawWidth, drawStartY, Color.BLACK);
         text.setWrapWidth(drawWidth - 10);
         FontRenderer.renderText(spriteBatch, shapeRenderer, drawStartX + 10,
-                drawStartY - text.getHeight() + text.getBottomPaddingAmount(), text);
+                drawStartY - text.getTextComponents()[0].size.orElse(text.getDefaultSize()) + 3,
+                text);
 //        shapeRenderer.line(drawStartX, drawStartY - text.getHeight(), drawStartX + drawWidth, drawStartY - text.getHeight(),
 //                Color.BLACK);
+        return text.getHeight();
+    }
+
+    @Override
+    public float getHeight(float drawStartX, float drawStartY, float drawWidth, Camera camera, boolean isLeftMouseJustUnpressed) {
+        text.setWrapWidth(drawWidth - 10);
         return text.getHeight();
     }
 }

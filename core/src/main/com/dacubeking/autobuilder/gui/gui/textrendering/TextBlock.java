@@ -370,6 +370,7 @@ public class TextBlock {
 
     public float getBottomPaddingAmount() {
         if (getBottomPaddingCache != -1) return getBottomPaddingCache;
+        if (renderableTextComponents.size() == 0) return getBottomPaddingCache = 0;
         return getBottomPaddingCache =
                 renderableTextComponents.get(renderableTextComponents.size() - 1).getFontData().lineHeight / 4;
     }

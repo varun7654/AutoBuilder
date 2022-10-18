@@ -34,6 +34,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 
 import static com.dacubeking.autobuilder.gui.gui.GuiConstants.BUTTON_SIZE;
+import static com.dacubeking.autobuilder.gui.util.Colors.LIGHT_GREY;
 import static com.dacubeking.autobuilder.gui.util.MouseUtil.*;
 
 public class ShooterGui extends ScrollableGui implements NumberTextboxChangeListener {
@@ -45,8 +46,6 @@ public class ShooterGui extends ScrollableGui implements NumberTextboxChangeList
 
 
     ArrayList<NumberTextBox> textBoxes = new ArrayList<>();
-
-    protected static final @NotNull Color LIGHT_GREY = Color.valueOf("E9E9E9");
     private static final @NotNull Color LIGHT_BLUE = Color.valueOf("5cccff");
     private long nextNetworkTablesPush = 0;
     private int lastUpdateId = 0;

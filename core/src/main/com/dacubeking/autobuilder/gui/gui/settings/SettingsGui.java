@@ -9,8 +9,10 @@ import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.scenes.scene2d.utils.ScissorStack;
 import com.dacubeking.autobuilder.gui.AutoBuilder;
 import com.dacubeking.autobuilder.gui.gui.elements.IntegerNumberTextBox;
+import com.dacubeking.autobuilder.gui.gui.elements.NumberTextBox;
 import com.dacubeking.autobuilder.gui.gui.elements.TextBox;
 import com.dacubeking.autobuilder.gui.gui.elements.scrollablegui.*;
+import com.dacubeking.autobuilder.gui.gui.settings.constraintrenders.ConstraintsGuiElement;
 import com.dacubeking.autobuilder.gui.gui.textrendering.TextComponent;
 import com.dacubeking.autobuilder.gui.net.NetworkTablesHelper;
 import com.dacubeking.autobuilder.gui.undo.UndoHandler;
@@ -24,14 +26,6 @@ import static com.dacubeking.autobuilder.gui.util.MouseUtil.getMousePos;
 import static com.dacubeking.autobuilder.gui.util.MouseUtil.isIsLeftMouseJustUnpressed;
 
 public class SettingsGui extends ScrollableGui {
-
-    private ArrayList<GuiElement> guiItems = new ArrayList<>();
-
-    {
-        updateGuiItems();
-    }
-
-
     private final LabeledTextInputField teamNumberInputField = new LabeledTextInputField(
             new TextComponent("Team Number: ", Color.BLACK).setBold(false),
             new IntegerNumberTextBox(String.valueOf(AutoBuilder.getConfig().getTeamNumber()), true,
@@ -40,31 +34,31 @@ public class SettingsGui extends ScrollableGui {
 
     private final LabeledTextInputField robotLengthField = new LabeledTextInputField(
             new TextComponent("Robot Length: ", Color.BLACK).setBold(false),
-            new IntegerNumberTextBox(String.valueOf(AutoBuilder.getConfig().getRobotLength()), true,
+            new NumberTextBox(String.valueOf(AutoBuilder.getConfig().getRobotLength()), true,
                     (this::updateRobotLength), (TextBox::getText), 16),
             100f);
 
     private final LabeledTextInputField robotWidthField = new LabeledTextInputField(
             new TextComponent("Robot Width: ", Color.BLACK).setBold(false),
-            new IntegerNumberTextBox(String.valueOf(AutoBuilder.getConfig().getRobotWidth()), true,
+            new NumberTextBox(String.valueOf(AutoBuilder.getConfig().getRobotWidth()), true,
                     (this::updateRobotWidth), (TextBox::getText), 16),
             100f);
 
     private final LabeledTextInputField pointScaleFactorField = new LabeledTextInputField(
             new TextComponent("Point Scale Factor: ", Color.BLACK).setBold(false),
-            new IntegerNumberTextBox(String.valueOf(AutoBuilder.getConfig().getPointScaleFactor()), true,
+            new NumberTextBox(String.valueOf(AutoBuilder.getConfig().getPointScaleFactor()), true,
                     (this::updatePointScaleFactor), (TextBox::getText), 16),
             100f);
 
     private final LabeledTextInputField originX = new LabeledTextInputField(
             new TextComponent("Origin X: ", Color.BLACK).setBold(false),
-            new IntegerNumberTextBox(String.valueOf(AutoBuilder.getConfig().getOriginX()), true,
+            new NumberTextBox(String.valueOf(AutoBuilder.getConfig().getOriginX()), true,
                     (this::updateOriginX), (TextBox::getText), 16),
             100f);
 
     private final LabeledTextInputField originY = new LabeledTextInputField(
             new TextComponent("Origin Y: ", Color.BLACK).setBold(false),
-            new IntegerNumberTextBox(String.valueOf(AutoBuilder.getConfig().getOriginY()), true,
+            new NumberTextBox(String.valueOf(AutoBuilder.getConfig().getOriginY()), true,
                     (this::updateOriginY), (TextBox::getText), 16),
             100f);
 
@@ -76,33 +70,43 @@ public class SettingsGui extends ScrollableGui {
             new TextComponent("NetworkTables Enabled: ", Color.BLACK).setBold(false),
             this::updateNetworkTablesEnabled, AutoBuilder.getConfig().isNetworkTablesEnabled());
 
-    public void updateGuiItems() {
-        guiItems.clear();
+    ConstraintsGuiElement constraintsGuiElement = new ConstraintsGuiElement();
+
+    private ArrayList<GuiElement> guiItems = new ArrayList<>();
+
+    {
         guiItems.add(new TextGuiElement(new TextComponent("Settings", Color.BLACK).setBold(true).setSize(35)));
-        guiItems.add(new TextGuiElement(new TextComponent("Basics", Color.BLACK).setBold(true).setSize(23)));
+        guiItems.add(new TextGuiElement(new TextComponent("Basics", Color.BLACK).setBold(true).setSize(28)));
         guiItems.add(new DividerGuiElement());
         guiItems.add(teamNumberInputField);
         guiItems.add(robotLengthField);
         guiItems.add(robotWidthField);
         guiItems.add(isHolonomicCheckbox);
+        guiItems.add(new SpaceGuiElement(10));
 
-        guiItems.add(new TextGuiElement(new TextComponent("Rendering Config", Color.BLACK).setBold(true).setSize(23)));
+        guiItems.add(new TextGuiElement(new TextComponent("App Config", Color.BLACK).setBold(true).setSize(28)));
         guiItems.add(new DividerGuiElement());
         guiItems.add(pointScaleFactorField);
         guiItems.add(originX);
         guiItems.add(originY);
         guiItems.add(networkTablesEnabledCheckbox);
+        guiItems.add(new SpaceGuiElement(10));
+
+        guiItems.add(new TextGuiElement(new TextComponent("Pathing Config", Color.BLACK).setBold(true).setSize(28)));
+        guiItems.add(new DividerGuiElement());
+        guiItems.add(constraintsGuiElement);
+        guiItems.add(new DividerGuiElement());
     }
 
-    private float maxScroll = 0;
+
+    private float maxScrollPos = 0;
 
     public SettingsGui() {
         super(new SettingsGuiOpenIcon(), null);
     }
 
     public boolean update() {
-        super.update(maxScroll);
-        updateGuiItems();
+        super.update(maxScrollPos);
         return panelOpen;
     }
 
@@ -133,7 +137,7 @@ public class SettingsGui extends ScrollableGui {
                 ScissorStack.popScissors();
             }
 
-            maxScroll = Math.max(0, -(yPos - (int) smoothScrollPos - 10));
+            maxScrollPos = Gdx.graphics.getHeight() - 20 + (int) smoothScrollPos - yPos;
         }
     }
 
@@ -147,6 +151,7 @@ public class SettingsGui extends ScrollableGui {
         originX.textBox.setText(String.valueOf(AutoBuilder.getConfig().getOriginX()));
         originY.textBox.setText(String.valueOf(AutoBuilder.getConfig().getOriginY()));
         networkTablesEnabledCheckbox.setCheckBox(AutoBuilder.getConfig().isNetworkTablesEnabled());
+        constraintsGuiElement.updateValues();
     }
 
     public void updateTeamNumber(TextBox textBox) {

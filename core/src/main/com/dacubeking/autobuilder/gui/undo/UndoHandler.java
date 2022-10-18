@@ -133,4 +133,32 @@ public final class UndoHandler {
         forceCreateUndoState();
         restoreState(undoHistory.get(pointer), AutoBuilder.getInstance().pathGui, AutoBuilder.getInstance().cameraHandler);
     }
+
+    public void reloadPaths() {
+        Autonomous newAutonomousState = GuiSerializer.serializeAutonomousForUndoHistory(
+                AutoBuilder.getInstance().pathGui.guiItems);
+
+        for (AbstractGuiItem guiItem : AutoBuilder.getInstance().pathGui.guiItems) {
+            guiItem.dispose();
+        }
+        AutoBuilder.getInstance().pathGui.guiItems = new ArrayList<>();
+        for (AbstractAutonomousStep autonomousStep : newAutonomousState.getAutonomousSteps()) {
+            if (autonomousStep instanceof TrajectoryAutonomousStep trajectoryAutonomousStep) {
+                Color color = new Color().fromHsv(trajectoryAutonomousStep.getColor(), 1, 1);
+                color.set(color.r, color.g, color.b, 1);
+                TrajectoryItem trajectoryItem = new TrajectoryItem(AutoBuilder.getInstance().pathGui,
+                        AutoBuilder.getInstance().cameraHandler,
+                        new ControlVectorList(trajectoryAutonomousStep.getControlVectors()),
+                        trajectoryAutonomousStep.getRotations(),
+                        trajectoryAutonomousStep.isReversed(), color, trajectoryAutonomousStep.isClosed(),
+                        trajectoryAutonomousStep.getVelocityStart(), trajectoryAutonomousStep.getVelocityEnd(),
+                        trajectoryAutonomousStep.getConstraints());
+                AutoBuilder.getInstance().pathGui.guiItems.add(trajectoryItem);
+            } else if (autonomousStep instanceof ScriptAutonomousStep scriptAutonomousStep) {
+                ScriptItem scriptItem = new ScriptItem(scriptAutonomousStep.getScript(),
+                        scriptAutonomousStep.isClosed(), scriptAutonomousStep.isValid());
+                AutoBuilder.getInstance().pathGui.guiItems.add(scriptItem);
+            }
+        }
+    }
 }
