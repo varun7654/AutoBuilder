@@ -26,22 +26,22 @@ public class DifferentialDriveKinematicsConstraintGuiElement extends TrajectoryC
         labeledTextInputField = new LabeledTextInputField(
                 new TextComponent("Max Velocity: ", Color.BLACK).setBold(false),
                 new NumberTextBox(
-                        String.valueOf(constraint.m_maxSpeedMetersPerSecond),
+                        String.valueOf(constraint.getMaxSpeedMetersPerSecond()),
                         true, (this::updateMaxVelocity), (TextBox::getText), 16), 100f);
         this.constraint = constraint;
-        differentDriveKinematicsGuiElement = new DifferentDriveKinematicsGuiElement(constraint.m_kinematics,
+        differentDriveKinematicsGuiElement = new DifferentDriveKinematicsGuiElement(constraint.getKinematics(),
                 (this::updateKinematics));
     }
 
     private void updateKinematics(DifferentialDriveKinematics kinematics) {
-        constraint = new DifferentialDriveKinematicsConstraint(kinematics, constraint.m_maxSpeedMetersPerSecond);
+        constraint = new DifferentialDriveKinematicsConstraint(kinematics, constraint.getMaxSpeedMetersPerSecond());
         updateConstraint(constraint);
     }
 
     private void updateMaxVelocity(TextBox textBox) {
         try {
             updateConstraint(
-                    new DifferentialDriveKinematicsConstraint(constraint.m_kinematics,
+                    new DifferentialDriveKinematicsConstraint(constraint.getKinematics(),
                             Double.parseDouble(textBox.getText())));
             labeledTextInputField.setValid(true);
         } catch (NumberFormatException e) {
