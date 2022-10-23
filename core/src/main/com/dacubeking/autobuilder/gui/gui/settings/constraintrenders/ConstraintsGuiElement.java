@@ -9,6 +9,7 @@ import com.dacubeking.autobuilder.gui.gui.elements.TextBox;
 import com.dacubeking.autobuilder.gui.gui.elements.scrollablegui.GuiElement;
 import com.dacubeking.autobuilder.gui.gui.elements.scrollablegui.LabeledTextInputField;
 import com.dacubeking.autobuilder.gui.gui.elements.scrollablegui.SpaceGuiElement;
+import com.dacubeking.autobuilder.gui.gui.elements.scrollablegui.TextGuiElement;
 import com.dacubeking.autobuilder.gui.gui.textrendering.TextComponent;
 import com.dacubeking.autobuilder.gui.wpi.math.trajectory.constraint.CentripetalAccelerationConstraint;
 import com.dacubeking.autobuilder.gui.wpi.math.trajectory.constraint.DifferentialDriveKinematicsConstraint;
@@ -78,6 +79,10 @@ public class ConstraintsGuiElement implements GuiElement {
         elements.add(new SpaceGuiElement(15f));
     }
 
+    private final AddConstraintGuiElement addConstraintGuiElement = new AddConstraintGuiElement();
+    private final TextGuiElement addConstraintTextGuiElement = new TextGuiElement(
+            new TextComponent("Add Constraint", Color.BLACK).setBold(true).setUnderlined(true).setUnderlineColor(Color.BLACK));
+
     private final SpaceGuiElement spaceBetweenConstraints = new SpaceGuiElement(10f);
 
     @Override
@@ -96,6 +101,12 @@ public class ConstraintsGuiElement implements GuiElement {
             drawY -= spaceBetweenConstraints.render(shapeRenderer, spriteBatch, drawStartX, drawY, drawWidth, camera,
                     isLeftMouseJustUnpressed);
         }
+
+        drawY -= 5 + addConstraintTextGuiElement.render(shapeRenderer, spriteBatch, drawStartX, drawY, drawWidth, camera,
+                isLeftMouseJustUnpressed);
+        drawY -= 5 + addConstraintGuiElement.render(shapeRenderer, spriteBatch, drawStartX, drawY, drawWidth, camera,
+                isLeftMouseJustUnpressed);
+
 
         return drawStartY - drawY;
     }
