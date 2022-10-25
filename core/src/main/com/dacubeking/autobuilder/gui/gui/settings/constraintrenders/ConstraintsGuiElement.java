@@ -6,14 +6,12 @@ import com.badlogic.gdx.graphics.g2d.PolygonSpriteBatch;
 import com.dacubeking.autobuilder.gui.AutoBuilder;
 import com.dacubeking.autobuilder.gui.gui.elements.NumberTextBox;
 import com.dacubeking.autobuilder.gui.gui.elements.TextBox;
-import com.dacubeking.autobuilder.gui.gui.elements.scrollablegui.GuiElement;
-import com.dacubeking.autobuilder.gui.gui.elements.scrollablegui.LabeledTextInputField;
-import com.dacubeking.autobuilder.gui.gui.elements.scrollablegui.SpaceGuiElement;
-import com.dacubeking.autobuilder.gui.gui.elements.scrollablegui.TextGuiElement;
+import com.dacubeking.autobuilder.gui.gui.elements.scrollablegui.*;
+import com.dacubeking.autobuilder.gui.gui.settings.constraintrenders.annotations.Constraint;
+import com.dacubeking.autobuilder.gui.gui.settings.constraintrenders.annotations.ConstraintField;
+import com.dacubeking.autobuilder.gui.gui.textrendering.Fonts;
+import com.dacubeking.autobuilder.gui.gui.textrendering.TextBlock;
 import com.dacubeking.autobuilder.gui.gui.textrendering.TextComponent;
-import com.dacubeking.autobuilder.gui.wpi.math.trajectory.constraint.CentripetalAccelerationConstraint;
-import com.dacubeking.autobuilder.gui.wpi.math.trajectory.constraint.DifferentialDriveKinematicsConstraint;
-import com.dacubeking.autobuilder.gui.wpi.math.trajectory.constraint.TrajectoryConstraint;
 import org.jetbrains.annotations.NotNull;
 import space.earlygrey.shapedrawer.ShapeDrawer;
 
@@ -56,19 +54,119 @@ public class ConstraintsGuiElement implements GuiElement {
 
     ArrayList<GuiElement> constraints = new ArrayList<>();
 
+    private boolean requestConstraintsUpdate = false;
+
     public void updateConstraints() {
         constraints.clear();
         var trajectoryConstraints = AutoBuilder.getConfig().getPathingConfig().trajectoryConstraints;
         for (int i = 0; i < trajectoryConstraints.size(); i++) {
-            TrajectoryConstraint trajectoryConstraint = trajectoryConstraints.get(i);
-            if (trajectoryConstraint instanceof CentripetalAccelerationConstraint constraint) {
-                constraints.add(new CentripetalAccelerationConstraintGuiElement(constraint, i, this));
-            }
-
-            if (trajectoryConstraint instanceof DifferentialDriveKinematicsConstraint constraint) {
-                constraints.add(new DifferentialDriveKinematicsConstraintGuiElement(constraint, i));
+            var constraint = trajectoryConstraints.get(i);
+            if (constraint.getClass().isAnnotationPresent(Constraint.class)) {
+                var constraintClass = constraint.getClass().getAnnotation(Constraint.class);
+                final int finalI = i;
+                constraints.add(new TextGuiElement(new TextComponent(constraintClass.name(), Color.BLACK)
+                        .setBold(true).setSize(20))
+                        .setHoverText(new TextBlock(Fonts.ROBOTO, 14, 300,
+                                new TextComponent(constraintClass.description(), Color.BLACK),
+                                new TextComponent("\n\nClick to remove", Color.RED)))
+                        .setOnClick(() -> {
+                            AutoBuilder.getConfig().getPathingConfig().trajectoryConstraints.remove(finalI);
+                            requestConstraintsUpdate = true;
+                            System.out.println("Removed constraint " + finalI);
+                        }));
+                constraints.add(getConstraintFields(constraint, 1));
+                constraints.add(spaceBetweenConstraints);
             }
         }
+    }
+
+    public IndentedElement getConstraintFields(@NotNull Object constraint, int indentLevel) {
+        ArrayList<GuiElement> elementsToIndent = new ArrayList<>();
+        for (var field : constraint.getClass().getDeclaredFields()) {
+            if (field.isAnnotationPresent(ConstraintField.class)) {
+                var constraintAnnotation = field.getAnnotation(ConstraintField.class);
+                var labelText = new TextComponent(constraintAnnotation.name(), Color.BLACK).setBold(false);
+                var labelHover = new TextBlock(Fonts.ROBOTO, 14, 300,
+                        new TextComponent(constraintAnnotation.description(), Color.BLACK));
+
+                if (field.getType().equals(double.class)) {
+                    field.setAccessible(true);
+                    try {
+                        elementsToIndent.add(new LabeledTextInputField(labelText,
+                                new NumberTextBox(String.valueOf(field.getDouble(constraint)),
+                                        true,
+                                        (t) -> {
+                                            try {
+                                                field.setDouble(constraint, Double.parseDouble(t.getText()));
+                                            } catch (IllegalAccessException e) {
+                                                throw new RuntimeException(e);
+                                            }
+                                        },
+                                        (TextBox::getText), 16),
+                                100f)
+                                .setHoverText(labelHover));
+                    } catch (IllegalAccessException e) {
+                        throw new RuntimeException(e);
+                    }
+                } else if (field.getType().isArray()) {
+                    elementsToIndent.add(new TextGuiElement(labelText.setBold(true)).setHoverText(labelHover));
+
+                    try {
+                        field.setAccessible(true);
+                        Object[] array = (Object[]) field.get(constraint);
+                        ArrayList<GuiElement> elementsToIndent2 = new ArrayList<>();
+                        for (Object o : array) {
+                            if (o.getClass().isAnnotationPresent(ConstraintField.class)) {
+                                var constraintAnnotation1 = o.getClass().getAnnotation(ConstraintField.class);
+                                var labelText1 = new TextComponent(constraintAnnotation1.name(), Color.BLACK).setBold(false);
+                                var labelHover1 = new TextBlock(Fonts.ROBOTO, 14, 300,
+                                        new TextComponent(constraintAnnotation1.description(), Color.BLACK));
+                                elementsToIndent2.add(new TextGuiElement(labelText1.setBold(true)).setHoverText(labelHover1));
+                                elementsToIndent2.add(getConstraintFields(o, indentLevel + 2));
+                            }
+                        }
+                        elementsToIndent.add(new IndentedElement(indentLevel + 1, elementsToIndent2));
+                    } catch (IllegalAccessException e) {
+                        throw new RuntimeException(e);
+                    }
+                } else {
+                    TextGuiElement header = new TextGuiElement(labelText.setBold(true)).setHoverText(labelHover);
+                    elementsToIndent.add(header);
+                    try {
+                        field.setAccessible(true);
+                        if (field.get(constraint) != null) {
+                            if (field.get(constraint).getClass().isAnnotationPresent(ConstraintField.class)) {
+                                labelHover.addTextElement(new TextComponent("\n\nClick to remove this constraint", Color.RED));
+                                header.setOnClick(() -> {
+                                    try {
+                                        field.set(constraint, null);
+                                        requestConstraintsUpdate = true;
+                                    } catch (IllegalAccessException e) {
+                                        throw new RuntimeException(e);
+                                    }
+                                });
+                            }
+                            elementsToIndent.add(getConstraintFields(field.get(constraint), indentLevel + 1));
+                        } else {
+                            if (field.getType().isAnnotationPresent(ConstraintField.class)) {
+                                elementsToIndent.add(new AddConstraintGuiElement((c) -> {
+                                    try {
+                                        field.set(c, constraint);
+                                    } catch (IllegalAccessException e) {
+                                        throw new RuntimeException(e);
+                                    }
+                                }));
+                            } else {
+                                elementsToIndent.add(new TextGuiElement(new TextComponent("null", Color.BLACK)));
+                            }
+                        }
+                    } catch (IllegalAccessException e) {
+                        throw new RuntimeException(e);
+                    }
+                }
+            }
+        }
+        return new IndentedElement(indentLevel, elementsToIndent);
     }
 
     ArrayList<GuiElement> elements = new ArrayList<>();
@@ -98,8 +196,12 @@ public class ConstraintsGuiElement implements GuiElement {
         for (GuiElement constraint : constraints) {
             drawY -= 5 + constraint.render(shapeRenderer, spriteBatch, drawStartX, drawY, drawWidth, camera,
                     isLeftMouseJustUnpressed);
-            drawY -= spaceBetweenConstraints.render(shapeRenderer, spriteBatch, drawStartX, drawY, drawWidth, camera,
-                    isLeftMouseJustUnpressed);
+        }
+
+        if (requestConstraintsUpdate) {
+            requestConstraintsUpdate = false;
+            updateConstraints();
+            AutoBuilder.requestRendering();
         }
 
         drawY -= 5 + addConstraintTextGuiElement.render(shapeRenderer, spriteBatch, drawStartX, drawY, drawWidth, camera,
@@ -120,7 +222,6 @@ public class ConstraintsGuiElement implements GuiElement {
 
         for (GuiElement constraint : constraints) {
             drawY -= 5 + constraint.getHeight(drawStartX, drawY, drawWidth, camera, isLeftMouseJustUnpressed);
-            drawY -= spaceBetweenConstraints.getHeight(drawStartX, drawY, drawWidth, camera, isLeftMouseJustUnpressed);
         }
 
         return drawStartY - drawY;

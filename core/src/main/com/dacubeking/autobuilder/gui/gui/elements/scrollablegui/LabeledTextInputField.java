@@ -13,7 +13,7 @@ public class LabeledTextInputField extends TextGuiElement {
     public final float textBoxWidth;
 
 
-    public LabeledTextInputField(TextComponent label, TextBox textBox, float textBoxWidth) {
+    public LabeledTextInputField(TextComponent label, @NotNull TextBox textBox, float textBoxWidth) {
         super(label);
         this.textBox = textBox.setOutlineColor(Color.BLACK);
         this.textBoxWidth = textBoxWidth;

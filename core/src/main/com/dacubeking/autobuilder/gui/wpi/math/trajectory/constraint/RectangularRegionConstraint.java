@@ -4,69 +4,96 @@
 
 package com.dacubeking.autobuilder.gui.wpi.math.trajectory.constraint;
 
+import com.dacubeking.autobuilder.gui.gui.settings.constraintrenders.annotations.Constraint;
+import com.dacubeking.autobuilder.gui.gui.settings.constraintrenders.annotations.ConstraintField;
 import com.dacubeking.autobuilder.gui.wpi.math.geometry.Pose2d;
 import com.dacubeking.autobuilder.gui.wpi.math.geometry.Translation2d;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import org.jetbrains.annotations.Nullable;
 
-/** Enforces a particular constraint only within a rectangular region. */
+/**
+ * Enforces a particular constraint only within a rectangular region.
+ */
+@Constraint(name = "Rectangular Region", description = "Enforces a particular constraint only within a rectangular region.")
 public class RectangularRegionConstraint implements TrajectoryConstraint {
-  @JsonProperty("bottomLeftPoint") private final Translation2d m_bottomLeftPoint;
-  @JsonProperty("topRightPoint") private final Translation2d m_topRightPoint;
-  @JsonProperty("constraint") private final TrajectoryConstraint m_constraint;
 
-  /**
-   * Constructs a new RectangularRegionConstraint.
-   *
-   * @param bottomLeftPoint The bottom left point of the rectangular region in which to enforce the
-   *     constraint.
-   * @param topRightPoint The top right point of the rectangular region in which to enforce the
-   *     constraint.
-   * @param constraint The constraint to enforce when the robot is within the region.
-   */
-  @JsonCreator
-  public RectangularRegionConstraint(
-         @JsonProperty("bottomLeftPoint")Translation2d bottomLeftPoint,
-         @JsonProperty("topRightPoint") Translation2d topRightPoint,
-         @JsonProperty("constraint") TrajectoryConstraint constraint) {
-    m_bottomLeftPoint = bottomLeftPoint;
-    m_topRightPoint = topRightPoint;
-    m_constraint = constraint;
-  }
+    @ConstraintField(name = "Bottom Left", description = "The bottom left corner of the region.")
+    @JsonProperty("bottomLeftPoint")
+    private Translation2d m_bottomLeftPoint;
 
-  @Override
-  public double getMaxVelocityMetersPerSecond(
-          Pose2d poseMeters, double curvatureRadPerMeter, double velocityMetersPerSecond) {
-    if (isPoseInRegion(poseMeters)) {
-      return m_constraint.getMaxVelocityMetersPerSecond(
-          poseMeters, curvatureRadPerMeter, velocityMetersPerSecond);
-    } else {
-      return Double.POSITIVE_INFINITY;
+    @ConstraintField(name = "Top Right", description = "The top right corner of the region.")
+    @JsonProperty("topRightPoint")
+    private Translation2d m_topRightPoint;
+
+    @ConstraintField(name = "Constraint", description = "The constraint to enforce.")
+    @JsonProperty("constraint")
+    private @Nullable TrajectoryConstraint m_constraint;
+
+    /**
+     * Constructs a new RectangularRegionConstraint.
+     *
+     * @param bottomLeftPoint The bottom left point of the rectangular region in which to enforce the constraint.
+     * @param topRightPoint   The top right point of the rectangular region in which to enforce the constraint.
+     * @param constraint      The constraint to enforce when the robot is within the region.
+     */
+    @JsonCreator
+    public RectangularRegionConstraint(
+            @JsonProperty("bottomLeftPoint") Translation2d bottomLeftPoint,
+            @JsonProperty("topRightPoint") Translation2d topRightPoint,
+            @Nullable @JsonProperty("constraint") TrajectoryConstraint constraint) {
+        m_bottomLeftPoint = bottomLeftPoint;
+        m_topRightPoint = topRightPoint;
+        m_constraint = constraint;
     }
-  }
 
-  @Override
-  public MinMax getMinMaxAccelerationMetersPerSecondSq(
-      Pose2d poseMeters, double curvatureRadPerMeter, double velocityMetersPerSecond) {
-    if (isPoseInRegion(poseMeters)) {
-      return m_constraint.getMinMaxAccelerationMetersPerSecondSq(
-          poseMeters, curvatureRadPerMeter, velocityMetersPerSecond);
-    } else {
-      return new MinMax();
+    @Override
+    public double getMaxVelocityMetersPerSecond(
+            Pose2d poseMeters, double curvatureRadPerMeter, double velocityMetersPerSecond) {
+        if (m_constraint == null) {
+            return Double.POSITIVE_INFINITY;
+        }
+
+        if (isPoseInRegion(poseMeters)) {
+            return m_constraint.getMaxVelocityMetersPerSecond(
+                    poseMeters, curvatureRadPerMeter, velocityMetersPerSecond);
+        } else {
+            return Double.POSITIVE_INFINITY;
+        }
     }
-  }
 
-  /**
-   * Returns whether the specified robot pose is within the region that the constraint is enforced
-   * in.
-   *
-   * @param robotPose The robot pose.
-   * @return Whether the robot pose is within the constraint region.
-   */
-  public boolean isPoseInRegion(Pose2d robotPose) {
-    return robotPose.getX() >= m_bottomLeftPoint.getX()
-        && robotPose.getX() <= m_topRightPoint.getX()
-        && robotPose.getY() >= m_bottomLeftPoint.getY()
-        && robotPose.getY() <= m_topRightPoint.getY();
-  }
+    @Override
+    public MinMax getMinMaxAccelerationMetersPerSecondSq(
+            Pose2d poseMeters, double curvatureRadPerMeter, double velocityMetersPerSecond) {
+
+        if (m_constraint == null) {
+            return new MinMax();
+        }
+
+        if (isPoseInRegion(poseMeters)) {
+            return m_constraint.getMinMaxAccelerationMetersPerSecondSq(
+                    poseMeters, curvatureRadPerMeter, velocityMetersPerSecond);
+        } else {
+            return new MinMax();
+        }
+    }
+
+    @Override
+    public TrajectoryConstraint copy() {
+        return new RectangularRegionConstraint(m_bottomLeftPoint, m_topRightPoint,
+                m_constraint != null ? m_constraint.copy() : null);
+    }
+
+    /**
+     * Returns whether the specified robot pose is within the region that the constraint is enforced in.
+     *
+     * @param robotPose The robot pose.
+     * @return Whether the robot pose is within the constraint region.
+     */
+    public boolean isPoseInRegion(Pose2d robotPose) {
+        return robotPose.getX() >= m_bottomLeftPoint.getX()
+                && robotPose.getX() <= m_topRightPoint.getX()
+                && robotPose.getY() >= m_bottomLeftPoint.getY()
+                && robotPose.getY() <= m_topRightPoint.getY();
+    }
 }

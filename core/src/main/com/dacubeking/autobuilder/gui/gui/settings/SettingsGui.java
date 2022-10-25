@@ -1,6 +1,7 @@
 package com.dacubeking.autobuilder.gui.gui.settings;
 
 import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.Input.Buttons;
 import com.badlogic.gdx.graphics.Camera;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.g2d.PolygonSpriteBatch;
@@ -125,6 +126,10 @@ public class SettingsGui extends ScrollableGui {
             float yPos = Gdx.graphics.getHeight() - 20 + (int) smoothScrollPos;
 
             Vector2 mousePos = getMousePos();
+
+            if (Gdx.input.isButtonJustPressed(Buttons.LEFT)) {
+                mouseDownPos.set(mousePos);
+            }
 
             for (GuiElement guiItem : guiItems) {
                 yPos = yPos - 3 - guiItem.render(shapeDrawer, batch, panelX, yPos, panelWidth,

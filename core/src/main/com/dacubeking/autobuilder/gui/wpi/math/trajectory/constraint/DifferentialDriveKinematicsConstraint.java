@@ -4,6 +4,8 @@
 
 package com.dacubeking.autobuilder.gui.wpi.math.trajectory.constraint;
 
+import com.dacubeking.autobuilder.gui.gui.settings.constraintrenders.annotations.Constraint;
+import com.dacubeking.autobuilder.gui.gui.settings.constraintrenders.annotations.ConstraintField;
 import com.dacubeking.autobuilder.gui.wpi.math.geometry.Pose2d;
 import com.dacubeking.autobuilder.gui.wpi.math.kinematics.ChassisSpeeds;
 import com.dacubeking.autobuilder.gui.wpi.math.kinematics.DifferentialDriveKinematics;
@@ -14,9 +16,17 @@ import com.fasterxml.jackson.annotation.JsonProperty;
  * A class that enforces constraints on the differential drive kinematics. This can be used to ensure that the trajectory is
  * constructed so that the commanded velocities for both sides of the drivetrain stay below a certain limit.
  */
+@Constraint(name = "Differential Drive Kinematics", description = """
+        A class that enforces constraints on the differential drive kinematics.\s
+
+        This can be used to ensure that the trajectory is constructed so that the commanded velocities for both sides of the drivetrain stay below a certain limit.""")
 public class DifferentialDriveKinematicsConstraint implements TrajectoryConstraint {
-    @JsonProperty("maxSpeedMetersPerSecond") private final double m_maxSpeedMetersPerSecond;
-    @JsonProperty("kinematics") private final DifferentialDriveKinematics m_kinematics;
+    @ConstraintField(name = "Max Speed", description = "The max speed that a side of the robot can travel at. (m/s)")
+    @JsonProperty("maxSpeedMetersPerSecond")
+    private double m_maxSpeedMetersPerSecond;
+    @ConstraintField(name = "Kinematics", description = "Differential drive kinematics")
+    @JsonProperty("kinematics")
+    private final DifferentialDriveKinematics m_kinematics;
 
     /**
      * Constructs a differential drive dynamics constraint.
@@ -70,11 +80,12 @@ public class DifferentialDriveKinematicsConstraint implements TrajectoryConstrai
         return new MinMax();
     }
 
-    public double getMaxSpeedMetersPerSecond() {
-        return m_maxSpeedMetersPerSecond;
+    @Override
+    public TrajectoryConstraint copy() {
+        return new DifferentialDriveKinematicsConstraint(m_kinematics.copy(), m_maxSpeedMetersPerSecond);
     }
 
-    public DifferentialDriveKinematics getKinematics() {
-        return m_kinematics;
+    public double getMaxSpeedMetersPerSecond() {
+        return m_maxSpeedMetersPerSecond;
     }
 }

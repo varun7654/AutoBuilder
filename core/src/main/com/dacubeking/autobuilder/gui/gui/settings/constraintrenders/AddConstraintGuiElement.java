@@ -24,6 +24,7 @@ import space.earlygrey.shapedrawer.ShapeDrawer;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Consumer;
 import java.util.function.Supplier;
 
 import static com.dacubeking.autobuilder.gui.util.MouseUtil.isMouseOver;
@@ -31,6 +32,15 @@ import static com.dacubeking.autobuilder.gui.util.MouseUtil.isMouseOver;
 public class AddConstraintGuiElement implements GuiElement {
 
     private static final List<ConstraintType> constraints = new ArrayList<>();
+    protected final Consumer<TrajectoryConstraint> onAddConstraint;
+
+    public AddConstraintGuiElement() {
+        this(AutoBuilder.getConfig().getPathingConfig().trajectoryConstraints::add);
+    }
+
+    public AddConstraintGuiElement(Consumer<TrajectoryConstraint> onAddConstraint) {
+        this.onAddConstraint = onAddConstraint;
+    }
 
     static {
         constraints.add(new ConstraintType("Centripetal Acceleration",
@@ -60,7 +70,7 @@ public class AddConstraintGuiElement implements GuiElement {
         float startY = drawStartY;
         for (ConstraintType constraint : constraints) {
             startY -= constraint.render(shapeRenderer, spriteBatch, drawStartX, startY, drawWidth, camera,
-                    isLeftMouseJustUnpressed);
+                    isLeftMouseJustUnpressed, onAddConstraint);
         }
         return drawStartY - startY;
     }
@@ -81,7 +91,8 @@ public class AddConstraintGuiElement implements GuiElement {
         }
 
         public float render(@NotNull ShapeDrawer shapeRenderer, @NotNull PolygonSpriteBatch spriteBatch, float drawStartX,
-                            float drawStartY, float drawWidth, Camera camera, boolean isLeftMouseJustUnpressed) {
+                            float drawStartY, float drawWidth, Camera camera, boolean isLeftMouseJustUnpressed,
+                            Consumer<TrajectoryConstraint> onAddConstraint) {
             float textHeight = textGuiElement.getHeight(drawStartX + 20, drawStartY, drawWidth - 20, camera,
                     isLeftMouseJustUnpressed);
             if (isMouseOver(drawStartX, drawStartY - 4 - textHeight, drawWidth, textHeight + 8)) {
@@ -89,7 +100,7 @@ public class AddConstraintGuiElement implements GuiElement {
                         drawStartY + 5, drawWidth, textHeight + 10, 5, Colors.LIGHT_GREY);
 
                 if (MouseUtil.isIsLeftMouseJustUnpressed()) {
-                    AutoBuilder.getConfig().getPathingConfig().trajectoryConstraints.add(trajectoryConstraintSupplier.get());
+                    onAddConstraint.accept(trajectoryConstraintSupplier.get());
                     UndoHandler.getInstance().reloadState();
                 }
             }

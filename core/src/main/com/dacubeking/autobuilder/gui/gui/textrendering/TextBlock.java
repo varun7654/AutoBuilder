@@ -488,6 +488,11 @@ public class TextBlock {
         setDirty();
     }
 
+    public int getLength() {
+        updateIfDirty();
+        return totalChars;
+    }
+
     @Override
     public String toString() {
         return "TextBlock{" +
@@ -503,5 +508,10 @@ public class TextBlock {
                 ", getHeightCache=" + getHeightCache +
                 ", getPositionOfIndexCache=" + getPositionOfIndexCache +
                 '}';
+    }
+
+    public void addTextElement(TextComponent textComponent) {
+        textComponents = Arrays.copyOf(textComponents, textComponents.length + 1);
+        textComponents[textComponents.length - 1] = textComponent;
     }
 }

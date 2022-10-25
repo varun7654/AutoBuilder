@@ -4,6 +4,8 @@
 
 package com.dacubeking.autobuilder.gui.wpi.math.trajectory.constraint;
 
+import com.dacubeking.autobuilder.gui.gui.settings.constraintrenders.annotations.Constraint;
+import com.dacubeking.autobuilder.gui.gui.settings.constraintrenders.annotations.ConstraintField;
 import com.dacubeking.autobuilder.gui.wpi.math.geometry.Pose2d;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -15,8 +17,15 @@ import com.fasterxml.jackson.annotation.JsonProperty;
  * <p>Effectively, limiting the maximum centripetal acceleration will cause the robot to slow down
  * around tight turns, making it easier to track trajectories with sharp turns.
  */
+@Constraint(name = "Centripetal Acceleration", description = """
+        A constraint on the maximum absolute centripetal acceleration allowed when traversing a trajectory. The centripetal acceleration of a robot is defined as the velocity squared divided by the radius of curvature.\s
+
+        Effectively, limiting the maximum centripetal acceleration will cause the robot to slow down around tight turns, making it easier to track trajectories with sharp turns.""")
 public class CentripetalAccelerationConstraint implements TrajectoryConstraint {
-    @JsonProperty("maxCentripetalAccelerationMetersPerSecondSq") private final double m_maxCentripetalAccelerationMetersPerSecondSq;
+    @ConstraintField(name = "Max Centripetal Acceleration", description = "The maximum absolute centripetal acceleration " +
+            "allowed.")
+    @JsonProperty("maxCentripetalAccelerationMetersPerSecondSq")
+    private double m_maxCentripetalAccelerationMetersPerSecondSq;
 
     /**
      * Constructs a centripetal acceleration constraint.
@@ -67,7 +76,8 @@ public class CentripetalAccelerationConstraint implements TrajectoryConstraint {
         return new MinMax();
     }
 
-    public double getMaxCentripetalAccelerationMetersPerSecondSq() {
-        return m_maxCentripetalAccelerationMetersPerSecondSq;
+    @Override
+    public TrajectoryConstraint copy() {
+        return new CentripetalAccelerationConstraint(m_maxCentripetalAccelerationMetersPerSecondSq);
     }
 }
