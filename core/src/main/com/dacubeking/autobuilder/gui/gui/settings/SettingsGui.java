@@ -8,6 +8,7 @@ import com.badlogic.gdx.graphics.g2d.PolygonSpriteBatch;
 import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.scenes.scene2d.utils.ScissorStack;
+import com.badlogic.gdx.utils.Disposable;
 import com.dacubeking.autobuilder.gui.AutoBuilder;
 import com.dacubeking.autobuilder.gui.gui.elements.IntegerNumberTextBox;
 import com.dacubeking.autobuilder.gui.gui.elements.NumberTextBox;
@@ -23,10 +24,9 @@ import space.earlygrey.shapedrawer.ShapeDrawer;
 import java.util.ArrayList;
 
 import static com.dacubeking.autobuilder.gui.util.MathUtil.dist2;
-import static com.dacubeking.autobuilder.gui.util.MouseUtil.getMousePos;
-import static com.dacubeking.autobuilder.gui.util.MouseUtil.isIsLeftMouseJustUnpressed;
+import static com.dacubeking.autobuilder.gui.util.MouseUtil.*;
 
-public class SettingsGui extends ScrollableGui {
+public class SettingsGui extends ScrollableGui implements Disposable {
     private final LabeledTextInputField teamNumberInputField = new LabeledTextInputField(
             new TextComponent("Team Number: ", Color.BLACK).setBold(false),
             new IntegerNumberTextBox(String.valueOf(AutoBuilder.getConfig().getTeamNumber()), true,
@@ -97,6 +97,7 @@ public class SettingsGui extends ScrollableGui {
         guiItems.add(new DividerGuiElement());
         guiItems.add(constraintsGuiElement);
         guiItems.add(new DividerGuiElement());
+        guiItems.add(new SpaceGuiElement(25));
     }
 
 
@@ -107,8 +108,13 @@ public class SettingsGui extends ScrollableGui {
     }
 
     public boolean update() {
+        boolean panelWasOpen = panelOpen;
         super.update(maxScrollPos);
-        return panelOpen;
+//        if (panelOpen && !panelWasOpen) {
+//            constraintsGuiElement.updateValues();
+//        }
+        return panelOpen && (isMouseOver(panelX, panelY, panelWidth, panelHeight)
+                || isMouseOver(openButton.getX(), openButton.getY(), openButton.getWidth(), openButton.getHeight()));
     }
 
     private final Vector2 mouseDownPos = new Vector2();
@@ -133,7 +139,9 @@ public class SettingsGui extends ScrollableGui {
 
             for (GuiElement guiItem : guiItems) {
                 yPos = yPos - 3 - guiItem.render(shapeDrawer, batch, panelX, yPos, panelWidth,
-                        camera, isIsLeftMouseJustUnpressed() && dist2(mouseDownPos, mousePos) < 10);
+                        camera, isIsLeftMouseJustUnpressed()
+                                && dist2(mouseDownPos, mousePos) < 10
+                                && isMouseOver(panelX, panelY, panelWidth, panelHeight));
             }
 
 
@@ -221,7 +229,7 @@ public class SettingsGui extends ScrollableGui {
 
     public void updateIsHolonomic(boolean isHolonomic) {
         AutoBuilder.getConfig().setHolonomic(isHolonomic);
-        UndoHandler.getInstance().reloadState();
+        UndoHandler.getInstance().reloadPaths();
     }
 
     public void updateNetworkTablesEnabled(boolean networkTablesEnabled) {

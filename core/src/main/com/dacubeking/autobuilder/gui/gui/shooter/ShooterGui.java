@@ -134,7 +134,8 @@ public class ShooterGui extends ScrollableGui implements NumberTextboxChangeList
         } else if (nextNetworkTablesPush != Long.MAX_VALUE) {
             AutoBuilder.scheduleRendering(nextNetworkTablesPush - System.currentTimeMillis());
         }
-        return panelOpen;
+        return panelOpen && (isMouseOver(panelX, panelY, panelWidth, panelHeight) ||
+                isMouseOver(openButton.getX(), openButton.getY(), openButton.getWidth(), openButton.getHeight()));
     }
 
     ArrayList<ShooterPreset> sortedShooterConfigs = new ArrayList<>();
