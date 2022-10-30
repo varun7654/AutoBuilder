@@ -193,7 +193,6 @@ public final class AutoBuilder extends ApplicationAdapter {
             }
         }
         configGUI = new ConfigGUI();
-        undoHandler.forceCreateUndoState();
 
         if (config.isNetworkTablesEnabled()) networkTables.start(hudRenderer, drawableRenderer);
     }
