@@ -16,6 +16,10 @@ public class NumberTextBox extends TextBox {
         super(text, wrapText, textChangeCallback, onTextBoxClickCallback, fontSize);
     }
 
+    public NumberTextBox(@NotNull String text, boolean wrapText, int fontSize) {
+        super(text, wrapText, fontSize);
+    }
+
     @Override
     public void onKeyType(char character) {
         if (Character.isDigit(character) || character == '.' || character == '-') {

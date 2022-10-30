@@ -39,10 +39,12 @@ TODO: Still kinda ugly
  */
 public class TextBox extends InputEventListener {
     private final boolean wrapText;
-    @NotNull private final Consumer<TextBox> textChangeCallback;
-    @NotNull private final Function<TextBox, String> textBoxClickCallback;
-    @NotNull
-    protected String text;
+    @NotNull private Consumer<TextBox> textChangeCallback;
+    @NotNull private Function<TextBox, String> textBoxClickCallback;
+
+    @NotNull private Consumer<TextBox> textBoxUnfocusedCallback = (textBox) -> {};
+
+    @NotNull protected String text;
     private boolean selected = false;
     private long nextFlashChange = 0;
     private boolean flashing = false;
@@ -62,6 +64,10 @@ public class TextBox extends InputEventListener {
     private static final long INITIAL_KEY_PRESS_DELAY = 400;
 
     @Nullable private Color outlineColor;
+
+    public TextBox(String text, boolean wrapText, int fontSize) {
+        this(text, wrapText, (textBox) -> {}, TextBox::getText, fontSize);
+    }
 
     public TextBox setOutlineColor(@Nullable Color outlineColor) {
         this.outlineColor = outlineColor;
@@ -167,6 +173,9 @@ public class TextBox extends InputEventListener {
                 AutoBuilder.scheduleRendering(500);
                 xPos = -1;
             } else {
+                if (selected) {
+                    textBoxUnfocusedCallback.accept(this);
+                }
                 selected = false;
                 highlighting = false;
             }
@@ -599,6 +608,10 @@ public class TextBox extends InputEventListener {
         this.text = text;
     }
 
+    public boolean isSelected() {
+        return selected;
+    }
+
     @Override
     public String toString() {
         return "TextBox{" +
@@ -626,5 +639,20 @@ public class TextBox extends InputEventListener {
             keyPressedMap.put(keyCode, false);
         }
         return false;
+    }
+
+    public TextBox setTextBoxClickCallback(@NotNull Function<TextBox, String> textBoxClickCallback) {
+        this.textBoxClickCallback = textBoxClickCallback;
+        return this;
+    }
+
+    public TextBox setTextChangeCallback(@NotNull Consumer<TextBox> textChangeCallback) {
+        this.textChangeCallback = textChangeCallback;
+        return this;
+    }
+
+    public TextBox setTextUnfocusedCallback(@NotNull Consumer<TextBox> textUnfocusCallback) {
+        this.textBoxUnfocusedCallback = textUnfocusCallback;
+        return this;
     }
 }

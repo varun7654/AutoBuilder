@@ -4,6 +4,7 @@ import com.badlogic.gdx.graphics.Camera;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.g2d.PolygonSpriteBatch;
 import com.dacubeking.autobuilder.gui.AutoBuilder;
+import com.dacubeking.autobuilder.gui.events.input.InputEventThrower;
 import com.dacubeking.autobuilder.gui.gui.elements.NumberTextBox;
 import com.dacubeking.autobuilder.gui.gui.elements.TextBox;
 import com.dacubeking.autobuilder.gui.gui.elements.scrollablegui.*;
@@ -12,16 +13,18 @@ import com.dacubeking.autobuilder.gui.gui.settings.constraintrenders.annotations
 import com.dacubeking.autobuilder.gui.gui.textrendering.Fonts;
 import com.dacubeking.autobuilder.gui.gui.textrendering.TextBlock;
 import com.dacubeking.autobuilder.gui.gui.textrendering.TextComponent;
+import com.dacubeking.autobuilder.gui.undo.UndoHandler;
+import com.dacubeking.autobuilder.gui.wpi.math.trajectory.constraint.TrajectoryConstraint;
+import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import space.earlygrey.shapedrawer.ShapeDrawer;
 
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.util.ArrayList;
+import java.util.Arrays;
 
 public class ConstraintsGuiElement implements GuiElement {
-    public ConstraintsGuiElement() {
-        updateConstraints();
-    }
-
     private final LabeledTextInputField maxVelocityTextField = new LabeledTextInputField(
             new TextComponent("Max Velocity: ", Color.BLACK).setBold(false),
             new NumberTextBox(String.valueOf(AutoBuilder.getConfig().getPathingConfig().maxVelocityMetersPerSecond),
@@ -54,9 +57,23 @@ public class ConstraintsGuiElement implements GuiElement {
 
     ArrayList<GuiElement> constraints = new ArrayList<>();
 
-    private boolean requestConstraintsUpdate = false;
+    private boolean constraintsGuiReloadWanted = false;
 
-    public void updateConstraints() {
+    /**
+     * Reloads the auto and config and updates the constraints GUI
+     */
+    public void reloadConstraintsGui() {
+        constraintsGuiReloadWanted = true;
+    }
+
+    private boolean flushChangesWanted = false;
+
+    public void flushChanges() {
+        flushChangesWanted = true;
+    }
+
+    private void updateConstraintsRenderers() {
+        int prevEventHandlersSize = InputEventThrower.getNumEventHandlers();
         for (GuiElement constraint : constraints) {
             constraint.dispose();
         }
@@ -74,16 +91,24 @@ public class ConstraintsGuiElement implements GuiElement {
                                 new TextComponent("\n\nClick to remove", Color.RED)))
                         .setOnClick(() -> {
                             AutoBuilder.getConfig().getPathingConfig().trajectoryConstraints.remove(finalI);
-                            requestConstraintsUpdate = true;
+                            UndoHandler.getInstance().somethingChanged();
+                            flushChanges();
+                            reloadConstraintsGui();
                             System.out.println("Removed constraint " + finalI);
                         }));
                 constraints.add(getConstraintFields(constraint, 1));
                 constraints.add(spaceBetweenConstraints);
             }
         }
+        System.out.println("Updated constraints renderers, removed "
+                + (prevEventHandlersSize - InputEventThrower.getNumEventHandlers()) + " event handlers\n"
+                + "total event handlers: " + InputEventThrower.getNumEventHandlers());
     }
 
-    public IndentedElement getConstraintFields(@NotNull Object constraint, int indentLevel) {
+    Class<?>[] clazzArrayOfDouble = new Class[]{double.class};
+
+    @Contract("_, _ -> new")
+    private @NotNull IndentedElement getConstraintFields(@NotNull Object constraint, int indentLevel) {
         ArrayList<GuiElement> elementsToIndent = new ArrayList<>();
         for (var field : constraint.getClass().getDeclaredFields()) {
             if (field.isAnnotationPresent(ConstraintField.class)) {
@@ -93,25 +118,46 @@ public class ConstraintsGuiElement implements GuiElement {
                         new TextComponent(constraintAnnotation.description(), Color.BLACK));
 
                 if (field.getType().equals(double.class)) {
+                    // Render the double as a labeled number text box
                     field.setAccessible(true);
                     try {
-                        elementsToIndent.add(new LabeledTextInputField(labelText,
-                                new NumberTextBox(String.valueOf(field.getDouble(constraint)),
-                                        true,
-                                        (t) -> {
-                                            try {
-                                                field.setDouble(constraint, Double.parseDouble(t.getText()));
-                                            } catch (IllegalAccessException e) {
-                                                throw new RuntimeException(e);
-                                            }
-                                        },
-                                        (TextBox::getText), 16),
-                                100f)
-                                .setHoverText(labelHover));
+                        NumberTextBox textBox = new NumberTextBox(String.valueOf(field.getDouble(constraint)), true, 16);
+                        LabeledTextInputField labeledInputField = new LabeledTextInputField(labelText, textBox, 100f);
+                        labeledInputField.setHoverText(labelHover);
+                        textBox.setTextChangeCallback((t) -> {
+                            try {
+                                double number = Double.parseDouble(t.getText());
+                                // Update the field
+                                if (Arrays.stream(constraint.getClass().getDeclaredMethods()).anyMatch(m -> m.getName()
+                                        .equals("set" + field.getName().substring(0, 1).toUpperCase()
+                                                + field.getName().substring(1))
+                                        && Arrays.equals(m.getParameterTypes(), clazzArrayOfDouble))) {
+                                    constraint.getClass().getDeclaredMethod(
+                                                    "set" + field.getName().substring(0, 1).toUpperCase()
+                                                            + field.getName().substring(1), double.class)
+                                            .invoke(constraint, number);
+                                } else {
+                                    field.setDouble(constraint, number);
+                                }
+                                updateConstraints();
+                                // We have to do this because the text box could be editing a field that other
+                                // fields depend on
+                                UndoHandler.getInstance().reloadPaths();
+                                UndoHandler.getInstance().somethingChanged();
+                                labeledInputField.setValid(true);
+                            } catch (IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
+                                throw new RuntimeException(e);
+                            } catch (NumberFormatException e) {
+                                labeledInputField.setValid(false);
+                            }
+                        });
+
+                        elementsToIndent.add(labeledInputField);
                     } catch (IllegalAccessException e) {
                         throw new RuntimeException(e);
                     }
                 } else if (field.getType().isArray()) {
+                    // Render the individual elements of the array
                     elementsToIndent.add(new TextGuiElement(labelText.setBold(true)).setHoverText(labelHover));
 
                     try {
@@ -124,7 +170,9 @@ public class ConstraintsGuiElement implements GuiElement {
                                 var labelText1 = new TextComponent(constraintAnnotation1.name(), Color.BLACK).setBold(false);
                                 var labelHover1 = new TextBlock(Fonts.ROBOTO, 14, 300,
                                         new TextComponent(constraintAnnotation1.description(), Color.BLACK));
+                                // Render the name of each element in the array with 1 extra indent
                                 elementsToIndent2.add(new TextGuiElement(labelText1.setBold(true)).setHoverText(labelHover1));
+                                // Render the fields of each element in the array with 2 extra indents
                                 elementsToIndent2.add(getConstraintFields(o, indentLevel + 2));
                             }
                         }
@@ -133,28 +181,43 @@ public class ConstraintsGuiElement implements GuiElement {
                         throw new RuntimeException(e);
                     }
                 } else {
-                    TextGuiElement header = new TextGuiElement(labelText.setBold(true)).setHoverText(labelHover);
-                    elementsToIndent.add(header);
                     try {
                         field.setAccessible(true);
                         if (field.get(constraint) != null) {
-                            if (field.get(constraint).getClass().isAnnotationPresent(ConstraintField.class)) {
-                                labelHover.addTextElement(new TextComponent("\n\nClick to remove this constraint", Color.RED));
+                            if (field.get(constraint).getClass().isAnnotationPresent(Constraint.class)) {
+                                var labelText1 = new TextComponent(field.get(constraint).getClass()
+                                        .getAnnotation(Constraint.class).name(), Color.BLACK).setBold(false);
+                                var labelHover1 = new TextBlock(Fonts.ROBOTO, 14, 300,
+                                        new TextComponent(field.get(constraint).getClass()
+                                                .getAnnotation(Constraint.class).description(), Color.BLACK),
+                                        new TextComponent("\n\nClick to remove this constraint", Color.RED));
+
+                                TextGuiElement header = new TextGuiElement(labelText1.setBold(true)).setHoverText(labelHover1);
+                                elementsToIndent.add(header);
                                 header.setOnClick(() -> {
                                     try {
                                         field.set(constraint, null);
-                                        requestConstraintsUpdate = true;
+                                        // We're deleting an element, so flush unsaved changes in our undo history
+                                        reloadConstraintsGui();
+                                        UndoHandler.getInstance().somethingChanged();
                                     } catch (IllegalAccessException e) {
                                         throw new RuntimeException(e);
                                     }
                                 });
+                            } else {
+                                elementsToIndent.add(new TextGuiElement(labelText.setBold(true)).setHoverText(labelHover));
                             }
                             elementsToIndent.add(getConstraintFields(field.get(constraint), indentLevel + 1));
                         } else {
-                            if (field.getType().isAnnotationPresent(ConstraintField.class)) {
+                            if (field.getType().equals(TrajectoryConstraint.class)) {
+                                elementsToIndent.add(new TextGuiElement(new TextComponent("Add a constraint").setBold(true)));
                                 elementsToIndent.add(new AddConstraintGuiElement((c) -> {
                                     try {
-                                        field.set(c, constraint);
+                                        field.set(constraint, c);
+                                        UndoHandler.getInstance().somethingChanged();
+                                        // We're adding an element, so flush unsaved changes in our undo history
+                                        flushChanges();
+                                        reloadConstraintsGui();
                                     } catch (IllegalAccessException e) {
                                         throw new RuntimeException(e);
                                     }
@@ -169,8 +232,71 @@ public class ConstraintsGuiElement implements GuiElement {
                 }
             }
         }
+
+        for (Method declaredMethod : constraint.getClass().getDeclaredMethods()) {
+
+            if (declaredMethod.isAnnotationPresent(ConstraintField.class)) {
+                var constraintAnnotation = declaredMethod.getAnnotation(ConstraintField.class);
+                var labelText = new TextComponent(constraintAnnotation.name(), Color.BLACK).setBold(false);
+                var labelHover = new TextBlock(Fonts.ROBOTO, 14, 300,
+                        new TextComponent(constraintAnnotation.description(), Color.BLACK));
+
+                if (declaredMethod.getReturnType().equals(double.class)) {
+                    // Render the double as a labeled number text box
+                    declaredMethod.setAccessible(true);
+                    try {
+                        NumberTextBox textBox = new NumberTextBox(String.valueOf(declaredMethod.invoke(constraint)), true, 16);
+                        LabeledTextInputField labeledInputField = new LabeledTextInputField(labelText, textBox, 100f);
+                        labeledInputField.setHoverText(labelHover);
+                        textBox.setTextChangeCallback((t) -> {
+                            try {
+                                double number = Double.parseDouble(t.getText());
+                                // Update the field
+                                if (Arrays.stream(constraint.getClass().getDeclaredMethods()).anyMatch(m -> m.getName()
+                                        .equals("set" + declaredMethod.getName().substring(3))
+                                        && Arrays.equals(m.getParameterTypes(), clazzArrayOfDouble))) {
+                                    constraint.getClass().getDeclaredMethod(
+                                                    "set" + declaredMethod.getName().substring(0, 1).toUpperCase()
+                                                            + declaredMethod.getName().substring(1), double.class)
+                                            .invoke(constraint, number);
+                                } else {
+                                    throw (RuntimeException)
+                                            new RuntimeException("No setter found for " + declaredMethod.getName())
+                                                    .fillInStackTrace();
+                                }
+                                updateConstraints();
+
+                                // We have to do this because the text box could be editing a field that other
+                                // fields depend on
+                                UndoHandler.getInstance().somethingChanged();
+                                UndoHandler.getInstance().reloadPaths();
+                                labeledInputField.setValid(true);
+                            } catch (IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
+                                throw new RuntimeException(e);
+                            } catch (NumberFormatException e) {
+                                labeledInputField.setValid(false);
+                            }
+                        });
+
+                        elementsToIndent.add(labeledInputField);
+                    } catch (IllegalAccessException | InvocationTargetException e) {
+                        throw new RuntimeException(e);
+                    } catch (ArrayIndexOutOfBoundsException e) {
+                        // This is thrown when the method has no parameters
+                        throw new RuntimeException("No setter found for " + declaredMethod.getName(), e);
+                    }
+                }
+            }
+        }
         return new IndentedElement(indentLevel, elementsToIndent);
     }
+
+    private void updateConstraints() {
+        for (TrajectoryConstraint trajectoryConstraint : AutoBuilder.getConfig().getPathingConfig().trajectoryConstraints) {
+            trajectoryConstraint.update();
+        }
+    }
+
 
     ArrayList<GuiElement> elements = new ArrayList<>();
 
@@ -180,9 +306,17 @@ public class ConstraintsGuiElement implements GuiElement {
         elements.add(new SpaceGuiElement(15f));
     }
 
-    private final AddConstraintGuiElement addConstraintGuiElement = new AddConstraintGuiElement();
+    private final AddConstraintGuiElement addConstraintGuiElement =
+            new AddConstraintGuiElement((trajectoryConstraint) -> {
+                AutoBuilder.getConfig().getPathingConfig().trajectoryConstraints.add(trajectoryConstraint);
+                UndoHandler.getInstance().somethingChanged();
+                // We're adding an element, so flush unsaved changes in our undo history
+                reloadConstraintsGui();
+                flushChanges();
+            });
+
     private final TextGuiElement addConstraintTextGuiElement = new TextGuiElement(
-            new TextComponent("Add Constraint", Color.BLACK).setBold(true).setUnderlined(true).setUnderlineColor(Color.BLACK));
+            new TextComponent("Add a Constraint", Color.BLACK).setBold(true).setSize(20));
 
     private final SpaceGuiElement spaceBetweenConstraints = new SpaceGuiElement(10f);
 
@@ -201,18 +335,21 @@ public class ConstraintsGuiElement implements GuiElement {
                     isLeftMouseJustUnpressed);
         }
 
-        if (requestConstraintsUpdate) {
-            requestConstraintsUpdate = false;
-            updateConstraints();
-            AutoBuilder.requestRendering();
-        }
-
         drawY -= 5 + addConstraintTextGuiElement.render(shapeRenderer, spriteBatch, drawStartX, drawY, drawWidth, camera,
                 isLeftMouseJustUnpressed);
         drawY -= 5 + addConstraintGuiElement.render(shapeRenderer, spriteBatch, drawStartX, drawY, drawWidth, camera,
                 isLeftMouseJustUnpressed);
 
+        if (constraintsGuiReloadWanted) {
+            constraintsGuiReloadWanted = false;
+            UndoHandler.getInstance().reloadState();
+            AutoBuilder.requestRendering();
+        }
 
+        if (flushChangesWanted) {
+            UndoHandler.getInstance().flushChanges();
+            flushChangesWanted = false;
+        }
         return drawStartY - drawY;
     }
 
@@ -245,6 +382,8 @@ public class ConstraintsGuiElement implements GuiElement {
                 String.valueOf(AutoBuilder.getConfig().getPathingConfig().maxVelocityMetersPerSecond));
         maxAccelerationTextField.textBox.setText(
                 String.valueOf(AutoBuilder.getConfig().getPathingConfig().maxAccelerationMetersPerSecondSq));
-        updateConstraints();
+        if (!constraintsGuiReloadWanted) {
+            updateConstraintsRenderers(); // Don't update constraints if we're already going to rerender them
+        }
     }
 }
