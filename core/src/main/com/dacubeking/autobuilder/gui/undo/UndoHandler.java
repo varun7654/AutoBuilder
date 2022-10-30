@@ -40,6 +40,8 @@ public final class UndoHandler {
     public synchronized void update(PathGui pathGui, @NotNull CameraHandler cameraHandler) {
         if (somethingChanged && System.currentTimeMillis() - lastUndoSaveTime > UNDO_SAVE_INTERVAL) {
             saveCurrentState(pathGui);
+        } else if (!somethingChanged) {
+            lastUndoSaveTime = System.currentTimeMillis();
         }
 
         if ((Gdx.input.isKeyPressed(Input.Keys.CONTROL_LEFT) || Gdx.input.isKeyPressed(Input.Keys.CONTROL_LEFT)) &&
@@ -51,7 +53,7 @@ public final class UndoHandler {
                 pointer--;
                 if (pointer >= 0) {
                     restoreState(undoHistory.get(pointer), pathGui, cameraHandler);
-                    //System.out.println("redoing to: " + undoHistory.get(pointer));
+                    System.out.println("redoing to: " + pointer);
                 } else {
                     pointer = 0;
                 }
@@ -61,7 +63,7 @@ public final class UndoHandler {
                 pointer++;
                 if (pointer < undoHistory.size()) {
                     restoreState(undoHistory.get(pointer), pathGui, cameraHandler);
-                    //System.out.println("undoing to: " + undoHistory.get(pointer));
+                    System.out.println("undoing to: " + pointer);
                 } else {
                     pointer = undoHistory.size() - 1;
                 }
@@ -71,14 +73,18 @@ public final class UndoHandler {
         }
     }
 
-    private synchronized void saveCurrentState(PathGui pathGui) {
+    private @NotNull UndoState getCurrentState(@NotNull PathGui pathGui) {
         Autonomous newAutonomousState = GuiSerializer.serializeAutonomousForUndoHistory(pathGui.guiItems);
+        return new UndoState(newAutonomousState, new Config(AutoBuilder.getConfig()));
+    }
+
+    private synchronized void saveCurrentState(PathGui pathGui) {
         while (pointer > 0) {
             undoHistory.remove(0);
             pointer--;
         }
-        UndoState newState = new UndoState(newAutonomousState, new Config(AutoBuilder.getConfig()));
-        undoHistory.add(0, newState);
+
+        undoHistory.add(0, getCurrentState(pathGui));
         if (undoHistory.size() > MAX_UNDO_HISTORY) {
             undoHistory.remove(undoHistory.size() - 1);
         }
@@ -88,7 +94,7 @@ public final class UndoHandler {
         FileHandler.saveAuto(true);
     }
 
-    public synchronized void restoreState(UndoState undoState, PathGui pathGui,
+    public synchronized void restoreState(@NotNull UndoState undoState, PathGui pathGui,
                                           @NotNull CameraHandler cameraHandler) {
         List<AbstractGuiItem> guiItemList = new ArrayList<>();
         for (AbstractAutonomousStep autonomousStep : undoState.autonomous().getAutonomousSteps()) {
@@ -129,11 +135,18 @@ public final class UndoHandler {
         pointer = 0;
     }
 
+    /**
+     * Reloads the state of the Config and PathGui from the current state. Useful to have the app recalculate changes that may
+     * have been made
+     */
     public void reloadState() {
-        forceCreateUndoState();
-        restoreState(undoHistory.get(pointer), AutoBuilder.getInstance().pathGui, AutoBuilder.getInstance().cameraHandler);
+        PathGui pathGui = AutoBuilder.getInstance().pathGui;
+        restoreState(getCurrentState(pathGui), pathGui, AutoBuilder.getInstance().cameraHandler);
     }
 
+    /**
+     * Reloads the autonomous. Used when paths need to be recalculated.
+     */
     public void reloadPaths() {
         Autonomous newAutonomousState = GuiSerializer.serializeAutonomousForUndoHistory(
                 AutoBuilder.getInstance().pathGui.guiItems);
@@ -160,5 +173,9 @@ public final class UndoHandler {
                 AutoBuilder.getInstance().pathGui.guiItems.add(scriptItem);
             }
         }
+    }
+
+    public void flushChanges() {
+        if (somethingChanged) saveCurrentState(AutoBuilder.getInstance().pathGui);
     }
 }
