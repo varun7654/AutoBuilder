@@ -14,14 +14,15 @@ public class IndentedElement implements GuiElement {
 
     private final List<GuiElement> elements = new ArrayList<>();
     int level;
-    private static final Color[] indentColors = {
-            // Colors of the indents (rainbow)
-            Color.RED,
-            Color.ORANGE,
-            Color.GREEN,
-            Color.BLUE,
-            Color.PURPLE
-    };
+    private static final Color[] indentColors;
+
+    static {
+        indentColors = new Color[5];
+        for (int i = 0; i < indentColors.length; i++) {
+            indentColors[i] = new Color().fromHsv((i * (360f / indentColors.length) + 180) % 360, 0.8f, 1);
+            indentColors[i].a = 1f;
+        }
+    }
 
     public IndentedElement(int level, @NotNull GuiElement... elements) {
         this.elements.addAll(Arrays.asList(elements));
