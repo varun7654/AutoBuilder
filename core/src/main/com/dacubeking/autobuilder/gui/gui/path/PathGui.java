@@ -351,6 +351,8 @@ public class PathGui extends InputEventListener {
         }
         addPathButton.dispose();
         addScriptButton.dispose();
+        pushAutoButton.dispose();
+        InputEventThrower.unRegister(this);
     }
 
     @Override

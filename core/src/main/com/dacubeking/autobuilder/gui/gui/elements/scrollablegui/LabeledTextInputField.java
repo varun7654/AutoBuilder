@@ -55,4 +55,10 @@ public class LabeledTextInputField extends TextGuiElement {
             this.valid = valid;
         }
     }
+
+    @Override
+    public void dispose() {
+        super.dispose();
+        textBox.dispose();
+    }
 }

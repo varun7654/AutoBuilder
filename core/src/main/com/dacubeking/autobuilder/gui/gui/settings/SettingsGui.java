@@ -234,4 +234,12 @@ public class SettingsGui extends ScrollableGui {
         }
         UndoHandler.getInstance().somethingChanged();
     }
+
+    @Override
+    public void dispose() {
+        super.dispose();
+        for (GuiElement guiItem : guiItems) {
+            guiItem.dispose();
+        }
+    }
 }

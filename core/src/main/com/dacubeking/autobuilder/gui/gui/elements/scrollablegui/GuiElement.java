@@ -11,4 +11,6 @@ public interface GuiElement {
                  float drawStartY, float drawWidth, Camera camera, boolean isLeftMouseJustUnpressed);
 
     float getHeight(float drawStartX, float drawStartY, float drawWidth, Camera camera, boolean isLeftMouseJustUnpressed);
+
+    void dispose();
 }

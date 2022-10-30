@@ -23,4 +23,8 @@ public class SpaceGuiElement implements GuiElement {
     public float getHeight(float drawStartX, float drawStartY, float drawWidth, Camera camera, boolean isLeftMouseJustUnpressed) {
         return space;
     }
+
+    @Override
+    public void dispose() {
+    }
 }

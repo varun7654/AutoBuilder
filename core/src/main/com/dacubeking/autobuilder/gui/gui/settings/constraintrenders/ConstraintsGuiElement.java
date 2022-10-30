@@ -57,6 +57,9 @@ public class ConstraintsGuiElement implements GuiElement {
     private boolean requestConstraintsUpdate = false;
 
     public void updateConstraints() {
+        for (GuiElement constraint : constraints) {
+            constraint.dispose();
+        }
         constraints.clear();
         var trajectoryConstraints = AutoBuilder.getConfig().getPathingConfig().trajectoryConstraints;
         for (int i = 0; i < trajectoryConstraints.size(); i++) {
@@ -225,6 +228,16 @@ public class ConstraintsGuiElement implements GuiElement {
         }
 
         return drawStartY - drawY;
+    }
+
+    @Override
+    public void dispose() {
+        for (GuiElement element : elements) {
+            element.dispose();
+        }
+        for (GuiElement constraint : constraints) {
+            constraint.dispose();
+        }
     }
 
     public void updateValues() {

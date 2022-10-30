@@ -58,4 +58,10 @@ public class LabeledCheckbox extends TextGuiElement {
     public void setCheckBox(boolean checked) {
         this.checked = checked;
     }
+
+    @Override
+    public void dispose() {
+        super.dispose();
+        checkBox.dispose();
+    }
 }

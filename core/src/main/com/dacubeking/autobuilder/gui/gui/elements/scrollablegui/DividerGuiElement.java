@@ -22,4 +22,8 @@ public class DividerGuiElement implements GuiElement {
     public float getHeight(float drawStartX, float drawStartY, float drawWidth, Camera camera, boolean isLeftMouseJustUnpressed) {
         return 1;
     }
+
+    @Override
+    public void dispose() {
+    }
 }

@@ -120,4 +120,9 @@ public class AddConstraintGuiElement implements GuiElement {
             return textGuiElement.getHeight(drawStartX + 20, drawStartY, drawWidth - 20, camera, isLeftMouseJustUnpressed) + 10;
         }
     }
+
+    @Override
+    public void dispose() {
+
+    }
 }

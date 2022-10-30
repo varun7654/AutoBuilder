@@ -44,7 +44,7 @@ public class IndentedElement implements GuiElement {
                     drawWidth - INDENT_WIDTH, camera, isLeftMouseJustUnpressed);
         }
         shapeRenderer.line(drawStartX + INDENT_WIDTH, drawStartY, drawStartX + INDENT_WIDTH, drawY,
-                indentColors[level % indentColors.length]);
+                indentColors[level % indentColors.length], 2);
         return drawStartY - drawY + 5;
     }
 
@@ -56,5 +56,12 @@ public class IndentedElement implements GuiElement {
                     drawWidth - INDENT_WIDTH, camera, isLeftMouseJustUnpressed);
         }
         return drawStartY - drawY + 5;
+    }
+
+    @Override
+    public void dispose() {
+        for (GuiElement element : elements) {
+            element.dispose();
+        }
     }
 }

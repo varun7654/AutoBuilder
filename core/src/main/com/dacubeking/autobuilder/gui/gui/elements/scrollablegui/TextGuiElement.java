@@ -38,7 +38,6 @@ public class TextGuiElement implements GuiElement {
                 HoverManager.setHoverText(hoverText);
             }
 
-            System.out.println(isLeftMouseJustUnpressed);
             if (isLeftMouseJustUnpressed) {
                 if (onClick != null) {
                     onClick.run();
@@ -64,5 +63,9 @@ public class TextGuiElement implements GuiElement {
     public TextGuiElement setOnClick(@Nullable Runnable onClick) {
         this.onClick = onClick;
         return this;
+    }
+
+    @Override
+    public void dispose() {
     }
 }
