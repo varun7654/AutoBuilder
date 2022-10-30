@@ -51,6 +51,8 @@ public interface TrajectoryConstraint {
 
     TrajectoryConstraint copy();
 
+    default void update() {}
+
     /**
      * Represents a minimum and maximum acceleration.
      */

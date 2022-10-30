@@ -4,6 +4,8 @@
 
 package com.dacubeking.autobuilder.gui.wpi.math.trajectory.constraint;
 
+import com.dacubeking.autobuilder.gui.gui.settings.constraintrenders.annotations.Constraint;
+import com.dacubeking.autobuilder.gui.gui.settings.constraintrenders.annotations.ConstraintField;
 import com.dacubeking.autobuilder.gui.wpi.math.geometry.Pose2d;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -12,8 +14,11 @@ import com.fasterxml.jackson.annotation.JsonProperty;
  * Represents a constraint that enforces a max velocity. This can be composed with the {@link EllipticalRegionConstraint} or
  * {@link RectangularRegionConstraint} to enforce a max velocity in a region.
  */
+@Constraint(name = "Max Velocity", description = "Enforces a max velocity")
 public class MaxVelocityConstraint implements TrajectoryConstraint {
-    @JsonProperty("maxVelocity") private double m_maxVelocity;
+    @ConstraintField(name = "Max Velocity", description = "The max velocity")
+    @JsonProperty("maxVelocity")
+    private double m_maxVelocity;
 
     /**
      * Constructs a new MaxVelocityConstraint.

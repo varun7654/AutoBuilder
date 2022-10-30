@@ -21,7 +21,7 @@ import java.util.Objects;
 @SuppressWarnings({"ParameterName", "MemberName"})
 @JsonIgnoreProperties(ignoreUnknown = true)
 @JsonAutoDetect(getterVisibility = JsonAutoDetect.Visibility.NONE)
-@ConstraintField(name = "Translation2d", description = "")
+@ConstraintField(name = "Translation2d")
 public class Translation2d {
     @ConstraintField(name = "X", description = "(meters)")
     private double m_x;

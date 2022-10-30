@@ -4,6 +4,7 @@
 
 package com.dacubeking.autobuilder.gui.wpi.math.kinematics;
 
+import com.dacubeking.autobuilder.gui.gui.settings.constraintrenders.annotations.ConstraintField;
 import com.dacubeking.autobuilder.gui.wpi.math.MathSharedStore;
 import com.dacubeking.autobuilder.gui.wpi.math.MathUsageId;
 import com.dacubeking.autobuilder.gui.wpi.math.geometry.Translation2d;
@@ -33,12 +34,16 @@ public class MecanumDriveKinematics {
     private final SimpleMatrix m_inverseKinematics;
     private final SimpleMatrix m_forwardKinematics;
 
+    @ConstraintField(name = "Front Left Location", description = "The location of the front left wheel.")
     @JsonProperty("frontLeftWheelMeters")
     private Translation2d m_frontLeftWheelMeters;
+    @ConstraintField(name = "Front Right Location", description = "The location of the front right wheel.")
     @JsonProperty("frontRightWheelMeters")
     private Translation2d m_frontRightWheelMeters;
+    @ConstraintField(name = "Rear Left Location", description = "The location of the rear left wheel.")
     @JsonProperty("rearLeftWheelMeters")
     private Translation2d m_rearLeftWheelMeters;
+    @ConstraintField(name = "Rear Right Location", description = "The location of the rear right wheel.")
     @JsonProperty("rearRightWheelMeters")
     private Translation2d m_rearRightWheelMeters;
 

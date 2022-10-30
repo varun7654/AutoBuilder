@@ -35,14 +35,14 @@ import java.util.Collections;
  * field using encoders and a gyro.
  */
 public class SwerveDriveKinematics {
-    private final SimpleMatrix m_inverseKinematics;
-    private final SimpleMatrix m_forwardKinematics;
+    private SimpleMatrix m_inverseKinematics;
+    private SimpleMatrix m_forwardKinematics;
 
-    private final int m_numModules;
+    private int m_numModules;
     @ConstraintField(name = "Module Locations", description = "The locations of the modules relative to the center of the robot" +
             " in meters.")
     @JsonProperty("wheelsMeters")
-    private final Translation2d @ConstraintField(name = "Translation2d", description = "A 2d translation (meters)") [] m_modules;
+    private Translation2d @ConstraintField(name = "Translation2d", description = "A 2d translation (meters)") [] m_modules;
     private Translation2d m_prevCoR = new Translation2d();
 
     /**
@@ -197,5 +197,19 @@ public class SwerveDriveKinematics {
 
     public SwerveDriveKinematics copy() {
         return new SwerveDriveKinematics(m_modules);
+    }
+
+    public void update() {
+        m_numModules = m_modules.length;
+        m_modules = Arrays.copyOf(m_modules, m_numModules);
+        m_inverseKinematics = new SimpleMatrix(m_numModules * 2, 3);
+
+        for (int i = 0; i < m_numModules; i++) {
+            m_inverseKinematics.setRow(i * 2 + 0, 0, /* Start Data */ 1, 0, -m_modules[i].getY());
+            m_inverseKinematics.setRow(i * 2 + 1, 0, /* Start Data */ 0, 1, +m_modules[i].getX());
+        }
+        m_forwardKinematics = m_inverseKinematics.pseudoInverse();
+
+        MathSharedStore.reportUsage(MathUsageId.kKinematics_SwerveDrive, 1);
     }
 }

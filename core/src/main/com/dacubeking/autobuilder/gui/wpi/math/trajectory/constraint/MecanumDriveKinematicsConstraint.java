@@ -4,6 +4,8 @@
 
 package com.dacubeking.autobuilder.gui.wpi.math.trajectory.constraint;
 
+import com.dacubeking.autobuilder.gui.gui.settings.constraintrenders.annotations.Constraint;
+import com.dacubeking.autobuilder.gui.gui.settings.constraintrenders.annotations.ConstraintField;
 import com.dacubeking.autobuilder.gui.wpi.math.geometry.Pose2d;
 import com.dacubeking.autobuilder.gui.wpi.math.kinematics.ChassisSpeeds;
 import com.dacubeking.autobuilder.gui.wpi.math.kinematics.MecanumDriveKinematics;
@@ -14,9 +16,16 @@ import com.fasterxml.jackson.annotation.JsonProperty;
  * A class that enforces constraints on the mecanum drive kinematics. This can be used to ensure that the trajectory is
  * constructed so that the commanded velocities for all 4 wheels of the drivetrain stay below a certain limit.
  */
+@Constraint(name = "Mecanum Drive Kinematics Constraint", description = "A class that enforces constraints on the mecanum drive" +
+        " kinematics. This can be used to ensure that the trajectory is constructed so that the commanded velocities for all 4 " +
+        "wheels of the drivetrain stay below a certain limit.")
 public class MecanumDriveKinematicsConstraint implements TrajectoryConstraint {
-    @JsonProperty("maxSpeedMetersPerSecond") private double m_maxSpeedMetersPerSecond;
-    @JsonProperty("kinematics") private final MecanumDriveKinematics m_kinematics;
+    @ConstraintField(name = "Max Speed", description = "The max speed that a wheel of the robot can travel at. (m/s)")
+    @JsonProperty("maxSpeedMetersPerSecond")
+    private double m_maxSpeedMetersPerSecond;
+    @ConstraintField(name = "Kinematics", description = "The kinematics of the mecanum drive.")
+    @JsonProperty("kinematics")
+    private final MecanumDriveKinematics m_kinematics;
 
     /**
      * Constructs a mecanum drive kinematics constraint.

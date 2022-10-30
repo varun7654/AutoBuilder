@@ -91,4 +91,9 @@ public class SwerveDriveKinematicsConstraint implements TrajectoryConstraint {
     public TrajectoryConstraint copy() {
         return new SwerveDriveKinematicsConstraint(m_kinematics.copy(), m_maxSpeedMetersPerSecond);
     }
+
+    @Override
+    public void update() {
+        m_kinematics.update();
+    }
 }

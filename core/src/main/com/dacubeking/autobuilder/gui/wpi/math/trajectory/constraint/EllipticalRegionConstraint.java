@@ -4,19 +4,34 @@
 
 package com.dacubeking.autobuilder.gui.wpi.math.trajectory.constraint;
 
+import com.dacubeking.autobuilder.gui.gui.settings.constraintrenders.annotations.Constraint;
+import com.dacubeking.autobuilder.gui.gui.settings.constraintrenders.annotations.ConstraintField;
 import com.dacubeking.autobuilder.gui.wpi.math.geometry.Pose2d;
 import com.dacubeking.autobuilder.gui.wpi.math.geometry.Rotation2d;
 import com.dacubeking.autobuilder.gui.wpi.math.geometry.Translation2d;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Enforces a particular constraint only within an elliptical region.
  */
+@Constraint(name = "Elliptical Region", description = "Enforces a particular constraint only within an elliptical region.")
 public class EllipticalRegionConstraint implements TrajectoryConstraint {
-    @JsonProperty("center") private Translation2d m_center;
-    @JsonProperty("radii") private Translation2d m_radii;
-    @JsonProperty("constraint") private TrajectoryConstraint m_constraint;
+
+    @ConstraintField(name = "Center", description = "The center of the ellipse.")
+    @JsonProperty("center")
+    private Translation2d m_center;
+
+    @ConstraintField(name = "radii", description = """
+            The radii of the ellipse.\s
+
+            The x value is the radius in the x direction, and the y value is the radius in the y direction.""")
+    @JsonProperty("radii")
+    private Translation2d m_radii;
+    @JsonProperty("constraint")
+    @Nullable
+    private TrajectoryConstraint m_constraint;
 
     /**
      * Constructs a new EllipticalRegionConstraint.
@@ -33,7 +48,7 @@ public class EllipticalRegionConstraint implements TrajectoryConstraint {
             double xWidth,
             double yWidth,
             Rotation2d rotation,
-            TrajectoryConstraint constraint) {
+            @Nullable TrajectoryConstraint constraint) {
         m_center = center;
         m_radii = new Translation2d(xWidth / 2.0, yWidth / 2.0).rotateBy(rotation);
         m_constraint = constraint;
@@ -42,7 +57,7 @@ public class EllipticalRegionConstraint implements TrajectoryConstraint {
     @JsonCreator
     public EllipticalRegionConstraint(@JsonProperty("center") Translation2d center,
                                       @JsonProperty("radii") Translation2d radii,
-                                      @JsonProperty("constraint") TrajectoryConstraint constraint) {
+                                      @Nullable @JsonProperty("constraint") TrajectoryConstraint constraint) {
         m_center = center;
         m_radii = radii;
         m_constraint = constraint;
@@ -50,7 +65,7 @@ public class EllipticalRegionConstraint implements TrajectoryConstraint {
 
     @Override
     public double getMaxVelocityMetersPerSecond(Pose2d poseMeters, double curvatureRadPerMeter, double velocityMetersPerSecond) {
-        if (isPoseInRegion(poseMeters)) {
+        if (isPoseInRegion(poseMeters) && m_constraint != null) {
             return m_constraint.getMaxVelocityMetersPerSecond(
                     poseMeters, curvatureRadPerMeter, velocityMetersPerSecond);
         } else {
@@ -62,7 +77,7 @@ public class EllipticalRegionConstraint implements TrajectoryConstraint {
     @Override
     public MinMax getMinMaxAccelerationMetersPerSecondSq(
             Pose2d poseMeters, double curvatureRadPerMeter, double velocityMetersPerSecond) {
-        if (isPoseInRegion(poseMeters)) {
+        if (isPoseInRegion(poseMeters) && m_constraint != null) {
             return m_constraint.getMinMaxAccelerationMetersPerSecondSq(
                     poseMeters, curvatureRadPerMeter, velocityMetersPerSecond);
         } else {
@@ -72,7 +87,7 @@ public class EllipticalRegionConstraint implements TrajectoryConstraint {
 
     @Override
     public TrajectoryConstraint copy() {
-        return new EllipticalRegionConstraint(m_center, m_radii, m_constraint.copy());
+        return new EllipticalRegionConstraint(m_center, m_radii, m_constraint != null ? m_constraint.copy() : null);
     }
 
     /**
