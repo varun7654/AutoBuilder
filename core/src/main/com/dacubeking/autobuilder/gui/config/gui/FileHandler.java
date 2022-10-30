@@ -159,15 +159,23 @@ public class FileHandler {
                 synchronized (autonomousToSaveLock) {
                     requestSave = false;
                 }
-                Autonomous autonomous = GuiSerializer.serializeAutonomous(AutoBuilder.getInstance().pathGui.guiItems, true);
-
-                synchronized (saveLock) {
-                    saving = true;
-                    boolean error = !saveAuto(autonomous);
-                    error = !saveConfig() || error;
-                    savingError = error;
-                    saving = false;
+                try {
+                    Autonomous autonomous = GuiSerializer.serializeAutonomous(AutoBuilder.getInstance().pathGui.guiItems, true);
+                    synchronized (saveLock) {
+                        saving = true;
+                        boolean error = !saveAuto(autonomous);
+                        error = !saveConfig() || error;
+                        savingError = error;
+                        saving = false;
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    synchronized (saveLock) {
+                        saving = false;
+                        savingError = true;
+                    }
                 }
+
 
                 try {
                     Thread.sleep(5000);
