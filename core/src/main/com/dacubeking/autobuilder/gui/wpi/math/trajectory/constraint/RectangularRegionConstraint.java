@@ -80,7 +80,7 @@ public class RectangularRegionConstraint implements TrajectoryConstraint {
 
     @Override
     public TrajectoryConstraint copy() {
-        return new RectangularRegionConstraint(m_bottomLeftPoint, m_topRightPoint,
+        return new RectangularRegionConstraint(m_bottomLeftPoint.copy(), m_topRightPoint.copy(),
                 m_constraint != null ? m_constraint.copy() : null);
     }
 

@@ -176,6 +176,6 @@ public final class UndoHandler {
     }
 
     public void flushChanges() {
-        if (somethingChanged) saveCurrentState(AutoBuilder.getInstance().pathGui);
+        lastUndoSaveTime = -1000000;
     }
 }

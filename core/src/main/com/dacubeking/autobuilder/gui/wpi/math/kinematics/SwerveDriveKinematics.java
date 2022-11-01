@@ -196,7 +196,11 @@ public class SwerveDriveKinematics {
     }
 
     public SwerveDriveKinematics copy() {
-        return new SwerveDriveKinematics(m_modules);
+        Translation2d[] modules = new Translation2d[m_numModules];
+        for (int i = 0; i < m_numModules; i++) {
+            modules[i] = m_modules[i].copy();
+        }
+        return new SwerveDriveKinematics(modules);
     }
 
     public void update() {

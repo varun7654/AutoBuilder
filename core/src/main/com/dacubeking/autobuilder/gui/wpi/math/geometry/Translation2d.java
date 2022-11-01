@@ -202,4 +202,8 @@ public class Translation2d {
     public int hashCode() {
         return Objects.hash(m_x, m_y);
     }
+
+    public Translation2d copy() {
+        return new Translation2d(m_x, m_y);
+    }
 }

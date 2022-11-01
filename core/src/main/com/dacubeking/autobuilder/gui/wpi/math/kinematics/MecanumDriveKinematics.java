@@ -175,9 +175,9 @@ public class MecanumDriveKinematics {
 
     public MecanumDriveKinematics copy() {
         return new MecanumDriveKinematics(
-                m_frontLeftWheelMeters,
-                m_frontRightWheelMeters,
-                m_rearLeftWheelMeters,
-                m_rearRightWheelMeters);
+                m_frontLeftWheelMeters.copy(),
+                m_frontRightWheelMeters.copy(),
+                m_rearLeftWheelMeters.copy(),
+                m_rearRightWheelMeters.copy());
     }
 }

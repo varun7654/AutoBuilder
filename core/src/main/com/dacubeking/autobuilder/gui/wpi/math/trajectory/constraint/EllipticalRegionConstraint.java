@@ -87,7 +87,7 @@ public class EllipticalRegionConstraint implements TrajectoryConstraint {
 
     @Override
     public TrajectoryConstraint copy() {
-        return new EllipticalRegionConstraint(m_center, m_radii, m_constraint != null ? m_constraint.copy() : null);
+        return new EllipticalRegionConstraint(m_center.copy(), m_radii.copy(), m_constraint != null ? m_constraint.copy() : null);
     }
 
     /**

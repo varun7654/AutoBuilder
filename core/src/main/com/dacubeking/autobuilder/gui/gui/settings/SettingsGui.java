@@ -110,9 +110,9 @@ public class SettingsGui extends ScrollableGui implements Disposable {
     public boolean update() {
         boolean panelWasOpen = panelOpen;
         super.update(maxScrollPos);
-//        if (panelOpen && !panelWasOpen) {
-//            constraintsGuiElement.updateValues();
-//        }
+        if (panelOpen && !panelWasOpen) {
+            constraintsGuiElement.updateValues();
+        }
         return panelOpen && (isMouseOver(panelX, panelY, panelWidth, panelHeight)
                 || isMouseOver(openButton.getX(), openButton.getY(), openButton.getWidth(), openButton.getHeight()));
     }

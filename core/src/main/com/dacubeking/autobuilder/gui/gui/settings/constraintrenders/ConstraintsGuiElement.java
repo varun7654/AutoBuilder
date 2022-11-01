@@ -382,8 +382,7 @@ public class ConstraintsGuiElement implements GuiElement {
                 String.valueOf(AutoBuilder.getConfig().getPathingConfig().maxVelocityMetersPerSecond));
         maxAccelerationTextField.textBox.setText(
                 String.valueOf(AutoBuilder.getConfig().getPathingConfig().maxAccelerationMetersPerSecondSq));
-        if (!constraintsGuiReloadWanted) {
-            updateConstraintsRenderers(); // Don't update constraints if we're already going to rerender them
-        }
+
+        updateConstraintsRenderers(); // Don't update constraints if we're already going to rerender them
     }
 }
