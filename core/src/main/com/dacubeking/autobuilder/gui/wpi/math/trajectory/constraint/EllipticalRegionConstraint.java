@@ -29,6 +29,8 @@ public class EllipticalRegionConstraint implements TrajectoryConstraint {
             The x value is the radius in the x direction, and the y value is the radius in the y direction.""")
     @JsonProperty("radii")
     private Translation2d m_radii;
+
+    @ConstraintField(name = "Constraint", description = "The constraint to enforce.")
     @JsonProperty("constraint")
     @Nullable
     private TrajectoryConstraint m_constraint;
