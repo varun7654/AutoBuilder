@@ -9,7 +9,6 @@ import com.dacubeking.autobuilder.gui.gui.elements.scrollablegui.TextGuiElement;
 import com.dacubeking.autobuilder.gui.gui.textrendering.TextComponent;
 import com.dacubeking.autobuilder.gui.util.Colors;
 import com.dacubeking.autobuilder.gui.util.MiscShapeRenderer;
-import com.dacubeking.autobuilder.gui.util.MouseUtil;
 import com.dacubeking.autobuilder.gui.util.RoundedShapeRenderer;
 import com.dacubeking.autobuilder.gui.wpi.math.controller.SimpleMotorFeedforward;
 import com.dacubeking.autobuilder.gui.wpi.math.geometry.Rotation2d;
@@ -101,7 +100,7 @@ public class AddConstraintGuiElement implements GuiElement {
                 RoundedShapeRenderer.roundedRectTopLeft(shapeRenderer, drawStartX,
                         drawStartY, drawWidth, textHeight + 10, 5, Colors.LIGHT_GREY);
 
-                if (MouseUtil.isIsLeftMouseJustUnpressed()) {
+                if (isLeftMouseJustUnpressed) {
                     onAddConstraint.accept(trajectoryConstraintSupplier.get());
                 }
             }
