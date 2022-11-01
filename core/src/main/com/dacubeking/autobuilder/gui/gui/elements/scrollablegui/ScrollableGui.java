@@ -68,11 +68,9 @@ public abstract class ScrollableGui extends InputEventListener implements Dispos
         openButton.checkHover();
         if (Gdx.input.isButtonJustPressed(Input.Buttons.LEFT)) {
             if (openButton.checkClick()) {
-                if (!panelOpen) {
-                    panelOpen = true;
-                    scrollPos = 0;
-                    smoothScrollPos = 0;
-                }
+                panelOpen = !panelOpen;
+                scrollPos = 0;
+                smoothScrollPos = 0;
             } else if (!(getMouseX() >= panelX && getMouseX() <= panelX + panelWidth &&
                     getMouseY() >= panelY && getMouseY() <= panelY + panelHeight)) {
                 //We clicked outside the panel
