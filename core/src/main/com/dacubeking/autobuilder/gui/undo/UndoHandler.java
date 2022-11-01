@@ -96,6 +96,7 @@ public final class UndoHandler {
 
     public synchronized void restoreState(@NotNull UndoState undoState, PathGui pathGui,
                                           @NotNull CameraHandler cameraHandler) {
+        AutoBuilder.getConfig().setConfig(undoState.config());
         List<AbstractGuiItem> guiItemList = new ArrayList<>();
         for (AbstractAutonomousStep autonomousStep : undoState.autonomous().getAutonomousSteps()) {
             if (autonomousStep instanceof TrajectoryAutonomousStep trajectoryAutonomousStep) {
@@ -118,7 +119,6 @@ public final class UndoHandler {
             guiItem.dispose();
         }
         pathGui.guiItems = guiItemList;
-        AutoBuilder.getConfig().setConfig(undoState.config());
         AutoBuilder.getInstance().settingsGui.updateValues();
     }
 

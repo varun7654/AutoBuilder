@@ -48,7 +48,8 @@ import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 public class TrajectoryPathRenderer implements MovablePointEventHandler, Serializable, PathRenderer {
     @NotNull private final Color color;
@@ -97,11 +98,11 @@ public class TrajectoryPathRenderer implements MovablePointEventHandler, Seriali
         }
 
         this.executorService = executorService;
-        updatePath();
 
         this.velocityStart = velocityStart;
         this.velocityEnd = velocityEnd;
         this.constraints = constraints;
+        updatePath();
     }
 
     public void setPathChangeListener(@NotNull PathChangeListener pathChangeListener) {
@@ -386,8 +387,7 @@ public class TrajectoryPathRenderer implements MovablePointEventHandler, Seriali
             //We clicked on the first point, so we need to get the path renderer of the previous path
             TrajectoryPathRenderer lastTrajectoryPathRenderer = null;
             for (AbstractGuiItem item : itemList) {
-                if (item instanceof TrajectoryItem) {
-                    TrajectoryItem trajectoryItem = (TrajectoryItem) item;
+                if (item instanceof TrajectoryItem trajectoryItem) {
                     if (trajectoryItem.getPathRenderer() == this) {
                         attachedPath = lastTrajectoryPathRenderer;
                         break;
@@ -400,8 +400,7 @@ public class TrajectoryPathRenderer implements MovablePointEventHandler, Seriali
             //We clicked on the last point, so we need to get the path renderer of the next path
             boolean foundMyself = false;
             for (AbstractGuiItem item : itemList) {
-                if (item instanceof TrajectoryItem) {
-                    TrajectoryItem trajectoryItem = (TrajectoryItem) item;
+                if (item instanceof TrajectoryItem trajectoryItem) {
                     if (trajectoryItem.getPathRenderer() == this) {
                         foundMyself = true;
                     } else if (foundMyself) {
@@ -596,38 +595,61 @@ public class TrajectoryPathRenderer implements MovablePointEventHandler, Seriali
     }
 
     public void updatePath() {
-        updatePath(true);
+        updatePath(true, false);
     }
 
-    AtomicInteger updateRequestedPathCounter = new AtomicInteger(0);
-    AtomicInteger updatedPathCounter = new AtomicInteger(0);
+    int updateRequestedPathCounter = 0;
+    int updatedPathCounter = 0;
+    int forceUpdateCounter = -1;
+    private final Lock trajectoryMutex = new ReentrantLock();
 
     public void updatePath(boolean updateListener) {
-        updateRequestedPathCounter.incrementAndGet();
+        updatePath(updateListener, false);
+    }
+
+    public void updatePath(boolean updateListener, boolean mustUpdate) {
+        Config config = AutoBuilder.getConfig();
+        TrajectoryConfig trajectoryConfig = new TrajectoryConfig(config.getPathingConfig().maxVelocityMetersPerSecond,
+                config.getPathingConfig().maxAccelerationMetersPerSecondSq);
+        for (TrajectoryConstraint trajectoryConstraint : config.getPathingConfig().trajectoryConstraints) {
+            trajectoryConfig.addConstraint(trajectoryConstraint);
+        }
+
+        for (TrajectoryConstraint constraint : constraints) {
+            trajectoryConfig.addConstraint(constraint);
+        }
+
+        trajectoryConfig.setReversed(isReversed() && !config.isHolonomic());
+        trajectoryConfig.setStartVelocity(velocityStart);
+        trajectoryConfig.setEndVelocity(velocityEnd);
+
+        trajectoryMutex.lock();
+        try {
+            updateRequestedPathCounter += 1;
+            if (forceUpdateCounter < updatedPathCounter) {
+                forceUpdateCounter = updateRequestedPathCounter;
+            }
+        } finally {
+            trajectoryMutex.unlock();
+        }
+
         // Generate the new path on another thread
+        final ControlVectorList controlVectorsList = new ControlVectorList(controlVectors);
         completableFutureTrajectory = CompletableFuture.supplyAsync(() -> {
-            if (updatedPathCounter.get() == updateRequestedPathCounter.get()) {
-                return trajectory;
+            trajectoryMutex.lock();
+            try {
+                updatedPathCounter += 1;
+                if (updatedPathCounter != updateRequestedPathCounter && !mustUpdate
+                        && forceUpdateCounter != updatedPathCounter) {
+                    return null;
+                }
+            } finally {
+                trajectoryMutex.unlock();
             }
-            updatedPathCounter.set(updateRequestedPathCounter.get());
-            Config config = AutoBuilder.getConfig();
-            TrajectoryConfig trajectoryConfig = new TrajectoryConfig(config.getPathingConfig().maxVelocityMetersPerSecond,
-                    config.getPathingConfig().maxAccelerationMetersPerSecondSq);
-            for (TrajectoryConstraint trajectoryConstraint : config.getPathingConfig().trajectoryConstraints) {
-                trajectoryConfig.addConstraint(trajectoryConstraint);
-            }
-
-            for (TrajectoryConstraint constraint : constraints) {
-                trajectoryConfig.addConstraint(constraint);
-            }
-
-            trajectoryConfig.setReversed(isReversed() && !config.isHolonomic());
-            trajectoryConfig.setStartVelocity(velocityStart);
-            trajectoryConfig.setEndVelocity(velocityEnd);
 
             Trajectory trajectory;
             try {
-                trajectory = TrajectoryGenerator.generateTrajectory(new ControlVectorList(controlVectors), trajectoryConfig);
+                trajectory = TrajectoryGenerator.generateTrajectory(controlVectorsList, trajectoryConfig);
             } catch (MalformedSplineException e) {
                 NotificationHandler.addNotification(new Notification(Color.RED, "Could not parameterize a malformed spline",
                         3000));
@@ -673,7 +695,12 @@ public class TrajectoryPathRenderer implements MovablePointEventHandler, Seriali
     @NotNull
     public Trajectory getNotNullTrajectory() throws ExecutionException {
         try {
-            return completableFutureTrajectory.get();
+            Trajectory trajectory = completableFutureTrajectory.get();
+            if (trajectory == null) {
+                updatePath(false, true);
+                trajectory = completableFutureTrajectory.get();
+            }
+            return trajectory;
         } catch (InterruptedException e) {
             throw new RuntimeException(e);
         }
