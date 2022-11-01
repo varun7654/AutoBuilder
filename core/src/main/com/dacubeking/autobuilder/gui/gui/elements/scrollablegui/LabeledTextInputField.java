@@ -23,10 +23,10 @@ public class LabeledTextInputField extends TextGuiElement {
     public float render(@NotNull ShapeDrawer shapeRenderer, @NotNull PolygonSpriteBatch spriteBatch, float drawStartX,
                         float drawStartY, float drawWidth, Camera camera, boolean isLeftMouseJustUnpressed) {
         textBox.update(textBoxWidth);
-        textBox.draw(shapeRenderer, spriteBatch, drawStartX + drawWidth - textBoxWidth - 15, drawStartY - 10, textBoxWidth, null);
+        textBox.draw(shapeRenderer, spriteBatch, drawStartX + drawWidth - textBoxWidth - 10, drawStartY - 10, textBoxWidth, null);
         float labelHeight = super.render(shapeRenderer, spriteBatch,
                 drawStartX, drawStartY - 9,
-                drawWidth - textBoxWidth - 5, camera, isLeftMouseJustUnpressed);
+                drawWidth - textBoxWidth - 12, camera, isLeftMouseJustUnpressed);
         return Math.max(labelHeight + 5, textBox.getHeight() + 2);
     }
 
