@@ -30,7 +30,7 @@ public class LabeledCheckbox extends TextGuiElement {
     public float render(@NotNull ShapeDrawer shapeRenderer, @NotNull PolygonSpriteBatch spriteBatch, float drawStartX,
                         float drawStartY, float drawWidth, Camera camera, boolean isLeftMouseJustUnpressed) {
 
-        checkBox.setPosition(drawStartX + drawWidth - checkBox.getWidth() - 15, drawStartY - checkBox.getHeight() - 2);
+        checkBox.setPosition(drawStartX + drawWidth - checkBox.getWidth() - 10, drawStartY - checkBox.getHeight() - 2);
         checkBox.checkHover();
         if (checkBox.checkClick()) {
             checked = !checked;
@@ -38,7 +38,7 @@ public class LabeledCheckbox extends TextGuiElement {
             checkBoxChangedCallback.accept(checked);
         }
         RoundedShapeRenderer.roundedRect(shapeRenderer,
-                drawStartX + drawWidth - checkBox.getWidth() - 17, drawStartY - checkBox.getHeight() - 4,
+                drawStartX + drawWidth - checkBox.getWidth() - 12, drawStartY - checkBox.getHeight() - 4,
                 checkBox.getWidth() + 4, checkBox.getHeight() + 4, 6, Color.BLACK);
         checkBox.render(shapeRenderer, spriteBatch, checked);
         float labelHeight = super.render(shapeRenderer, spriteBatch,
