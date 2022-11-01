@@ -122,6 +122,16 @@ public class TextBlock {
                 char c = chars[j]; //Get the current character
                 @Nullable BitmapFont.Glyph glyph = fontData.getGlyph(c); //Get the character data for the current character
                 if (glyph != null) { // Certain characters (like \n) don't have glyphs
+                    if (glyph.xadvance > wrapWidth) {
+                        // We can't fit the text so give up
+                        renderableTextComponents.add(new RenderableTextComponent(sb.toString(), componentStartX, componentStartY,
+                                bufferX, component.isBold, component.isItalic, component.isUnderlined, component.isStrikethrough,
+                                component.isHighlighted, component.color,
+                                component.getUnderlineColor(), component.getStrikethroughColor(), component.getHighlightColor(),
+                                component.size.orElse(defaultSize),
+                                component.font.orElse(defaultFont), row));
+                        break;
+                    }
                     x += glyph.xadvance; //Move the positions of the next RenderableTextComponent to the right by the width
                 }
 
