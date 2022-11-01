@@ -4,7 +4,6 @@ import com.badlogic.gdx.graphics.Camera;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.g2d.PolygonSpriteBatch;
 import com.dacubeking.autobuilder.gui.AutoBuilder;
-import com.dacubeking.autobuilder.gui.events.input.InputEventThrower;
 import com.dacubeking.autobuilder.gui.gui.elements.NumberTextBox;
 import com.dacubeking.autobuilder.gui.gui.elements.TextBox;
 import com.dacubeking.autobuilder.gui.gui.elements.scrollablegui.*;
@@ -73,7 +72,6 @@ public class ConstraintsGuiElement implements GuiElement {
     }
 
     private void updateConstraintsRenderers() {
-        int prevEventHandlersSize = InputEventThrower.getNumEventHandlers();
         for (GuiElement constraint : constraints) {
             constraint.dispose();
         }
@@ -100,9 +98,6 @@ public class ConstraintsGuiElement implements GuiElement {
                 constraints.add(spaceBetweenConstraints);
             }
         }
-        System.out.println("Updated constraints renderers, removed "
-                + (prevEventHandlersSize - InputEventThrower.getNumEventHandlers()) + " event handlers\n"
-                + "total event handlers: " + InputEventThrower.getNumEventHandlers());
     }
 
     Class<?>[] clazzArrayOfDouble = new Class[]{double.class};

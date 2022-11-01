@@ -53,7 +53,7 @@ public final class UndoHandler {
                 pointer--;
                 if (pointer >= 0) {
                     restoreState(undoHistory.get(pointer), pathGui, cameraHandler);
-                    System.out.println("redoing to: " + pointer);
+                    //System.out.println("redoing to: " + pointer);
                 } else {
                     pointer = 0;
                 }
@@ -63,7 +63,7 @@ public final class UndoHandler {
                 pointer++;
                 if (pointer < undoHistory.size()) {
                     restoreState(undoHistory.get(pointer), pathGui, cameraHandler);
-                    System.out.println("undoing to: " + pointer);
+                    //System.out.println("undoing to: " + pointer);
                 } else {
                     pointer = undoHistory.size() - 1;
                 }
