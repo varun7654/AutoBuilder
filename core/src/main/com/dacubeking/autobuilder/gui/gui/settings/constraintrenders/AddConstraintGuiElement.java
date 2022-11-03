@@ -3,7 +3,7 @@ package com.dacubeking.autobuilder.gui.gui.settings.constraintrenders;
 import com.badlogic.gdx.graphics.Camera;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.g2d.PolygonSpriteBatch;
-import com.dacubeking.autobuilder.gui.AutoBuilder;
+import com.badlogic.gdx.math.Vector2;
 import com.dacubeking.autobuilder.gui.gui.elements.scrollablegui.GuiElement;
 import com.dacubeking.autobuilder.gui.gui.elements.scrollablegui.TextGuiElement;
 import com.dacubeking.autobuilder.gui.gui.textrendering.TextComponent;
@@ -25,20 +25,29 @@ import java.util.List;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
+import static com.dacubeking.autobuilder.gui.util.MouseUtil.getMousePos;
 import static com.dacubeking.autobuilder.gui.util.MouseUtil.isMouseOver;
 
 public class AddConstraintGuiElement implements GuiElement {
 
     private static final List<ConstraintType> constraints = new ArrayList<>();
     protected final Consumer<TrajectoryConstraint> onAddConstraint;
-
-    public AddConstraintGuiElement() {
-        this(AutoBuilder.getConfig().getPathingConfig().trajectoryConstraints::add);
-    }
+    private final boolean allowClose;
 
     public AddConstraintGuiElement(Consumer<TrajectoryConstraint> onAddConstraint) {
-        this.onAddConstraint = onAddConstraint;
+        this(onAddConstraint, true);
     }
+
+    public AddConstraintGuiElement(Consumer<TrajectoryConstraint> onAddConstraint, boolean allowClose) {
+        this.onAddConstraint = onAddConstraint;
+        this.allowClose = allowClose;
+        this.isExpanded = !allowClose;
+    }
+
+
+    private boolean isExpanded = false;
+    ConstraintType header = new ConstraintType(new TextComponent("Add a Constraint").setBold(true).setSize(18),
+            () -> null);
 
     static {
         constraints.add(new ConstraintType("Elliptical Region",
@@ -65,13 +74,24 @@ public class AddConstraintGuiElement implements GuiElement {
                         new Translation2d(), new Translation2d(), new Translation2d(), new Translation2d()), 1)));
     }
 
+    Vector2 pos = new Vector2();
+
     @Override
     public float render(@NotNull ShapeDrawer shapeRenderer, @NotNull PolygonSpriteBatch spriteBatch, float drawStartX,
                         float drawStartY, float drawWidth, Camera camera, boolean isLeftMouseJustUnpressed) {
         float startY = drawStartY;
-        for (ConstraintType constraint : constraints) {
-            startY -= constraint.render(shapeRenderer, spriteBatch, drawStartX, startY, drawWidth, camera,
-                    isLeftMouseJustUnpressed, onAddConstraint);
+        if (allowClose) {
+            getMousePos(pos);
+        } else {
+            pos.set(-1, -1); //Make it so that it won't be highlighted when the mouse hovers over it
+        }
+        startY -= header.render(shapeRenderer, spriteBatch, drawStartX, startY, drawWidth, camera, isLeftMouseJustUnpressed,
+                (c) -> isExpanded = !isExpanded || !allowClose, pos);
+        if (isExpanded) {
+            for (ConstraintType constraint : constraints) {
+                startY -= constraint.render(shapeRenderer, spriteBatch, drawStartX, startY, drawWidth, camera,
+                        isLeftMouseJustUnpressed, onAddConstraint, getMousePos(pos));
+            }
         }
         return drawStartY - startY;
     }
@@ -79,24 +99,29 @@ public class AddConstraintGuiElement implements GuiElement {
     @Override
     public float getHeight(float drawStartX, float drawStartY, float drawWidth, Camera camera, boolean isLeftMouseJustUnpressed) {
         float height = 0;
+        height += header.getHeight(drawStartX, drawStartY, drawWidth, camera, isLeftMouseJustUnpressed);
         for (ConstraintType constraint : constraints) {
             height += constraint.getHeight(drawStartX, drawStartY, drawWidth, camera, isLeftMouseJustUnpressed);
         }
         return height;
     }
 
-    record ConstraintType(String name, Supplier<TrajectoryConstraint> trajectoryConstraintSupplier,
-                          TextGuiElement textGuiElement) {
+    record ConstraintType(Supplier<TrajectoryConstraint> trajectoryConstraintSupplier,
+                          TextGuiElement textGuiElement, boolean renderPlus) {
         public ConstraintType(String name, Supplier<TrajectoryConstraint> trajectoryConstraintSupplier) {
-            this(name, trajectoryConstraintSupplier, new TextGuiElement(new TextComponent(name)));
+            this(trajectoryConstraintSupplier, new TextGuiElement(new TextComponent(name)), true);
+        }
+
+        public ConstraintType(TextComponent textComponent, Supplier<TrajectoryConstraint> trajectoryConstraintSupplier) {
+            this(trajectoryConstraintSupplier, new TextGuiElement(textComponent), false);
         }
 
         public float render(@NotNull ShapeDrawer shapeRenderer, @NotNull PolygonSpriteBatch spriteBatch, float drawStartX,
                             float drawStartY, float drawWidth, Camera camera, boolean isLeftMouseJustUnpressed,
-                            Consumer<TrajectoryConstraint> onAddConstraint) {
+                            Consumer<TrajectoryConstraint> onAddConstraint, Vector2 mousePos) {
             float textHeight = textGuiElement.getHeight(drawStartX + 25, drawStartY, drawWidth - 20, camera,
                     isLeftMouseJustUnpressed);
-            if (isMouseOver(drawStartX, drawStartY - 9 - textHeight, drawWidth, textHeight + 8)) {
+            if (isMouseOver(mousePos, drawStartX, drawStartY - 9 - textHeight, drawWidth, textHeight + 8)) {
                 RoundedShapeRenderer.roundedRectTopLeft(shapeRenderer, drawStartX,
                         drawStartY, drawWidth, textHeight + 10, 5, Colors.LIGHT_GREY);
 
@@ -105,12 +130,15 @@ public class AddConstraintGuiElement implements GuiElement {
                 }
             }
 
-            MiscShapeRenderer.plusIconCentered(shapeRenderer, drawStartX + 20, drawStartY - (textHeight / 2) - 5, 16, 15,
-                    Color.BLACK);
-
-
-            textGuiElement.render(shapeRenderer, spriteBatch, drawStartX + 20, drawStartY - 5, drawWidth - 20, camera,
-                    isLeftMouseJustUnpressed);
+            if (renderPlus) {
+                MiscShapeRenderer.plusIconCentered(shapeRenderer, drawStartX + 20, drawStartY - (textHeight / 2) - 5, 16, 15,
+                        Color.BLACK);
+                textGuiElement.render(shapeRenderer, spriteBatch, drawStartX + 20, drawStartY - 5, drawWidth - 20, camera,
+                        isLeftMouseJustUnpressed);
+            } else {
+                textGuiElement.render(shapeRenderer, spriteBatch, drawStartX, drawStartY - 5, drawWidth, camera,
+                        isLeftMouseJustUnpressed);
+            }
 
             return textHeight + 10;
         }

@@ -191,7 +191,6 @@ public class ConstraintsGuiElement implements GuiElement {
                             elementsToIndent.add(getConstraintFields(field.get(constraint), indentLevel + 1));
                         } else {
                             if (field.getType().equals(TrajectoryConstraint.class)) {
-                                elementsToIndent.add(new TextGuiElement(new TextComponent("Add a constraint").setBold(true)));
                                 elementsToIndent.add(new AddConstraintGuiElement((c) -> {
                                     try {
                                         field.set(constraint, c);
