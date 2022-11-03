@@ -18,10 +18,7 @@ import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import space.earlygrey.shapedrawer.ShapeDrawer;
 
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 import java.util.ArrayList;
-import java.util.Arrays;
 
 public class ConstraintsGuiElement implements GuiElement {
     private final LabeledTextInputField maxVelocityTextField = new LabeledTextInputField(
@@ -122,25 +119,14 @@ public class ConstraintsGuiElement implements GuiElement {
                         textBox.setTextChangeCallback((t) -> {
                             try {
                                 double number = Double.parseDouble(t.getText());
-                                // Update the field
-                                if (Arrays.stream(constraint.getClass().getDeclaredMethods()).anyMatch(m -> m.getName()
-                                        .equals("set" + field.getName().substring(0, 1).toUpperCase()
-                                                + field.getName().substring(1))
-                                        && Arrays.equals(m.getParameterTypes(), clazzArrayOfDouble))) {
-                                    constraint.getClass().getDeclaredMethod(
-                                                    "set" + field.getName().substring(0, 1).toUpperCase()
-                                                            + field.getName().substring(1), double.class)
-                                            .invoke(constraint, number);
-                                } else {
-                                    field.setDouble(constraint, number);
-                                }
+                                field.setDouble(constraint, number);
                                 updateConstraints();
                                 // We have to do this because the text box could be editing a field that other
                                 // fields depend on
                                 UndoHandler.getInstance().reloadPaths();
                                 UndoHandler.getInstance().somethingChanged();
                                 labeledInputField.setValid(true);
-                            } catch (IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
+                            } catch (IllegalAccessException e) {
                                 throw new RuntimeException(e);
                             } catch (NumberFormatException e) {
                                 labeledInputField.setValid(false);
@@ -227,62 +213,6 @@ public class ConstraintsGuiElement implements GuiElement {
                 }
             }
         }
-
-        for (Method declaredMethod : constraint.getClass().getDeclaredMethods()) {
-
-            if (declaredMethod.isAnnotationPresent(ConstraintField.class)) {
-                var constraintAnnotation = declaredMethod.getAnnotation(ConstraintField.class);
-                var labelText = new TextComponent(constraintAnnotation.name(), Color.BLACK).setBold(false);
-                var labelHover = new TextBlock(Fonts.ROBOTO, 14, 300,
-                        new TextComponent(constraintAnnotation.description(), Color.BLACK));
-
-                if (declaredMethod.getReturnType().equals(double.class)) {
-                    // Render the double as a labeled number text box
-                    declaredMethod.setAccessible(true);
-                    try {
-                        NumberTextBox textBox = new NumberTextBox(String.valueOf(declaredMethod.invoke(constraint)), true, 16);
-                        LabeledTextInputField labeledInputField = new LabeledTextInputField(labelText, textBox, 100f);
-                        labeledInputField.setHoverText(labelHover);
-                        textBox.setTextChangeCallback((t) -> {
-                            try {
-                                double number = Double.parseDouble(t.getText());
-                                // Update the field
-                                if (Arrays.stream(constraint.getClass().getDeclaredMethods()).anyMatch(m -> m.getName()
-                                        .equals("set" + declaredMethod.getName().substring(3))
-                                        && Arrays.equals(m.getParameterTypes(), clazzArrayOfDouble))) {
-                                    constraint.getClass().getDeclaredMethod(
-                                                    "set" + declaredMethod.getName().substring(0, 1).toUpperCase()
-                                                            + declaredMethod.getName().substring(1), double.class)
-                                            .invoke(constraint, number);
-                                } else {
-                                    throw (RuntimeException)
-                                            new RuntimeException("No setter found for " + declaredMethod.getName())
-                                                    .fillInStackTrace();
-                                }
-                                updateConstraints();
-
-                                // We have to do this because the text box could be editing a field that other
-                                // fields depend on
-                                UndoHandler.getInstance().somethingChanged();
-                                UndoHandler.getInstance().reloadPaths();
-                                labeledInputField.setValid(true);
-                            } catch (IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
-                                throw new RuntimeException(e);
-                            } catch (NumberFormatException e) {
-                                labeledInputField.setValid(false);
-                            }
-                        });
-
-                        elementsToIndent.add(labeledInputField);
-                    } catch (IllegalAccessException | InvocationTargetException e) {
-                        throw new RuntimeException(e);
-                    } catch (ArrayIndexOutOfBoundsException e) {
-                        // This is thrown when the method has no parameters
-                        throw new RuntimeException("No setter found for " + declaredMethod.getName(), e);
-                    }
-                }
-            }
-        }
         return new IndentedElement(indentLevel, elementsToIndent);
     }
 
@@ -308,10 +238,7 @@ public class ConstraintsGuiElement implements GuiElement {
                 // We're adding an element, so flush unsaved changes in our undo history
                 reloadConstraintsGui();
                 flushChanges();
-            });
-
-    private final TextGuiElement addConstraintTextGuiElement = new TextGuiElement(
-            new TextComponent("Add a Constraint", Color.BLACK).setBold(true).setSize(20));
+            }, false);
 
     private final SpaceGuiElement spaceBetweenConstraints = new SpaceGuiElement(10f);
 
@@ -330,8 +257,6 @@ public class ConstraintsGuiElement implements GuiElement {
                     isLeftMouseJustUnpressed);
         }
 
-        drawY -= 5 + addConstraintTextGuiElement.render(shapeRenderer, spriteBatch, drawStartX, drawY, drawWidth, camera,
-                isLeftMouseJustUnpressed);
         drawY -= 5 + addConstraintGuiElement.render(shapeRenderer, spriteBatch, drawStartX, drawY, drawWidth, camera,
                 isLeftMouseJustUnpressed);
 
