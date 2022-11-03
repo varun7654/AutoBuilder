@@ -20,7 +20,7 @@ import space.earlygrey.shapedrawer.ShapeDrawer;
 
 import java.util.ArrayList;
 
-public class ConstraintsGuiElement implements GuiElement {
+public class TrajectoryConfigGuiElement implements GuiElement {
     private final LabeledTextInputField maxVelocityTextField = new LabeledTextInputField(
             new TextComponent("Max Velocity: ", Color.BLACK).setBold(false),
             new NumberTextBox(String.valueOf(AutoBuilder.getConfig().getPathingConfig().maxVelocityMetersPerSecond),
@@ -96,8 +96,6 @@ public class ConstraintsGuiElement implements GuiElement {
             }
         }
     }
-
-    Class<?>[] clazzArrayOfDouble = new Class[]{double.class};
 
     @Contract("_, _ -> new")
     private @NotNull IndentedElement getConstraintFields(@NotNull Object constraint, int indentLevel) {

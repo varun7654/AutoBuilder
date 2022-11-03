@@ -14,7 +14,7 @@ import com.dacubeking.autobuilder.gui.gui.elements.IntegerNumberTextBox;
 import com.dacubeking.autobuilder.gui.gui.elements.NumberTextBox;
 import com.dacubeking.autobuilder.gui.gui.elements.TextBox;
 import com.dacubeking.autobuilder.gui.gui.elements.scrollablegui.*;
-import com.dacubeking.autobuilder.gui.gui.settings.constraintrenders.ConstraintsGuiElement;
+import com.dacubeking.autobuilder.gui.gui.settings.constraintrenders.TrajectoryConfigGuiElement;
 import com.dacubeking.autobuilder.gui.gui.textrendering.TextComponent;
 import com.dacubeking.autobuilder.gui.net.NetworkTablesHelper;
 import com.dacubeking.autobuilder.gui.undo.UndoHandler;
@@ -71,7 +71,7 @@ public class SettingsGui extends ScrollableGui implements Disposable {
             new TextComponent("NetworkTables Enabled: ", Color.BLACK).setBold(false),
             this::updateNetworkTablesEnabled, AutoBuilder.getConfig().isNetworkTablesEnabled());
 
-    ConstraintsGuiElement constraintsGuiElement = new ConstraintsGuiElement();
+    TrajectoryConfigGuiElement trajectoryConfigGuiElement = new TrajectoryConfigGuiElement();
 
     private ArrayList<GuiElement> guiItems = new ArrayList<>();
 
@@ -95,7 +95,7 @@ public class SettingsGui extends ScrollableGui implements Disposable {
 
         guiItems.add(new TextGuiElement(new TextComponent("Pathing Config", Color.BLACK).setBold(true).setSize(28)));
         guiItems.add(new DividerGuiElement());
-        guiItems.add(constraintsGuiElement);
+        guiItems.add(trajectoryConfigGuiElement);
         guiItems.add(new DividerGuiElement());
         guiItems.add(new SpaceGuiElement(25));
     }
@@ -111,7 +111,7 @@ public class SettingsGui extends ScrollableGui implements Disposable {
         boolean panelWasOpen = panelOpen;
         super.update(maxScrollPos);
         if (panelOpen && !panelWasOpen) {
-            constraintsGuiElement.updateValues();
+            trajectoryConfigGuiElement.updateValues();
         }
         return panelOpen && (isMouseOver(panelX, panelY, panelWidth, panelHeight)
                 || isMouseOver(openButton.getX(), openButton.getY(), openButton.getWidth(), openButton.getHeight()));
@@ -164,7 +164,7 @@ public class SettingsGui extends ScrollableGui implements Disposable {
         originX.textBox.setText(String.valueOf(AutoBuilder.getConfig().getOriginX()));
         originY.textBox.setText(String.valueOf(AutoBuilder.getConfig().getOriginY()));
         networkTablesEnabledCheckbox.setCheckBox(AutoBuilder.getConfig().isNetworkTablesEnabled());
-        constraintsGuiElement.updateValues();
+        trajectoryConfigGuiElement.updateValues();
     }
 
     public void updateTeamNumber(TextBox textBox) {
