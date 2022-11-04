@@ -28,7 +28,8 @@ public class TrajectoryConfigGuiElement implements GuiElement {
                     true, (this::updateMaxAcceleration), (TextBox::getText), 16),
             100f);
 
-    private final ConstraintGuiElement constraintGuiElement = new ConstraintGuiElement();
+    private final ConstraintGuiElement constraintGuiElement =
+            new ConstraintGuiElement(() -> AutoBuilder.getConfig().getPathingConfig().trajectoryConstraints, true);
 
     private void updateMaxVelocity(@NotNull TextBox textBox) {
         try {
@@ -72,10 +73,10 @@ public class TrajectoryConfigGuiElement implements GuiElement {
     }
 
     @Override
-    public float getHeight(float drawStartX, float drawStartY, float drawWidth, Camera camera, boolean isLeftMouseJustUnpressed) {
+    public float getHeight(float drawStartX, float drawStartY, float drawWidth, boolean isLeftMouseJustUnpressed) {
         float drawY = drawStartY;
         for (GuiElement element : elements) {
-            drawY -= element.getHeight(drawStartX, drawY, drawWidth, camera, isLeftMouseJustUnpressed) + 3;
+            drawY -= element.getHeight(drawStartX, drawY, drawWidth, isLeftMouseJustUnpressed) + 3;
         }
 
         return drawStartY - drawY;

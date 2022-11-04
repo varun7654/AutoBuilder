@@ -48,8 +48,8 @@ public class LabeledCheckbox extends TextGuiElement {
     }
 
     @Override
-    public float getHeight(float drawStartX, float drawStartY, float drawWidth, Camera camera, boolean isLeftMouseJustUnpressed) {
-        return Math.max(super.getHeight(drawStartX, drawStartY, drawWidth, camera, isLeftMouseJustUnpressed) + 5,
+    public float getHeight(float drawStartX, float drawStartY, float drawWidth, boolean isLeftMouseJustUnpressed) {
+        return Math.max(super.getHeight(drawStartX, drawStartY, drawWidth, isLeftMouseJustUnpressed) + 5,
                 checkBox.getHeight() + 6);
     }
 

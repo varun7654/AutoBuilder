@@ -77,7 +77,7 @@ public class TrajectoryPathRenderer implements MovablePointEventHandler, Seriali
     @NotNull Vector2 nextPointLeft = new Vector2();
     @NotNull Vector2 nextPointRight = new Vector2();
     private int robotPreviewIndex;
-    @NotNull private List<TrajectoryConstraint> constraints;
+    @NotNull private final List<TrajectoryConstraint> constraints;
 
     DecimalFormat df = new DecimalFormat("#.##");
 

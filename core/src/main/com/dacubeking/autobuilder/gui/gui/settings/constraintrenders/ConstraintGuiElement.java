@@ -12,19 +12,36 @@ import com.dacubeking.autobuilder.gui.gui.textrendering.Fonts;
 import com.dacubeking.autobuilder.gui.gui.textrendering.TextBlock;
 import com.dacubeking.autobuilder.gui.gui.textrendering.TextComponent;
 import com.dacubeking.autobuilder.gui.undo.UndoHandler;
+import com.dacubeking.autobuilder.gui.util.Colors;
 import com.dacubeking.autobuilder.gui.wpi.math.trajectory.constraint.TrajectoryConstraint;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import space.earlygrey.shapedrawer.ShapeDrawer;
 
 import java.util.ArrayList;
+import java.util.List;
+import java.util.function.Supplier;
 
 public class ConstraintGuiElement implements GuiElement {
+
+    private final Supplier<List<TrajectoryConstraint>> constraintsSupplier;
+
+    public ConstraintGuiElement(Supplier<List<TrajectoryConstraint>> constraintsSupplier, boolean alwaysShowAddButton) {
+        this.constraintsSupplier = constraintsSupplier;
+        addConstraintGuiElement = new AddConstraintGuiElement((trajectoryConstraint) -> {
+            constraintsSupplier.get().add(trajectoryConstraint);
+            UndoHandler.getInstance().somethingChanged();
+            // We're adding an element, so flush unsaved changes in our undo history
+            reloadConstraintsGui();
+            flushChanges();
+        }, !alwaysShowAddButton);
+    }
+
     private final ArrayList<GuiElement> constraints = new ArrayList<>();
 
     private boolean constraintsGuiReloadWanted = false;
 
-    private final SpaceGuiElement spaceBetweenConstraints = new SpaceGuiElement(10f);
+    private final GuiElement spaceBetweenConstraints = new DividerGuiElement();
 
     /**
      * Reloads the auto and config and updates the constraints GUI
@@ -44,7 +61,7 @@ public class ConstraintGuiElement implements GuiElement {
             constraint.dispose();
         }
         constraints.clear();
-        var trajectoryConstraints = AutoBuilder.getConfig().getPathingConfig().trajectoryConstraints;
+        var trajectoryConstraints = constraintsSupplier.get();
         for (int i = 0; i < trajectoryConstraints.size(); i++) {
             var constraint = trajectoryConstraints.get(i);
             if (constraint.getClass().isAnnotationPresent(Constraint.class)) {
@@ -56,7 +73,7 @@ public class ConstraintGuiElement implements GuiElement {
                                 new TextComponent(constraintClass.description(), Color.BLACK),
                                 new TextComponent("\n\nClick to remove", Color.RED)))
                         .setOnClick(() -> {
-                            AutoBuilder.getConfig().getPathingConfig().trajectoryConstraints.remove(finalI);
+                            constraintsSupplier.get().remove(finalI);
                             UndoHandler.getInstance().somethingChanged();
                             flushChanges();
                             reloadConstraintsGui();
@@ -170,7 +187,7 @@ public class ConstraintGuiElement implements GuiElement {
                                     } catch (IllegalAccessException e) {
                                         throw new RuntimeException(e);
                                     }
-                                }));
+                                }).setHighlightColor(highlightColor));
                             } else {
                                 elementsToIndent.add(new TextGuiElement(new TextComponent("null", Color.BLACK)));
                             }
@@ -190,17 +207,10 @@ public class ConstraintGuiElement implements GuiElement {
         updatePaths = true;
     }
 
-    private final AddConstraintGuiElement addConstraintGuiElement =
-            new AddConstraintGuiElement((trajectoryConstraint) -> {
-                AutoBuilder.getConfig().getPathingConfig().trajectoryConstraints.add(trajectoryConstraint);
-                UndoHandler.getInstance().somethingChanged();
-                // We're adding an element, so flush unsaved changes in our undo history
-                reloadConstraintsGui();
-                flushChanges();
-            }, false);
+    private final AddConstraintGuiElement addConstraintGuiElement;
 
     private void updateConstraints() {
-        for (TrajectoryConstraint trajectoryConstraint : AutoBuilder.getConfig().getPathingConfig().trajectoryConstraints) {
+        for (TrajectoryConstraint trajectoryConstraint : constraintsSupplier.get()) {
             trajectoryConstraint.update();
         }
     }
@@ -238,11 +248,12 @@ public class ConstraintGuiElement implements GuiElement {
     }
 
     @Override
-    public float getHeight(float drawStartX, float drawStartY, float drawWidth, Camera camera, boolean isLeftMouseJustUnpressed) {
+    public float getHeight(float drawStartX, float drawStartY, float drawWidth, boolean isLeftMouseJustUnpressed) {
         float drawY = drawStartY;
         for (GuiElement constraint : constraints) {
-            drawY -= 5 + constraint.getHeight(drawStartX, drawY, drawWidth, camera, isLeftMouseJustUnpressed);
+            drawY -= 5 + constraint.getHeight(drawStartX, drawY, drawWidth, isLeftMouseJustUnpressed);
         }
+        drawY -= 5 + addConstraintGuiElement.getHeight(drawStartX, drawY, drawWidth, isLeftMouseJustUnpressed);
         return drawStartY - drawY;
     }
 
@@ -255,5 +266,15 @@ public class ConstraintGuiElement implements GuiElement {
 
     public void updateValues() {
         updateConstraintsRenderers();
+    }
+
+    private Color highlightColor = Colors.LIGHT_GREY;
+
+    /**
+     * Requites a reload of the constraint gui to apply to the current state of the constraints
+     */
+    public void setHighlightColor(Color color) {
+        addConstraintGuiElement.setHighlightColor(color);
+        this.highlightColor = color;
     }
 }

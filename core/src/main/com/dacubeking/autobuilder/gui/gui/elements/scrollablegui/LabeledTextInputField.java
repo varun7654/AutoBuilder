@@ -31,8 +31,10 @@ public class LabeledTextInputField extends TextGuiElement {
     }
 
     @Override
-    public float getHeight(float drawStartX, float drawStartY, float drawWidth, Camera camera, boolean isLeftMouseJustUnpressed) {
-        return Math.max(super.getHeight(drawStartX, drawStartY, drawWidth, camera, isLeftMouseJustUnpressed) + 5,
+    public float getHeight(float drawStartX, float drawStartY, float drawWidth, boolean isLeftMouseJustUnpressed) {
+        textBox.update(textBoxWidth);
+        return Math.max(super.getHeight(drawStartX, drawStartY - 9,
+                        drawWidth - textBoxWidth - 12, isLeftMouseJustUnpressed) + 5,
                 textBox.getHeight() + 2);
     }
 

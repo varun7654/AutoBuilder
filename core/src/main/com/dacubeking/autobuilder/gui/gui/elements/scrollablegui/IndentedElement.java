@@ -50,11 +50,11 @@ public class IndentedElement implements GuiElement {
     }
 
     @Override
-    public float getHeight(float drawStartX, float drawStartY, float drawWidth, Camera camera, boolean isLeftMouseJustUnpressed) {
+    public float getHeight(float drawStartX, float drawStartY, float drawWidth, boolean isLeftMouseJustUnpressed) {
         float drawY = drawStartY;
         for (GuiElement element : elements) {
             drawY -= element.getHeight(drawStartX + level, drawY,
-                    drawWidth - INDENT_WIDTH, camera, isLeftMouseJustUnpressed);
+                    drawWidth - INDENT_WIDTH, isLeftMouseJustUnpressed);
         }
         return drawStartY - drawY + 5;
     }

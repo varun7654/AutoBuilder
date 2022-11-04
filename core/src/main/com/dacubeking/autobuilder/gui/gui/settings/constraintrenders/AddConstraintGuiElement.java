@@ -4,6 +4,7 @@ import com.badlogic.gdx.graphics.Camera;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.g2d.PolygonSpriteBatch;
 import com.badlogic.gdx.math.Vector2;
+import com.dacubeking.autobuilder.gui.AutoBuilder;
 import com.dacubeking.autobuilder.gui.gui.elements.scrollablegui.GuiElement;
 import com.dacubeking.autobuilder.gui.gui.elements.scrollablegui.TextGuiElement;
 import com.dacubeking.autobuilder.gui.gui.textrendering.TextComponent;
@@ -33,6 +34,8 @@ public class AddConstraintGuiElement implements GuiElement {
     private static final List<ConstraintType> constraints = new ArrayList<>();
     protected final Consumer<TrajectoryConstraint> onAddConstraint;
     private final boolean allowClose;
+
+    private Color highlightColor = Colors.LIGHT_GREY;
 
     public AddConstraintGuiElement(Consumer<TrajectoryConstraint> onAddConstraint) {
         this(onAddConstraint, true);
@@ -86,22 +89,24 @@ public class AddConstraintGuiElement implements GuiElement {
             pos.set(-1, -1); //Make it so that it won't be highlighted when the mouse hovers over it
         }
         startY -= header.render(shapeRenderer, spriteBatch, drawStartX, startY, drawWidth, camera, isLeftMouseJustUnpressed,
-                (c) -> isExpanded = !isExpanded || !allowClose, pos);
+                (c) -> isExpanded = !isExpanded || !allowClose, pos, highlightColor);
         if (isExpanded) {
             for (ConstraintType constraint : constraints) {
                 startY -= constraint.render(shapeRenderer, spriteBatch, drawStartX, startY, drawWidth, camera,
-                        isLeftMouseJustUnpressed, onAddConstraint, getMousePos(pos));
+                        isLeftMouseJustUnpressed, onAddConstraint, getMousePos(pos), highlightColor);
             }
         }
         return drawStartY - startY;
     }
 
     @Override
-    public float getHeight(float drawStartX, float drawStartY, float drawWidth, Camera camera, boolean isLeftMouseJustUnpressed) {
+    public float getHeight(float drawStartX, float drawStartY, float drawWidth, boolean isLeftMouseJustUnpressed) {
         float height = 0;
-        height += header.getHeight(drawStartX, drawStartY, drawWidth, camera, isLeftMouseJustUnpressed);
-        for (ConstraintType constraint : constraints) {
-            height += constraint.getHeight(drawStartX, drawStartY, drawWidth, camera, isLeftMouseJustUnpressed);
+        height += header.getHeight(drawStartX, drawStartY, drawWidth, isLeftMouseJustUnpressed);
+        if (isExpanded) {
+            for (ConstraintType constraint : constraints) {
+                height += constraint.getHeight(drawStartX, drawStartY, drawWidth, isLeftMouseJustUnpressed);
+            }
         }
         return height;
     }
@@ -118,19 +123,21 @@ public class AddConstraintGuiElement implements GuiElement {
 
         public float render(@NotNull ShapeDrawer shapeRenderer, @NotNull PolygonSpriteBatch spriteBatch, float drawStartX,
                             float drawStartY, float drawWidth, Camera camera, boolean isLeftMouseJustUnpressed,
-                            Consumer<TrajectoryConstraint> onAddConstraint, Vector2 mousePos) {
-            float textHeight = textGuiElement.getHeight(drawStartX + 25, drawStartY, drawWidth - 20, camera,
+                            Consumer<TrajectoryConstraint> onAddConstraint, Vector2 mousePos, Color highlightColor) {
+            float textHeight = textGuiElement.getHeight(drawStartX + 25, drawStartY, drawWidth - 20,
                     isLeftMouseJustUnpressed);
             if (isMouseOver(mousePos, drawStartX, drawStartY - 9 - textHeight, drawWidth, textHeight + 8)) {
                 RoundedShapeRenderer.roundedRectTopLeft(shapeRenderer, drawStartX,
-                        drawStartY, drawWidth, textHeight + 10, 5, Colors.LIGHT_GREY);
+                        drawStartY, drawWidth, textHeight + 10, 5, highlightColor);
 
                 if (isLeftMouseJustUnpressed) {
+                    AutoBuilder.requestRendering();
                     onAddConstraint.accept(trajectoryConstraintSupplier.get());
                 }
             }
 
             if (renderPlus) {
+                shapeRenderer.setDefaultLineWidth(2);
                 MiscShapeRenderer.plusIconCentered(shapeRenderer, drawStartX + 20, drawStartY - (textHeight / 2) - 5, 16, 15,
                         Color.BLACK);
                 textGuiElement.render(shapeRenderer, spriteBatch, drawStartX + 20, drawStartY - 5, drawWidth - 20, camera,
@@ -143,10 +150,15 @@ public class AddConstraintGuiElement implements GuiElement {
             return textHeight + 10;
         }
 
-        public float getHeight(float drawStartX, float drawStartY, float drawWidth, Camera camera,
+        public float getHeight(float drawStartX, float drawStartY, float drawWidth,
                                boolean isLeftMouseJustUnpressed) {
-            return textGuiElement.getHeight(drawStartX + 20, drawStartY, drawWidth - 20, camera, isLeftMouseJustUnpressed) + 10;
+            return textGuiElement.getHeight(drawStartX + 25, drawStartY, drawWidth - 20, isLeftMouseJustUnpressed) + 10;
         }
+    }
+
+    public AddConstraintGuiElement setHighlightColor(Color color) {
+        this.highlightColor = color;
+        return this;
     }
 
     @Override

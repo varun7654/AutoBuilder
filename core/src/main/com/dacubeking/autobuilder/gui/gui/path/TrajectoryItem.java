@@ -13,6 +13,7 @@ import com.dacubeking.autobuilder.gui.gui.elements.CheckBox;
 import com.dacubeking.autobuilder.gui.gui.elements.NumberTextBox;
 import com.dacubeking.autobuilder.gui.gui.elements.PositionedNumberTextBox;
 import com.dacubeking.autobuilder.gui.gui.hover.HoverManager;
+import com.dacubeking.autobuilder.gui.gui.settings.constraintrenders.ConstraintGuiElement;
 import com.dacubeking.autobuilder.gui.gui.textrendering.FontRenderer;
 import com.dacubeking.autobuilder.gui.gui.textrendering.Fonts;
 import com.dacubeking.autobuilder.gui.gui.textrendering.TextBlock;
@@ -21,6 +22,7 @@ import com.dacubeking.autobuilder.gui.pathing.MovablePointRenderer;
 import com.dacubeking.autobuilder.gui.pathing.TimedRotation;
 import com.dacubeking.autobuilder.gui.pathing.TrajectoryPathRenderer;
 import com.dacubeking.autobuilder.gui.undo.UndoHandler;
+import com.dacubeking.autobuilder.gui.util.Colors;
 import com.dacubeking.autobuilder.gui.util.RoundedShapeRenderer;
 import com.dacubeking.autobuilder.gui.wpi.math.geometry.Rotation2d;
 import com.dacubeking.autobuilder.gui.wpi.math.spline.Spline;
@@ -84,6 +86,9 @@ public class TrajectoryItem extends AbstractGuiItem implements PathChangeListene
 
         startVelocityTextBox = new PositionedNumberTextBox(df.format(getPathRenderer().getVelocityStart()), this, 0, 0, 18);
         endVelocityTextBox = new PositionedNumberTextBox(df.format(getPathRenderer().getVelocityEnd()), this, 0, 0, 18);
+        pathConstraintRenderer = new ConstraintGuiElement(trajectoryPathRenderer::getConstraints, false);
+        pathConstraintRenderer.setHighlightColor(Colors.LIGHTER_GREY);
+        pathConstraintRenderer.updateValues();
         setInitialClosed(false);
     }
 
@@ -107,6 +112,9 @@ public class TrajectoryItem extends AbstractGuiItem implements PathChangeListene
         trajectoryPathRenderer.setPathChangeListener(this);
         startVelocityTextBox = new PositionedNumberTextBox(df.format(getPathRenderer().getVelocityStart()), this, 0, 0, 18);
         endVelocityTextBox = new PositionedNumberTextBox(df.format(getPathRenderer().getVelocityEnd()), this, 0, 0, 18);
+        pathConstraintRenderer = new ConstraintGuiElement(trajectoryPathRenderer::getConstraints, false);
+        pathConstraintRenderer.setHighlightColor(Colors.LIGHTER_GREY);
+        pathConstraintRenderer.updateValues();
         setInitialClosed(closed);
     }
 
@@ -117,6 +125,10 @@ public class TrajectoryItem extends AbstractGuiItem implements PathChangeListene
     private static final TextBlock CONTROL_POINT_Y = new TextBlock(Fonts.ROBOTO, 13, new TextComponent("Y Control Point"));
 
     private static final TextBlock[] HOVER_TEXT = {X_TEXT, Y_TEXT, THETA_TEXT, CONTROL_POINT_X, CONTROL_POINT_Y};
+
+    private final @NotNull ConstraintGuiElement pathConstraintRenderer;
+    private static final TextBlock CONSTRAINTS_LABEL = new TextBlock(Fonts.ROBOTO, 22, new TextComponent("Constraints:")
+            .setBold(true).setColor(Color.BLACK));
 
     @Override
     public int render(@NotNull ShapeDrawer shapeRenderer, @NotNull PolygonSpriteBatch spriteBatch, int drawStartX, int drawStartY,
@@ -186,9 +198,9 @@ public class TrajectoryItem extends AbstractGuiItem implements PathChangeListene
             }
             endVelocityTextBox.draw(shapeRenderer, spriteBatch, drawStartX + drawWidth - TEXTBOX_WIDTH - TEXTBOX_X_PADDING,
                     textBoxDrawY, TEXTBOX_WIDTH, null);
+            textBoxDrawY -= endVelocityTextBox.getHeight() + TEXTBOX_Y_PADDING_NEW_POINT;
 
             if (!AutoBuilder.getConfig().isHolonomic()) { //Don't allow reversing the path if holonomic
-                textBoxDrawY -= endVelocityTextBox.getHeight() + TEXTBOX_Y_PADDING_NEW_POINT;
                 if (REVERSE_LABEL.getWidth() + reversedCheckBox.getWidth() + TEXTBOX_X_PADDING * 4 < drawWidth) {
                     FontRenderer.renderText(spriteBatch, shapeRenderer, drawStartX + 10, textBoxDrawY - 13, REVERSE_LABEL);
                 }
@@ -202,7 +214,16 @@ public class TrajectoryItem extends AbstractGuiItem implements PathChangeListene
                     UndoHandler.getInstance().somethingChanged();
                 }
                 reversedCheckBox.render(shapeRenderer, spriteBatch, trajectoryPathRenderer.isReversed());
+                textBoxDrawY -= reversedCheckBox.getHeight() + TEXTBOX_Y_PADDING_NEW_POINT;
             }
+
+            List<TrajectoryConstraint> constraints = trajectoryPathRenderer.getConstraints();
+            if (constraints.size() > 0) {
+                FontRenderer.renderText(spriteBatch, shapeRenderer, drawStartX + 10, textBoxDrawY - 13, CONSTRAINTS_LABEL);
+                textBoxDrawY -= CONSTRAINTS_LABEL.getHeight() + TEXTBOX_Y_PADDING_NEW_POINT;
+            }
+            pathConstraintRenderer.render(shapeRenderer, spriteBatch, drawStartX + 5, textBoxDrawY + 8,
+                    drawWidth - 5, camera, isLeftMouseJustUnpressed);
         }
         spriteBatch.flush();
         if (pop == 1) ScissorStack.popScissors();
@@ -360,7 +381,7 @@ public class TrajectoryItem extends AbstractGuiItem implements PathChangeListene
     @Override
     public int getOpenHeight(float drawWidth) {
         float textBoxDrawX = 10;
-        float textBoxDrawY = -35;
+        float textBoxDrawY = 0;
         // Draw all the control vectors
         for (List<NumberTextBox> textBoxList : textBoxes) {
             for (int i = 0; i < textBoxList.size(); i++) {
@@ -376,9 +397,16 @@ public class TrajectoryItem extends AbstractGuiItem implements PathChangeListene
         }
 
         textBoxDrawY -= startVelocityTextBox.getHeight() + TEXTBOX_Y_PADDING_NEW_POINT;
+        textBoxDrawY -= endVelocityTextBox.getHeight() + TEXTBOX_Y_PADDING_NEW_POINT;
         if (!AutoBuilder.getConfig().isHolonomic()) { //Don't allow reversing the path if holonomic
-            textBoxDrawY -= endVelocityTextBox.getHeight() + TEXTBOX_Y_PADDING_NEW_POINT;
+            textBoxDrawY -= reversedCheckBox.getHeight() + TEXTBOX_Y_PADDING_NEW_POINT;
         }
+
+        if (trajectoryPathRenderer.getConstraints().size() > 0) {
+            textBoxDrawY -= CONSTRAINTS_LABEL.getHeight() + TEXTBOX_Y_PADDING_NEW_POINT;
+        }
+        textBoxDrawY -= pathConstraintRenderer.getHeight(textBoxDrawX, textBoxDrawY, drawWidth - 10, false);
+
 
         return (int) -textBoxDrawY;
     }
