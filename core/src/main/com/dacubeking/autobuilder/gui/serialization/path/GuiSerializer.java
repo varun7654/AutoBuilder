@@ -6,6 +6,7 @@ import com.dacubeking.autobuilder.gui.gui.path.TrajectoryItem;
 import com.dacubeking.autobuilder.gui.pathing.TimedRotation;
 import com.dacubeking.autobuilder.gui.wpi.math.trajectory.Trajectory;
 import com.dacubeking.autobuilder.gui.wpi.math.trajectory.TrajectoryGenerator.ControlVectorList;
+import com.dacubeking.autobuilder.gui.wpi.math.trajectory.constraint.TrajectoryConstraint;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -34,7 +35,8 @@ public class GuiSerializer {
                             trajectoryItem.isClosed(),
                             trajectoryItem.getPathRenderer().getVelocityStart(),
                             trajectoryItem.getPathRenderer().getVelocityEnd(),
-                            trajectoryItem.getPathRenderer().getConstraints()));
+                            trajectoryItem.getPathRenderer().getConstraints().stream()
+                                    .map(TrajectoryConstraint::copy).collect(Collectors.toCollection(ArrayList::new))));
                 } catch (ExecutionException e) {
                     throw new NotDeployableException("Trajectory is not deployable");
                 }
@@ -75,7 +77,8 @@ public class GuiSerializer {
                         trajectoryItem.isClosed(),
                         trajectoryItem.getPathRenderer().getVelocityStart(),
                         trajectoryItem.getPathRenderer().getVelocityEnd(),
-                        trajectoryItem.getPathRenderer().getConstraints()));
+                        trajectoryItem.getPathRenderer().getConstraints().stream()
+                                .map(TrajectoryConstraint::copy).collect(Collectors.toCollection(ArrayList::new))));
             }
         }
         return new Autonomous(autonomousSteps);
@@ -121,7 +124,8 @@ public class GuiSerializer {
                         trajectoryItem.isClosed(),
                         trajectoryItem.getPathRenderer().getVelocityStart(),
                         trajectoryItem.getPathRenderer().getVelocityEnd(),
-                        trajectoryItem.getPathRenderer().getConstraints()));
+                        trajectoryItem.getPathRenderer().getConstraints().stream()
+                                .map(TrajectoryConstraint::copy).collect(Collectors.toCollection(ArrayList::new))));
             }
         }
         Autonomous autonomous = new Autonomous(autonomousSteps);
