@@ -405,4 +405,8 @@ public class TrajectoryItem extends AbstractGuiItem implements PathChangeListene
                 "pathRenderer=" + trajectoryPathRenderer +
                 '}';
     }
+
+    public void updatePath() {
+        trajectoryPathRenderer.updatePath(true);
+    }
 }

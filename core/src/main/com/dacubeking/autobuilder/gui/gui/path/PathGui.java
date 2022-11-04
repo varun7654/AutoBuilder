@@ -378,4 +378,12 @@ public class PathGui extends InputEventListener {
     public @Nullable TrajectoryItem getLastPath() {
         return lastPath;
     }
+
+    public void updatePaths() {
+        for (AbstractGuiItem guiItem : guiItems) {
+            if (guiItem instanceof TrajectoryItem trajectoryItem) {
+                trajectoryItem.updatePath();
+            }
+        }
+    }
 }
