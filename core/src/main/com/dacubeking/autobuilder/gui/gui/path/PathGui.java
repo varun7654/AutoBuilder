@@ -291,7 +291,8 @@ public class PathGui extends InputEventListener {
                     smoothAmount = 20f;
                 }
             }
-            panelWidthFloat = (panelWidthFloat + (wantedPanelWidth - panelWidthFloat) / smoothAmount);
+            panelWidthFloat =
+                    (panelWidthFloat + (wantedPanelWidth - panelWidthFloat) / ((smoothAmount / 144f / AutoBuilder.getDeltaTime())));
 
             if (panelWidthFloat < 16) {
                 arrowPointingRight = true;
