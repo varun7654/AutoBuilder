@@ -1,38 +1,77 @@
 package com.dacubeking.autobuilder.gui.net;
 
 import com.dacubeking.autobuilder.gui.serialization.path.Autonomous;
+import com.fasterxml.jackson.core.exc.StreamReadException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
+import org.msgpack.jackson.dataformat.MessagePackFactory;
 
 import java.io.File;
 import java.io.IOException;
 
 public class Serializer {
-    static ObjectMapper objectMapper = new ObjectMapper();
+    static ObjectMapper jsonObjectMapper = new ObjectMapper();
+    static ObjectMapper msgPackObjectMapper = new ObjectMapper(new MessagePackFactory());
 
-    public static String serializeToString(Object obj) throws IOException {
-        objectMapper.configure(SerializationFeature.INDENT_OUTPUT, false);
-        return objectMapper.writeValueAsString(obj);
+    public static String serializeToString(Object obj, boolean asJson) throws IOException {
+        jsonObjectMapper.configure(SerializationFeature.INDENT_OUTPUT, false);
+        return jsonObjectMapper.writeValueAsString(obj);
     }
 
-    public static void serializeToFile(Object obj, File file) throws IOException {
-        objectMapper.configure(SerializationFeature.INDENT_OUTPUT, true);
-        objectMapper.writeValue(file, obj);
+    public static void serializeToFile(Object obj, File file, boolean asJson) throws IOException {
+        jsonObjectMapper.configure(SerializationFeature.INDENT_OUTPUT, true);
+        jsonObjectMapper.writeValue(file, obj);
     }
 
     public static Autonomous deserializeAutoFromFile(File file) throws IOException {
-        return objectMapper.readValue(file, Autonomous.class);
+        try {
+            return msgPackObjectMapper.readValue(file, Autonomous.class);
+        } catch (StreamReadException e) {
+            try {
+                return jsonObjectMapper.readValue(file, Autonomous.class);
+            } catch (StreamReadException ex) {
+                e.printStackTrace();
+                throw ex;
+            }
+        }
     }
 
     public static Object deserialize(String object, Class<?> serializableObject) throws IOException {
-        return objectMapper.readValue(object, serializableObject);
+        try {
+            return msgPackObjectMapper.readValue(object, serializableObject);
+        } catch (StreamReadException e) {
+            try {
+                return jsonObjectMapper.readValue(object, serializableObject);
+            } catch (StreamReadException ex) {
+                e.printStackTrace();
+                throw ex;
+            }
+        }
     }
 
     public static Autonomous deserializeAuto(String object) throws IOException, ClassNotFoundException {
-        return objectMapper.readValue(object, Autonomous.class);
+        try {
+            return msgPackObjectMapper.readValue(object, Autonomous.class);
+        } catch (StreamReadException e) {
+            try {
+                return jsonObjectMapper.readValue(object, Autonomous.class);
+            } catch (StreamReadException ex) {
+                e.printStackTrace();
+                throw ex;
+            }
+        }
     }
 
     public static Object deserializeFromFile(File file, Class<?> serializableObject) throws IOException {
-        return objectMapper.readValue(file, serializableObject);
+        try {
+            return msgPackObjectMapper.readValue(file, serializableObject);
+        } catch (StreamReadException e) {
+            try {
+                return jsonObjectMapper.readValue(file, serializableObject);
+            } catch (StreamReadException ex) {
+                e.printStackTrace();
+                throw ex;
+            }
+        }
     }
 }

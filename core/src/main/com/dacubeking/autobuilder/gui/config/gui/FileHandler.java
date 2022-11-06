@@ -213,7 +213,7 @@ public class FileHandler {
         autoFile.getParentFile().mkdirs();
 
         try {
-            Serializer.serializeToFile(autonomous, autoFile);
+            Serializer.serializeToFile(autonomous, autoFile, false);
 
             if (autonomous.deployable) {
                 File fileToDelete = new File(
@@ -240,11 +240,11 @@ public class FileHandler {
         shooterConfig.getParentFile().mkdirs();
         try {
             configFile.createNewFile();
-            Serializer.serializeToFile(AutoBuilder.getConfig(), configFile);
+            Serializer.serializeToFile(AutoBuilder.getConfig(), configFile, true);
 
             if (AutoBuilder.getInstance().shooterGui != null) {
                 shooterConfig.createNewFile();
-                Serializer.serializeToFile(AutoBuilder.getInstance().shooterGui.getShooterConfig(), shooterConfig);
+                Serializer.serializeToFile(AutoBuilder.getInstance().shooterGui.getShooterConfig(), shooterConfig, true);
             }
         } catch (IOException e) {
             e.printStackTrace();

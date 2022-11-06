@@ -51,4 +51,6 @@ dependencies {
 
     implementation "space.earlygrey:shapedrawer:$shapedrawerVersion"
 
+    implementation 'org.msgpack:jackson-dataformat-msgpack:0.9.3'
+
 }

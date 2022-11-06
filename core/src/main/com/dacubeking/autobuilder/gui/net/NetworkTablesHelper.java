@@ -204,7 +204,7 @@ public final class NetworkTablesHelper {
         if (inst != null && inst.isConnected()) {
             try {
                 String autonomousString = Serializer.serializeToString(
-                        GuiSerializer.serializeAutonomousForDeployment(guiItemList));
+                        GuiSerializer.serializeAutonomousForDeployment(guiItemList), true);
                 autoPath.setString(autonomousString);
                 Autonomous autonomous = Serializer.deserializeAuto(autoPath.getString(null));
                 System.out.println("Sent Data: " + autonomous);
@@ -230,7 +230,7 @@ public final class NetworkTablesHelper {
 
     public void setShooterConfig(ShooterConfig shooterConfig) {
         try {
-            if (shooterConfigEntry != null) shooterConfigEntry.setString(Serializer.serializeToString(shooterConfig));
+            if (shooterConfigEntry != null) shooterConfigEntry.setString(Serializer.serializeToString(shooterConfig, true));
         } catch (IOException e) {
             e.printStackTrace();
         }
