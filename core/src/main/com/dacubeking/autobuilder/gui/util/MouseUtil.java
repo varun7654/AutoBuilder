@@ -78,4 +78,8 @@ public final class MouseUtil {
     public static boolean isIsLeftMouseJustUnpressed() {
         return isLeftMouseJustUnpressed;
     }
+
+    public static boolean isAltPressed() {
+        return Gdx.input.isKeyPressed(Keys.ALT_LEFT) || Gdx.input.isKeyPressed(Keys.ALT_RIGHT);
+    }
 }

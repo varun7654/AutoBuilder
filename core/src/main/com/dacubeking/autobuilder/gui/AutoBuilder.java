@@ -409,6 +409,14 @@ public final class AutoBuilder extends ApplicationAdapter {
         cam.unproject(mousePos);
         mouseDiff.set(mousePos).sub(lastMousePos);
 
+        if (MouseUtil.isAltPressed() && !onGui) {
+            HoverManager.setHoverText(new TextBlock(Fonts.JETBRAINS_MONO, 14,
+                            new TextComponent("X: ").setBold(true),
+                            new TextComponent(df.format(mousePos.x / AutoBuilder.getConfig().getPointScaleFactor())),
+                            new TextComponent(" Y: ").setBold(true),
+                            new TextComponent(df.format(mousePos.y / AutoBuilder.getConfig().getPointScaleFactor()))),
+                    0, Gdx.graphics.getHeight());
+        }
         //Figure out the max distance a point can be from the mouse
         float maxDistance = (float) Math.pow(Math.max(20 * cam.zoom, POINT_SIZE), 2);
 
