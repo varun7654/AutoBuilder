@@ -173,7 +173,7 @@ public final class AutoBuilder extends ApplicationAdapter {
 
         settingsGui = new SettingsGui();
 
-        FileHandler.loadAuto();
+        FileHandler.handleFile(getConfig().getAutoPath());
 
         drivenPathRenderer = new DrivenPathRenderer();
         hudRenderer = new HudRenderer();

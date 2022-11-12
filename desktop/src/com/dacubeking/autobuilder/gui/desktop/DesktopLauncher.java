@@ -20,7 +20,7 @@ public class DesktopLauncher {
             @Override
             public void filesDropped(String[] files) {
                 if (files != null && files.length == 1) {
-                    if (files[0].endsWith(".json")) {
+                    if (files[0].endsWith(".json") || files[0].endsWith(".auto")) {
                         app.loadFile(files[0]);
                     }
                 }

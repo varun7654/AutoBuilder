@@ -4,6 +4,7 @@ import com.dacubeking.autobuilder.gui.serialization.path.Autonomous;
 import com.fasterxml.jackson.core.exc.StreamReadException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.databind.exc.MismatchedInputException;
 import org.msgpack.jackson.dataformat.MessagePackFactory;
 
 import java.io.File;
@@ -19,17 +20,21 @@ public class Serializer {
     }
 
     public static void serializeToFile(Object obj, File file, boolean asJson) throws IOException {
-        jsonObjectMapper.configure(SerializationFeature.INDENT_OUTPUT, true);
-        jsonObjectMapper.writeValue(file, obj);
+        if (asJson) {
+            jsonObjectMapper.configure(SerializationFeature.INDENT_OUTPUT, true);
+            jsonObjectMapper.writeValue(file, obj);
+        } else {
+            msgPackObjectMapper.writeValue(file, obj);
+        }
     }
 
     public static Autonomous deserializeAutoFromFile(File file) throws IOException {
         try {
             return msgPackObjectMapper.readValue(file, Autonomous.class);
-        } catch (StreamReadException e) {
+        } catch (StreamReadException | MismatchedInputException e) {
             try {
                 return jsonObjectMapper.readValue(file, Autonomous.class);
-            } catch (StreamReadException ex) {
+            } catch (StreamReadException | MismatchedInputException ex) {
                 e.printStackTrace();
                 throw ex;
             }
@@ -39,10 +44,10 @@ public class Serializer {
     public static Object deserialize(String object, Class<?> serializableObject) throws IOException {
         try {
             return msgPackObjectMapper.readValue(object, serializableObject);
-        } catch (StreamReadException e) {
+        } catch (StreamReadException | MismatchedInputException e) {
             try {
                 return jsonObjectMapper.readValue(object, serializableObject);
-            } catch (StreamReadException ex) {
+            } catch (StreamReadException | MismatchedInputException ex) {
                 e.printStackTrace();
                 throw ex;
             }
@@ -52,10 +57,10 @@ public class Serializer {
     public static Autonomous deserializeAuto(String object) throws IOException, ClassNotFoundException {
         try {
             return msgPackObjectMapper.readValue(object, Autonomous.class);
-        } catch (StreamReadException e) {
+        } catch (StreamReadException | MismatchedInputException e) {
             try {
                 return jsonObjectMapper.readValue(object, Autonomous.class);
-            } catch (StreamReadException ex) {
+            } catch (StreamReadException | MismatchedInputException ex) {
                 e.printStackTrace();
                 throw ex;
             }
@@ -65,10 +70,10 @@ public class Serializer {
     public static Object deserializeFromFile(File file, Class<?> serializableObject) throws IOException {
         try {
             return msgPackObjectMapper.readValue(file, serializableObject);
-        } catch (StreamReadException e) {
+        } catch (StreamReadException | MismatchedInputException e) {
             try {
                 return jsonObjectMapper.readValue(file, serializableObject);
-            } catch (StreamReadException ex) {
+            } catch (StreamReadException | MismatchedInputException ex) {
                 e.printStackTrace();
                 throw ex;
             }
