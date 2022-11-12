@@ -96,4 +96,8 @@ public abstract class ScrollableGui extends InputEventListener implements Dispos
             scrollPos = scrollPos + amountY * 80;
         }
     }
+
+    public boolean isPanelOpen() {
+        return panelOpen;
+    }
 }

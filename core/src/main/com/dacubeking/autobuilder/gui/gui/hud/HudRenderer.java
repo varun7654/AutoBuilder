@@ -22,7 +22,7 @@ public class HudRenderer {
         float yOffset = Gdx.graphics.getHeight() - 35;
         boolean justStarted = true;
         for (HudElement hudElement : hudElements) {
-            if (xOffset > AutoBuilder.getInstance().pathGui.getPanelX() && !justStarted) {
+            if (xOffset + hudElement.width > AutoBuilder.getInstance().pathGui.getPanelX() && !justStarted) {
                 xOffset = hudXOffset + 5;
                 yOffset -= 35; // Element has width 30 + 5 padding
             }

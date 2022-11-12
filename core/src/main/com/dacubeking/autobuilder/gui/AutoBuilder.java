@@ -381,7 +381,11 @@ public final class AutoBuilder extends ApplicationAdapter {
         settingsGui.render(hudShapeRenderer, hudBatch, hudCam);
 
         configGUI.draw(hudShapeRenderer, hudBatch, hudCam);
-        hudRenderer.render(hudShapeRenderer, hudBatch, (shooterGui != null && shooterGui.isPanelOpen()) ? 340 : 0);
+        float hudXOffset = 0;
+        if ((shooterGui != null && shooterGui.isPanelOpen()) || settingsGui.isPanelOpen()) {
+            hudXOffset = 340;
+        }
+        hudRenderer.render(hudShapeRenderer, hudBatch, hudXOffset);
         HoverManager.render(hudBatch, hudShapeRenderer);
         notificationHandler.processNotification(hudShapeRenderer, hudBatch);
         hudBatch.end();

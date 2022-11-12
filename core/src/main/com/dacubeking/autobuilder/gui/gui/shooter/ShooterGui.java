@@ -391,8 +391,4 @@ public class ShooterGui extends ScrollableGui implements NumberTextboxChangeList
 
         return new ShooterPreset(hoodPosition, flywheelSpeed, distance);
     }
-
-    public boolean isPanelOpen() {
-        return panelOpen;
-    }
 }
