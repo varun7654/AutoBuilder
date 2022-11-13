@@ -8,7 +8,6 @@ import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.math.Vector3;
 import com.dacubeking.autobuilder.gui.AutoBuilder;
 import com.dacubeking.autobuilder.gui.config.Config;
-import com.dacubeking.autobuilder.gui.config.gui.FileHandler;
 import com.dacubeking.autobuilder.gui.events.movablepoint.MovablePointEventHandler;
 import com.dacubeking.autobuilder.gui.events.movablepoint.PointMoveEvent;
 import com.dacubeking.autobuilder.gui.events.pathchange.PathChangeListener;
@@ -662,7 +661,7 @@ public class TrajectoryPathRenderer implements MovablePointEventHandler, Seriali
             return trajectory;
         }, executorService);
 
-        completableFutureTrajectory.thenRun(() -> FileHandler.saveAuto(true));
+        completableFutureTrajectory.thenRun(() -> UndoHandler.getInstance().triggerSave());
 
 
         if (updateListener && pathChangeListener != null) pathChangeListener.onPathChange();

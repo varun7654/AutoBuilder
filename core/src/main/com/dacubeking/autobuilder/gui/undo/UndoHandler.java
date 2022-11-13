@@ -29,6 +29,10 @@ public final class UndoHandler {
 
     private static final long UNDO_SAVE_INTERVAL = 1000;
 
+
+    private boolean saveWanted = false;
+    private final Object saveWantedLock = new Object();
+
     private UndoHandler() {
 
     }
@@ -70,7 +74,6 @@ public final class UndoHandler {
             }
 
             FileHandler.saveAuto(true);
-
             synchronized (saveWantedLock) {
                 saveWanted = false;
             }
@@ -80,7 +83,7 @@ public final class UndoHandler {
             saveWanted = this.saveWanted;
         }
         if (saveWanted) {
-            FileHandler.saveAuto(true);
+            saveCurrentState(pathGui);
             synchronized (saveWantedLock) {
                 this.saveWanted = false;
             }
@@ -191,5 +194,11 @@ public final class UndoHandler {
 
     public synchronized void flushChanges() {
         lastUndoSaveTime = -1000000;
+    }
+
+    public void triggerSave() {
+        synchronized (saveWantedLock) {
+            saveWanted = true;
+        }
     }
 }

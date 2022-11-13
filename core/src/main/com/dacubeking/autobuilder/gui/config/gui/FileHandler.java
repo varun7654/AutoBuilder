@@ -11,6 +11,7 @@ import com.dacubeking.autobuilder.gui.serialization.path.Autonomous;
 import com.dacubeking.autobuilder.gui.serialization.path.GuiSerializer;
 import com.dacubeking.autobuilder.gui.undo.UndoHandler;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.io.IOException;
@@ -21,28 +22,15 @@ public class FileHandler {
         synchronized (saveLock) {
             try {
                 if (!file.getAbsolutePath().equals(AutoBuilder.getConfig().getAutoPath().getAbsolutePath())) {
+                    // If the user requests to load the auto we already have loaded, don't save the current auto state to allow
+                    // the user to perform a "reload from disk"
                     saveAuto(false);
                 }
 
                 System.out.println("Loading file: " + file.getPath());
                 Autonomous autonomous = (Autonomous) Serializer.deserializeFromFile(file, Autonomous.class);
-                if (file.getName().startsWith("NOTDEPLOYABLE")) {
-                    if (new File(AutoBuilder.USER_DIRECTORY).equals(file.getParentFile())) {
-                        // Skip the NOTDEPLOYABLE part of the name. (It will be automatically added later if needed)
-                        AutoBuilder.getConfig().setAuto(file.getName().substring(13));
-                    } else {
-                        // Skip the NOTDEPLOYABLE  part of the name. (It will be automatically added later if needed)
-                        AutoBuilder.getConfig().setAuto(
-                                file.getParentFile().getAbsolutePath() + "/" + file.getName().substring(13));
-                    }
-                } else {
-                    if (new File(AutoBuilder.USER_DIRECTORY).equals(file.getParentFile())) {
-                        AutoBuilder.getConfig().setAuto(file.getName());
-                    } else {
-                        AutoBuilder.getConfig().setAuto(file.getAbsolutePath());
-                    }
-                }
 
+                AutoBuilder.getConfig().setAuto(getSavableFileName(file));
                 AutoBuilder.getInstance().restoreState(autonomous, false);
                 String autoFilePath = AutoBuilder.getConfig().getSelectedAuto();
 
@@ -66,7 +54,6 @@ public class FileHandler {
                             "Loaded Autonomous: " + AutoBuilder.getConfig().getAutoPath().getName(),
                             3000));
                 }
-
 
                 Gdx.graphics.setTitle("Auto Builder - " + autoFilePath);
             } catch (IOException e) {
@@ -97,21 +84,9 @@ public class FileHandler {
         if (!file.getName().endsWith(".auto")) {
             file = new File(file.getAbsolutePath() + ".auto");
         }
+
         Autonomous autonomous = new Autonomous(new ArrayList<>());
-        if (file.getName().startsWith("NOTDEPLOYABLE")) {
-            if (new File(AutoBuilder.USER_DIRECTORY).equals(file.getParentFile())) {
-                AutoBuilder.getConfig().setAuto(file.getName().substring(13));
-            } else {
-                AutoBuilder.getConfig().setAuto(
-                        file.getParentFile().getAbsolutePath() + "/" + file.getName().substring(13));
-            }
-        } else {
-            if (new File(AutoBuilder.USER_DIRECTORY).equals(file.getParentFile())) {
-                AutoBuilder.getConfig().setAuto(file.getName());
-            } else {
-                AutoBuilder.getConfig().setAuto(file.getAbsolutePath());
-            }
-        }
+        AutoBuilder.getConfig().setAuto(getSavableFileName(file));
         AutoBuilder.getInstance().restoreState(autonomous);
         saveConfig();
         saveAuto(false);
@@ -142,6 +117,8 @@ public class FileHandler {
     static final Thread saveThread;
     private static volatile boolean requestSave = false;
 
+    @Nullable static Autonomous autonomousToSave = null;
+
     static {
         saveThread = new Thread(() -> {
             main:
@@ -157,11 +134,14 @@ public class FileHandler {
                     }
                 }
 
-                synchronized (autonomousToSaveLock) {
+                synchronized (saveLock) {
                     requestSave = false;
                 }
                 try {
-                    Autonomous autonomous = GuiSerializer.serializeAutonomous(AutoBuilder.getInstance().pathGui.guiItems, true);
+                    Autonomous autonomous = autonomousToSave;
+                    if (autonomous == null) {
+                        continue;
+                    }
                     synchronized (saveLock) {
                         saving = true;
                         boolean error = !saveAuto(autonomous);
@@ -186,19 +166,30 @@ public class FileHandler {
             }
             System.out.println("Save thread exited");
         });
+    }
+
+    public static void startAutoSaveThread() {
         saveThread.start();
     }
 
+
+    /**
+     * This method must be called from the main thread
+     *
+     * @param async whether to save asynchronously
+     */
     public static void saveAuto(boolean async) {
-        if (async) {
-            synchronized (autonomousToSaveLock) {
+        Autonomous autonomous = GuiSerializer.serializeAutonomous(AutoBuilder.getInstance().pathGui.guiItems, async);
+
+        synchronized (saveLock) {
+            autonomousToSave = autonomous;
+            if (async) {
                 requestSave = true;
-                autonomousToSaveLock.notifyAll();
-            }
-        } else {
-            synchronized (saveLock) {
+                synchronized (autonomousToSaveLock) {
+                    autonomousToSaveLock.notify();
+                }
+            } else {
                 requestSave = false;
-                Autonomous autonomous = GuiSerializer.serializeAutonomous(AutoBuilder.getInstance().pathGui.guiItems, async);
                 saveAuto(autonomous);
                 saveConfig();
             }
@@ -257,5 +248,22 @@ public class FileHandler {
             }
             return true;
         }
+    }
+
+    @NotNull
+    private static String getSavableFileName(@NotNull File file) {
+        String fileName;
+        if (file.getName().startsWith("NOTDEPLOYABLE")) {
+            // Skip the NOTDEPLOYABLE part of the name. (It will be automatically added later if needed)
+            fileName = file.getName().substring(13);
+        } else {
+            fileName = file.getName();
+        }
+
+        File parentOfSelectedFile = file.getParentFile();
+        if (!(new File(AutoBuilder.USER_DIRECTORY).equals(parentOfSelectedFile))) {
+            fileName = parentOfSelectedFile.getAbsolutePath() + "/" + fileName;
+        } // else if the auto is inside the user directory we can instead a store it as a relative path
+        return fileName;
     }
 }
