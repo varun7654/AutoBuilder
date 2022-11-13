@@ -22,7 +22,7 @@ public class NumberTextBox extends TextBox {
 
     @Override
     public void onKeyType(char character) {
-        if (Character.isDigit(character) || character == '.' || character == '-') {
+        if (Character.isDigit(character) || character == '.' || character == '-' || character == 'e' || character == 'E') {
             super.onKeyType(character);
         }
     }
