@@ -70,6 +70,20 @@ public final class UndoHandler {
             }
 
             FileHandler.saveAuto(true);
+
+            synchronized (saveWantedLock) {
+                saveWanted = false;
+            }
+        }
+        boolean saveWanted = false;
+        synchronized (saveWantedLock) {
+            saveWanted = this.saveWanted;
+        }
+        if (saveWanted) {
+            FileHandler.saveAuto(true);
+            synchronized (saveWantedLock) {
+                this.saveWanted = false;
+            }
         }
     }
 
@@ -139,7 +153,7 @@ public final class UndoHandler {
      * Reloads the state of the Config and PathGui from the current state. Useful to have the app recalculate changes that may
      * have been made
      */
-    public void reloadState() {
+    public synchronized void reloadState() {
         PathGui pathGui = AutoBuilder.getInstance().pathGui;
         restoreState(getCurrentState(pathGui), pathGui, AutoBuilder.getInstance().cameraHandler);
     }
@@ -147,7 +161,7 @@ public final class UndoHandler {
     /**
      * Reloads the autonomous. Used when paths need to be recalculated.
      */
-    public void reloadPaths() {
+    public synchronized void reloadPaths() {
         Autonomous newAutonomousState = GuiSerializer.serializeAutonomousForUndoHistory(
                 AutoBuilder.getInstance().pathGui.guiItems);
 
@@ -175,7 +189,7 @@ public final class UndoHandler {
         }
     }
 
-    public void flushChanges() {
+    public synchronized void flushChanges() {
         lastUndoSaveTime = -1000000;
     }
 }
