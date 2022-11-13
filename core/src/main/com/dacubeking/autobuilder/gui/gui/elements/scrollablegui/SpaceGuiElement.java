@@ -5,10 +5,16 @@ import com.badlogic.gdx.graphics.g2d.PolygonSpriteBatch;
 import org.jetbrains.annotations.NotNull;
 import space.earlygrey.shapedrawer.ShapeDrawer;
 
+/**
+ * An {@link GuiElement} that renders nothing and serves as a space between other elements.
+ */
 public class SpaceGuiElement implements GuiElement {
 
     private final float space;
 
+    /**
+     * @param space The space in pixels.
+     */
     public SpaceGuiElement(float space) {
         this.space = space;
     }

@@ -8,11 +8,19 @@ import com.dacubeking.autobuilder.gui.gui.textrendering.TextComponent;
 import org.jetbrains.annotations.NotNull;
 import space.earlygrey.shapedrawer.ShapeDrawer;
 
+/**
+ * A {@link GuiElement} that contains a label and a textbox.
+ */
 public class LabeledTextInputField extends TextGuiElement {
     public final TextBox textBox;
     public final float textBoxWidth;
 
 
+    /**
+     * @param label        The label of the text input field.
+     * @param textBox      The textbox.
+     * @param textBoxWidth The width of the textbox.
+     */
     public LabeledTextInputField(TextComponent label, @NotNull TextBox textBox, float textBoxWidth) {
         super(label);
         this.textBox = textBox.setOutlineColor(Color.BLACK);
@@ -40,6 +48,13 @@ public class LabeledTextInputField extends TextGuiElement {
 
     boolean valid = true;
 
+    /**
+     * Sets the validity of the text input field.
+     * <p>
+     * If valid is false, the text input field will be rendered red & italic.
+     *
+     * @param valid Whether the text input field is valid.
+     */
     public void setValid(boolean valid) {
         if (valid != this.valid) {
             if (valid) {
@@ -53,7 +68,7 @@ public class LabeledTextInputField extends TextGuiElement {
                     textComponent.setItalic(true);
                 }
             }
-            text.setDirty();
+            text.setDirty(); // Force a re-render. Since we're manipulating the text components directly, we need to do this.
             this.valid = valid;
         }
     }

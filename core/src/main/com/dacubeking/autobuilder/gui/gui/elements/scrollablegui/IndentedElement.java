@@ -10,13 +10,21 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+/**
+ * A {@link GuiElement} that can contain other {@link GuiElement}s that are indented.
+ * <p>
+ * The elements are rendered in the order that they're in the list. A colored line is rendered to the left of the elements with
+ * the color signifying the indentation level.
+ */
 public class IndentedElement implements GuiElement {
 
     private final List<GuiElement> elements = new ArrayList<>();
     int level;
     private static final Color[] indentColors;
+    private static final float INDENT_WIDTH = 20;
 
     static {
+        // Generate the colors for the indentation lines
         indentColors = new Color[5];
         for (int i = 0; i < indentColors.length; i++) {
             indentColors[i] = new Color().fromHsv((i * (360f / indentColors.length) + 180) % 360, 0.8f, 1);
@@ -24,17 +32,29 @@ public class IndentedElement implements GuiElement {
         }
     }
 
+    /**
+     * Creates a new {@link IndentedElement} with the specified indentation level.
+     *
+     * @param level    The indentation level.
+     * @param elements The elements to add to the list.
+     * @see IndentedElement
+     */
     public IndentedElement(int level, @NotNull GuiElement... elements) {
         this.elements.addAll(Arrays.asList(elements));
         this.level = level;
     }
 
+    /**
+     * Creates a new {@link IndentedElement} with the specified indentation level.
+     *
+     * @param level    The indentation level.
+     * @param elements The elements to render.
+     * @see IndentedElement
+     */
     public IndentedElement(int level, @NotNull List<GuiElement> elements) {
         this.elements.addAll(elements);
         this.level = level;
     }
-
-    private static final float INDENT_WIDTH = 20;
 
     @Override
     public float render(@NotNull ShapeDrawer shapeRenderer, @NotNull PolygonSpriteBatch spriteBatch, float drawStartX,

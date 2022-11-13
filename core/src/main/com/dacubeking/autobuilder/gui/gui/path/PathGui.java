@@ -380,6 +380,9 @@ public class PathGui extends InputEventListener {
         return lastPath;
     }
 
+    /**
+     * Recalculates all the paths
+     */
     public void updatePaths() {
         for (AbstractGuiItem guiItem : guiItems) {
             if (guiItem instanceof TrajectoryItem trajectoryItem) {

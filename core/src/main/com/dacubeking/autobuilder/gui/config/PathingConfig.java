@@ -55,6 +55,7 @@ public class PathingConfig {
 
     public PathingConfig(@NotNull PathingConfig pathingConfig) {
         this(pathingConfig.maxVelocityMetersPerSecond, pathingConfig.maxAccelerationMetersPerSecondSq,
+                // Copy all the trajectories to ensure mutable state doesn't change unexpectedly
                 new ArrayList<>() {{
                     for (TrajectoryConstraint trajectoryConstraint : pathingConfig.trajectoryConstraints) {
                         add(trajectoryConstraint.copy());

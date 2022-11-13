@@ -434,6 +434,9 @@ public class TrajectoryItem extends AbstractGuiItem implements PathChangeListene
                 '}';
     }
 
+    /**
+     * Update the path to match the current control vectors and constraints
+     */
     public void updatePath() {
         trajectoryPathRenderer.updatePath(true);
     }

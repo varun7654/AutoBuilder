@@ -13,21 +13,25 @@ import space.earlygrey.shapedrawer.ShapeDrawer;
 
 import static com.dacubeking.autobuilder.gui.util.MouseUtil.isMouseOver;
 
+/**
+ * A {@link GuiElement} that renders text.
+ */
 public class TextGuiElement implements GuiElement {
 
+    /**
+     * @param textComponent The text to render.
+     */
     public TextGuiElement(TextComponent... textComponent) {
         text = new TextBlock(Fonts.ROBOTO, 17, textComponent);
     }
 
     public final TextBlock text;
     public @Nullable TextBlock hoverText = null;
-
     public @Nullable Runnable onClick = null;
 
     @Override
     public float render(@NotNull ShapeDrawer shapeRenderer, @NotNull PolygonSpriteBatch spriteBatch, float drawStartX,
                         float drawStartY, float drawWidth, Camera camera, boolean isLeftMouseJustUnpressed) {
-//        shapeRenderer.line(drawStartX, drawStartY, drawStartX + drawWidth, drawStartY, Color.BLACK);
         text.setWrapWidth(drawWidth - 10);
         FontRenderer.renderText(spriteBatch, shapeRenderer, drawStartX + 10,
                 drawStartY - text.getTextComponents()[0].size.orElse(text.getDefaultSize()) + 3,
@@ -44,8 +48,6 @@ public class TextGuiElement implements GuiElement {
                 }
             }
         }
-//        shapeRenderer.line(drawStartX, drawStartY - text.getHeight(), drawStartX + drawWidth, drawStartY - text.getHeight(),
-//                Color.BLACK);
         return text.getHeight();
     }
 
@@ -55,11 +57,19 @@ public class TextGuiElement implements GuiElement {
         return text.getHeight();
     }
 
+    /**
+     * @param hoverText The text to display when the mouse is over this element.
+     * @return This element.
+     */
     public TextGuiElement setHoverText(@Nullable TextBlock hoverText) {
         this.hoverText = hoverText;
         return this;
     }
 
+    /**
+     * @param onClick The action to perform when this element is clicked.
+     * @return This element.
+     */
     public TextGuiElement setOnClick(@Nullable Runnable onClick) {
         this.onClick = onClick;
         return this;

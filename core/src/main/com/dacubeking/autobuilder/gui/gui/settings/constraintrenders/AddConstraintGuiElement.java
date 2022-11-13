@@ -29,6 +29,9 @@ import java.util.function.Supplier;
 import static com.dacubeking.autobuilder.gui.util.MouseUtil.getMousePos;
 import static com.dacubeking.autobuilder.gui.util.MouseUtil.isMouseOver;
 
+/**
+ * A {@link GuiElement} that renders a short gui that allows the user to add a constraint.
+ */
 public class AddConstraintGuiElement implements GuiElement {
 
     private static final List<ConstraintType> constraints = new ArrayList<>();
@@ -37,10 +40,17 @@ public class AddConstraintGuiElement implements GuiElement {
 
     private Color highlightColor = Colors.LIGHT_GREY;
 
+    /**
+     * @param onAddConstraint The callback to call when a constraint is added.
+     */
     public AddConstraintGuiElement(Consumer<TrajectoryConstraint> onAddConstraint) {
         this(onAddConstraint, true);
     }
 
+    /**
+     * @param onAddConstraint The callback to call when a constraint is added.
+     * @param allowClose      Whether to allow the user to close the gui.
+     */
     public AddConstraintGuiElement(Consumer<TrajectoryConstraint> onAddConstraint, boolean allowClose) {
         this.onAddConstraint = onAddConstraint;
         this.allowClose = allowClose;
@@ -48,7 +58,7 @@ public class AddConstraintGuiElement implements GuiElement {
     }
 
 
-    private boolean isExpanded = false;
+    private boolean isExpanded;
     ConstraintType header = new ConstraintType(new TextComponent("Add a Constraint").setBold(true).setSize(18),
             () -> null);
 
@@ -163,6 +173,8 @@ public class AddConstraintGuiElement implements GuiElement {
 
     @Override
     public void dispose() {
-
+        for (ConstraintType constraint : constraints) {
+            constraint.textGuiElement.dispose();
+        }
     }
 }

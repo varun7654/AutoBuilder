@@ -12,6 +12,9 @@ import space.earlygrey.shapedrawer.ShapeDrawer;
 
 import java.util.function.Consumer;
 
+/**
+ * A {@link GuiElement} that contains a label and a checkbox.
+ */
 public class LabeledCheckbox extends TextGuiElement {
     public final CheckBox checkBox;
 
@@ -19,6 +22,11 @@ public class LabeledCheckbox extends TextGuiElement {
     private final Consumer<Boolean> checkBoxChangedCallback;
 
 
+    /**
+     * @param label                   The label of the checkbox.
+     * @param checkBoxChangedCallback The callback that is called when the checkbox is changed.
+     * @param checked                 Whether the checkbox should start checked.
+     */
     public LabeledCheckbox(TextComponent label, Consumer<Boolean> checkBoxChangedCallback, boolean checked) {
         super(label);
         this.checked = checked;
@@ -53,8 +61,9 @@ public class LabeledCheckbox extends TextGuiElement {
                 checkBox.getHeight() + 6);
     }
 
-    boolean valid = true;
-
+    /**
+     * @param checked Whether the checkbox should be checked.
+     */
     public void setCheckBox(boolean checked) {
         this.checked = checked;
     }

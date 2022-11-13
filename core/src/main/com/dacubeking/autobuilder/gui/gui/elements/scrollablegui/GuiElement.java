@@ -5,6 +5,9 @@ import com.badlogic.gdx.graphics.g2d.PolygonSpriteBatch;
 import org.jetbrains.annotations.NotNull;
 import space.earlygrey.shapedrawer.ShapeDrawer;
 
+/**
+ * An element that can rendered in a GUI.
+ */
 public interface GuiElement {
 
     float render(@NotNull ShapeDrawer shapeRenderer, @NotNull PolygonSpriteBatch spriteBatch, float drawStartX,

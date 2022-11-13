@@ -19,6 +19,9 @@ import static com.dacubeking.autobuilder.gui.gui.GuiConstants.BUTTON_SPACING;
 import static com.dacubeking.autobuilder.gui.util.MouseUtil.getMouseX;
 import static com.dacubeking.autobuilder.gui.util.MouseUtil.getMouseY;
 
+/**
+ * A generic gui that has common functionality that allows it to be scrolled.
+ */
 public abstract class ScrollableGui extends InputEventListener implements Disposable {
 
     public final @NotNull AbstractGuiButton openButton;
