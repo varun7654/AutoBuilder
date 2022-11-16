@@ -30,6 +30,10 @@ public abstract class AbstractGuiButton implements Disposable {
         texture.setFilter(Texture.TextureFilter.MipMap, Texture.TextureFilter.Linear);
     }
 
+    public AbstractGuiButton(@NotNull Texture texture) {
+        this(0, 0, 0, 0, texture);
+    }
+
     public boolean checkClick() {
         if (Gdx.input.isButtonJustPressed(Buttons.LEFT)) {
             return hovering;
@@ -112,5 +116,18 @@ public abstract class AbstractGuiButton implements Disposable {
     public void setPosition(float x, float y) {
         this.x = x;
         this.y = y;
+    }
+
+    public float getRightX() {
+        return getX() + getWidth();
+    }
+
+    public float getTopY() {
+        return getY() + getHeight();
+    }
+
+    public void setSize(float width, float height) {
+        this.width = width;
+        this.height = height;
     }
 }

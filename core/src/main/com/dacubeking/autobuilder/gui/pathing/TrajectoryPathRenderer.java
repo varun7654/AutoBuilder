@@ -7,8 +7,7 @@ import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.math.Vector3;
 import com.dacubeking.autobuilder.gui.AutoBuilder;
-import com.dacubeking.autobuilder.gui.UndoHandler;
-import com.dacubeking.autobuilder.gui.config.gui.FileHandler;
+import com.dacubeking.autobuilder.gui.config.Config;
 import com.dacubeking.autobuilder.gui.events.movablepoint.MovablePointEventHandler;
 import com.dacubeking.autobuilder.gui.events.movablepoint.PointMoveEvent;
 import com.dacubeking.autobuilder.gui.events.pathchange.PathChangeListener;
@@ -22,6 +21,7 @@ import com.dacubeking.autobuilder.gui.gui.textrendering.TextBlock;
 import com.dacubeking.autobuilder.gui.gui.textrendering.TextComponent;
 import com.dacubeking.autobuilder.gui.pathing.pointclicks.ClosePoint;
 import com.dacubeking.autobuilder.gui.pathing.pointclicks.CloseTrajectoryPoint;
+import com.dacubeking.autobuilder.gui.undo.UndoHandler;
 import com.dacubeking.autobuilder.gui.util.MathUtil;
 import com.dacubeking.autobuilder.gui.wpi.math.geometry.Pose2d;
 import com.dacubeking.autobuilder.gui.wpi.math.geometry.Rotation2d;
@@ -47,7 +47,8 @@ import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 public class TrajectoryPathRenderer implements MovablePointEventHandler, Serializable, PathRenderer {
     @NotNull private final Color color;
@@ -75,7 +76,7 @@ public class TrajectoryPathRenderer implements MovablePointEventHandler, Seriali
     @NotNull Vector2 nextPointLeft = new Vector2();
     @NotNull Vector2 nextPointRight = new Vector2();
     private int robotPreviewIndex;
-    @NotNull private List<TrajectoryConstraint> constraints;
+    @NotNull private final List<TrajectoryConstraint> constraints;
 
     DecimalFormat df = new DecimalFormat("#.##");
 
@@ -96,11 +97,11 @@ public class TrajectoryPathRenderer implements MovablePointEventHandler, Seriali
         }
 
         this.executorService = executorService;
-        updatePath();
 
         this.velocityStart = velocityStart;
         this.velocityEnd = velocityEnd;
         this.constraints = constraints;
+        updatePath();
     }
 
     public void setPathChangeListener(@NotNull PathChangeListener pathChangeListener) {
@@ -110,6 +111,9 @@ public class TrajectoryPathRenderer implements MovablePointEventHandler, Seriali
 
     @Override
     public void render(@NotNull ShapeDrawer renderer, @NotNull OrthographicCamera cam) {
+        Config config = AutoBuilder.getConfig();
+        float pointScaleFactor = config.getPointScaleFactor();
+
         //Get the first 2 points of the line at t = 0
         lastPointLeft.set(0, -AutoBuilder.LINE_THICKNESS / 2);
         lastPointRight.set(0, AutoBuilder.LINE_THICKNESS / 2);
@@ -119,10 +123,10 @@ public class TrajectoryPathRenderer implements MovablePointEventHandler, Seriali
                 lastPointLeft.rotateRad((float) states.get(0).poseMeters.getRotation().getRadians());
                 lastPointRight.rotateRad((float) states.get(0).poseMeters.getRotation().getRadians());
 
-                lastPointLeft.add((float) states.get(0).poseMeters.getTranslation().getX() * config.getPointScaleFactor(),
-                        (float) states.get(0).poseMeters.getTranslation().getY() * config.getPointScaleFactor());
-                lastPointRight.add((float) states.get(0).poseMeters.getTranslation().getX() * config.getPointScaleFactor(),
-                        (float) states.get(0).poseMeters.getTranslation().getY() * config.getPointScaleFactor());
+                lastPointLeft.add((float) states.get(0).poseMeters.getTranslation().getX() * pointScaleFactor,
+                        (float) states.get(0).poseMeters.getTranslation().getY() * pointScaleFactor);
+                lastPointRight.add((float) states.get(0).poseMeters.getTranslation().getX() * pointScaleFactor,
+                        (float) states.get(0).poseMeters.getTranslation().getY() * pointScaleFactor);
 
                 for (State state : states) {
                     Pose2d cur = state.poseMeters;
@@ -143,10 +147,10 @@ public class TrajectoryPathRenderer implements MovablePointEventHandler, Seriali
                     nextPointLeft.rotateRad((float) cur.getRotation().getRadians());
                     nextPointRight.rotateRad((float) cur.getRotation().getRadians());
 
-                    nextPointLeft.add((float) cur.getTranslation().getX() * config.getPointScaleFactor(),
-                            (float) cur.getTranslation().getY() * config.getPointScaleFactor());
-                    nextPointRight.add((float) cur.getTranslation().getX() * config.getPointScaleFactor(),
-                            (float) cur.getTranslation().getY() * config.getPointScaleFactor());
+                    nextPointLeft.add((float) cur.getTranslation().getX() * pointScaleFactor,
+                            (float) cur.getTranslation().getY() * pointScaleFactor);
+                    nextPointRight.add((float) cur.getTranslation().getX() * pointScaleFactor,
+                            (float) cur.getTranslation().getY() * pointScaleFactor);
 
                     //Render the line
                     renderer.setColor(speedColor);
@@ -382,8 +386,7 @@ public class TrajectoryPathRenderer implements MovablePointEventHandler, Seriali
             //We clicked on the first point, so we need to get the path renderer of the previous path
             TrajectoryPathRenderer lastTrajectoryPathRenderer = null;
             for (AbstractGuiItem item : itemList) {
-                if (item instanceof TrajectoryItem) {
-                    TrajectoryItem trajectoryItem = (TrajectoryItem) item;
+                if (item instanceof TrajectoryItem trajectoryItem) {
                     if (trajectoryItem.getPathRenderer() == this) {
                         attachedPath = lastTrajectoryPathRenderer;
                         break;
@@ -396,8 +399,7 @@ public class TrajectoryPathRenderer implements MovablePointEventHandler, Seriali
             //We clicked on the last point, so we need to get the path renderer of the next path
             boolean foundMyself = false;
             for (AbstractGuiItem item : itemList) {
-                if (item instanceof TrajectoryItem) {
-                    TrajectoryItem trajectoryItem = (TrajectoryItem) item;
+                if (item instanceof TrajectoryItem trajectoryItem) {
                     if (trajectoryItem.getPathRenderer() == this) {
                         foundMyself = true;
                     } else if (foundMyself) {
@@ -419,7 +421,7 @@ public class TrajectoryPathRenderer implements MovablePointEventHandler, Seriali
             }
 
             if (Math.abs(selectedPoint.getPos2().sub((float) otherPathPose2d.x[0], (float) otherPathPose2d.y[0]).len2())
-                    < Math.pow((20 / config.getPointScaleFactor() * camera.zoom), 2)) {
+                    < Math.pow((20 / AutoBuilder.getConfig().getPointScaleFactor() * camera.zoom), 2)) {
                 updateConnectedPath(selectedPoint);
             } else {
                 attachedPath = null;
@@ -492,6 +494,7 @@ public class TrajectoryPathRenderer implements MovablePointEventHandler, Seriali
 
     private void updateConnectedPath(MovablePointRenderer selectedPoint) {
         if (attachedPath == null) return;
+        Config config = AutoBuilder.getConfig();
         if (isAttachedPathEnd) {
             ControlVector attachedPathControlVector = attachedPath.controlVectors.get(
                     attachedPath.controlVectors.size() - 1);
@@ -591,37 +594,61 @@ public class TrajectoryPathRenderer implements MovablePointEventHandler, Seriali
     }
 
     public void updatePath() {
-        updatePath(true);
+        updatePath(true, false);
     }
 
-    AtomicInteger updateRequestedPathCounter = new AtomicInteger(0);
-    AtomicInteger updatedPathCounter = new AtomicInteger(0);
+    int updateRequestedPathCounter = 0;
+    int updatedPathCounter = 0;
+    int forceUpdateCounter = -1;
+    private final Lock trajectoryMutex = new ReentrantLock();
 
     public void updatePath(boolean updateListener) {
-        updateRequestedPathCounter.incrementAndGet();
+        updatePath(updateListener, false);
+    }
+
+    public void updatePath(boolean updateListener, boolean mustUpdate) {
+        Config config = AutoBuilder.getConfig();
+        TrajectoryConfig trajectoryConfig = new TrajectoryConfig(config.getPathingConfig().maxVelocityMetersPerSecond,
+                config.getPathingConfig().maxAccelerationMetersPerSecondSq);
+        for (TrajectoryConstraint trajectoryConstraint : config.getPathingConfig().trajectoryConstraints) {
+            trajectoryConfig.addConstraint(trajectoryConstraint);
+        }
+
+        for (TrajectoryConstraint constraint : constraints) {
+            trajectoryConfig.addConstraint(constraint);
+        }
+
+        trajectoryConfig.setReversed(isReversed() && !config.isHolonomic());
+        trajectoryConfig.setStartVelocity(velocityStart);
+        trajectoryConfig.setEndVelocity(velocityEnd);
+
+        trajectoryMutex.lock();
+        try {
+            updateRequestedPathCounter += 1;
+            if (forceUpdateCounter < updatedPathCounter) {
+                forceUpdateCounter = updateRequestedPathCounter;
+            }
+        } finally {
+            trajectoryMutex.unlock();
+        }
+
         // Generate the new path on another thread
+        final ControlVectorList controlVectorsList = new ControlVectorList(controlVectors);
         completableFutureTrajectory = CompletableFuture.supplyAsync(() -> {
-            if (updatedPathCounter.get() == updateRequestedPathCounter.get()) {
-                return trajectory;
+            trajectoryMutex.lock();
+            try {
+                updatedPathCounter += 1;
+                if (updatedPathCounter != updateRequestedPathCounter && !mustUpdate
+                        && forceUpdateCounter != updatedPathCounter) {
+                    return null;
+                }
+            } finally {
+                trajectoryMutex.unlock();
             }
-            updatedPathCounter.set(updateRequestedPathCounter.get());
-            TrajectoryConfig trajectoryConfig = new TrajectoryConfig(config.getPathingConfig().maxVelocityMetersPerSecond,
-                    config.getPathingConfig().maxAccelerationMetersPerSecondSq);
-            for (TrajectoryConstraint trajectoryConstraint : config.getPathingConfig().trajectoryConstraints) {
-                trajectoryConfig.addConstraint(trajectoryConstraint);
-            }
-
-            for (TrajectoryConstraint constraint : constraints) {
-                trajectoryConfig.addConstraint(constraint);
-            }
-
-            trajectoryConfig.setReversed(isReversed());
-            trajectoryConfig.setStartVelocity(velocityStart);
-            trajectoryConfig.setEndVelocity(velocityEnd);
 
             Trajectory trajectory;
             try {
-                trajectory = TrajectoryGenerator.generateTrajectory(new ControlVectorList(controlVectors), trajectoryConfig);
+                trajectory = TrajectoryGenerator.generateTrajectory(controlVectorsList, trajectoryConfig);
             } catch (MalformedSplineException e) {
                 NotificationHandler.addNotification(new Notification(Color.RED, "Could not parameterize a malformed spline",
                         3000));
@@ -634,7 +661,7 @@ public class TrajectoryPathRenderer implements MovablePointEventHandler, Seriali
             return trajectory;
         }, executorService);
 
-        completableFutureTrajectory.thenRun(() -> FileHandler.saveAuto(true));
+        completableFutureTrajectory.thenRun(() -> UndoHandler.getInstance().triggerSave());
 
 
         if (updateListener && pathChangeListener != null) pathChangeListener.onPathChange();
@@ -667,7 +694,12 @@ public class TrajectoryPathRenderer implements MovablePointEventHandler, Seriali
     @NotNull
     public Trajectory getNotNullTrajectory() throws ExecutionException {
         try {
-            return completableFutureTrajectory.get();
+            Trajectory trajectory = completableFutureTrajectory.get();
+            if (trajectory == null) {
+                updatePath(false, true);
+                trajectory = completableFutureTrajectory.get();
+            }
+            return trajectory;
         } catch (InterruptedException e) {
             throw new RuntimeException(e);
         }

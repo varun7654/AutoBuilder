@@ -5,7 +5,6 @@ import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.math.Vector3;
 import com.dacubeking.autobuilder.gui.AutoBuilder;
-import com.dacubeking.autobuilder.gui.config.Config;
 import org.jetbrains.annotations.NotNull;
 import space.earlygrey.shapedrawer.ShapeDrawer;
 
@@ -14,8 +13,6 @@ public class PointRenderer {
     protected float x;
     protected float y;
     protected Color color;
-
-    Config config = AutoBuilder.getConfig();
 
     public PointRenderer(float x, float y, Color color, float radius) {
         this.x = x;
@@ -44,7 +41,8 @@ public class PointRenderer {
     }
 
     public void draw(@NotNull ShapeDrawer shape, @NotNull OrthographicCamera camera) {
-        shape.filledCircle(x * config.getPointScaleFactor(), y * config.getPointScaleFactor(), radius, color);
+        shape.filledCircle(x * AutoBuilder.getConfig().getPointScaleFactor(),
+                y * AutoBuilder.getConfig().getPointScaleFactor(), radius, color);
     }
 
 
@@ -92,11 +90,13 @@ public class PointRenderer {
     }
 
     public @NotNull Vector3 getRenderPos3() {
-        return new Vector3(x * config.getPointScaleFactor(), y * config.getPointScaleFactor(), 0);
+        return new Vector3(x * AutoBuilder.getConfig().getPointScaleFactor(),
+                y * AutoBuilder.getConfig().getPointScaleFactor(), 0);
     }
 
     public @NotNull Vector2 getRenderPos2() {
-        return new Vector2(x * config.getPointScaleFactor(), y * config.getPointScaleFactor());
+        return new Vector2(x * AutoBuilder.getConfig().getPointScaleFactor(),
+                y * AutoBuilder.getConfig().getPointScaleFactor());
     }
 
     @Override

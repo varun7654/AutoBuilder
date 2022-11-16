@@ -86,6 +86,7 @@ public final class NetworkTablesHelper {
     public void start(HudRenderer hudRenderer, @NotNull DrawableRenderer drawableRenderer) {
         new Thread(() -> {
             inst = NetworkTableInstance.getDefault();
+            inst.startClientTeam(AutoBuilder.getConfig().getTeamNumber());
             autoData = inst.getTable("autodata");
             autoPath = autoData.getEntry("autoPath");
             smartDashboardTable = inst.getTable("SmartDashboard");
@@ -101,7 +102,6 @@ public final class NetworkTablesHelper {
             distanceEntry = smartDashboardTable.getEntry("Shooter Distance to Target");
 
 
-            inst.startClientTeam(AutoBuilder.getConfig().getTeamNumber());
             enabledTable.addListener(entryNotification -> {
                 if (entryNotification.getEntry().getBoolean(false)) {
                     if (!enabled) {
@@ -204,7 +204,7 @@ public final class NetworkTablesHelper {
         if (inst != null && inst.isConnected()) {
             try {
                 String autonomousString = Serializer.serializeToString(
-                        GuiSerializer.serializeAutonomousForDeployment(guiItemList));
+                        GuiSerializer.serializeAutonomousForDeployment(guiItemList), true);
                 autoPath.setString(autonomousString);
                 Autonomous autonomous = Serializer.deserializeAuto(autoPath.getString(null));
                 System.out.println("Sent Data: " + autonomous);
@@ -230,7 +230,7 @@ public final class NetworkTablesHelper {
 
     public void setShooterConfig(ShooterConfig shooterConfig) {
         try {
-            if (shooterConfigEntry != null) shooterConfigEntry.setString(Serializer.serializeToString(shooterConfig));
+            if (shooterConfigEntry != null) shooterConfigEntry.setString(Serializer.serializeToString(shooterConfig, true));
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -277,5 +277,11 @@ public final class NetworkTablesHelper {
     public boolean isConnected() {
         if (inst == null) return false;
         return inst.isConnected();
+    }
+
+    public void disconnectClient() {
+        if (inst != null) {
+            inst.stopClient();
+        }
     }
 }

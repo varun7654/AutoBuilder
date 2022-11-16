@@ -92,4 +92,8 @@ public class InputEventThrower implements InputProcessor {
 
         return false;
     }
+
+    public static int getNumEventHandlers() {
+        return eventHandlers.size();
+    }
 }

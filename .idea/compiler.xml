@@ -4,6 +4,9 @@
     <annotationProcessing>
       <profile default="true" name="Default" enabled="true" />
     </annotationProcessing>
-    <bytecodeTargetLevel target="11" />
+    <bytecodeTargetLevel target="11">
+      <module name="AutoBuilder.main" target="17" />
+      <module name="AutoBuilder.test" target="17" />
+    </bytecodeTargetLevel>
   </component>
 </project>

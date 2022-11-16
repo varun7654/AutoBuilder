@@ -122,6 +122,16 @@ public class TextBlock {
                 char c = chars[j]; //Get the current character
                 @Nullable BitmapFont.Glyph glyph = fontData.getGlyph(c); //Get the character data for the current character
                 if (glyph != null) { // Certain characters (like \n) don't have glyphs
+                    if (glyph.xadvance > wrapWidth) {
+                        // We can't fit the text so give up
+                        renderableTextComponents.add(new RenderableTextComponent(sb.toString(), componentStartX, componentStartY,
+                                bufferX, component.isBold, component.isItalic, component.isUnderlined, component.isStrikethrough,
+                                component.isHighlighted, component.color,
+                                component.getUnderlineColor(), component.getStrikethroughColor(), component.getHighlightColor(),
+                                component.size.orElse(defaultSize),
+                                component.font.orElse(defaultFont), row));
+                        break;
+                    }
                     x += glyph.xadvance; //Move the positions of the next RenderableTextComponent to the right by the width
                 }
 
@@ -321,8 +331,8 @@ public class TextBlock {
     }
 
     /**
-     * @return a mutable list of all the text components that are used to create this text block. If this list is modified, {@link
-     * #setDirty()} must be called.
+     * @return a mutable list of all the text components that are used to create this text block. If this list is modified,
+     * {@link #setDirty()} must be called.
      */
     public TextComponent[] getTextComponents() {
         return textComponents;
@@ -366,6 +376,15 @@ public class TextBlock {
                 (largestFontSize * lineSpacing) - renderableTextComponents.get(renderableTextComponents.size() - 1).y;
     }
 
+    float getBottomPaddingCache = -1;
+
+    public float getBottomPaddingAmount() {
+        if (getBottomPaddingCache != -1) return getBottomPaddingCache;
+        if (renderableTextComponents.size() == 0) return getBottomPaddingCache = 0;
+        return getBottomPaddingCache =
+                renderableTextComponents.get(renderableTextComponents.size() - 1).getFontData().lineHeight / 4;
+    }
+
     /**
      * Marks the data in this object as needing to be recalculated.
      */
@@ -374,6 +393,7 @@ public class TextBlock {
         getPositionOfIndexCache.clear();
         getHeightCache = -1;
         width = -1;
+        getBottomPaddingCache = -1;
     }
 
     public void setDirtyIfTrue(boolean dirty) {
@@ -478,6 +498,11 @@ public class TextBlock {
         setDirty();
     }
 
+    public int getLength() {
+        updateIfDirty();
+        return totalChars;
+    }
+
     @Override
     public String toString() {
         return "TextBlock{" +
@@ -493,5 +518,10 @@ public class TextBlock {
                 ", getHeightCache=" + getHeightCache +
                 ", getPositionOfIndexCache=" + getPositionOfIndexCache +
                 '}';
+    }
+
+    public void addTextElement(TextComponent textComponent) {
+        textComponents = Arrays.copyOf(textComponents, textComponents.length + 1);
+        textComponents[textComponents.length - 1] = textComponent;
     }
 }

@@ -24,6 +24,7 @@ import com.dacubeking.autobuilder.gui.gui.notification.NotificationHandler;
 import com.dacubeking.autobuilder.gui.gui.path.AbstractGuiItem;
 import com.dacubeking.autobuilder.gui.gui.path.PathGui;
 import com.dacubeking.autobuilder.gui.gui.path.TrajectoryItem;
+import com.dacubeking.autobuilder.gui.gui.settings.SettingsGui;
 import com.dacubeking.autobuilder.gui.gui.shooter.ShooterConfig;
 import com.dacubeking.autobuilder.gui.gui.shooter.ShooterGui;
 import com.dacubeking.autobuilder.gui.gui.textrendering.*;
@@ -36,6 +37,8 @@ import com.dacubeking.autobuilder.gui.pathing.pointclicks.ClosePoint;
 import com.dacubeking.autobuilder.gui.pathing.pointclicks.CloseTrajectoryPoint;
 import com.dacubeking.autobuilder.gui.scripting.RobotCodeData;
 import com.dacubeking.autobuilder.gui.serialization.path.Autonomous;
+import com.dacubeking.autobuilder.gui.undo.UndoHandler;
+import com.dacubeking.autobuilder.gui.undo.UndoState;
 import com.dacubeking.autobuilder.gui.util.MouseUtil;
 import com.dacubeking.autobuilder.gui.util.OsUtil;
 import org.jetbrains.annotations.NotNull;
@@ -76,7 +79,7 @@ public final class AutoBuilder extends ApplicationAdapter {
     @NotNull private final Vector3 mouseDiff = new Vector3();
     @NotNull OrthographicCamera cam;
     @NotNull Viewport viewport;
-    @NotNull CameraHandler cameraHandler;
+    @NotNull public CameraHandler cameraHandler;
     @NotNull Viewport hudViewport;
     @NotNull OrthographicCamera hudCam;
     @NotNull PointRenderer origin;
@@ -84,6 +87,7 @@ public final class AutoBuilder extends ApplicationAdapter {
     @NotNull public static final ExecutorService asyncParsingService = Executors.newFixedThreadPool(1);
     @NotNull public PathGui pathGui;
     @Nullable public ShooterGui shooterGui;
+    @NotNull public SettingsGui settingsGui;
     @NotNull InputEventThrower inputEventThrower = new InputEventThrower();
     @NotNull public UndoHandler undoHandler = UndoHandler.getInstance();
     @NotNull NetworkTablesHelper networkTables = NetworkTablesHelper.getInstance();
@@ -167,7 +171,9 @@ public final class AutoBuilder extends ApplicationAdapter {
 
         pathGui = new PathGui(asyncPathingService, cameraHandler);
 
-        FileHandler.loadAuto();
+        settingsGui = new SettingsGui();
+
+        FileHandler.handleFile(getConfig().getAutoPath());
 
         drivenPathRenderer = new DrivenPathRenderer();
         hudRenderer = new HudRenderer();
@@ -187,9 +193,12 @@ public final class AutoBuilder extends ApplicationAdapter {
             }
         }
         configGUI = new ConfigGUI();
-        undoHandler.somethingChanged();
 
-        if (config.isNetworkTablesEnabled()) networkTables.start(hudRenderer, drawableRenderer);
+        if (config.isNetworkTablesEnabled()) {
+            networkTables.start(hudRenderer, drawableRenderer);
+        }
+        FileHandler.startAutoSaveThread(); // Start the autoSave thread only after we've loaded everything to prevent the auto
+        // from getting autosaved (deleted) before it is loaded
     }
 
     long renderTimeNano = 0L;
@@ -213,7 +222,9 @@ public final class AutoBuilder extends ApplicationAdapter {
     }
 
     public static void somethingInputted() {
-        if (!Gdx.graphics.isContinuousRendering()) justStartedRendering.set(true);
+        if (!Gdx.graphics.isContinuousRendering()) {
+            justStartedRendering.set(true);
+        }
     }
 
     public static void disableContinuousRendering(Object obj) {
@@ -245,7 +256,9 @@ public final class AutoBuilder extends ApplicationAdapter {
      * @param delay in milliseconds. Will only be added if a more recent request has not been made.
      */
     public synchronized static void scheduleRendering(long delay) {
-        if (delay < 0) return;
+        if (delay < 0) {
+            return;
+        }
         @Nullable ScheduledFuture<?> runnable = (ScheduledFuture<?>) requestedRenderThread.getQueue().peek();
         if (runnable == null || runnable.getDelay(TimeUnit.MILLISECONDS) > delay) {
             if (runnable != null) {
@@ -261,7 +274,9 @@ public final class AutoBuilder extends ApplicationAdapter {
         try {
             Gdx.graphics.setForegroundFPS(fps);
             setMouseCursor(SystemCursor.Arrow);
-            if (Gdx.graphics.getFrameId() == 700) disableContinuousRendering(this);
+            if (Gdx.graphics.getFrameId() == 700) {
+                disableContinuousRendering(this);
+            }
             update();
             draw();
         } catch (Exception e) {
@@ -354,7 +369,9 @@ public final class AutoBuilder extends ApplicationAdapter {
         //Fps overlay
         frameTimes[frameTimePos] = renderTimeNano * 0.000001;
         frameTimePos++;
-        if (frameTimePos == frameTimes.length) frameTimePos = 0;
+        if (frameTimePos == frameTimes.length) {
+            frameTimePos = 0;
+        }
         FontRenderer.renderText(hudBatch, null, 4, 4, new TextBlock(Fonts.JETBRAINS_MONO, 12,
                 new TextComponent(Integer.toString(Gdx.graphics.getFramesPerSecond())).setBold(true).setColor(Color.WHITE),
                 new TextComponent(" FPS, Peak: ").setBold(false).setColor(Color.WHITE),
@@ -368,11 +385,19 @@ public final class AutoBuilder extends ApplicationAdapter {
                 new TextComponent(lastSave).setColor(Color.WHITE).setBold(true)));
 
         pathGui.render(hudShapeRenderer, hudBatch, hudCam);
+
         if (shooterGui != null) { //If the shooter gui is null, it means its disabled
             shooterGui.render(hudShapeRenderer, hudBatch, hudCam);
         }
+
+        settingsGui.render(hudShapeRenderer, hudBatch, hudCam);
+
         configGUI.draw(hudShapeRenderer, hudBatch, hudCam);
-        hudRenderer.render(hudShapeRenderer, hudBatch, (shooterGui != null && shooterGui.isPanelOpen()) ? 340 : 0);
+        float hudXOffset = 0;
+        if ((shooterGui != null && shooterGui.isPanelOpen()) || settingsGui.isPanelOpen()) {
+            hudXOffset = 340;
+        }
+        hudRenderer.render(hudShapeRenderer, hudBatch, hudXOffset);
         HoverManager.render(hudBatch, hudShapeRenderer);
         notificationHandler.processNotification(hudShapeRenderer, hudBatch);
         hudBatch.end();
@@ -390,7 +415,10 @@ public final class AutoBuilder extends ApplicationAdapter {
         MouseUtil.update();
         undoHandler.update(pathGui, cameraHandler);
         boolean onGui = pathGui.update();
-        if (shooterGui != null) onGui = onGui | shooterGui.update();
+        onGui = onGui | settingsGui.update();
+        if (shooterGui != null) {
+            onGui = onGui | shooterGui.update();
+        }
         onGui = onGui | configGUI.update();
         lastMousePos.set(mousePos);
         cameraHandler.update(somethingMoved, onGui);
@@ -399,6 +427,14 @@ public final class AutoBuilder extends ApplicationAdapter {
         cam.unproject(mousePos);
         mouseDiff.set(mousePos).sub(lastMousePos);
 
+        if (MouseUtil.isAltPressed() && !onGui) {
+            HoverManager.setHoverText(new TextBlock(Fonts.JETBRAINS_MONO, 14,
+                            new TextComponent("X: ").setBold(true),
+                            new TextComponent(df.format(mousePos.x / AutoBuilder.getConfig().getPointScaleFactor())),
+                            new TextComponent(" Y: ").setBold(true),
+                            new TextComponent(df.format(mousePos.y / AutoBuilder.getConfig().getPointScaleFactor()))),
+                    0, Gdx.graphics.getHeight() - 2);
+        }
         //Figure out the max distance a point can be from the mouse
         float maxDistance = (float) Math.pow(Math.max(20 * cam.zoom, POINT_SIZE), 2);
 
@@ -411,7 +447,9 @@ public final class AutoBuilder extends ApplicationAdapter {
                 Gdx.app.getInput().isButtonJustPressed(Input.Buttons.LEFT)) && !onGui) {
             double distToClosestPointNotMainPoint = lastSelectedPoint == null ? Double.MAX_VALUE :
                     (lastSelectedPoint.parentTrajectoryPathRenderer().distToClosestPointNotMainPoint(mousePos));
-            if (distToClosestPointNotMainPoint > maxDistance) removeLastSelectedPoint();
+            if (distToClosestPointNotMainPoint > maxDistance) {
+                removeLastSelectedPoint();
+            }
 
             //Get all close points and find the closest one.
             List<ClosePoint> closePoints = new ArrayList<>();
@@ -432,7 +470,9 @@ public final class AutoBuilder extends ApplicationAdapter {
                             .collect(Collectors.toList());
 
                     lastCloseishPointSelectionIndex++;
-                    if (lastCloseishPointSelectionIndex >= closePoints.size()) lastCloseishPointSelectionIndex = 0;
+                    if (lastCloseishPointSelectionIndex >= closePoints.size()) {
+                        lastCloseishPointSelectionIndex = 0;
+                    }
 
                     ClosePoint closestPoint = closePoints.get(lastCloseishPointSelectionIndex);
                     if (closestPoint.parentTrajectoryPathRenderer() instanceof TrajectoryPathRenderer trajectoryPathRenderer) {
@@ -506,14 +546,18 @@ public final class AutoBuilder extends ApplicationAdapter {
         whiteTexture.dispose();
         FontHandler.dispose();
 
-        if (shooterGui != null) shooterGui.dispose();
+        if (shooterGui != null) {
+            shooterGui.dispose();
+        }
         System.exit(0);
     }
 
 
     @Override
     public void resize(int width, int height) {
-        if (width == 0 || height == 0) return;
+        if (width == 0 || height == 0) {
+            return;
+        }
         hudViewport.update(width, height, true);
         viewport.update(width, height, false);
         updateScreens(width, height);
@@ -521,8 +565,11 @@ public final class AutoBuilder extends ApplicationAdapter {
 
     public void updateScreens(int width, int height) {
         pathGui.updateScreen(width, height);
-        if (shooterGui != null) shooterGui.updateScreen(width, height);
+        if (shooterGui != null) {
+            shooterGui.updateScreen(width, height);
+        }
         configGUI.updateScreen(width, height);
+        settingsGui.updateScreen(width, height);
     }
 
     @Override
@@ -551,10 +598,10 @@ public final class AutoBuilder extends ApplicationAdapter {
     }
 
     public void restoreState(Autonomous autonomous, boolean clearUndoHistory) {
-        undoHandler.restoreState(autonomous, pathGui, cameraHandler);
+        undoHandler.restoreState(new UndoState(autonomous, config), pathGui, cameraHandler);
         if (clearUndoHistory) {
             undoHandler.clearUndoHistory();
-            undoHandler.somethingChanged();
         }
+        undoHandler.forceCreateUndoState();
     }
 }

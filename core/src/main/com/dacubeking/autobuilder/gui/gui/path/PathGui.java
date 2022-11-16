@@ -13,9 +13,9 @@ import com.badlogic.gdx.scenes.scene2d.utils.ScissorStack;
 import com.badlogic.gdx.utils.Array;
 import com.dacubeking.autobuilder.gui.AutoBuilder;
 import com.dacubeking.autobuilder.gui.CameraHandler;
-import com.dacubeking.autobuilder.gui.UndoHandler;
 import com.dacubeking.autobuilder.gui.events.input.InputEventListener;
 import com.dacubeking.autobuilder.gui.events.input.InputEventThrower;
+import com.dacubeking.autobuilder.gui.undo.UndoHandler;
 import com.dacubeking.autobuilder.gui.util.Colors;
 import com.dacubeking.autobuilder.gui.util.MathUtil;
 import com.dacubeking.autobuilder.gui.util.MouseUtil;
@@ -31,6 +31,7 @@ import java.util.List;
 import java.util.Random;
 import java.util.concurrent.ExecutorService;
 
+import static com.dacubeking.autobuilder.gui.gui.GuiConstants.BUTTON_SPACING;
 import static com.dacubeking.autobuilder.gui.util.MathUtil.dist2;
 import static com.dacubeking.autobuilder.gui.util.MouseUtil.*;
 import static java.awt.Color.HSBtoRGB;
@@ -290,7 +291,8 @@ public class PathGui extends InputEventListener {
                     smoothAmount = 20f;
                 }
             }
-            panelWidthFloat = (panelWidthFloat + (wantedPanelWidth - panelWidthFloat) / smoothAmount);
+            panelWidthFloat =
+                    (panelWidthFloat + (wantedPanelWidth - panelWidthFloat) / ((smoothAmount / 144f / AutoBuilder.getDeltaTime())));
 
             if (panelWidthFloat < 16) {
                 arrowPointingRight = true;
@@ -325,9 +327,9 @@ public class PathGui extends InputEventListener {
         panelY = 10;
 
 
-        addPathButton.setPosition(panelX - 10 - addPathButton.getWidth(), 10);
-        addScriptButton.setPosition(addPathButton.getX() - 10 - addScriptButton.getWidth(), 10);
-        pushAutoButton.setPosition(addScriptButton.getX() - 10 - pushAutoButton.getWidth(), 10);
+        addPathButton.setPosition(panelX - BUTTON_SPACING - addPathButton.getWidth(), BUTTON_SPACING);
+        addScriptButton.setPosition(addPathButton.getX() - BUTTON_SPACING - addScriptButton.getWidth(), BUTTON_SPACING);
+        pushAutoButton.setPosition(addScriptButton.getX() - BUTTON_SPACING - pushAutoButton.getWidth(), BUTTON_SPACING);
 
         clipBounds = new Rectangle(0, panelY, width, panelHeight);
     }
@@ -350,6 +352,8 @@ public class PathGui extends InputEventListener {
         }
         addPathButton.dispose();
         addScriptButton.dispose();
+        pushAutoButton.dispose();
+        InputEventThrower.unRegister(this);
     }
 
     @Override
@@ -374,5 +378,16 @@ public class PathGui extends InputEventListener {
 
     public @Nullable TrajectoryItem getLastPath() {
         return lastPath;
+    }
+
+    /**
+     * Recalculates all the paths
+     */
+    public void updatePaths() {
+        for (AbstractGuiItem guiItem : guiItems) {
+            if (guiItem instanceof TrajectoryItem trajectoryItem) {
+                trajectoryItem.updatePath();
+            }
+        }
     }
 }

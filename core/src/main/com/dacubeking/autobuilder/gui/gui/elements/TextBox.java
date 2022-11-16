@@ -8,7 +8,6 @@ import com.badlogic.gdx.graphics.Cursor.SystemCursor;
 import com.badlogic.gdx.graphics.g2d.Batch;
 import com.badlogic.gdx.math.Vector2;
 import com.dacubeking.autobuilder.gui.AutoBuilder;
-import com.dacubeking.autobuilder.gui.UndoHandler;
 import com.dacubeking.autobuilder.gui.events.input.InputEventListener;
 import com.dacubeking.autobuilder.gui.events.input.InputEventThrower;
 import com.dacubeking.autobuilder.gui.events.input.TextChangeListener;
@@ -16,6 +15,7 @@ import com.dacubeking.autobuilder.gui.gui.hover.HoverManager;
 import com.dacubeking.autobuilder.gui.gui.textrendering.TextComponent;
 import com.dacubeking.autobuilder.gui.gui.textrendering.*;
 import com.dacubeking.autobuilder.gui.scripting.util.LintingPos;
+import com.dacubeking.autobuilder.gui.undo.UndoHandler;
 import com.dacubeking.autobuilder.gui.util.RoundedShapeRenderer;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -27,10 +27,9 @@ import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.StringSelection;
 import java.awt.datatransfer.UnsupportedFlavorException;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
+import java.util.function.Consumer;
+import java.util.function.Function;
 
 import static com.dacubeking.autobuilder.gui.util.MouseUtil.*;
 
@@ -40,10 +39,12 @@ TODO: Still kinda ugly
  */
 public class TextBox extends InputEventListener {
     private final boolean wrapText;
-    @Nullable
-    private final TextChangeListener textChangeListener;
-    @NotNull
-    protected String text;
+    @NotNull private Consumer<TextBox> textChangeCallback;
+    @NotNull private Function<TextBox, String> textBoxClickCallback;
+
+    @NotNull private Consumer<TextBox> textBoxUnfocusedCallback = (textBox) -> {};
+
+    @NotNull protected String text;
     private boolean selected = false;
     private long nextFlashChange = 0;
     private boolean flashing = false;
@@ -62,17 +63,47 @@ public class TextBox extends InputEventListener {
     private static final long KEY_PRESS_DELAY = 25;
     private static final long INITIAL_KEY_PRESS_DELAY = 400;
 
+    @Nullable private Color outlineColor;
+
+    public TextBox(String text, boolean wrapText, int fontSize) {
+        this(text, wrapText, (textBox) -> {}, TextBox::getText, fontSize);
+    }
+
+    public TextBox setOutlineColor(@Nullable Color outlineColor) {
+        this.outlineColor = outlineColor;
+        return this;
+    }
+
+    public @Nullable Color getOutlineColor() {
+        return outlineColor;
+    }
+
     public TextBox(@NotNull String text, boolean wrapText, @Nullable TextChangeListener textChangeListener, int fontSize) {
+        this(text, wrapText,
+                // Wrap the textChangeListener in a callback that will update the textBlock
+                (textBox) -> {
+                    if (textChangeListener != null) {
+                        textChangeListener.onTextChange(textBox.text, textBox);
+                    }
+                },
+                textBox -> {
+                    if (textChangeListener != null) {
+                        return textChangeListener.onTextBoxClick(textBox.text, textBox);
+                    }
+                    return textBox.text;
+                }, fontSize);
+    }
+
+    public TextBox(@NotNull String text, boolean wrapText, @NotNull Consumer<TextBox> textChangeCallback,
+                   @NotNull Function<TextBox, String> onTextBoxClickCallback, int fontSize) {
         this.text = text;
         this.wrapText = wrapText;
-        this.textChangeListener = textChangeListener;
+        this.textChangeCallback = textChangeCallback;
+        this.textBoxClickCallback = onTextBoxClickCallback;
         this.fontSize = fontSize;
         textBlock = new TextBlock(Fonts.JETBRAINS_MONO, fontSize, 350, new TextComponent(text).setColor(Color.BLACK));
         InputEventThrower.register(this);
     }
-
-
-    //TODO: Fix Text Going outside the box
 
     int clickCount = 0;
     long lastClickTime = 0;
@@ -87,6 +118,7 @@ public class TextBox extends InputEventListener {
         textBlock.setWrapWidth(Math.max(drawWidth - 8, 20));
         textBlock.update();
 
+        // Checks if the mouse is over the text, not just the box
         boolean hovering = getMouseX() > drawStartX && getMouseX() < drawStartX + drawWidth
                 && getMouseY() > drawStartY - getHeight() + 8
                 && getMouseY() < drawStartY + 4;
@@ -109,19 +141,22 @@ public class TextBox extends InputEventListener {
                 } else {
                     clickCount = 0;
                 }
-                System.out.println(clickCount);
 
+                // Have the word/line get highlighted depending on how many times you click
                 if (clickCount == 0) {
+                    // Don't highlight anything
                     selectedPos = mouseIndexPos;
                     highlighting = false;
                     highlightPosBegin = mouseIndexPos;
                     highlightPosEnd = mouseIndexPos;
                 } else if (clickCount == 1) {
+                    // Highlight the word
                     selectedPos = mouseIndexPos;
                     highlighting = true;
                     highlightPosBegin = getPreviousPositionOfCharacter(mouseIndexPos, STOP_WORD_CHARS, false);
                     highlightPosEnd = getNextPositionOfCharacter(mouseIndexPos, STOP_WORD_CHARS, false);
                 } else if (clickCount == 2) {
+                    // Highlight the line
                     selectedPos = mouseIndexPos;
                     highlighting = true;
                     highlightPosBegin = getPreviousPositionOfCharacter(mouseIndexPos, "\n", false);
@@ -131,14 +166,17 @@ public class TextBox extends InputEventListener {
                 lastClickPos = mouseIndexPos;
                 flashing = true;
                 nextFlashChange = System.currentTimeMillis() + 500;
-                AutoBuilder.scheduleRendering(500);
+                AutoBuilder.scheduleRendering(500); // Schedule a render to update the flashing
                 xPos = -1;
             } else {
+                if (selected) {
+                    textBoxUnfocusedCallback.accept(this); // We just lost focus, so call the callback
+                }
                 selected = false;
                 highlighting = false;
             }
         } else if (Gdx.input.isButtonPressed(Input.Buttons.LEFT)) {
-            if (selected && clickCount == 0) {
+            if (selected && clickCount == 0) { // Highlight the text when we drag the mouse
                 highlightPosEnd = mouseIndexPos;
                 selectedPos = mouseIndexPos;
                 if (highlightPosBegin - highlightPosEnd != 0) {
@@ -152,12 +190,15 @@ public class TextBox extends InputEventListener {
 
         if (selected) {
             if (getKeyPressed(Keys.RIGHT)) {
-                if (!highlighting) highlightPosBegin = selectedPos;
+                // Move the cursor to the right
+                if (!highlighting) highlightPosEnd = selectedPos; // If we aren't highlighting, then we need to set the end to
+                // the start current cursor position to avoid issues when we start highlighting again
 
                 selectedPos++;
                 if (selectedPos > text.length()) {
                     selectedPos = text.length();
                 } else if (isControlPressed()) {
+                    // Move to the next word
                     boolean foundNonWhitespace = !Character.isWhitespace(text.charAt(selectedPos - 1))
                             || STOP_WORD_CHARS.contains(String.valueOf(text.charAt(selectedPos - 1)));
                     while (selectedPos < text.length() &&
@@ -169,17 +210,18 @@ public class TextBox extends InputEventListener {
                     }
                 }
 
-                highlightPosEnd = selectedPos;
+                highlightPosBegin = selectedPos;
                 highlighting = isShiftPressed();
 
                 flashing = true;
                 nextFlashChange = System.currentTimeMillis() + 500;
                 AutoBuilder.scheduleRendering(500);
-                xPos = -1;
+                xPos = -1; // Reset the x position, so it is recalculated when we next move up or down
             }
 
             if (getKeyPressed(Keys.LEFT)) {
-                if (!highlighting) highlightPosBegin = selectedPos;
+                if (!highlighting) highlightPosEnd = selectedPos; // If we aren't highlighting, then we need to set the end to
+                // the start current cursor position to avoid issues when we start highlighting again
 
                 selectedPos--;
                 if (selectedPos < 0) {
@@ -196,24 +238,25 @@ public class TextBox extends InputEventListener {
                     }
                 }
 
-                highlightPosEnd = selectedPos;
+                highlightPosBegin = selectedPos;
                 highlighting = isShiftPressed();
 
                 flashing = true;
                 nextFlashChange = System.currentTimeMillis() + 500;
                 AutoBuilder.scheduleRendering(500);
-                xPos = -1;
+                xPos = -1; // Reset the x position, so it is recalculated when we next move up or down
             }
 
             //Act like we click up on the previous line
             if (getKeyPressed(Keys.UP)) {
-                if (!highlighting) highlightPosBegin = selectedPos;
+                if (!highlighting) highlightPosEnd = selectedPos; // If we aren't highlighting, then we need to set the end to
+                // the start current cursor position to avoid issues when we start highlighting again
 
                 Vector2 pos = textBlock.getPositionOfIndex(selectedPos);
                 if (xPos == -1) xPos = pos.x;
                 selectedPos = textBlock.getIndexOfPosition(new Vector2(xPos, pos.y + textBlock.getDefaultLineSpacingSize() - 1));
 
-                highlightPosEnd = selectedPos;
+                highlightPosBegin = selectedPos;
                 highlighting = isShiftPressed();
 
                 flashing = true;
@@ -223,13 +266,14 @@ public class TextBox extends InputEventListener {
 
             //Act like we click down on the next line
             if (getKeyPressed(Keys.DOWN)) {
-                if (!highlighting) highlightPosBegin = selectedPos;
+                if (!highlighting) highlightPosEnd = selectedPos; // If we aren't highlighting, then we need to set the end to
+                // the start current cursor position to avoid issues when we start highlighting again
 
                 Vector2 pos = textBlock.getPositionOfIndex(selectedPos);
                 if (xPos == -1) xPos = pos.x;
                 selectedPos = textBlock.getIndexOfPosition(new Vector2(xPos, pos.y - textBlock.getDefaultLineSpacingSize() / 2));
 
-                highlightPosEnd = selectedPos;
+                highlightPosBegin = selectedPos;
                 highlighting = isShiftPressed();
 
                 flashing = true;
@@ -251,8 +295,8 @@ public class TextBox extends InputEventListener {
 
                 flashing = true;
                 nextFlashChange = System.currentTimeMillis() + 1500;
-                AutoBuilder.scheduleRendering(500);
-                xPos = -1;
+                AutoBuilder.scheduleRendering(1500);
+                xPos = -1; // Reset the x position, so it is recalculated when we next move up or down
             }
 
             if (getKeyPressed(Keys.FORWARD_DEL)) {
@@ -268,8 +312,8 @@ public class TextBox extends InputEventListener {
 
                 flashing = true;
                 nextFlashChange = System.currentTimeMillis() + 1500;
-                AutoBuilder.scheduleRendering(500);
-                xPos = -1;
+                AutoBuilder.scheduleRendering(1500);
+                xPos = -1; // Reset the x position, so it is recalculated when we next move up or down
             }
 
             if ((Gdx.input.isKeyPressed(Input.Keys.CONTROL_LEFT) || Gdx.input.isKeyPressed(Input.Keys.CONTROL_LEFT)) &&
@@ -281,11 +325,12 @@ public class TextBox extends InputEventListener {
                         onKeyType(clipboardText.charAt(i));
                     }
                 } catch (UnsupportedFlavorException | IOException e) {
-                    System.out.println("bad Clipboard data");
+                    System.out.println("Bad clipboard data");
                 }
             }
 
             if (isControlPressed() && getKeyPressed(Keys.A)) {
+                // Select all
                 highlightPosBegin = 0;
                 highlightPosEnd = text.length();
                 highlighting = true;
@@ -383,12 +428,23 @@ public class TextBox extends InputEventListener {
             textBlock.setTextComponents(addHighlight(new TextComponent(text), 0, text.length()).toArray(new TextComponent[0]));
         }
 
+        if (outlineColor != null) {
+            // Draw the outline if we have one
+            RoundedShapeRenderer.roundedRect(shapeRenderer,
+                    drawStartX - 2, drawStartY - getHeight() + 6,
+                    drawWidth + 4, getHeight() + 4, 3, Color.BLACK);
+        }
+
+        // Render the box
         RoundedShapeRenderer.roundedRect(shapeRenderer, drawStartX, drawStartY - textBlock.getHeight(), drawWidth,
                 textBlock.getHeight() + 8, 2, Color.WHITE);
 
+        // Render the text
         FontRenderer.renderText(spriteBatch, shapeRenderer, drawStartX + 4, drawStartY - textBlock.getDefaultSize() + 4,
                 textBlock);
 
+
+        // Render the cursor
         if (selected && flashing) {
             if (selectedPos >= 0 && textBlock.getRenderableTextComponents().size() > 0) {
                 Vector2 cursorPos = textBlock.getPositionOfIndex(selectedPos);
@@ -433,7 +489,7 @@ public class TextBox extends InputEventListener {
 
     private final static Color HIGHLIGHT_COLOR = Color.valueOf("a6d2ffff");
 
-    private Collection<TextComponent> addHighlight(TextComponent textComponent, int startIndex, int endIndex) {
+    private @NotNull Collection<TextComponent> addHighlight(TextComponent textComponent, int startIndex, int endIndex) {
 
         int highlightPosMin = Math.min(highlightPosBegin, highlightPosEnd);
         int highlightPosMax = Math.max(highlightPosBegin, highlightPosEnd);
@@ -526,13 +582,12 @@ public class TextBox extends InputEventListener {
     }
 
     protected void fireTextChangeEvent() {
-        assert textChangeListener != null;
-        textChangeListener.onTextChange(text, this);
+        textChangeCallback.accept(this);
     }
 
     protected String fireTextBoxClickEvent() {
-        assert textChangeListener != null;
-        return textChangeListener.onTextBoxClick(text, this);
+        String text = textBoxClickCallback.apply(this);
+        return Objects.requireNonNullElseGet(text, () -> this.text); // If the text is null return what we already have
     }
 
     public float getHeight() {
@@ -554,9 +609,15 @@ public class TextBox extends InputEventListener {
      * @param text text to set
      */
     public void setText(@NotNull String text) {
-        if (!this.selected) {
-            this.text = text;
+        if (selected) {
+            highlighting = false;
+            selectedPos = text.length();
         }
+        this.text = text;
+    }
+
+    public boolean isSelected() {
+        return selected;
     }
 
     @Override
@@ -586,5 +647,20 @@ public class TextBox extends InputEventListener {
             keyPressedMap.put(keyCode, false);
         }
         return false;
+    }
+
+    public TextBox setTextBoxClickCallback(@NotNull Function<TextBox, String> textBoxClickCallback) {
+        this.textBoxClickCallback = textBoxClickCallback;
+        return this;
+    }
+
+    public TextBox setTextChangeCallback(@NotNull Consumer<TextBox> textChangeCallback) {
+        this.textChangeCallback = textChangeCallback;
+        return this;
+    }
+
+    public TextBox setTextUnfocusedCallback(@NotNull Consumer<TextBox> textUnfocusCallback) {
+        this.textBoxUnfocusedCallback = textUnfocusCallback;
+        return this;
     }
 }

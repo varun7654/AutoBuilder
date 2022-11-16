@@ -32,7 +32,7 @@ public class UploadFileButton extends AbstractGuiButton {
 
                 try {
                     return getFile(
-                            NativeFileDialog.NFD_OpenDialog("json",
+                            NativeFileDialog.NFD_OpenDialog("json,auto",
                                     AutoBuilder.getConfig().getAutoPath().getParentFile().getAbsolutePath(),
                                     outPath),
                             outPath);
@@ -49,7 +49,7 @@ public class UploadFileButton extends AbstractGuiButton {
 
                 try {
                     return getFile(
-                            NativeFileDialog.NFD_SaveDialog("json",
+                            NativeFileDialog.NFD_SaveDialog("auto",
                                     AutoBuilder.getConfig().getAutoPath().getParentFile().getAbsolutePath(),
                                     outPath),
                             outPath);

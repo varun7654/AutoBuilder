@@ -7,6 +7,7 @@ import com.badlogic.gdx.math.Vector2;
 import com.dacubeking.autobuilder.gui.gui.textrendering.FontHandler;
 import com.dacubeking.autobuilder.gui.gui.textrendering.FontRenderer;
 import com.dacubeking.autobuilder.gui.gui.textrendering.TextBlock;
+import org.jetbrains.annotations.NotNull;
 import space.earlygrey.shapedrawer.ShapeDrawer;
 
 import static com.dacubeking.autobuilder.gui.util.MouseUtil.getMouseX;
@@ -18,15 +19,15 @@ public class HoverManager {
     private static boolean hoverOnMouse = false;
     private static final Vector2 hoverPosition = new Vector2();
 
-    public static void setHoverText(TextBlock text) {
+    public static void setHoverText(@NotNull TextBlock text) {
         hoverText = text;
-        hoverShown = true;
+        hoverShown = text.getLength() > 0;
         hoverOnMouse = true;
     }
 
-    public static void setHoverText(TextBlock text, float x, float y) {
+    public static void setHoverText(@NotNull TextBlock text, float x, float y) {
         hoverText = text;
-        hoverShown = true;
+        hoverShown = text.getLength() > 0;
         hoverPosition.set(x, y);
         hoverOnMouse = false;
     }

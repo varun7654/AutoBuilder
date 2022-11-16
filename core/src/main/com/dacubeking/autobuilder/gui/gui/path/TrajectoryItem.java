@@ -7,12 +7,13 @@ import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.scenes.scene2d.utils.ScissorStack;
 import com.dacubeking.autobuilder.gui.AutoBuilder;
 import com.dacubeking.autobuilder.gui.CameraHandler;
-import com.dacubeking.autobuilder.gui.UndoHandler;
 import com.dacubeking.autobuilder.gui.events.input.NumberTextboxChangeListener;
 import com.dacubeking.autobuilder.gui.events.pathchange.PathChangeListener;
 import com.dacubeking.autobuilder.gui.gui.elements.CheckBox;
 import com.dacubeking.autobuilder.gui.gui.elements.NumberTextBox;
+import com.dacubeking.autobuilder.gui.gui.elements.PositionedNumberTextBox;
 import com.dacubeking.autobuilder.gui.gui.hover.HoverManager;
+import com.dacubeking.autobuilder.gui.gui.settings.constraintrenders.ConstraintGuiElement;
 import com.dacubeking.autobuilder.gui.gui.textrendering.FontRenderer;
 import com.dacubeking.autobuilder.gui.gui.textrendering.Fonts;
 import com.dacubeking.autobuilder.gui.gui.textrendering.TextBlock;
@@ -20,6 +21,8 @@ import com.dacubeking.autobuilder.gui.gui.textrendering.TextComponent;
 import com.dacubeking.autobuilder.gui.pathing.MovablePointRenderer;
 import com.dacubeking.autobuilder.gui.pathing.TimedRotation;
 import com.dacubeking.autobuilder.gui.pathing.TrajectoryPathRenderer;
+import com.dacubeking.autobuilder.gui.undo.UndoHandler;
+import com.dacubeking.autobuilder.gui.util.Colors;
 import com.dacubeking.autobuilder.gui.util.RoundedShapeRenderer;
 import com.dacubeking.autobuilder.gui.wpi.math.geometry.Rotation2d;
 import com.dacubeking.autobuilder.gui.wpi.math.spline.Spline;
@@ -81,8 +84,11 @@ public class TrajectoryItem extends AbstractGuiItem implements PathChangeListene
                 pathGui.executorService, 0, 0, new ArrayList<>());
         trajectoryPathRenderer.setPathChangeListener(this);
 
-        startVelocityTextBox = new NumberTextBox(df.format(getPathRenderer().getVelocityStart()), this, 0, 0, 18);
-        endVelocityTextBox = new NumberTextBox(df.format(getPathRenderer().getVelocityEnd()), this, 0, 0, 18);
+        startVelocityTextBox = new PositionedNumberTextBox(df.format(getPathRenderer().getVelocityStart()), this, 0, 0, 18);
+        endVelocityTextBox = new PositionedNumberTextBox(df.format(getPathRenderer().getVelocityEnd()), this, 0, 0, 18);
+        pathConstraintRenderer = new ConstraintGuiElement(trajectoryPathRenderer::getConstraints, false);
+        pathConstraintRenderer.setHighlightColor(Colors.LIGHTER_GREY);
+        pathConstraintRenderer.updateValues();
         setInitialClosed(false);
     }
 
@@ -98,14 +104,17 @@ public class TrajectoryItem extends AbstractGuiItem implements PathChangeListene
                 pathGui.executorService, velocityStart, velocityEnd, constraints);
 
         if (AutoBuilder.getConfig().isHolonomic()) {
-            trajectoryPathRenderer.setReversed(false);
+            trajectoryPathRenderer.setReversed(reversed);
         } else {
             trajectoryPathRenderer.setReversed(reversed);
         }
 
         trajectoryPathRenderer.setPathChangeListener(this);
-        startVelocityTextBox = new NumberTextBox(df.format(getPathRenderer().getVelocityStart()), this, 0, 0, 18);
-        endVelocityTextBox = new NumberTextBox(df.format(getPathRenderer().getVelocityEnd()), this, 0, 0, 18);
+        startVelocityTextBox = new PositionedNumberTextBox(df.format(getPathRenderer().getVelocityStart()), this, 0, 0, 18);
+        endVelocityTextBox = new PositionedNumberTextBox(df.format(getPathRenderer().getVelocityEnd()), this, 0, 0, 18);
+        pathConstraintRenderer = new ConstraintGuiElement(trajectoryPathRenderer::getConstraints, false);
+        pathConstraintRenderer.setHighlightColor(Colors.LIGHTER_GREY);
+        pathConstraintRenderer.updateValues();
         setInitialClosed(closed);
     }
 
@@ -116,6 +125,10 @@ public class TrajectoryItem extends AbstractGuiItem implements PathChangeListene
     private static final TextBlock CONTROL_POINT_Y = new TextBlock(Fonts.ROBOTO, 13, new TextComponent("Y Control Point"));
 
     private static final TextBlock[] HOVER_TEXT = {X_TEXT, Y_TEXT, THETA_TEXT, CONTROL_POINT_X, CONTROL_POINT_Y};
+
+    private final @NotNull ConstraintGuiElement pathConstraintRenderer;
+    private static final TextBlock CONSTRAINTS_LABEL = new TextBlock(Fonts.ROBOTO, 22, new TextComponent("Constraints:")
+            .setBold(true).setColor(Color.BLACK));
 
     @Override
     public int render(@NotNull ShapeDrawer shapeRenderer, @NotNull PolygonSpriteBatch spriteBatch, int drawStartX, int drawStartY,
@@ -185,9 +198,9 @@ public class TrajectoryItem extends AbstractGuiItem implements PathChangeListene
             }
             endVelocityTextBox.draw(shapeRenderer, spriteBatch, drawStartX + drawWidth - TEXTBOX_WIDTH - TEXTBOX_X_PADDING,
                     textBoxDrawY, TEXTBOX_WIDTH, null);
+            textBoxDrawY -= endVelocityTextBox.getHeight() + TEXTBOX_Y_PADDING_NEW_POINT;
 
             if (!AutoBuilder.getConfig().isHolonomic()) { //Don't allow reversing the path if holonomic
-                textBoxDrawY -= endVelocityTextBox.getHeight() + TEXTBOX_Y_PADDING_NEW_POINT;
                 if (REVERSE_LABEL.getWidth() + reversedCheckBox.getWidth() + TEXTBOX_X_PADDING * 4 < drawWidth) {
                     FontRenderer.renderText(spriteBatch, shapeRenderer, drawStartX + 10, textBoxDrawY - 13, REVERSE_LABEL);
                 }
@@ -201,10 +214,23 @@ public class TrajectoryItem extends AbstractGuiItem implements PathChangeListene
                     UndoHandler.getInstance().somethingChanged();
                 }
                 reversedCheckBox.render(shapeRenderer, spriteBatch, trajectoryPathRenderer.isReversed());
+                textBoxDrawY -= reversedCheckBox.getHeight() + TEXTBOX_Y_PADDING_NEW_POINT;
             }
+
+            List<TrajectoryConstraint> constraints = trajectoryPathRenderer.getConstraints();
+            float constraintDrawOffset = 0;
+            if (constraints.size() > 0) {
+                FontRenderer.renderText(spriteBatch, shapeRenderer, drawStartX + 10, textBoxDrawY - 13, CONSTRAINTS_LABEL);
+                textBoxDrawY -= CONSTRAINTS_LABEL.getHeight() + TEXTBOX_Y_PADDING_NEW_POINT;
+                constraintDrawOffset = 5;
+            }
+            pathConstraintRenderer.render(shapeRenderer, spriteBatch, drawStartX + constraintDrawOffset, textBoxDrawY + 8,
+                    drawWidth - constraintDrawOffset, camera, isLeftMouseJustUnpressed);
         }
         spriteBatch.flush();
-        if (pop == 1) ScissorStack.popScissors();
+        if (pop == 1) {
+            ScissorStack.popScissors();
+        }
         return getHeight();
     }
 
@@ -247,14 +273,14 @@ public class TrajectoryItem extends AbstractGuiItem implements PathChangeListene
         for (int i = 0; i < trajectoryPathRenderer.getControlVectors().size(); i++) {
             ControlVector controlVector = trajectoryPathRenderer.getControlVectors().get(i);
             Rotation2d rotation = trajectoryPathRenderer.getRotations().get(i);
-            NumberTextBox xBox = new NumberTextBox(df.format(controlVector.x[0]), this, i, 0, 18);
-            NumberTextBox yBox = new NumberTextBox(df.format(controlVector.y[0]), this, i, 1, 18);
+            NumberTextBox xBox = new PositionedNumberTextBox(df.format(controlVector.x[0]), this, i, 0, 18);
+            NumberTextBox yBox = new PositionedNumberTextBox(df.format(controlVector.y[0]), this, i, 1, 18);
             double rotationDegrees = AutoBuilder.getConfig().isHolonomic() ?
                     rotation.getDegrees() : Math.toDegrees(Math.atan2(controlVector.y[1], controlVector.x[1]));
-            NumberTextBox rotationBox = new NumberTextBox(df.format(rotationDegrees), this, i, 2, 18);
+            NumberTextBox rotationBox = new PositionedNumberTextBox(df.format(rotationDegrees), this, i, 2, 18);
 
-            NumberTextBox xControlBox = new NumberTextBox(df.format(controlVector.x[1]), this, i, 3, 18);
-            NumberTextBox yControlBox = new NumberTextBox(df.format(controlVector.y[1]), this, i, 4, 18);
+            NumberTextBox xControlBox = new PositionedNumberTextBox(df.format(controlVector.x[1]), this, i, 3, 18);
+            NumberTextBox yControlBox = new PositionedNumberTextBox(df.format(controlVector.y[1]), this, i, 4, 18);
 
             textBoxes.add(Arrays.asList(xBox, yBox, rotationBox, xControlBox, yControlBox));
         }
@@ -349,12 +375,17 @@ public class TrajectoryItem extends AbstractGuiItem implements PathChangeListene
                 box.dispose();
             }
         }
+        textBoxes.clear();
+
+        startVelocityTextBox.dispose();
+        endVelocityTextBox.dispose();
+        reversedCheckBox.dispose();
     }
 
     @Override
     public int getOpenHeight(float drawWidth) {
         float textBoxDrawX = 10;
-        float textBoxDrawY = -35;
+        float textBoxDrawY = 0;
         // Draw all the control vectors
         for (List<NumberTextBox> textBoxList : textBoxes) {
             for (int i = 0; i < textBoxList.size(); i++) {
@@ -370,9 +401,16 @@ public class TrajectoryItem extends AbstractGuiItem implements PathChangeListene
         }
 
         textBoxDrawY -= startVelocityTextBox.getHeight() + TEXTBOX_Y_PADDING_NEW_POINT;
+        textBoxDrawY -= endVelocityTextBox.getHeight() + TEXTBOX_Y_PADDING_NEW_POINT;
         if (!AutoBuilder.getConfig().isHolonomic()) { //Don't allow reversing the path if holonomic
-            textBoxDrawY -= endVelocityTextBox.getHeight() + TEXTBOX_Y_PADDING_NEW_POINT;
+            textBoxDrawY -= reversedCheckBox.getHeight() + TEXTBOX_Y_PADDING_NEW_POINT;
         }
+
+        if (trajectoryPathRenderer.getConstraints().size() > 0) {
+            textBoxDrawY -= CONSTRAINTS_LABEL.getHeight() + TEXTBOX_Y_PADDING_NEW_POINT;
+        }
+        textBoxDrawY -= pathConstraintRenderer.getHeight(textBoxDrawX, textBoxDrawY, drawWidth - 10, false);
+
 
         return (int) -textBoxDrawY;
     }
@@ -398,5 +436,12 @@ public class TrajectoryItem extends AbstractGuiItem implements PathChangeListene
         return "TrajectoryItem{" +
                 "pathRenderer=" + trajectoryPathRenderer +
                 '}';
+    }
+
+    /**
+     * Update the path to match the current control vectors and constraints
+     */
+    public void updatePath() {
+        trajectoryPathRenderer.updatePath(true);
     }
 }

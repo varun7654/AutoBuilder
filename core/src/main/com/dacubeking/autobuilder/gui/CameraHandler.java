@@ -83,20 +83,23 @@ public class CameraHandler extends InputEventListener {
             mouseHeldLastFrame = false;
         }
 
+        // Avoid issues when dt could potentially be zero
+        float deltaTime = Math.max(1f / Gdx.graphics.getFramesPerSecond(), AutoBuilder.getDeltaTime());
+
         if (mouseHeldLastFrame) { // Drag Camera around
             Vector2 deltaPos = mousePos.sub(lastMousePos);
             cam.position.x = cam.position.x - (deltaPos.x * cam.zoom * (720f / Gdx.graphics.getHeight()));
             cam.position.y = cam.position.y + (deltaPos.y * cam.zoom * (720f / Gdx.graphics.getHeight()));
             targetX = cam.position.x;
             targetY = cam.position.y;
-            mouseVelocity.set(deltaPos.x / AutoBuilder.getDeltaTime(), deltaPos.y / AutoBuilder.getDeltaTime());
+            mouseVelocity.set(deltaPos.x / deltaTime, deltaPos.y / deltaTime);
         } else if (!(targetX == cam.position.x && targetY == cam.position.y)) {
             // Smoothly move camera to target position
-            cam.position.x = cam.position.x + ((targetX - cam.position.x) / (Math.max(1, 0.1f / AutoBuilder.getDeltaTime())));
-            cam.position.y = cam.position.y + ((targetY - cam.position.y) / (Math.max(1, 0.1f / AutoBuilder.getDeltaTime())));
+            cam.position.x = cam.position.x + ((targetX - cam.position.x) / (Math.max(1, 0.1f / deltaTime)));
+            cam.position.y = cam.position.y + ((targetY - cam.position.y) / (Math.max(1, 0.1f / deltaTime)));
             mouseVelocity.set(0, 0);
         } else {
-            float speedMultiplier = Math.max(0, 1 - AutoBuilder.getDeltaTime() * 7);
+            float speedMultiplier = Math.max(0, 1 - deltaTime * 7);
             mouseVelocity.set(mouseVelocity.x * speedMultiplier, mouseVelocity.y * speedMultiplier);
             cam.position.x =
                     cam.position.x - (mouseVelocity.x * AutoBuilder.getDeltaTime()) * cam.zoom * (720f / Gdx.graphics.getHeight());
@@ -110,7 +113,7 @@ public class CameraHandler extends InputEventListener {
         lastMousePos.set(Gdx.input.getX(), Gdx.input.getY());
 
         if (Math.abs(targetX - cam.position.x) < 1e-2 && Math.abs(targetY - cam.position.y) < 1e-2
-                && Math.abs(this.zoom - cam.zoom) < 1e-4 && mouseVelocity.len2() < 1e-8) {
+                && Math.abs(this.zoom - cam.zoom) < 1e-4 && mouseVelocity.len2() < 1e-2) {
             AutoBuilder.disableContinuousRendering(this);
         } else {
             AutoBuilder.enableContinuousRendering(this);

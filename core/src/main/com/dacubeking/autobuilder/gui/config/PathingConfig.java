@@ -9,6 +9,7 @@ import com.dacubeking.autobuilder.gui.wpi.math.kinematics.SwerveDriveKinematics;
 import com.dacubeking.autobuilder.gui.wpi.math.trajectory.constraint.*;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 
@@ -50,5 +51,15 @@ public class PathingConfig {
     @JsonCreator
     public PathingConfig() {
         this(null, null, null);
+    }
+
+    public PathingConfig(@NotNull PathingConfig pathingConfig) {
+        this(pathingConfig.maxVelocityMetersPerSecond, pathingConfig.maxAccelerationMetersPerSecondSq,
+                // Copy all the trajectories to ensure mutable state doesn't change unexpectedly
+                new ArrayList<>() {{
+                    for (TrajectoryConstraint trajectoryConstraint : pathingConfig.trajectoryConstraints) {
+                        add(trajectoryConstraint.copy());
+                    }
+                }});
     }
 }

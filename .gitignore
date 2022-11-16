@@ -100,3 +100,5 @@ Thumbs.db
 /ios/IOSLauncher.app
 /ios/IOSLauncher.app.dSYM
 .idea/discord.xml
+
+/desktop/out/*
