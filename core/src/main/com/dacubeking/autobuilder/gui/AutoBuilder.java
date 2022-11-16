@@ -194,7 +194,9 @@ public final class AutoBuilder extends ApplicationAdapter {
         }
         configGUI = new ConfigGUI();
 
-        if (config.isNetworkTablesEnabled()) networkTables.start(hudRenderer, drawableRenderer);
+        if (config.isNetworkTablesEnabled()) {
+            networkTables.start(hudRenderer, drawableRenderer);
+        }
         FileHandler.startAutoSaveThread(); // Start the autoSave thread only after we've loaded everything to prevent the auto
         // from getting autosaved (deleted) before it is loaded
     }
@@ -220,7 +222,9 @@ public final class AutoBuilder extends ApplicationAdapter {
     }
 
     public static void somethingInputted() {
-        if (!Gdx.graphics.isContinuousRendering()) justStartedRendering.set(true);
+        if (!Gdx.graphics.isContinuousRendering()) {
+            justStartedRendering.set(true);
+        }
     }
 
     public static void disableContinuousRendering(Object obj) {
@@ -252,7 +256,9 @@ public final class AutoBuilder extends ApplicationAdapter {
      * @param delay in milliseconds. Will only be added if a more recent request has not been made.
      */
     public synchronized static void scheduleRendering(long delay) {
-        if (delay < 0) return;
+        if (delay < 0) {
+            return;
+        }
         @Nullable ScheduledFuture<?> runnable = (ScheduledFuture<?>) requestedRenderThread.getQueue().peek();
         if (runnable == null || runnable.getDelay(TimeUnit.MILLISECONDS) > delay) {
             if (runnable != null) {
@@ -268,7 +274,9 @@ public final class AutoBuilder extends ApplicationAdapter {
         try {
             Gdx.graphics.setForegroundFPS(fps);
             setMouseCursor(SystemCursor.Arrow);
-            if (Gdx.graphics.getFrameId() == 700) disableContinuousRendering(this);
+            if (Gdx.graphics.getFrameId() == 700) {
+                disableContinuousRendering(this);
+            }
             update();
             draw();
         } catch (Exception e) {
@@ -361,7 +369,9 @@ public final class AutoBuilder extends ApplicationAdapter {
         //Fps overlay
         frameTimes[frameTimePos] = renderTimeNano * 0.000001;
         frameTimePos++;
-        if (frameTimePos == frameTimes.length) frameTimePos = 0;
+        if (frameTimePos == frameTimes.length) {
+            frameTimePos = 0;
+        }
         FontRenderer.renderText(hudBatch, null, 4, 4, new TextBlock(Fonts.JETBRAINS_MONO, 12,
                 new TextComponent(Integer.toString(Gdx.graphics.getFramesPerSecond())).setBold(true).setColor(Color.WHITE),
                 new TextComponent(" FPS, Peak: ").setBold(false).setColor(Color.WHITE),
@@ -406,7 +416,9 @@ public final class AutoBuilder extends ApplicationAdapter {
         undoHandler.update(pathGui, cameraHandler);
         boolean onGui = pathGui.update();
         onGui = onGui | settingsGui.update();
-        if (shooterGui != null) onGui = onGui | shooterGui.update();
+        if (shooterGui != null) {
+            onGui = onGui | shooterGui.update();
+        }
         onGui = onGui | configGUI.update();
         lastMousePos.set(mousePos);
         cameraHandler.update(somethingMoved, onGui);
@@ -421,7 +433,7 @@ public final class AutoBuilder extends ApplicationAdapter {
                             new TextComponent(df.format(mousePos.x / AutoBuilder.getConfig().getPointScaleFactor())),
                             new TextComponent(" Y: ").setBold(true),
                             new TextComponent(df.format(mousePos.y / AutoBuilder.getConfig().getPointScaleFactor()))),
-                    0, Gdx.graphics.getHeight());
+                    0, Gdx.graphics.getHeight() - 2);
         }
         //Figure out the max distance a point can be from the mouse
         float maxDistance = (float) Math.pow(Math.max(20 * cam.zoom, POINT_SIZE), 2);
@@ -435,7 +447,9 @@ public final class AutoBuilder extends ApplicationAdapter {
                 Gdx.app.getInput().isButtonJustPressed(Input.Buttons.LEFT)) && !onGui) {
             double distToClosestPointNotMainPoint = lastSelectedPoint == null ? Double.MAX_VALUE :
                     (lastSelectedPoint.parentTrajectoryPathRenderer().distToClosestPointNotMainPoint(mousePos));
-            if (distToClosestPointNotMainPoint > maxDistance) removeLastSelectedPoint();
+            if (distToClosestPointNotMainPoint > maxDistance) {
+                removeLastSelectedPoint();
+            }
 
             //Get all close points and find the closest one.
             List<ClosePoint> closePoints = new ArrayList<>();
@@ -456,7 +470,9 @@ public final class AutoBuilder extends ApplicationAdapter {
                             .collect(Collectors.toList());
 
                     lastCloseishPointSelectionIndex++;
-                    if (lastCloseishPointSelectionIndex >= closePoints.size()) lastCloseishPointSelectionIndex = 0;
+                    if (lastCloseishPointSelectionIndex >= closePoints.size()) {
+                        lastCloseishPointSelectionIndex = 0;
+                    }
 
                     ClosePoint closestPoint = closePoints.get(lastCloseishPointSelectionIndex);
                     if (closestPoint.parentTrajectoryPathRenderer() instanceof TrajectoryPathRenderer trajectoryPathRenderer) {
@@ -530,14 +546,18 @@ public final class AutoBuilder extends ApplicationAdapter {
         whiteTexture.dispose();
         FontHandler.dispose();
 
-        if (shooterGui != null) shooterGui.dispose();
+        if (shooterGui != null) {
+            shooterGui.dispose();
+        }
         System.exit(0);
     }
 
 
     @Override
     public void resize(int width, int height) {
-        if (width == 0 || height == 0) return;
+        if (width == 0 || height == 0) {
+            return;
+        }
         hudViewport.update(width, height, true);
         viewport.update(width, height, false);
         updateScreens(width, height);
@@ -545,7 +565,9 @@ public final class AutoBuilder extends ApplicationAdapter {
 
     public void updateScreens(int width, int height) {
         pathGui.updateScreen(width, height);
-        if (shooterGui != null) shooterGui.updateScreen(width, height);
+        if (shooterGui != null) {
+            shooterGui.updateScreen(width, height);
+        }
         configGUI.updateScreen(width, height);
         settingsGui.updateScreen(width, height);
     }

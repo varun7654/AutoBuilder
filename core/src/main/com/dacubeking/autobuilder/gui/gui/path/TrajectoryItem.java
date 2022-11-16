@@ -218,15 +218,19 @@ public class TrajectoryItem extends AbstractGuiItem implements PathChangeListene
             }
 
             List<TrajectoryConstraint> constraints = trajectoryPathRenderer.getConstraints();
+            float constraintDrawOffset = 0;
             if (constraints.size() > 0) {
                 FontRenderer.renderText(spriteBatch, shapeRenderer, drawStartX + 10, textBoxDrawY - 13, CONSTRAINTS_LABEL);
                 textBoxDrawY -= CONSTRAINTS_LABEL.getHeight() + TEXTBOX_Y_PADDING_NEW_POINT;
+                constraintDrawOffset = 5;
             }
-            pathConstraintRenderer.render(shapeRenderer, spriteBatch, drawStartX + 5, textBoxDrawY + 8,
-                    drawWidth - 5, camera, isLeftMouseJustUnpressed);
+            pathConstraintRenderer.render(shapeRenderer, spriteBatch, drawStartX + constraintDrawOffset, textBoxDrawY + 8,
+                    drawWidth - constraintDrawOffset, camera, isLeftMouseJustUnpressed);
         }
         spriteBatch.flush();
-        if (pop == 1) ScissorStack.popScissors();
+        if (pop == 1) {
+            ScissorStack.popScissors();
+        }
         return getHeight();
     }
 

@@ -137,8 +137,8 @@ public class AddConstraintGuiElement implements GuiElement {
             float textHeight = textGuiElement.getHeight(drawStartX + 25, drawStartY, drawWidth - 20,
                     isLeftMouseJustUnpressed);
             if (isMouseOver(mousePos, drawStartX, drawStartY - 9 - textHeight, drawWidth, textHeight + 8)) {
-                RoundedShapeRenderer.roundedRectTopLeft(shapeRenderer, drawStartX,
-                        drawStartY, drawWidth, textHeight + 10, 5, highlightColor);
+                RoundedShapeRenderer.roundedRectTopLeft(shapeRenderer, drawStartX + 6,
+                        drawStartY, drawWidth - 6, textHeight + 10, 5, highlightColor);
 
                 if (isLeftMouseJustUnpressed) {
                     AutoBuilder.requestRendering();
