@@ -90,6 +90,9 @@ public final class UndoHandler {
         }
     }
 
+    /**
+     * @return The current state of the application as an UndoState
+     */
     private @NotNull UndoState getCurrentState(@NotNull PathGui pathGui) {
         Autonomous newAutonomousState = GuiSerializer.serializeAutonomousForUndoHistory(pathGui.guiItems);
         return new UndoState(newAutonomousState, new Config(AutoBuilder.getConfig()));

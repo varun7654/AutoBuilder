@@ -36,7 +36,8 @@ public class GuiSerializer {
                             trajectoryItem.getPathRenderer().getVelocityStart(),
                             trajectoryItem.getPathRenderer().getVelocityEnd(),
                             trajectoryItem.getPathRenderer().getConstraints().stream()
-                                    .map(TrajectoryConstraint::copy).collect(Collectors.toCollection(ArrayList::new))));
+                                    .map(TrajectoryConstraint::copy)
+                                    .collect(Collectors.toCollection(ArrayList::new)))); // Copy constraints
                 } catch (ExecutionException e) {
                     throw new NotDeployableException("Trajectory is not deployable");
                 }
@@ -78,7 +79,8 @@ public class GuiSerializer {
                         trajectoryItem.getPathRenderer().getVelocityStart(),
                         trajectoryItem.getPathRenderer().getVelocityEnd(),
                         trajectoryItem.getPathRenderer().getConstraints().stream()
-                                .map(TrajectoryConstraint::copy).collect(Collectors.toCollection(ArrayList::new))));
+                                .map(TrajectoryConstraint::copy)
+                                .collect(Collectors.toCollection(ArrayList::new)))); // Copy constraints
             }
         }
         return new Autonomous(autonomousSteps);
@@ -125,14 +127,17 @@ public class GuiSerializer {
                         trajectoryItem.getPathRenderer().getVelocityStart(),
                         trajectoryItem.getPathRenderer().getVelocityEnd(),
                         trajectoryItem.getPathRenderer().getConstraints().stream()
-                                .map(TrajectoryConstraint::copy).collect(Collectors.toCollection(ArrayList::new))));
+                                .map(TrajectoryConstraint::copy)
+                                .collect(Collectors.toCollection(ArrayList::new)))); // Copy constraints
             }
         }
         Autonomous autonomous = new Autonomous(autonomousSteps);
 
         for (AbstractAutonomousStep autonomousStep : autonomous.getAutonomousSteps()) {
             if (autonomousStep instanceof ScriptAutonomousStep scriptAutonomousStep) {
-                if (!scriptAutonomousStep.getSendableScript().isDeployable()) deployable = false;
+                if (!scriptAutonomousStep.getSendableScript().isDeployable()) {
+                    deployable = false;
+                }
             }
         }
 
