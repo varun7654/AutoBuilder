@@ -113,7 +113,7 @@ public class CameraHandler extends InputEventListener {
         lastMousePos.set(Gdx.input.getX(), Gdx.input.getY());
 
         if (Math.abs(targetX - cam.position.x) < 1e-2 && Math.abs(targetY - cam.position.y) < 1e-2
-                && Math.abs(this.zoom - cam.zoom) < 1e-4 && mouseVelocity.len2() < 1e-8) {
+                && Math.abs(this.zoom - cam.zoom) < 1e-4 && mouseVelocity.len2() < 1e-2) {
             AutoBuilder.disableContinuousRendering(this);
         } else {
             AutoBuilder.enableContinuousRendering(this);
