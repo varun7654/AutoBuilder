@@ -4,6 +4,7 @@ import com.badlogic.gdx.ApplicationAdapter;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Graphics;
 import com.badlogic.gdx.Input;
+import com.badlogic.gdx.files.FileHandle;
 import com.badlogic.gdx.graphics.*;
 import com.badlogic.gdx.graphics.Cursor.SystemCursor;
 import com.badlogic.gdx.graphics.Texture.TextureFilter;
@@ -150,7 +151,12 @@ public final class AutoBuilder extends ApplicationAdapter {
         batch = new PolygonSpriteBatch();
         shapeRenderer = new ShapeDrawer(batch, region);
 
-        field = new Texture(Gdx.files.internal("field22.png"), true);
+        if (new File(USER_DIRECTORY + "/field.png").exists()) {
+            field = new Texture(new FileHandle(USER_DIRECTORY + "/field.png"), true);
+        } else {
+            field = new Texture(Gdx.files.internal("field22.png"), true);
+        }
+
         field.setFilter(TextureFilter.MipMapLinearLinear, Texture.TextureFilter.Nearest);
 
         cam = new OrthographicCamera(Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
