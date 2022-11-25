@@ -14,6 +14,7 @@ import com.dacubeking.autobuilder.gui.gui.elements.IntegerNumberTextBox;
 import com.dacubeking.autobuilder.gui.gui.elements.NumberTextBox;
 import com.dacubeking.autobuilder.gui.gui.elements.TextBox;
 import com.dacubeking.autobuilder.gui.gui.elements.scrollablegui.*;
+import com.dacubeking.autobuilder.gui.gui.hover.HoverManager;
 import com.dacubeking.autobuilder.gui.gui.settings.constraintrenders.TrajectoryConfigGuiElement;
 import com.dacubeking.autobuilder.gui.gui.textrendering.TextComponent;
 import com.dacubeking.autobuilder.gui.net.NetworkTablesHelper;
@@ -27,49 +28,93 @@ import static com.dacubeking.autobuilder.gui.util.MathUtil.dist2;
 import static com.dacubeking.autobuilder.gui.util.MouseUtil.*;
 
 public class SettingsGui extends ScrollableGui implements Disposable {
-    private final LabeledTextInputField teamNumberInputField = new LabeledTextInputField(
+    private final LabeledTextInputField teamNumberInputField = (LabeledTextInputField) new LabeledTextInputField(
             new TextComponent("Team Number: ", Color.BLACK).setBold(false),
             new IntegerNumberTextBox(String.valueOf(AutoBuilder.getConfig().getTeamNumber()), true,
                     (this::updateTeamNumber), (TextBox::getText), 16),
-            100f);
+            100f)
+            .setHoverText(HoverManager.createDefaultHoverTextBlock(
+                    new TextComponent("The team number of the robot you are building for.\n", Color.BLACK),
+                    new TextComponent(" ", Color.BLACK)
+            ));
 
-    private final LabeledTextInputField robotLengthField = new LabeledTextInputField(
+    private final LabeledTextInputField robotLengthField = (LabeledTextInputField) new LabeledTextInputField(
             new TextComponent("Robot Length: ", Color.BLACK).setBold(false),
             new NumberTextBox(String.valueOf(AutoBuilder.getConfig().getRobotLength()), true,
                     (this::updateRobotLength), (TextBox::getText), 16),
-            100f);
+            100f)
+            .setHoverText(HoverManager.createDefaultHoverTextBlock(
+                    new TextComponent("The length of the robot in meters.\n", Color.BLACK),
+                    new TextComponent("This ", Color.BLACK),
+                    new TextComponent("isn't ", Color.BLACK).setItalic(true),
+                    new TextComponent("used for calculating the robot's trajectory. And is only used to display an outline of " +
+                            "the robot. As a result is recommended that you include your robot's bumpers in this measurement."
+                            , Color.BLACK)
+            ));
 
-    private final LabeledTextInputField robotWidthField = new LabeledTextInputField(
+    private final LabeledTextInputField robotWidthField = (LabeledTextInputField) new LabeledTextInputField(
             new TextComponent("Robot Width: ", Color.BLACK).setBold(false),
             new NumberTextBox(String.valueOf(AutoBuilder.getConfig().getRobotWidth()), true,
                     (this::updateRobotWidth), (TextBox::getText), 16),
-            100f);
+            100f)
+            .setHoverText(HoverManager.createDefaultHoverTextBlock(
+                    new TextComponent("The width of the robot in meters.\n", Color.BLACK),
+                    new TextComponent("This ", Color.BLACK),
+                    new TextComponent("isn't ", Color.BLACK).setItalic(true),
+                    new TextComponent("used for calculating the robot's trajectory. And is only used to display an outline of " +
+                            "the robot. As a result is recommended that you include your robot's bumpers in this measurement.",
+                            Color.BLACK)
+            ));
 
-    private final LabeledTextInputField pointScaleFactorField = new LabeledTextInputField(
+    private final LabeledTextInputField pointScaleFactorField = (LabeledTextInputField) new LabeledTextInputField(
             new TextComponent("Point Scale Factor: ", Color.BLACK).setBold(false),
             new NumberTextBox(String.valueOf(AutoBuilder.getConfig().getPointScaleFactor()), true,
                     (this::updatePointScaleFactor), (TextBox::getText), 16),
-            100f);
+            100f)
+            .setHoverText(HoverManager.createDefaultHoverTextBlock(
+                    new TextComponent("The scaling factor used to convert meters to pixels to be " +
+                            "rendered on the GUI. This can be calculated by taking the width of the field in pixels and " +
+                            "dividing it by width of the field in meters.", Color.BLACK)
+            ));
 
-    private final LabeledTextInputField originX = new LabeledTextInputField(
+    private final LabeledTextInputField originX = (LabeledTextInputField) new LabeledTextInputField(
             new TextComponent("Origin X: ", Color.BLACK).setBold(false),
             new NumberTextBox(String.valueOf(AutoBuilder.getConfig().getOriginX()), true,
                     (this::updateOriginX), (TextBox::getText), 16),
-            100f);
+            100f)
+            .setHoverText(HoverManager.createDefaultHoverTextBlock(
+                    new TextComponent("The X coordinate of the origin of the field in pixels on the image.\n", Color.BLACK),
+                    new TextComponent("This is used to determine where 0,0 is on the field image", Color.BLACK)
+            ));
 
-    private final LabeledTextInputField originY = new LabeledTextInputField(
+    private final LabeledTextInputField originY = (LabeledTextInputField) new LabeledTextInputField(
             new TextComponent("Origin Y: ", Color.BLACK).setBold(false),
             new NumberTextBox(String.valueOf(AutoBuilder.getConfig().getOriginY()), true,
                     (this::updateOriginY), (TextBox::getText), 16),
-            100f);
+            100f)
+            .setHoverText(HoverManager.createDefaultHoverTextBlock(
+                    new TextComponent("The Y coordinate of the origin of the field in pixels on the image.\n", Color.BLACK),
+                    new TextComponent("This is used to determine where 0,0 is on the field image", Color.BLACK)
+            ));
 
-    private final LabeledCheckbox isHolonomicCheckbox = new LabeledCheckbox(
+    private final LabeledCheckbox isHolonomicCheckbox = (LabeledCheckbox) new LabeledCheckbox(
             new TextComponent("Is Holonomic: ", Color.BLACK).setBold(false),
-            this::updateIsHolonomic, AutoBuilder.getConfig().isHolonomic());
+            this::updateIsHolonomic, AutoBuilder.getConfig().isHolonomic())
+            .setHoverText(HoverManager.createDefaultHoverTextBlock(
+                    new TextComponent("Whether or not the robot is holonomic. (e.g swerve, or mecanum)\n", Color.BLACK),
+                    new TextComponent("Enabling holonomic mode decouples the heading and velocity of the robot.", Color.BLACK)
+            ));
 
-    private final LabeledCheckbox networkTablesEnabledCheckbox = new LabeledCheckbox(
+    private final LabeledCheckbox networkTablesEnabledCheckbox = (LabeledCheckbox) new LabeledCheckbox(
             new TextComponent("NetworkTables Enabled: ", Color.BLACK).setBold(false),
-            this::updateNetworkTablesEnabled, AutoBuilder.getConfig().isNetworkTablesEnabled());
+            this::updateNetworkTablesEnabled, AutoBuilder.getConfig().isNetworkTablesEnabled())
+            .setHoverText(HoverManager.createDefaultHoverTextBlock(
+                    new TextComponent("Whether or not to connect to the robot's NetworkTables server.\n", Color.BLACK),
+                    new TextComponent("Network Tables needs to be enabled to utilize any of the features that require being " +
+                            "connected to the robot.\n", Color.BLACK),
+                    new TextComponent("Disable this if you are not connected to the robot's network and are experiencing " +
+                            "consistent frame-time spikes. ", Color.BLACK).setBold(true)
+            ));
 
     TrajectoryConfigGuiElement trajectoryConfigGuiElement = new TrajectoryConfigGuiElement();
 

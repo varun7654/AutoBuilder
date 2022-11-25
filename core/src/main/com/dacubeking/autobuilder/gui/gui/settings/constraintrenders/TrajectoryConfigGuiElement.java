@@ -9,6 +9,7 @@ import com.dacubeking.autobuilder.gui.gui.elements.TextBox;
 import com.dacubeking.autobuilder.gui.gui.elements.scrollablegui.GuiElement;
 import com.dacubeking.autobuilder.gui.gui.elements.scrollablegui.LabeledTextInputField;
 import com.dacubeking.autobuilder.gui.gui.elements.scrollablegui.SpaceGuiElement;
+import com.dacubeking.autobuilder.gui.gui.hover.HoverManager;
 import com.dacubeking.autobuilder.gui.gui.textrendering.TextComponent;
 import org.jetbrains.annotations.NotNull;
 import space.earlygrey.shapedrawer.ShapeDrawer;
@@ -16,17 +17,21 @@ import space.earlygrey.shapedrawer.ShapeDrawer;
 import java.util.ArrayList;
 
 public class TrajectoryConfigGuiElement implements GuiElement {
-    private final LabeledTextInputField maxVelocityTextField = new LabeledTextInputField(
+    private final LabeledTextInputField maxVelocityTextField = (LabeledTextInputField) new LabeledTextInputField(
             new TextComponent("Max Velocity: ", Color.BLACK).setBold(false),
             new NumberTextBox(String.valueOf(AutoBuilder.getConfig().getPathingConfig().maxVelocityMetersPerSecond),
                     true, (this::updateMaxVelocity), (TextBox::getText), 16),
-            100f);
+            100f)
+            .setHoverText(HoverManager.createDefaultHoverTextBlock(
+                    new TextComponent("The maximum velocity of the robot in meters per second.", Color.BLACK)));
 
-    private final LabeledTextInputField maxAccelerationTextField = new LabeledTextInputField(
+    private final LabeledTextInputField maxAccelerationTextField = (LabeledTextInputField) new LabeledTextInputField(
             new TextComponent("Max Acceleration: ", Color.BLACK).setBold(false),
             new NumberTextBox(String.valueOf(AutoBuilder.getConfig().getPathingConfig().maxAccelerationMetersPerSecondSq),
                     true, (this::updateMaxAcceleration), (TextBox::getText), 16),
-            100f);
+            100f)
+            .setHoverText(HoverManager.createDefaultHoverTextBlock(
+                    new TextComponent("The maximum acceleration of the robot in meters per second squared.", Color.BLACK)));
 
     private final ConstraintGuiElement constraintGuiElement =
             new ConstraintGuiElement(() -> AutoBuilder.getConfig().getPathingConfig().trajectoryConstraints, true);

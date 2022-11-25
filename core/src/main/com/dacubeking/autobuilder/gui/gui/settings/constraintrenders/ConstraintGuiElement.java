@@ -6,10 +6,9 @@ import com.badlogic.gdx.graphics.g2d.PolygonSpriteBatch;
 import com.dacubeking.autobuilder.gui.AutoBuilder;
 import com.dacubeking.autobuilder.gui.gui.elements.NumberTextBox;
 import com.dacubeking.autobuilder.gui.gui.elements.scrollablegui.*;
+import com.dacubeking.autobuilder.gui.gui.hover.HoverManager;
 import com.dacubeking.autobuilder.gui.gui.settings.constraintrenders.annotations.Constraint;
 import com.dacubeking.autobuilder.gui.gui.settings.constraintrenders.annotations.ConstraintField;
-import com.dacubeking.autobuilder.gui.gui.textrendering.Fonts;
-import com.dacubeking.autobuilder.gui.gui.textrendering.TextBlock;
 import com.dacubeking.autobuilder.gui.gui.textrendering.TextComponent;
 import com.dacubeking.autobuilder.gui.undo.UndoHandler;
 import com.dacubeking.autobuilder.gui.util.Colors;
@@ -95,7 +94,7 @@ public class ConstraintGuiElement implements GuiElement {
                 // Create a TextGuiElement that shows the name of the constraint + some other info
                 constraints.add(new TextGuiElement(new TextComponent(constraintClass.name(), Color.BLACK)
                         .setBold(true).setSize(20))
-                        .setHoverText(new TextBlock(Fonts.ROBOTO, 14, 300,
+                        .setHoverText(HoverManager.createDefaultHoverTextBlock(
                                 new TextComponent(constraintClass.description(), Color.BLACK),
                                 new TextComponent("\n\nClick to remove this constraint", Color.RED).setBold(true)))
                         .setOnClick(() -> {
@@ -121,7 +120,7 @@ public class ConstraintGuiElement implements GuiElement {
 
                 // Create a textComponent that has the name of the field and a description from the annotation
                 var labelText = new TextComponent(constraintAnnotation.name(), Color.BLACK).setBold(false);
-                var labelHover = new TextBlock(Fonts.ROBOTO, 14, 300,
+                var labelHover = HoverManager.createDefaultHoverTextBlock(
                         new TextComponent(constraintAnnotation.description(), Color.BLACK));
 
                 if (field.getType().equals(double.class)) {
@@ -167,7 +166,7 @@ public class ConstraintGuiElement implements GuiElement {
                                 var constraintAnnotation1 = o.getClass().getAnnotation(ConstraintField.class);
                                 // Create a textComponent that has the name of the field and a description from the annotation
                                 var labelText1 = new TextComponent(constraintAnnotation1.name(), Color.BLACK).setBold(false);
-                                var labelHover1 = new TextBlock(Fonts.ROBOTO, 14, 300,
+                                var labelHover1 = HoverManager.createDefaultHoverTextBlock(
                                         new TextComponent(constraintAnnotation1.description(), Color.BLACK));
                                 // Render the name of each element in the array with 1 extra indent
                                 elementsToIndent2.add(new TextGuiElement(labelText1.setBold(true)).setHoverText(labelHover1));
@@ -189,7 +188,7 @@ public class ConstraintGuiElement implements GuiElement {
                                 // This is a constraint, so we'll render the name of the constraint with 1 extra indent
                                 var labelText1 = new TextComponent(field.get(constraint).getClass()
                                         .getAnnotation(Constraint.class).name(), Color.BLACK).setBold(false);
-                                var labelHover1 = new TextBlock(Fonts.ROBOTO, 14, 300,
+                                var labelHover1 = HoverManager.createDefaultHoverTextBlock(
                                         new TextComponent(field.get(constraint).getClass()
                                                 .getAnnotation(Constraint.class).description(), Color.BLACK),
                                         new TextComponent("\n\nClick to remove this constraint", Color.RED).setBold(true));

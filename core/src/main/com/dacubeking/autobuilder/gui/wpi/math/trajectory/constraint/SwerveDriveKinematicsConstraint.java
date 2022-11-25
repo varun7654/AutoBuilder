@@ -21,7 +21,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
         " drivetrain stay below a certain limit.")
 public class SwerveDriveKinematicsConstraint implements TrajectoryConstraint {
 
-    @ConstraintField(name = "Max Speed", description = "The max speed that a side of the robot can travel at. (m/s)")
+    @ConstraintField(name = "Max Speed", description = "The max speed that a module should be commanded to move at (m/s)")
     @JsonProperty("maxSpeedMetersPerSecond")
     private final double m_maxSpeedMetersPerSecond;
     @ConstraintField(name = "Kinematics", description = "Swerve drive kinematics")

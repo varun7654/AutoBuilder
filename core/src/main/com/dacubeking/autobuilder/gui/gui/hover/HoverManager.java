@@ -4,9 +4,8 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.g2d.Batch;
 import com.badlogic.gdx.math.Vector2;
-import com.dacubeking.autobuilder.gui.gui.textrendering.FontHandler;
-import com.dacubeking.autobuilder.gui.gui.textrendering.FontRenderer;
-import com.dacubeking.autobuilder.gui.gui.textrendering.TextBlock;
+import com.dacubeking.autobuilder.gui.gui.textrendering.*;
+import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import space.earlygrey.shapedrawer.ShapeDrawer;
 
@@ -50,9 +49,16 @@ public class HoverManager {
         return hoverText;
     }
 
+    @Contract("_ -> new")
+    public static @NotNull TextBlock createDefaultHoverTextBlock(TextComponent... components) {
+        return new TextBlock(Fonts.ROBOTO, 13, 300, components);
+    }
+
     public static void render(Batch batch, ShapeDrawer shapeDrawer) {
         if (hoverShown) {
-            if (hoverOnMouse) hoverPosition.set(getMouseX(), getMouseY() + 10);
+            if (hoverOnMouse) {
+                hoverPosition.set(getMouseX(), getMouseY() + 10);
+            }
             float width = hoverText.getWidth();
             float height = hoverText.getHeight();
 
