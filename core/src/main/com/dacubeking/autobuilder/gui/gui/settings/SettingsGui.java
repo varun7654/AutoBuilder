@@ -84,7 +84,7 @@ public class SettingsGui extends ScrollableGui implements Disposable {
             100f)
             .setHoverText(HoverManager.createDefaultHoverTextBlock(
                     new TextComponent("The X coordinate of the origin of the field in pixels on the image.\n", Color.BLACK),
-                    new TextComponent("This is used to determine where 0,0 is on the field image", Color.BLACK)
+                    new TextComponent("This is used to determine where (0,0) is on the field image", Color.BLACK)
             ));
 
     private final LabeledTextInputField originY = (LabeledTextInputField) new LabeledTextInputField(
@@ -94,7 +94,7 @@ public class SettingsGui extends ScrollableGui implements Disposable {
             100f)
             .setHoverText(HoverManager.createDefaultHoverTextBlock(
                     new TextComponent("The Y coordinate of the origin of the field in pixels on the image.\n", Color.BLACK),
-                    new TextComponent("This is used to determine where 0,0 is on the field image", Color.BLACK)
+                    new TextComponent("This is used to determine where (0,0) is on the field image", Color.BLACK)
             ));
 
     private final LabeledCheckbox isHolonomicCheckbox = (LabeledCheckbox) new LabeledCheckbox(
