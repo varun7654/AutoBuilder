@@ -102,33 +102,49 @@ public class RobotCodeData {
         // Even if there are errors still try and find the class
         ReflectionClassData reflectionClassData = null;
         boolean hasInstance = false;
-        if (classAndMethod.length > 0) {
-            reflectionClassData = robotClassesMap.get(classAndMethod[0].string());
-            if (reflectionClassData == null) {
-                classTextComponents.add(new TextComponent("\nCould not find class: "));
-                classTextComponents.add(new TextComponent(classAndMethod[0].string()).setItalic(true));
-                error = true;
-            } else {
-                if (accessibleClasses.contains(reflectionClassData.fullName)) {
-                    hasInstance = true;
-                    classTextComponents.add(new TextComponent("Using annotated instance for class "));
-                } else if (reflectionClassData.methodMap.containsKey("getInstance")) {
-                    ReflectionMethodData singletonMethod = reflectionClassData.methodMap.get("getInstance").stream()
-                            .filter(methodData -> methodData.parameterTypes.length == 0).findFirst().orElse(null);
-                    hasInstance = isStatic(singletonMethod) && singletonMethod.returnType.equals(reflectionClassData.fullName);
-                    classTextComponents.add(new TextComponent("Using singleton class "));
-                } else {
-                    classTextComponents.add(new TextComponent("Using class "));
-                }
-
-                classTextComponents.add(new TextComponent(reflectionClassData.fullName).setItalic(true));
-            }
+        if (classAndMethod.length == 0) {
+            return false;
         }
 
-        if (classAndMethod.length < 2) {
+        reflectionClassData = robotClassesMap.get(classAndMethod[0].string());
+        if (reflectionClassData == null) {
+            classTextComponents.add(new TextComponent("\nCould not find class: "));
+            classTextComponents.add(new TextComponent(classAndMethod[0].string()).setItalic(true));
+            error = true;
+        } else {
+            if (accessibleClasses.contains(reflectionClassData.fullName)) {
+                hasInstance = true;
+                classTextComponents.add(new TextComponent("Using annotated instance for class "));
+            } else if (reflectionClassData.methodMap.containsKey("getInstance")) {
+                ReflectionMethodData singletonMethod = reflectionClassData.methodMap.get("getInstance").stream()
+                        .filter(methodData -> methodData.parameterTypes.length == 0).findFirst().orElse(null);
+                hasInstance = isStatic(singletonMethod) && singletonMethod.returnType.equals(reflectionClassData.fullName);
+                classTextComponents.add(new TextComponent("Using singleton class "));
+            } else {
+                classTextComponents.add(new TextComponent("Using class "));
+            }
+
+            classTextComponents.add(new TextComponent(reflectionClassData.fullName).setItalic(true));
+        }
+
+
+        if (classAndMethod.length == 1 /* no arguments */ && hasInstance && reflectionClassData.isCommand) {
+            classTextComponents.add(new TextComponent("\n\nThis class is a command and the corresponding, initialize, execute, " +
+                    "end methods will be called" +
+                    "\n\n"));
+            classTextComponents.add(new TextComponent("This will not be run by the schedular, and requirements will not be " +
+                    "checked").setBold(true));
+            classTextComponents.add(new TextComponent("\nThe isFinished method will be respected and the command will continue " +
+                    "to be executed until it returns true. Sequential commands will not be run until this command returns true"));
+            sendableCommands.add(new SendableCommand(reflectionClassData.fullName,
+                    new String[]{}, new String[]{}, true, true));
+            lintingPositions.add(new LintingPos(classMethod.index(), error ? Color.RED : Color.CLEAR,
+                    new TextBlock(Fonts.ROBOTO, 14, 300, classTextComponents.toArray(new TextComponent[0]))));
+            return true;
+        } else if (classAndMethod.length <= 1) {
             classTextComponents.add(new TextComponent("\n\nExpected a method after class"));
             error = true;
-        } else if (classAndMethod.length > 2) {
+        } else if (classAndMethod.length >= 3) {
             classTextComponents.add(new TextComponent("\n\nFully qualified classes are not supported yet!"));
             error = true;
         }
@@ -203,7 +219,9 @@ public class RobotCodeData {
                 for (int i = 0; i < args.length; i++) {
                     String parameterType = methodData.parameterTypes[i];
                     if (inferableTypesVerification.containsKey(parameterType)) {
-                        if (!inferableTypesVerification.get(parameterType).apply(args[i].string())) return false;
+                        if (!inferableTypesVerification.get(parameterType).apply(args[i].string())) {
+                            return false;
+                        }
                     } else {
                         // Maybe it's an enum
                         if (robotFullNameClassesMap.containsKey(parameterType)) {
@@ -292,7 +310,9 @@ public class RobotCodeData {
 
 
     public static boolean isStatic(@Nullable ReflectionMethodData methodData) {
-        if (methodData == null) return false;
+        if (methodData == null) {
+            return false;
+        }
         return Modifier.isStatic(methodData.modifiers);
     }
 }

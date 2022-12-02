@@ -6,17 +6,27 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.Arrays;
 
 public record SendableCommand(@JsonProperty("methodName") String methodName, @JsonProperty("args") String[] args,
-                              @JsonProperty("argTypes") String[] argTypes, @JsonProperty("reflection") boolean reflection) {
+                              @JsonProperty("argTypes") String[] argTypes, @JsonProperty("reflection") boolean reflection,
+                              @JsonProperty("command") boolean command) {
 
     @JsonCreator
     public SendableCommand(@JsonProperty("methodName") String methodName,
                            @JsonProperty("args") String[] args,
                            @JsonProperty("argTypes") String[] argTypes,
-                           @JsonProperty("reflection") boolean reflection) {
+                           @JsonProperty("reflection") boolean reflection,
+                           @JsonProperty("command") boolean command) {
         this.methodName = methodName;
         this.args = args;
         this.argTypes = argTypes;
         this.reflection = reflection;
+        this.command = command;
+    }
+
+    public SendableCommand(@JsonProperty("methodName") String methodName,
+                           @JsonProperty("args") String[] args,
+                           @JsonProperty("argTypes") String[] argTypes,
+                           @JsonProperty("reflection") boolean reflection) {
+        this(methodName, args, argTypes, reflection, false);
     }
 
     @Override
