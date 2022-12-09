@@ -15,7 +15,7 @@ public class Config {
     private List<String> scriptMethods;
     private String selectedAutoFile;
     private String shooterConfigFile;
-    private int teamNumber;
+    private String teamNumber;
     private float robotLength;
     private float robotWidth;
     private float pointScaleFactor;
@@ -32,7 +32,7 @@ public class Config {
     public Config(@JsonProperty(value = "scriptMethods") List<String> scriptMethods,
                   @JsonProperty(value = "selectedAuto") String selectedAuto,
                   @JsonProperty(defaultValue = "shooterconfig.json", value = "selectedShooterConfig") String shooterConfig,
-                  @JsonProperty(value = "teamNumber") Integer teamNumber,
+                  @JsonProperty(value = "teamNumber") Object teamNumber,
                   @JsonProperty(value = "robotLength") Float robotLength,
                   @JsonProperty(value = "robotWidth") Float robotWidth,
                   @JsonProperty(value = "pointScaleFactor") Float pointScaleFactor,
@@ -53,7 +53,13 @@ public class Config {
 
         this.selectedAutoFile = shooterConfig == null ? "auto.json" : selectedAuto;
         this.shooterConfigFile = shooterConfig == null ? "shooterconfig.json" : shooterConfig;
-        this.teamNumber = teamNumber == null ? 3476 : teamNumber;
+        if (teamNumber == null) {
+            this.teamNumber = "3476";
+        } else if (teamNumber instanceof Integer) {
+            this.teamNumber = String.valueOf(teamNumber);
+        } else {
+            this.teamNumber = (String) teamNumber;
+        }
         this.robotLength = robotLength == null ? 0.9191625f : robotLength;
         this.robotWidth = robotWidth == null ? 0.9229725f : robotWidth;
         this.pointScaleFactor = pointScaleFactor == null ? 159.967484803998f : pointScaleFactor;
@@ -68,7 +74,7 @@ public class Config {
     }
 
     public Config() {
-        this(null, null, null, null, null, null, null, null, null, null, null, null, null, null, null);
+        this(null, null, null, "3476", null, null, null, null, null, null, null, null, null, null, null);
     }
 
     public Config(@NotNull Config config) {
@@ -117,7 +123,7 @@ public class Config {
     }
 
     @JsonProperty("teamNumber")
-    public int getTeamNumber() {
+    public String getTeamNumber() {
         return teamNumber;
     }
 
@@ -237,7 +243,7 @@ public class Config {
         this.selectedAutoFile = auto;
     }
 
-    public void setTeamNumber(int teamNumber) {
+    public void setTeamNumber(String teamNumber) {
         this.teamNumber = teamNumber;
     }
 

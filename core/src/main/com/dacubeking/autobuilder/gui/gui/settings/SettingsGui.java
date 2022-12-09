@@ -10,7 +10,6 @@ import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.scenes.scene2d.utils.ScissorStack;
 import com.badlogic.gdx.utils.Disposable;
 import com.dacubeking.autobuilder.gui.AutoBuilder;
-import com.dacubeking.autobuilder.gui.gui.elements.IntegerNumberTextBox;
 import com.dacubeking.autobuilder.gui.gui.elements.NumberTextBox;
 import com.dacubeking.autobuilder.gui.gui.elements.TextBox;
 import com.dacubeking.autobuilder.gui.gui.elements.scrollablegui.*;
@@ -23,6 +22,7 @@ import com.dacubeking.autobuilder.gui.util.RoundedShapeRenderer;
 import space.earlygrey.shapedrawer.ShapeDrawer;
 
 import java.util.ArrayList;
+import java.util.regex.Pattern;
 
 import static com.dacubeking.autobuilder.gui.util.MathUtil.dist2;
 import static com.dacubeking.autobuilder.gui.util.MouseUtil.*;
@@ -30,12 +30,13 @@ import static com.dacubeking.autobuilder.gui.util.MouseUtil.*;
 public class SettingsGui extends ScrollableGui implements Disposable {
     private final LabeledTextInputField teamNumberInputField = (LabeledTextInputField) new LabeledTextInputField(
             new TextComponent("Team Number: ", Color.BLACK).setBold(false),
-            new IntegerNumberTextBox(String.valueOf(AutoBuilder.getConfig().getTeamNumber()), true,
+            new TextBox(String.valueOf(AutoBuilder.getConfig().getTeamNumber()), true,
                     (this::updateTeamNumber), (TextBox::getText), 16),
             100f)
             .setHoverText(HoverManager.createDefaultHoverTextBlock(
                     new TextComponent("The team number of the robot you are building for.\n", Color.BLACK),
-                    new TextComponent(" ", Color.BLACK)
+                    new TextComponent("This is used to connect to the robot via NetworkTables.\n", Color.BLACK),
+                    new TextComponent("You may also enter an IP Address in here instead of a Team Number.", Color.BLACK)
             ));
 
     private final LabeledTextInputField robotLengthField = (LabeledTextInputField) new LabeledTextInputField(
@@ -212,11 +213,30 @@ public class SettingsGui extends ScrollableGui implements Disposable {
         trajectoryConfigGuiElement.updateValues();
     }
 
+
+    Pattern ipAddrPattern = Pattern.compile(
+            "^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$");
+
+
     public void updateTeamNumber(TextBox textBox) {
         try {
-            int teamNumber = Integer.parseInt(textBox.getText());
-            AutoBuilder.getConfig().setTeamNumber(teamNumber);
-            teamNumberInputField.setValid(true);
+            String teamNumberString = textBox.getText();
+            teamNumberString = teamNumberString.strip();
+            if (teamNumberString.length() > 0 && teamNumberString.length() <= 4) {
+                int teamNumber = Integer.parseInt(teamNumberString);
+                if (teamNumber >= 0 && teamNumber <= 9999) {
+                    AutoBuilder.getConfig().setTeamNumber(teamNumberString);
+                    teamNumberInputField.setValid(true);
+                }
+            } else if (ipAddrPattern.matcher(teamNumberString).matches()) {
+                AutoBuilder.getConfig().setTeamNumber(teamNumberString);
+                teamNumberInputField.setValid(true);
+            } else if (teamNumberString.equals("localhost")) {
+                AutoBuilder.getConfig().setTeamNumber(teamNumberString);
+                teamNumberInputField.setValid(true);
+            } else {
+                teamNumberInputField.setValid(false);
+            }
         } catch (NumberFormatException e) {
             teamNumberInputField.setValid(false);
         }

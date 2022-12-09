@@ -86,7 +86,13 @@ public final class NetworkTablesHelper {
     public void start(HudRenderer hudRenderer, @NotNull DrawableRenderer drawableRenderer) {
         new Thread(() -> {
             inst = NetworkTableInstance.getDefault();
-            inst.startClientTeam(AutoBuilder.getConfig().getTeamNumber());
+
+            String teamNumber = AutoBuilder.getConfig().getTeamNumber(); // Might also be an IP address
+            if (teamNumber.length() <= 4 && teamNumber.matches("[0-9]+")) {
+                inst.startClientTeam(Integer.parseInt(teamNumber));
+            } else {
+                inst.startClient(teamNumber);
+            }
             autoData = inst.getTable("autodata");
             autoPath = autoData.getEntry("autoPath");
             smartDashboardTable = inst.getTable("SmartDashboard");
@@ -225,24 +231,32 @@ public final class NetworkTablesHelper {
 
 
     public void setLimelightForcedOn(boolean forcedOn) {
-        if (limelightForcedOn != null) limelightForcedOn.setBoolean(forcedOn);
+        if (limelightForcedOn != null) {
+            limelightForcedOn.setBoolean(forcedOn);
+        }
     }
 
     public void setShooterConfig(ShooterConfig shooterConfig) {
         try {
-            if (shooterConfigEntry != null) shooterConfigEntry.setString(Serializer.serializeToString(shooterConfig, true));
+            if (shooterConfigEntry != null) {
+                shooterConfigEntry.setString(Serializer.serializeToString(shooterConfig, true));
+            }
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
 
     public double getShooterConfigStatusId() {
-        if (shooterConfigStatusIdEntry != null) return shooterConfigStatusIdEntry.getDouble(-1);
+        if (shooterConfigStatusIdEntry != null) {
+            return shooterConfigStatusIdEntry.getDouble(-1);
+        }
         return -1;
     }
 
     public double getShooterConfigStatus() {
-        if (shooterConfigStatusEntry != null) return shooterConfigStatusEntry.getDouble(-1);
+        if (shooterConfigStatusEntry != null) {
+            return shooterConfigStatusEntry.getDouble(-1);
+        }
         return -1;
     }
 
@@ -250,7 +264,9 @@ public final class NetworkTablesHelper {
      * @return Distance from the limelight to the target in cm
      */
     public double getDistance() {
-        if (distanceEntry != null) return distanceEntry.getDouble(-1);
+        if (distanceEntry != null) {
+            return distanceEntry.getDouble(-1);
+        }
         return -1;
     }
 
@@ -275,7 +291,9 @@ public final class NetworkTablesHelper {
     }
 
     public boolean isConnected() {
-        if (inst == null) return false;
+        if (inst == null) {
+            return false;
+        }
         return inst.isConnected();
     }
 
