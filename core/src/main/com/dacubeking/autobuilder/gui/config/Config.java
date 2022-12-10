@@ -3,7 +3,6 @@ package com.dacubeking.autobuilder.gui.config;
 
 import com.dacubeking.autobuilder.gui.AutoBuilder;
 import com.fasterxml.jackson.annotation.*;
-import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -77,25 +76,18 @@ public class Config {
         this(null, null, null, "3476", null, null, null, null, null, null, null, null, null, null, null);
     }
 
-    public Config(@NotNull Config config) {
-        this(config.scriptMethods, config.selectedAutoFile, config.shooterConfigFile, config.teamNumber, config.robotLength,
-                config.robotWidth, config.pointScaleFactor, config.originX, config.originY,
-                new PathingConfig(config.pathingConfig), config.networkTablesEnabled, config.robotCodeDataFile,
-                config.reflectionEnabled, config.isHolonomic, config.shooterConfigEnabled);
-    }
-
     @JsonProperty("scriptMethods")
-    public List<String> getScriptMethods() {
+    public synchronized List<String> getScriptMethods() {
         return scriptMethods;
     }
 
     @JsonProperty("selectedAuto")
-    public String getSelectedAuto() {
+    public synchronized String getSelectedAuto() {
         return selectedAutoFile;
     }
 
     @JsonIgnore
-    public File getAutoPath() {
+    public synchronized File getAutoPath() {
         File path = new File(getSelectedAuto());
         if (!path.isAbsolute()) {
             path = new File(AutoBuilder.USER_DIRECTORY + "/" + path);
@@ -109,7 +101,7 @@ public class Config {
     }
 
     @JsonIgnore
-    public File getShooterConfigPath() {
+    public synchronized File getShooterConfigPath() {
         File path = new File(getSelectedShooterConfig());
         if (!path.isAbsolute()) {
             path = new File(AutoBuilder.USER_DIRECTORY + "/" + path);
@@ -118,73 +110,73 @@ public class Config {
     }
 
     @JsonProperty("selectedShooterConfig")
-    public String getSelectedShooterConfig() {
+    public synchronized String getSelectedShooterConfig() {
         return shooterConfigFile;
     }
 
     @JsonProperty("teamNumber")
-    public String getTeamNumber() {
+    public synchronized String getTeamNumber() {
         return teamNumber;
     }
 
     @JsonProperty("robotLength")
-    public float getRobotLength() {
+    public synchronized float getRobotLength() {
         return robotLength;
     }
 
     @JsonProperty("robotWidth")
-    public float getRobotWidth() {
+    public synchronized float getRobotWidth() {
         return robotWidth;
     }
 
     @JsonProperty("pointScaleFactor")
-    public float getPointScaleFactor() {
+    public synchronized float getPointScaleFactor() {
         return pointScaleFactor;
     }
 
     @JsonProperty("originX")
-    public float getOriginX() {
+    public synchronized float getOriginX() {
         return originX;
     }
 
     @JsonProperty("originY")
-    public float getOriginY() {
+    public synchronized float getOriginY() {
         return originY;
     }
 
     @JsonProperty("pathingConfig")
-    public PathingConfig getPathingConfig() {
+    public synchronized PathingConfig getPathingConfig() {
         return pathingConfig;
     }
 
     @JsonProperty("networkTablesEnabled")
-    public boolean isNetworkTablesEnabled() {
+    public synchronized boolean isNetworkTablesEnabled() {
         return networkTablesEnabled;
     }
 
     @JsonProperty("robotCodeDataFile")
-    public String getRobotCodeDataFile() {
+    public synchronized String getRobotCodeDataFile() {
         return robotCodeDataFile;
     }
 
     @JsonProperty("useReflection")
-    public boolean getReflectionEnabled() {
+    public synchronized boolean getReflectionEnabled() {
         return reflectionEnabled;
     }
 
     @JsonProperty("isHolonomic")
-    public boolean isHolonomic() {
+    public synchronized boolean isHolonomic() {
         return isHolonomic;
     }
 
     @JsonProperty("shooterConfigEnabled")
-    public boolean isShooterConfigEnabled() {
+    public synchronized boolean isShooterConfigEnabled() {
         return shooterConfigEnabled;
     }
 
     @JsonProperty("readMe")
     @JsonFormat(shape = JsonFormat.Shape.STRING)
-    private String getReadMe() {
+    private synchronized String getReadMe() {
         return "the scriptMethods contains the list of valid methods that will be allowed in the script block. " +
                 "print and sleep are currently hardcoded to allow for error checking on the arguments. " +
                 "You to edit them you will need to clone & compile the code. You can find them at " +
@@ -202,7 +194,7 @@ public class Config {
     }
 
     @Override
-    public String toString() {
+    public synchronized String toString() {
         return "Config{" +
                 "scriptMethods=" + scriptMethods +
                 ", selectedAutoFile='" + selectedAutoFile + '\'' +
@@ -221,7 +213,7 @@ public class Config {
                 '}';
     }
 
-    public void setConfig(Config config) {
+    public synchronized void setConfig(Config config) {
         this.scriptMethods = config.scriptMethods;
         this.selectedAutoFile = config.selectedAutoFile;
         this.shooterConfigFile = config.shooterConfigFile;
@@ -239,43 +231,49 @@ public class Config {
         this.shooterConfigEnabled = config.shooterConfigEnabled;
     }
 
-    public void setAuto(String auto) {
+    public synchronized void setAuto(String auto) {
         this.selectedAutoFile = auto;
     }
 
-    public void setTeamNumber(String teamNumber) {
+    public synchronized void setTeamNumber(String teamNumber) {
         this.teamNumber = teamNumber;
     }
 
-    public void setRobotLength(float robotLength) {
+    public synchronized void setRobotLength(float robotLength) {
         this.robotLength = robotLength;
     }
 
-    public void setRobotWidth(float robotWidth) {
+    public synchronized void setRobotWidth(float robotWidth) {
         this.robotWidth = robotWidth;
     }
 
-    public void setPointScaleFactor(float pointScaleFactor) {
+    public synchronized void setPointScaleFactor(float pointScaleFactor) {
         this.pointScaleFactor = pointScaleFactor;
     }
 
-    public void setOriginX(float originX) {
+    public synchronized void setOriginX(float originX) {
         this.originX = originX;
     }
 
-    public void setOriginY(float originY) {
+    public synchronized void setOriginY(float originY) {
         this.originY = originY;
     }
 
-    public void setHolonomic(boolean isHolonomic) {
+    public synchronized void setHolonomic(boolean isHolonomic) {
         this.isHolonomic = isHolonomic;
     }
 
-    public void setNetworkTablesEnabled(boolean networkTablesEnabled) {
+    public synchronized void setNetworkTablesEnabled(boolean networkTablesEnabled) {
         this.networkTablesEnabled = networkTablesEnabled;
     }
 
-    public void setPathingConfig(PathingConfig pathingConfig) {
+    public synchronized void setPathingConfig(PathingConfig pathingConfig) {
         this.pathingConfig = pathingConfig;
+    }
+
+    public synchronized Config copy() {
+        Config config = new Config();
+        config.setConfig(this);
+        return config;
     }
 }

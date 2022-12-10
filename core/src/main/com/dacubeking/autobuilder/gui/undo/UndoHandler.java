@@ -5,7 +5,6 @@ import com.badlogic.gdx.Input;
 import com.badlogic.gdx.graphics.Color;
 import com.dacubeking.autobuilder.gui.AutoBuilder;
 import com.dacubeking.autobuilder.gui.CameraHandler;
-import com.dacubeking.autobuilder.gui.config.Config;
 import com.dacubeking.autobuilder.gui.config.gui.FileHandler;
 import com.dacubeking.autobuilder.gui.gui.path.AbstractGuiItem;
 import com.dacubeking.autobuilder.gui.gui.path.PathGui;
@@ -83,7 +82,7 @@ public final class UndoHandler {
             saveWanted = this.saveWanted;
         }
         if (saveWanted) {
-            saveCurrentState(pathGui);
+            FileHandler.saveAuto(true);
             synchronized (saveWantedLock) {
                 this.saveWanted = false;
             }
@@ -95,7 +94,7 @@ public final class UndoHandler {
      */
     private @NotNull UndoState getCurrentState(@NotNull PathGui pathGui) {
         Autonomous newAutonomousState = GuiSerializer.serializeAutonomousForUndoHistory(pathGui.guiItems);
-        return new UndoState(newAutonomousState, new Config(AutoBuilder.getConfig()));
+        return new UndoState(newAutonomousState, AutoBuilder.getConfig().copy());
     }
 
     private synchronized void saveCurrentState(PathGui pathGui) {

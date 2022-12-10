@@ -199,23 +199,25 @@ public class FileHandler {
 
     private static boolean saveAuto(@NotNull Autonomous autonomous) {
         synchronized (saveLock) {
+            Config config = AutoBuilder.getConfig().copy();
+
             File autoFile;
             autoFile = new File(
-                    AutoBuilder.getConfig().getAutoPath().getParentFile().getAbsolutePath() + "/" +
+                    config.getAutoPath().getParentFile().getAbsolutePath() + "/" +
                             (autonomous.deployable ? "" : "NOTDEPLOYABLE") + new File(
-                            AutoBuilder.getConfig().getSelectedAuto()).getName());
+                            config.getSelectedAuto()).getName());
             autoFile.getParentFile().mkdirs();
 
             try {
-                Serializer.serializeToFile(autonomous, autoFile, AutoBuilder.getConfig().getSelectedAuto().endsWith(".json"));
+                Serializer.serializeToFile(autonomous, autoFile, config.getSelectedAuto().endsWith(".json"));
 
                 if (autonomous.deployable) {
                     File fileToDelete = new File(
-                            AutoBuilder.getConfig().getAutoPath().getParentFile().getAbsolutePath() + "/NOTDEPLOYABLE" +
-                                    new File(AutoBuilder.getConfig().getSelectedAuto()).getName());
+                            config.getAutoPath().getParentFile().getAbsolutePath() + "/NOTDEPLOYABLE" +
+                                    new File(config.getSelectedAuto()).getName());
                     fileToDelete.delete();
                 } else {
-                    File fileToDelete = new File(AutoBuilder.getConfig().getSelectedAuto());
+                    File fileToDelete = new File(config.getSelectedAuto());
                     fileToDelete.delete();
                 }
                 lastSaveTime = System.currentTimeMillis();
@@ -230,13 +232,14 @@ public class FileHandler {
     private static boolean saveConfig() {
         synchronized (saveLock) {
             File configFile = new File(AutoBuilder.USER_DIRECTORY + "/config.json");
-            File shooterConfig = AutoBuilder.getConfig().getShooterConfigPath();
+            Config config = AutoBuilder.getConfig().copy();
+            File shooterConfig = config.getShooterConfigPath();
 
             configFile.getParentFile().mkdirs();
             shooterConfig.getParentFile().mkdirs();
             try {
                 configFile.createNewFile();
-                Serializer.serializeToFile(AutoBuilder.getConfig(), configFile, true);
+                Serializer.serializeToFile(config, configFile, true);
 
                 if (AutoBuilder.getInstance().shooterGui != null) {
                     shooterConfig.createNewFile();
