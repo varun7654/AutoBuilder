@@ -36,18 +36,18 @@ dependencies {
     api 'com.fasterxml.jackson.core:jackson-databind:2.13.4'
 
     // Add ntcore-java
-    implementation "edu.wpi.first.ntcore:ntcore-java:2021.3.1"
+    implementation "edu.wpi.first.ntcore:ntcore-java:2022.4.1"
 
     // Add wpiutil-java
-    implementation "edu.wpi.first.wpiutil:wpiutil-java:2021.3.1"
+    implementation "edu.wpi.first.wpiutil:wpiutil-java:2022.4.1"
 
     // Add ntcore-jni for runtime. We are adding all supported platforms
     // so that our application will work on all supported platforms.
-    runtimeOnly "edu.wpi.first.ntcore:ntcore-jni:2021.3.1:windowsx86"
-    runtimeOnly "edu.wpi.first.ntcore:ntcore-jni:2021.3.1:windowsx86-64"
-    runtimeOnly "edu.wpi.first.ntcore:ntcore-jni:2021.3.1:linuxx86-64"
-    runtimeOnly "edu.wpi.first.ntcore:ntcore-jni:2021.3.1:linuxraspbian"
-    runtimeOnly "edu.wpi.first.ntcore:ntcore-jni:2021.3.1:osxx86-64"
+    runtimeOnly "edu.wpi.first.ntcore:ntcore-jni:2022.4.1:windowsx86"
+    runtimeOnly "edu.wpi.first.ntcore:ntcore-jni:2022.4.1:windowsx86-64"
+    runtimeOnly "edu.wpi.first.ntcore:ntcore-jni:2022.4.1:linuxx86-64"
+    runtimeOnly "edu.wpi.first.ntcore:ntcore-jni:2022.4.1:linuxraspbian"
+    runtimeOnly "edu.wpi.first.ntcore:ntcore-jni:2022.4.1:osxx86-64"
 
     implementation "space.earlygrey:shapedrawer:$shapedrawerVersion"
 
