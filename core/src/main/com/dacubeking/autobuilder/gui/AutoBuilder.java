@@ -192,10 +192,10 @@ public final class AutoBuilder extends ApplicationAdapter {
             try {
                 ShooterConfig shooterConfig = (ShooterConfig) Serializer.deserializeFromFile(shooterConfigFile,
                         ShooterConfig.class);
-                shooterGui = new ShooterGui(hudViewport, cameraHandler, shooterConfig);
+                shooterGui = new ShooterGui(shooterConfig);
             } catch (IOException e) {
                 e.printStackTrace();
-                shooterGui = new ShooterGui(hudViewport, cameraHandler);
+                shooterGui = new ShooterGui();
             }
         }
         configGUI = new ConfigGUI();

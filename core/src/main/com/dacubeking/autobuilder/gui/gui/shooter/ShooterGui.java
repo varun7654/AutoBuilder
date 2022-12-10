@@ -8,9 +8,7 @@ import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.Batch;
 import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.scenes.scene2d.utils.ScissorStack;
-import com.badlogic.gdx.utils.viewport.Viewport;
 import com.dacubeking.autobuilder.gui.AutoBuilder;
-import com.dacubeking.autobuilder.gui.CameraHandler;
 import com.dacubeking.autobuilder.gui.events.input.InputEventThrower;
 import com.dacubeking.autobuilder.gui.events.input.NumberTextboxChangeListener;
 import com.dacubeking.autobuilder.gui.gui.elements.CheckBox;
@@ -38,10 +36,6 @@ import static com.dacubeking.autobuilder.gui.util.Colors.LIGHT_GREY;
 import static com.dacubeking.autobuilder.gui.util.MouseUtil.*;
 
 public class ShooterGui extends ScrollableGui implements NumberTextboxChangeListener {
-
-    private final Viewport hudViewport;
-    private final CameraHandler cameraHandler;
-
     private final Object drawingLoadingSymbolRenderingKey = new Object();
 
 
@@ -82,14 +76,12 @@ public class ShooterGui extends ScrollableGui implements NumberTextboxChangeList
         df.setMinimumFractionDigits(2);
     }
 
-    public ShooterGui(Viewport hudViewport, CameraHandler cameraHandler) {
-        this(hudViewport, cameraHandler, new ShooterConfig());
+    public ShooterGui() {
+        this(new ShooterConfig());
     }
 
-    public ShooterGui(Viewport hudViewport, CameraHandler cameraHandler, @NotNull ShooterConfig shooterConfig) {
+    public ShooterGui(@NotNull ShooterConfig shooterConfig) {
         super(new ShooterGuiOpenIcon(), AutoBuilder.getInstance().settingsGui);
-        this.hudViewport = hudViewport;
-        this.cameraHandler = cameraHandler;
 
         InputEventThrower.register(this);
 
@@ -116,7 +108,8 @@ public class ShooterGui extends ScrollableGui implements NumberTextboxChangeList
         if (panelOpen) {
             checkBox.setX(panelWidth + panelX - 69);
             checkBox.setY(
-                    panelY + panelHeight + smoothScrollPos - (shooterConfig.getShooterConfigs().size() + 2) * 27 + heightOffset - 12);
+                    panelY + panelHeight + smoothScrollPos - (shooterConfig.getShooterConfigs()
+                            .size() + 2) * 27 + heightOffset - 12);
             checkBox.checkHover();
 
             if (checkBox.checkClick()) {
