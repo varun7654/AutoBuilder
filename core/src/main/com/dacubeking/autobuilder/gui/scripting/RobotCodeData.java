@@ -159,14 +159,25 @@ public class RobotCodeData {
             if (accessibleClasses.contains(reflectionClassData.fullName)) {
                 hasInstance = true;
                 classTextComponents.add(new TextComponent("Using annotated instance for class "));
-            } else if (reflectionClassData.methodMap.containsKey("getInstance")) {
-                ReflectionMethodData singletonMethod = reflectionClassData.methodMap.get("getInstance").stream()
-                        .filter(methodData -> methodData.parameterTypes.length == 0).findFirst().orElse(null);
-                hasInstance = isStatic(singletonMethod) && singletonMethod.returnType.equals(reflectionClassData.fullName);
-                classTextComponents.add(new TextComponent("Using singleton class "));
             } else {
-                classTextComponents.add(new TextComponent("Using class "));
-                hasInstance = false;
+                // Try to find a getInstance method
+
+                Optional<ReflectionMethodData> singletonMethod;
+                if (reflectionClassData.methodMap.containsKey("getInstance")) {
+                    singletonMethod = reflectionClassData.methodMap.get("getInstance").stream()
+                            .filter(methodData -> methodData.parameterTypes.length == 0).findFirst();
+                } else {
+                    singletonMethod = Optional.empty();
+                }
+
+                if (singletonMethod.isPresent()) {
+                    hasInstance = isStatic(singletonMethod.get()) &&
+                            singletonMethod.get().returnType.equals(reflectionClassData.fullName);
+                    classTextComponents.add(new TextComponent("Using singleton class "));
+                } else {
+                    classTextComponents.add(new TextComponent("Using class "));
+                    hasInstance = false;
+                }
             }
             classTextComponents.add(new TextComponent(reflectionClassData.fullName).setItalic(true));
         }
@@ -174,8 +185,7 @@ public class RobotCodeData {
 
         if (classAndMethod.length == 1 /* no arguments */ && hasInstance && reflectionClassData.isCommand) {
             classTextComponents.add(new TextComponent("\n\nThis class is a command and the corresponding, initialize, execute, " +
-                    "end methods will be called" +
-                    "\n\n"));
+                    "end methods will be called\n\n"));
             classTextComponents.add(new TextComponent("This will not be run by the scheduler, and requirements will not be " +
                     "checked").setBold(true));
             classTextComponents.add(new TextComponent("\nThe isFinished method will be respected and the command will continue " +
@@ -192,160 +202,156 @@ public class RobotCodeData {
 
         createLintingPos(lintingPositions, classMethod.index(), error, classTextComponents);
 
-
         if (error) {
+            // Don't continue if there was an error
             return false;
         }
 
-        if (reflectionClassData.methodMap.containsKey(classAndMethod[1].string())) {
-
-            List<ReflectionMethodData> callableMethods = reflectionClassData.methodMap.get(classAndMethod[1].string());
-            if (!hasInstance) {
-                callableMethods = callableMethods.stream().filter(RobotCodeData::isStatic).collect(Collectors.toList());
-            }
-
-            if (callableMethods.size() == 0) {
-                lintingPositions.add(new LintingPos(classAndMethod[1].index(), Color.RED, new TextBlock(Fonts.ROBOTO, 14, 300,
-                        executingUsingReflectionComponent, new TextComponent("\nFound method(s) with the name "),
-                        new TextComponent(classAndMethod[1].string()).setItalic(true),
-                        new TextComponent("""
-                                 but none are static or have a singleton instance
-
-                                Possible Fixes:
-                                   Make the method static
-                                   Make the class a singleton"""))));
-                return false;
-            }
-
-            List<ReflectionMethodData> possibleMethodsBySize = reflectionClassData.methodMap.get(classAndMethod[1].string())
-                    .stream()
-                    .filter(methodData -> methodData.parameterTypes.length == args.length).collect(Collectors.toList());
-
-            if (possibleMethodsBySize.isEmpty()) {
-                lintingPositions.add(new LintingPos(classAndMethod[1].index(), Color.RED, new TextBlock(Fonts.ROBOTO, 14, 300,
-                        executingUsingReflectionComponent,
-                        new TextComponent("Method "),
-                        new TextComponent(classAndMethod[1].string()).setItalic(true),
-                        new TextComponent(" is not applicable for arguments n = "),
-                        new TextComponent(Integer.toString(args.length)).setItalic(true),
-                        new TextComponent("\n\nPossible arguments are:\n"),
-                        new TextComponent(reflectionClassData.methodMap.get(classAndMethod[1].string()).stream()
-                                .map(methodData -> Arrays.stream(
-                                                methodData.parameterTypes) // Map a method into a string of its argument types
-                                        .map(parameterName -> { // Remove the package name from the argument name. Also add the
-                                            // enum fields names if applicable.
-                                            String[] splitFullName = parameterName.split("\\.");
-                                            if (inferableTypesVerification.containsKey(parameterName)) {
-                                                return splitFullName[splitFullName.length - 1];
-                                            } else { // Maybe it's an enum
-                                                ReflectionClassData classData = robotFullNameClassesMap.get(parameterName);
-                                                if (classData != null && classData.isEnum) {
-                                                    splitFullName = splitFullName[splitFullName.length - 1].split("\\$");
-                                                    String availableEnums = Arrays.stream(classData.fieldNames)
-                                                            .filter(n -> !n.equals("$VALUES"))
-                                                            .collect(Collectors.joining(", "));
-                                                    return splitFullName[splitFullName.length - 1] + " (enum: " + availableEnums + ")";
-                                                }
-                                                return splitFullName[splitFullName.length - 1] + " (can't infer)";
-                                            }
-                                        }).collect(Collectors.joining(", ")))
-                                .map(s -> s.equals("") ? "<no arguments>" : s)
-                                .collect(Collectors.joining("\n\n"))) //Separate each method by a newline
-                                .setItalic(true))));
-                return false;
-            }
-
-            possibleMethodsBySize = possibleMethodsBySize.stream().filter(methodData -> {
-                for (int i = 0; i < args.length; i++) {
-                    String parameterType = methodData.parameterTypes[i];
-                    if (inferableTypesVerification.containsKey(parameterType)) {
-                        if (!inferableTypesVerification.get(parameterType).apply(args[i].string())) {
-                            return false;
-                        }
-                    } else {
-                        // Maybe it's an enum
-                        if (robotFullNameClassesMap.containsKey(parameterType)) {
-                            ReflectionClassData enumData = robotFullNameClassesMap.get(parameterType);
-                            int finalI = i;
-                            if (Arrays.stream(enumData.fieldNames).noneMatch(
-                                    enumField -> !enumField.equals("$VALUES") && enumField.equals(args[finalI].string()))) {
-                                return false;
-                            }
-                        } else {
-                            return false;
-                        }
-                    }
-                }
-                return true;
-            }).collect(Collectors.toList());
-
-            if (possibleMethodsBySize.isEmpty()) {
-                lintingPositions.add(new LintingPos(classAndMethod[1].index(), Color.RED, new TextBlock(Fonts.ROBOTO, 14, 300,
-                        executingUsingReflectionComponent,
-                        new TextComponent("Method "),
-                        new TextComponent(classAndMethod[1].string()).setItalic(true),
-                        new TextComponent(" is not applicable for arguments "),
-                        new TextComponent(
-                                Arrays.stream(args).map(StringIndex::string).collect(Collectors.joining(", "))).setItalic(
-                                true),
-                        new TextComponent("\n\nPossible arguments are:\n"),
-                        new TextComponent(reflectionClassData.methodMap.get(classAndMethod[1].string()).stream()
-                                .map(methodData -> Arrays.stream(methodData.parameterTypes)
-                                        .map(parameterName -> {
-                                            String[] splitFullName = parameterName.split("\\.");
-                                            if (inferableTypesVerification.containsKey(parameterName)) {
-                                                return splitFullName[splitFullName.length - 1];
-                                            } else {
-                                                // Maybe it's an enum
-                                                ReflectionClassData classData = robotFullNameClassesMap.get(parameterName);
-                                                if (classData != null && classData.isEnum) {
-                                                    splitFullName = splitFullName[splitFullName.length - 1].split("\\$");
-                                                    String availableEnums = Arrays.stream(classData.fieldNames)
-                                                            .filter(n -> !n.equals("$VALUES"))
-                                                            .collect(Collectors.joining(", "));
-                                                    return splitFullName[splitFullName.length - 1] + " (enum: " + availableEnums + ")";
-                                                }
-                                                return splitFullName[splitFullName.length - 1] + " (can't infer)";
-                                            }
-                                        }).collect(Collectors.joining(", ")))
-                                .map(s -> s.equals("") ? "<no arguments>" : s)
-                                .collect(Collectors.joining("\n\n"))) //Separate each method by a newline
-                                .setItalic(true))));
-                return false;
-            }
-
-            ReflectionMethodData methodToUse = possibleMethodsBySize.get(0);
-            lintingPositions.add(new LintingPos(classAndMethod[1].index(), Color.CLEAR, new TextBlock(Fonts.ROBOTO, 14, 300,
+        if (!reflectionClassData.methodMap.containsKey(classAndMethod[1].string())) {
+            // The method doesn't exist
+            createLintingPos(lintingPositions, classAndMethod[1].index(), true,
                     executingUsingReflectionComponent,
-                    new TextComponent("Will execute "),
-                    new TextComponent(methodToUse.methodName + Arrays.stream(args)
-                            .map(StringIndex::toString).collect(Collectors.joining(", ", "(", ")"))).setItalic(true),
-                    new TextComponent(" on the robot"))));
-
-            List<String> argumentTypes = Arrays.stream(methodToUse.parameterTypes).toList();
-
-            for (int i = 0; i < args.length; i++) {
-                lintingPositions.add(new LintingPos(args[i].index(), Color.CLEAR, new TextBlock(Fonts.ROBOTO, 14, 300,
-                        executingUsingReflectionComponent,
-                        new TextComponent("Inferred type: "),
-                        new TextComponent(argumentTypes.get(i)).setItalic(true))));
-            }
-
-
-            sendableCommands.add(new SendableCommand(reflectionClassData.fullName + "." + methodToUse.methodName,
-                    Arrays.stream(args).map(StringIndex::toString).toArray(String[]::new),
-                    argumentTypes.toArray(String[]::new),
-                    true));
-
-            return true;
-        } else {
-            lintingPositions.add(new LintingPos(classAndMethod[1].index(), Color.RED,
-                    new TextBlock(Fonts.ROBOTO, 14, 300,
-                            executingUsingReflectionComponent,
-                            new TextComponent("Could not find method: "),
-                            new TextComponent(classAndMethod[1].string()).setItalic(true))));
+                    new TextComponent("Could not find method: "),
+                    new TextComponent(classAndMethod[1].string()).setItalic(true));
             return false;
         }
+
+        // A method with the given name exists
+        List<ReflectionMethodData> callableMethods = reflectionClassData.methodMap.get(classAndMethod[1].string());
+        if (!hasInstance) {
+            // Remove all methods that require an instance (filter out non-static methods)
+            callableMethods = callableMethods.stream().filter(RobotCodeData::isStatic).collect(Collectors.toList());
+        }
+
+        if (callableMethods.size() == 0) {
+            // No methods with the given name have a way to be called
+            createLintingPos(lintingPositions, classAndMethod[1].index(), true,
+                    executingUsingReflectionComponent,
+                    new TextComponent("\nFound method(s) with the name "),
+                    new TextComponent(classAndMethod[1].string()).setItalic(true),
+                    new TextComponent("""
+                             but none are static or have a singleton instance
+                                                            
+                            Possible Fixes:
+                               - Make the method static
+                               - Make the class a singleton
+                               - Make an instance of the class accessible with the"""),
+                    new TextComponent(" @AutoBuilderAccessible ").setBold(false).setColor(Color.ORANGE),
+                    new TextComponent("annotation"));
+            return false;
+        }
+
+        // Filter out methods that don't have the correct number of parameters
+        List<ReflectionMethodData> possibleMethodsBySize = reflectionClassData.methodMap.get(classAndMethod[1].string())
+                .stream()
+                .filter(methodData -> methodData.parameterTypes.length == args.length).toList();
+
+        if (possibleMethodsBySize.isEmpty()) {
+            createLintingPos(lintingPositions, classAndMethod[1].index(), true,
+                    executingUsingReflectionComponent,
+                    new TextComponent("Method "),
+                    new TextComponent(classAndMethod[1].string()).setItalic(true),
+                    new TextComponent(" is not applicable for arguments n = "),
+                    new TextComponent(Integer.toString(args.length)).setItalic(true),
+                    new TextComponent("\n\nPossible arguments are:\n"),
+                    getPossibleArguments(reflectionClassData, classAndMethod)
+            );
+            return false;
+        }
+
+        // Try match to a method with the correct arguments
+        Optional<ReflectionMethodData> methodToUse = possibleMethodsBySize.stream().filter(methodData -> {
+            for (int i = 0; i < args.length; i++) {
+                String parameterType = methodData.parameterTypes[i];
+                if (inferableTypesVerification.containsKey(parameterType)) {
+                    // check if the string can be converted to the type
+                    if (!inferableTypesVerification.get(parameterType).apply(args[i].string())) {
+                        return false;
+                    }
+                } else if (robotFullNameClassesMap.containsKey(parameterType)) { // Maybe it's an enum
+                    // Get the class that represents the enum
+                    ReflectionClassData enumData = robotFullNameClassesMap.get(parameterType);
+                    int finalI = i;
+                    if (Arrays.stream(enumData.fieldNames).noneMatch(
+                            enumField -> !enumField.equals("$VALUES") && enumField.equals(args[finalI].string()))) {
+                        return false; // The enum doesn't have a field with the given name
+                    }
+                } else {
+                    return false; // The type is not inferable
+                }
+            }
+            return true;
+        }).findFirst(); // There should only be one method that matches the arguments (otherwise something is wrong)
+
+        if (methodToUse.isEmpty()) {
+            // No method was found for the given types
+            createLintingPos(lintingPositions, classAndMethod[1].index(), true,
+                    executingUsingReflectionComponent,
+                    new TextComponent("Method "),
+                    new TextComponent(classAndMethod[1].string()).setItalic(true),
+                    new TextComponent(" is not applicable for arguments "),
+                    new TextComponent(
+                            Arrays.stream(args)
+                                    .map(StringIndex::string)
+                                    .collect(Collectors.joining(", "))) // Join the arguments with commas
+                            .setItalic(true),
+                    new TextComponent("\n\nPossible arguments are:\n"),
+                    getPossibleArguments(reflectionClassData, classAndMethod)
+            );
+            return false;
+        }
+
+        ReflectionMethodData method = methodToUse.get();
+        createLintingPos(lintingPositions, classAndMethod[1].index(), false,
+                executingUsingReflectionComponent,
+                new TextComponent("Will execute "),
+                // Make array of {arg1, arg2, arg3} into "(arg1, arg2, arg3)"
+                new TextComponent(method.methodName + Arrays.stream(args)
+                        .map(StringIndex::toString)
+                        .collect(Collectors.joining(", ", "(", ")"))).setItalic(true),
+                new TextComponent(" on the robot"));
+
+        List<String> argumentTypes = Arrays.stream(method.parameterTypes).toList();
+
+        for (int i = 0; i < args.length; i++) {
+            createLintingPos(lintingPositions, args[i].index(), false,
+                    executingUsingReflectionComponent,
+                    new TextComponent("Inferred type: "),
+                    new TextComponent(argumentTypes.get(i)).setItalic(true));
+        }
+
+
+        sendableCommands.add(new SendableCommand(reflectionClassData.fullName + "." + method.methodName,
+                Arrays.stream(args).map(StringIndex::toString).toArray(String[]::new),
+                argumentTypes.toArray(String[]::new),
+                true));
+
+        return true;
+    }
+
+    private static TextComponent getPossibleArguments(ReflectionClassData reflectionClassData, StringIndex[] classAndMethod) {
+        return new TextComponent(reflectionClassData.methodMap.get(classAndMethod[1].string()).stream()
+                .map(methodData -> Arrays.stream(methodData.parameterTypes) // Map a method into a string of its argument types
+                        .map(parameterName -> { // Remove the package name from the argument name. Also add the
+                            // enum fields names if applicable.
+                            String[] splitFullName = parameterName.split("\\.");
+                            if (inferableTypesVerification.containsKey(parameterName)) {
+                                return splitFullName[splitFullName.length - 1];
+                            } else { // Maybe it's an enum
+                                ReflectionClassData enumData = robotFullNameClassesMap.get(parameterName);
+                                if (enumData != null && enumData.isEnum) {
+                                    splitFullName = splitFullName[splitFullName.length - 1].split("\\$");
+                                    String availableEnums = Arrays.stream(enumData.fieldNames)
+                                            .filter(n -> !n.equals("$VALUES"))
+                                            .collect(Collectors.joining(", "));
+                                    return splitFullName[splitFullName.length - 1] + " (enum: " + availableEnums + ")";
+                                }
+                                return splitFullName[splitFullName.length - 1] + " (can't infer)";
+                            }
+                        }).collect(Collectors.joining(", ")))
+                .map(s -> s.equals("") ? "<no arguments>" : s)
+                .collect(Collectors.joining("\n\n"))) //Separate each method by a newline
+                .setItalic(true);
     }
 
 
@@ -362,7 +368,7 @@ public class RobotCodeData {
     }
 
     private static void createLintingPos(List<LintingPos> lintingPositions, int index, boolean error,
-                                         TextComponent[] textComponents) {
+                                         TextComponent... textComponents) {
         lintingPositions.add(new LintingPos(index, error ? Color.RED : Color.CLEAR,
                 new TextBlock(Fonts.ROBOTO, 14, 300, textComponents)));
     }

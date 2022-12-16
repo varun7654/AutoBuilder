@@ -10,6 +10,10 @@
         <option name="PATTERN" value="com.dacubeking.autobuilder.gui.desktop.*" />
         <option name="ENABLED" value="true" />
       </pattern>
+      <pattern>
+        <option name="PATTERN" value="com.dacubeking.autobuilder.gui.*" />
+        <option name="ENABLED" value="true" />
+      </pattern>
     </extension>
     <method v="2">
       <option name="Make" enabled="true" />
