@@ -93,24 +93,68 @@ public class RobotCodeData {
 
     public static boolean validateMethod(StringIndex classMethod, StringIndex[] args, List<LintingPos> lintingPositions,
                                          ArrayList<SendableCommand> sendableCommands) {
-        StringIndex[] classAndMethod = splitWithIndex(classMethod.string(), periodPattern, classMethod.index());
-
-        boolean error = false;
-        List<TextComponent> classTextComponents = new ArrayList<>();
-        classTextComponents.add(executingUsingReflectionComponent);
-
-        // Even if there are errors still try and find the class
-        ReflectionClassData reflectionClassData = null;
-        boolean hasInstance = false;
-        if (classAndMethod.length == 0) {
+        StringIndex[] classAndMethodSplitByPeriod = splitWithIndex(classMethod.string(), periodPattern, classMethod.index());
+        if (classAndMethodSplitByPeriod.length == 0) {
+            // Nothing was given
             return false;
         }
 
-        reflectionClassData = robotClassesMap.get(classAndMethod[0].string());
+        List<StringIndex[]> possibleClassAndMethods = new ArrayList<>(); // [0] = class, [1] = method; the last one will be the
+        // one displayed if no valid class is found
+        if (classAndMethodSplitByPeriod.length > 2) {
+
+            // Combines the elements of the split array into a single string
+            String beginningCombined = Arrays.stream(classAndMethodSplitByPeriod)
+                    // Don't include the last element
+                    .limit(classAndMethodSplitByPeriod.length - 1)
+                    .map(StringIndex::string) // Gets the string of the StringIndex
+                    .collect(Collectors.joining(".")); // Joins them with periods
+
+            StringIndex lastElement = classAndMethodSplitByPeriod[classAndMethodSplitByPeriod.length - 1];
+
+            // Try the possibility that the last element is part of the class name
+            possibleClassAndMethods.add(new StringIndex[]{
+                    new StringIndex(classAndMethodSplitByPeriod[0].index(), beginningCombined + "." + lastElement.string()),
+            });
+
+            // Try the possibility that the last element is part of the method name
+            possibleClassAndMethods.add(new StringIndex[]{
+                    new StringIndex(classAndMethodSplitByPeriod[0].index(), beginningCombined),
+                    lastElement
+            });
+        } else {
+            possibleClassAndMethods.add(classAndMethodSplitByPeriod);
+        }
+
+
+        boolean error = false;
+        List<TextComponent> classTextComponents = new ArrayList<>(); // Add text components that we want to display together
+        classTextComponents.add(executingUsingReflectionComponent);
+
+        ReflectionClassData reflectionClassData = null;
+        boolean hasInstance;
+
+        StringIndex[] classAndMethod = possibleClassAndMethods.get(0);
+
+        for (StringIndex[] possibleClassAndMethod : possibleClassAndMethods) {
+            // Try to find the class from the name
+            reflectionClassData = robotClassesMap.get(possibleClassAndMethod[0].string());
+            if (reflectionClassData == null) {
+                // Try to find the class from the full name
+                reflectionClassData = robotFullNameClassesMap.get(possibleClassAndMethod[0].string());
+            }
+
+            if (reflectionClassData != null) {
+                classAndMethod = possibleClassAndMethod;
+                break; // Found the class
+            }
+        }
+
         if (reflectionClassData == null) {
-            classTextComponents.add(new TextComponent("\nCould not find class: "));
+            classTextComponents.add(new TextComponent("\nCould not find class: ")); // Add the error message
             classTextComponents.add(new TextComponent(classAndMethod[0].string()).setItalic(true));
-            error = true;
+            error = true; // Set the error flag, but continue to allow us to complain about not having a method
+            hasInstance = false;
         } else {
             if (accessibleClasses.contains(reflectionClassData.fullName)) {
                 hasInstance = true;
@@ -122,8 +166,8 @@ public class RobotCodeData {
                 classTextComponents.add(new TextComponent("Using singleton class "));
             } else {
                 classTextComponents.add(new TextComponent("Using class "));
+                hasInstance = false;
             }
-
             classTextComponents.add(new TextComponent(reflectionClassData.fullName).setItalic(true));
         }
 
@@ -132,26 +176,22 @@ public class RobotCodeData {
             classTextComponents.add(new TextComponent("\n\nThis class is a command and the corresponding, initialize, execute, " +
                     "end methods will be called" +
                     "\n\n"));
-            classTextComponents.add(new TextComponent("This will not be run by the schedular, and requirements will not be " +
+            classTextComponents.add(new TextComponent("This will not be run by the scheduler, and requirements will not be " +
                     "checked").setBold(true));
             classTextComponents.add(new TextComponent("\nThe isFinished method will be respected and the command will continue " +
                     "to be executed until it returns true. Sequential commands will not be run until this command returns true"));
             sendableCommands.add(new SendableCommand(reflectionClassData.fullName,
                     new String[]{}, new String[]{}, true, true));
-            lintingPositions.add(new LintingPos(classMethod.index(), error ? Color.RED : Color.CLEAR,
-                    new TextBlock(Fonts.ROBOTO, 14, 300, classTextComponents.toArray(new TextComponent[0]))));
+            createLintingPos(lintingPositions, classMethod.index(), false, classTextComponents);
             return true;
         } else if (classAndMethod.length <= 1) {
             classTextComponents.add(new TextComponent("\n\nExpected a method after class"));
             error = true;
-        } else if (classAndMethod.length >= 3) {
-            classTextComponents.add(new TextComponent("\n\nFully qualified classes are not supported yet!"));
-            error = true;
         }
 
 
-        lintingPositions.add(new LintingPos(classMethod.index(), error ? Color.RED : Color.CLEAR,
-                new TextBlock(Fonts.ROBOTO, 14, 300, classTextComponents.toArray(new TextComponent[0]))));
+        createLintingPos(lintingPositions, classMethod.index(), error, classTextComponents);
+
 
         if (error) {
             return false;
@@ -309,10 +349,21 @@ public class RobotCodeData {
     }
 
 
-    public static boolean isStatic(@Nullable ReflectionMethodData methodData) {
+    private static boolean isStatic(@Nullable ReflectionMethodData methodData) {
         if (methodData == null) {
             return false;
         }
         return Modifier.isStatic(methodData.modifiers);
+    }
+
+    private static void createLintingPos(List<LintingPos> lintingPositions, int index, boolean error,
+                                         List<TextComponent> textComponents) {
+        createLintingPos(lintingPositions, index, error, textComponents.toArray(TextComponent[]::new));
+    }
+
+    private static void createLintingPos(List<LintingPos> lintingPositions, int index, boolean error,
+                                         TextComponent[] textComponents) {
+        lintingPositions.add(new LintingPos(index, error ? Color.RED : Color.CLEAR,
+                new TextBlock(Fonts.ROBOTO, 14, 300, textComponents)));
     }
 }
