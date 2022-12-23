@@ -44,8 +44,14 @@ public class CameraHandler extends InputEventListener {
         targetY = cam.position.y;
     }
 
-    public void update(boolean moving, boolean onGui) {
-        if (Gdx.graphics.getHeight() == 0 || Gdx.graphics.getWidth() == 0) return;
+    /**
+     * @param movingPoint Whether we are moving a point. (if true, we won't move the camera)
+     * @param onGui       Whether we are on the gui. (if true, we won't move the camera)
+     */
+    public void update(boolean movingPoint, boolean onGui) {
+        if (Gdx.graphics.getHeight() == 0 || Gdx.graphics.getWidth() == 0) {
+            return;
+        }
         if (onGui) {
             zoom = lastZoom;
         } else {
@@ -77,11 +83,12 @@ public class CameraHandler extends InputEventListener {
         targetY -= zoomYChange;
         cam.update();
 
-        if (Gdx.input.isButtonJustPressed(Input.Buttons.LEFT) && !moving && !onGui) {
+        if (Gdx.input.isButtonJustPressed(Input.Buttons.LEFT) && !movingPoint && !onGui) {
             mouseHeldLastFrame = true;
-        } else if (moving || !Gdx.input.isButtonPressed(Input.Buttons.LEFT)) {
+        } else if (movingPoint || !Gdx.input.isButtonPressed(Input.Buttons.LEFT)) {
             mouseHeldLastFrame = false;
         }
+
 
         // Avoid issues when dt could potentially be zero
         float deltaTime = Math.max(1f / Gdx.graphics.getFramesPerSecond(), AutoBuilder.getDeltaTime());
@@ -99,6 +106,10 @@ public class CameraHandler extends InputEventListener {
             cam.position.y = cam.position.y + ((targetY - cam.position.y) / (Math.max(1, 0.1f / deltaTime)));
             mouseVelocity.set(0, 0);
         } else {
+            if (movingPoint) {
+                mouseVelocity.set(0, 0);
+            }
+
             float speedMultiplier = Math.max(0, 1 - deltaTime * 7);
             mouseVelocity.set(mouseVelocity.x * speedMultiplier, mouseVelocity.y * speedMultiplier);
             cam.position.x =
