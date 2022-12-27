@@ -40,6 +40,7 @@ public class TrajectoryConfigGuiElement implements GuiElement {
         try {
             AutoBuilder.getConfig().getPathingConfig().maxVelocityMetersPerSecond = Double.parseDouble(textBox.getText());
             maxVelocityTextField.setValid(true);
+            updatePathRenders();
         } catch (NumberFormatException e) {
             maxVelocityTextField.setValid(false);
         }
@@ -49,9 +50,15 @@ public class TrajectoryConfigGuiElement implements GuiElement {
         try {
             AutoBuilder.getConfig().getPathingConfig().maxAccelerationMetersPerSecondSq = Double.parseDouble(textBox.getText());
             maxAccelerationTextField.setValid(true);
+            updatePathRenders();
         } catch (NumberFormatException e) {
             maxAccelerationTextField.setValid(false);
         }
+    }
+
+    private static void updatePathRenders() {
+        AutoBuilder.getInstance().pathGui.updatePaths();
+        AutoBuilder.requestRendering();
     }
 
 
