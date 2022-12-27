@@ -21,6 +21,23 @@ public record StringIndex(int index, String string) {
         return stringIndices;
     }
 
+    public int length() {
+        return string.length();
+    }
+
+    public int getEndIndex() {
+        return index + string.length();
+    }
+
+    public StringIndex getSubStringIndex(int start, int end) {
+        return new StringIndex(index + start, string.substring(start, end));
+    }
+
+    public StringIndex getSubStringIndex(int start) {
+        return new StringIndex(index + start, string.substring(start));
+    }
+
+
     @Override
     public String toString() {
         return string;
