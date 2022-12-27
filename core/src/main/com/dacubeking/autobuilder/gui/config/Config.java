@@ -272,8 +272,9 @@ public class Config {
     }
 
     public synchronized Config copy() {
-        Config config = new Config();
-        config.setConfig(this);
-        return config;
+        return new Config(new ArrayList<>(scriptMethods), selectedAutoFile, shooterConfigFile, teamNumber, robotLength,
+                robotWidth, pointScaleFactor, originX, originY,
+                new PathingConfig(pathingConfig), networkTablesEnabled, robotCodeDataFile,
+                reflectionEnabled, isHolonomic, shooterConfigEnabled);
     }
 }
