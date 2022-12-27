@@ -12,6 +12,7 @@ import com.dacubeking.autobuilder.gui.scripting.reflection.ReflectionMethodData;
 import com.dacubeking.autobuilder.gui.scripting.sendable.SendableCommand;
 import com.dacubeking.autobuilder.gui.scripting.util.LintingPos;
 import com.dacubeking.autobuilder.gui.scripting.util.StringIndex;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
@@ -27,188 +28,63 @@ import static com.dacubeking.autobuilder.gui.scripting.util.StringIndex.splitWit
 
 public class RobotCodeData {
 
-    public static Map<String, Function<String, Boolean>> inferableTypesVerification;
+    public static final @NotNull Map<String, Function<@NotNull String, @NotNull Boolean>> inferableTypesVerification;
 
     static {
+        final Pattern intPattern = Pattern.compile("^-?[0-9]+$");
+        final Pattern decimalPattern =
+                Pattern.compile("^[+-]?(\\d+([.]\\d*)?([eE][+-]?\\d+)?|[.]\\d+([eE][+-]?\\d+)?)$");
+
+        final Function<String, Boolean> isInt = s -> checkNumberParseable(s, intPattern, Integer::parseInt);
+        final Function<String, Boolean> isDouble = s -> checkNumberParseable(s, decimalPattern, Double::parseDouble);
+        final Function<String, Boolean> isFloat = s -> checkNumberParseable(s, decimalPattern, Float::parseFloat);
+        final Function<String, Boolean> isLong = s -> checkNumberParseable(s, intPattern, Long::parseLong);
+        final Function<String, Boolean> isShort = s -> checkNumberParseable(s, intPattern, Short::parseShort);
+        final Function<String, Boolean> isByte = s -> checkNumberParseable(s, intPattern, Byte::parseByte);
+        final Function<String, Boolean> isChar = s -> s.length() == 1;
+        final Function<String, Boolean> isBoolean = s -> s.equalsIgnoreCase("true") || s.equalsIgnoreCase("false");
+
+
         inferableTypesVerification = new Hashtable<>();
-        inferableTypesVerification.put(int.class.getName(), s -> {
-            if (!s.matches("^-?[0-9]+$")) {
-                return false;
-            }
-            try {
-                Integer.parseInt(s);
-            } catch (NumberFormatException e) {
-                return false;
-            }
-
-            return true;
-        });
-
-        inferableTypesVerification.put(double.class.getName(), s -> {
-            if (!s.matches("^[+-]?(\\d+([.]\\d*)?([eE][+-]?\\d+)?|[.]\\d+([eE][+-]?\\d+)?)$")) {
-                return false;
-            }
-            try {
-                Double.parseDouble(s);
-            } catch (NumberFormatException e) {
-                return false;
-            }
-
-            return true;
-        });
-
-        inferableTypesVerification.put(float.class.getName(), s -> {
-            if (!s.matches("^[+-]?(\\d+([.]\\d*)?([eE][+-]?\\d+)?|[.]\\d+([eE][+-]?\\d+)?)$")) {
-                return false;
-            }
-            try {
-                Float.parseFloat(s);
-            } catch (NumberFormatException e) {
-                return false;
-            }
-
-            return true;
-        });
-
-        inferableTypesVerification.put(long.class.getName(), s -> {
-            if (!s.matches("^-?[0-9]+$")) {
-                return false;
-            }
-            try {
-                Long.parseLong(s);
-            } catch (NumberFormatException e) {
-                return false;
-            }
-
-            return true;
-        });
-
-        inferableTypesVerification.put(short.class.getName(), s -> {
-            if (!s.matches("^-?[0-9]+$")) {
-                return false;
-            }
-            try {
-                Short.parseShort(s);
-            } catch (NumberFormatException e) {
-                return false;
-            }
-
-            return true;
-        });
-
-        inferableTypesVerification.put(byte.class.getName(), s -> {
-            if (!s.matches("^-?[0-9]+$")) {
-                return false;
-            }
-            try {
-                Byte.parseByte(s);
-            } catch (NumberFormatException e) {
-                return false;
-            }
-
-            return true;
-        });
-
-        inferableTypesVerification.put(byte.class.getName(), s -> {
-            if (!s.matches("^-?[0-9]+$")) {
-                return false;
-            }
-            try {
-                Byte.parseByte(s);
-            } catch (NumberFormatException e) {
-                return false;
-            }
-
-            return true;
-        });
-
-        inferableTypesVerification.put(char.class.getName(), s -> s.matches("^.$"));
-
-        inferableTypesVerification.put(boolean.class.getName(), s -> s.matches("^(?i)(true|false)$"));
+        inferableTypesVerification.put(int.class.getName(), isInt);
+        inferableTypesVerification.put(double.class.getName(), isDouble);
+        inferableTypesVerification.put(float.class.getName(), isFloat);
+        inferableTypesVerification.put(long.class.getName(), isLong);
+        inferableTypesVerification.put(short.class.getName(), isShort);
+        inferableTypesVerification.put(byte.class.getName(), isByte);
+        inferableTypesVerification.put(char.class.getName(), isChar);
+        inferableTypesVerification.put(boolean.class.getName(), isBoolean);
 
         inferableTypesVerification.put(String.class.getName(), s -> true);
+        inferableTypesVerification.put(Integer.class.getName(), isInt);
+        inferableTypesVerification.put(Double.class.getName(), isDouble);
+        inferableTypesVerification.put(Float.class.getName(), isFloat);
+        inferableTypesVerification.put(Long.class.getName(), isLong);
+        inferableTypesVerification.put(Short.class.getName(), isShort);
+        inferableTypesVerification.put(Byte.class.getName(), isByte);
+        inferableTypesVerification.put(Character.class.getName(), isChar);
+        inferableTypesVerification.put(Boolean.class.getName(), isBoolean);
+    }
 
-        inferableTypesVerification.put(Integer.class.getName(), s -> {
-            if (!s.matches("^-?[0-9]+$")) {
-                return false;
-            }
-            try {
-                Integer.parseInt(s);
-            } catch (NumberFormatException e) {
-                return false;
-            }
-
-            return true;
-        });
-
-        inferableTypesVerification.put(Double.class.getName(), s -> {
-            if (!s.matches("^[+-]?(\\d+([.]\\d*)?([eE][+-]?\\d+)?|[.]\\d+([eE][+-]?\\d+)?)$")) {
-                return false;
-            }
-            try {
-                Double.parseDouble(s);
-            } catch (NumberFormatException e) {
-                return false;
-            }
-
-            return true;
-        });
-
-        inferableTypesVerification.put(Float.class.getName(), s -> {
-            if (!s.matches("^[+-]?(\\d+([.]\\d*)?([eE][+-]?\\d+)?|[.]\\d+([eE][+-]?\\d+)?)$")) {
-                return false;
-            }
-            try {
-                Float.parseFloat(s);
-            } catch (NumberFormatException e) {
-                return false;
-            }
-
-            return true;
-        });
-
-        inferableTypesVerification.put(Long.class.getName(), s -> {
-            if (!s.matches("^-?[0-9]+$")) {
-                return false;
-            }
-            try {
-                Long.parseLong(s);
-            } catch (NumberFormatException e) {
-                return false;
-            }
-
-            return true;
-        });
-
-        inferableTypesVerification.put(Short.class.getName(), s -> {
-            if (!s.matches("^-?[0-9]+$")) {
-                return false;
-            }
-            try {
-                Short.parseShort(s);
-            } catch (NumberFormatException e) {
-                return false;
-            }
-
-            return true;
-        });
-
-        inferableTypesVerification.put(Byte.class.getName(), s -> {
-            if (!s.matches("^-?[0-9]+$")) {
-                return false;
-            }
-            try {
-                Byte.parseByte(s);
-            } catch (NumberFormatException e) {
-                return false;
-            }
-
-            return true;
-        });
-
-        inferableTypesVerification.put(Character.class.getName(), s -> s.matches("^.$"));
-
-        inferableTypesVerification.put(Boolean.class.getName(), s -> s.matches("^(?i)(true|false)$"));
+    /**
+     * Checks if a string is parseable as a number
+     *
+     * @param s             The string to check
+     * @param pattern       The pattern to check against
+     * @param parseFunction The function to parse the string with
+     * @return True if the string is parseable as a number
+     */
+    private static boolean checkNumberParseable(@NotNull String s, @NotNull Pattern pattern,
+                                                @NotNull Function<@NotNull String, ?> parseFunction) {
+        if (pattern.asMatchPredicate().test(s)) {
+            return false;
+        }
+        try {
+            parseFunction.apply(s);
+        } catch (NumberFormatException e) {
+            return false;
+        }
+        return true;
     }
 
 
