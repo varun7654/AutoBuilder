@@ -7,13 +7,16 @@ import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.math.Vector3;
 import com.dacubeking.autobuilder.gui.AutoBuilder;
+import com.dacubeking.autobuilder.gui.RenderEvents;
 import com.dacubeking.autobuilder.gui.gui.hover.HoverManager;
 import com.dacubeking.autobuilder.gui.gui.textrendering.Fonts;
 import com.dacubeking.autobuilder.gui.gui.textrendering.TextBlock;
 import com.dacubeking.autobuilder.gui.gui.textrendering.TextComponent;
 import com.dacubeking.autobuilder.gui.net.NetworkTablesHelper;
 import com.dacubeking.autobuilder.gui.pathing.pointclicks.CloseTrajectoryPoint;
+import com.dacubeking.autobuilder.gui.util.CachedDrawingUtils;
 import org.jetbrains.annotations.NotNull;
+import space.earlygrey.shapedrawer.Drawing;
 import space.earlygrey.shapedrawer.ShapeDrawer;
 
 import java.text.DecimalFormat;
@@ -39,10 +42,31 @@ public class DrivenPathRenderer implements PathRenderer {
     @NotNull Vector2 currPointLeft = new Vector2();
     @NotNull Vector2 currPointRight = new Vector2();
 
+    {
+        RenderEvents.addRenderCacheDeletionListener(this, this::clearCache);
+    }
+
+    private void clearCache() {
+        lastDrawing = null;
+        lastDrawingIndex = 0;
+    }
+
+    private Drawing lastDrawing;
+
+    private int lastDrawingIndex = 0;
+
     @Override
     public void render(@NotNull ShapeDrawer shapeRenderer, @NotNull OrthographicCamera cam) {
         List<List<RobotPosition>> robotPositions = networkTables.getRobotPositions();
 
+        if (robotPositions.size() < lastDrawingIndex) {
+            clearCache();
+        }
+        if (lastDrawing == null) {
+            lastDrawing = CachedDrawingUtils.createNewDrawing(shapeRenderer);
+        }
+
+        CachedDrawingUtils.setDrawing(shapeRenderer, lastDrawing);
         synchronized (robotPositions) {
             float robotWidth = AutoBuilder.getConfig().getRobotWidth();
             float robotLength = AutoBuilder.getConfig().getRobotLength();
@@ -56,7 +80,7 @@ public class DrivenPathRenderer implements PathRenderer {
                         (float) (initialPos.x() * pointScaleFactor));
             }
 
-            for (int i = 0; i < robotPositions.size() - 1; i++) {
+            for (int i = lastDrawingIndex; i < robotPositions.size() - 1; i++) {
                 RobotPosition pos1 = robotPositions.get(i).get(0);
 
                 RobotPosition pos2 = robotPositions.get(i + 1).get(0);
@@ -67,10 +91,6 @@ public class DrivenPathRenderer implements PathRenderer {
                 currPointRight.set(0, AutoBuilder.LINE_THICKNESS / 2);
 
                 float angle = (float) Math.atan2(pos1.y() - pos2.y(), pos1.x() - pos2.x());
-
-                if (i < robotPositions.size() - 2) {
-                    RobotPosition pos3 = robotPositions.get(i + 2).get(0);
-                }
 
                 nextPointLeft.rotateRad(angle);
                 nextPointRight.rotateRad(angle);
@@ -90,32 +110,45 @@ public class DrivenPathRenderer implements PathRenderer {
 
 
                 shapeRenderer.setColor(Color.WHITE);
-                shapeRenderer.filledPolygon(new float[]{
-                        lastPointRight.x, lastPointRight.y,
-                        currPointRight.x, currPointRight.y,
-                        nextPointRight.x, nextPointRight.y,
-                        nextPointLeft.x, nextPointLeft.y,
-                        currPointLeft.x, currPointLeft.y,
-                        lastPointLeft.x, lastPointLeft.y,
-                });
+                if (i > lastDrawingIndex) {
+                    shapeRenderer.filledPolygon(new float[]{
+                            lastPointRight.x, lastPointRight.y,
+                            currPointRight.x, currPointRight.y,
+                            nextPointRight.x, nextPointRight.y,
+                            nextPointLeft.x, nextPointLeft.y,
+                            currPointLeft.x, currPointLeft.y,
+                            lastPointLeft.x, lastPointLeft.y,
+                    });
+                }
 
                 lastPointLeft.set(nextPointLeft);
                 lastPointRight.set(nextPointRight);
+            }
+            lastDrawingIndex = Math.max(lastDrawingIndex, robotPositions.size() - 2);
+        }
 
-                if (i == robotPreviewIndex) {
-                    ArrayList<TextComponent> textComponents = new ArrayList<>();
+        if (lastDrawing != null) {
+            lastDrawing.draw();
+        }
 
-                    for (int j = 0; j < robotPositions.get(i).size(); j++) {
-                        RobotPosition robotPosition = robotPositions.get(i).get(j);
-                        renderRobotBoundingBox(shapeRenderer, robotPosition, getColor(robotPosition.name()));
+        CachedDrawingUtils.setDrawing(shapeRenderer, null);
+        lastDrawing.draw();
 
-                        textComponents.add(new TextComponent(robotPosition.name() + " @").setBold(true).setSize(15));
-                        addTextComponents(robotPosition, textComponents);
-                    }
+        // Find the robot preview index in another loop, so we don't cache it
+        for (int i = 0; i < robotPositions.size() - 1; i++) {
+            if (i == robotPreviewIndex) {
+                ArrayList<TextComponent> textComponents = new ArrayList<>();
 
-                    HoverManager.setHoverText(new TextBlock(Fonts.ROBOTO, 13, 300, textComponents.toArray(new TextComponent[0])),
-                            0, Gdx.graphics.getHeight() - 2);
+                for (int j = 0; j < robotPositions.get(i).size(); j++) {
+                    RobotPosition robotPosition = robotPositions.get(i).get(j);
+                    renderRobotBoundingBox(shapeRenderer, robotPosition, getColor(robotPosition.name()));
+
+                    textComponents.add(new TextComponent(robotPosition.name() + " @").setBold(true).setSize(15));
+                    addTextComponents(robotPosition, textComponents);
                 }
+
+                HoverManager.setHoverText(new TextBlock(Fonts.ROBOTO, 13, 300, textComponents.toArray(new TextComponent[0])),
+                        0, Gdx.graphics.getHeight() - 2);
             }
         }
 
@@ -127,6 +160,8 @@ public class DrivenPathRenderer implements PathRenderer {
                 renderRobotBoundingBox(shapeRenderer, robotPosition, getColor(robotPosition.name()));
             }
         }
+
+
         robotPreviewIndex = -1;
     }
 

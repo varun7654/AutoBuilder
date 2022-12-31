@@ -351,7 +351,9 @@ public class TrajectoryPathRenderer implements MovablePointEventHandler, Seriali
 
         rotation2dList.add(closePoint.prevPointIndex() + 1, newPoint.poseMeters.getRotation());
 
-        if (selectionPointIndex > closePoint.prevPointIndex()) selectionPointIndex++;
+        if (selectionPointIndex > closePoint.prevPointIndex()) {
+            selectionPointIndex++;
+        }
         updatePath();
         UndoHandler.getInstance().somethingChanged();
     }
@@ -363,9 +365,15 @@ public class TrajectoryPathRenderer implements MovablePointEventHandler, Seriali
      */
     @Override
     public double distToClosestPointNotMainPoint(Vector3 mousePos) {
-        if (rotationPoint == null && controlPoint == null) return Double.MAX_VALUE;
-        if (rotationPoint == null) return controlPoint.getRenderPos3().dst2(mousePos);
-        if (controlPoint == null) return rotationPoint.getRenderPos3().dst2(mousePos);
+        if (rotationPoint == null && controlPoint == null) {
+            return Double.MAX_VALUE;
+        }
+        if (rotationPoint == null) {
+            return controlPoint.getRenderPos3().dst2(mousePos);
+        }
+        if (controlPoint == null) {
+            return rotationPoint.getRenderPos3().dst2(mousePos);
+        }
         return Math.min(rotationPoint.getRenderPos3().dst2(mousePos), controlPoint.getRenderPos3().dst2(mousePos));
     }
 
@@ -493,7 +501,9 @@ public class TrajectoryPathRenderer implements MovablePointEventHandler, Seriali
     }
 
     private void updateConnectedPath(MovablePointRenderer selectedPoint) {
-        if (attachedPath == null) return;
+        if (attachedPath == null) {
+            return;
+        }
         Config config = AutoBuilder.getConfig();
         if (isAttachedPathEnd) {
             ControlVector attachedPathControlVector = attachedPath.controlVectors.get(
@@ -664,7 +674,9 @@ public class TrajectoryPathRenderer implements MovablePointEventHandler, Seriali
         completableFutureTrajectory.thenRun(() -> UndoHandler.getInstance().triggerSave());
 
 
-        if (updateListener && pathChangeListener != null) pathChangeListener.onPathChange();
+        if (updateListener && pathChangeListener != null) {
+            pathChangeListener.onPathChange();
+        }
     }
 
 

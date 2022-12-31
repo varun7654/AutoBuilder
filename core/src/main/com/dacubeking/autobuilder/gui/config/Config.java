@@ -2,6 +2,7 @@ package com.dacubeking.autobuilder.gui.config;
 
 
 import com.dacubeking.autobuilder.gui.AutoBuilder;
+import com.dacubeking.autobuilder.gui.RenderEvents;
 import com.fasterxml.jackson.annotation.*;
 
 import java.io.File;
@@ -214,6 +215,13 @@ public class Config {
     }
 
     public synchronized void setConfig(Config config) {
+        if (this.pointScaleFactor != config.pointScaleFactor
+                || this.originX != config.originX
+                || this.originY != config.originY) {
+            RenderEvents.fireRenderCacheDeletionEvent();
+        }
+
+
         this.scriptMethods = config.scriptMethods;
         this.selectedAutoFile = config.selectedAutoFile;
         this.shooterConfigFile = config.shooterConfigFile;
@@ -249,14 +257,17 @@ public class Config {
 
     public synchronized void setPointScaleFactor(float pointScaleFactor) {
         this.pointScaleFactor = pointScaleFactor;
+        RenderEvents.fireRenderCacheDeletionEvent();
     }
 
     public synchronized void setOriginX(float originX) {
         this.originX = originX;
+        RenderEvents.fireRenderCacheDeletionEvent();
     }
 
     public synchronized void setOriginY(float originY) {
         this.originY = originY;
+        RenderEvents.fireRenderCacheDeletionEvent();
     }
 
     public synchronized void setHolonomic(boolean isHolonomic) {
