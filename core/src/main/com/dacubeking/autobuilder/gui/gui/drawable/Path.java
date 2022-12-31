@@ -41,15 +41,26 @@ public class Path extends Drawable {
         Vector2[] vertices = new Vector2[split.length - 1];
 
         for (int i = 0; i < split.length - 1; i++) {
-            vertices[i] = new Vector2().fromString(split[i]).scl(AutoBuilder.getConfig().getPointScaleFactor());
+            vertices[i] = new Vector2().fromString(split[i]);
         }
 
         return new Path(vertices, Color.valueOf(split[split.length - 1]));
     }
 
+    private Array<Vector2> cachedVertices = null;
+    private float lastScale = -1;
+
     @Override
     public void draw(ShapeDrawer drawer, Batch batch) {
         drawer.setColor(color);
-        drawer.path(vertices);
+        float scale = AutoBuilder.getConfig().getPointScaleFactor();
+        if (lastScale != scale) {
+            cachedVertices = new Array<>(vertices.size);
+            for (int i = 0; i < vertices.size; i++) {
+                cachedVertices.add(new Vector2(vertices.get(i)).scl(scale));
+            }
+            lastScale = scale;
+        }
+        drawer.path(cachedVertices, AutoBuilder.LINE_THICKNESS);
     }
 }

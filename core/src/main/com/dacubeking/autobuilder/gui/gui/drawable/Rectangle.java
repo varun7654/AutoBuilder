@@ -60,15 +60,21 @@ public class Rectangle extends Drawable {
         if (split.length != 5) {
             return null;
         }
-        return new Rectangle(new Vector2().fromString(split[0]).scl(AutoBuilder.getConfig().getPointScaleFactor()),
-                Float.parseFloat(split[1]) * AutoBuilder.getConfig().getPointScaleFactor(),
-                Float.parseFloat(split[2]) * AutoBuilder.getConfig().getPointScaleFactor(),
+        return new Rectangle(new Vector2().fromString(split[0]),
+                Float.parseFloat(split[1]),
+                Float.parseFloat(split[2]),
                 Float.parseFloat(split[3]),
                 Color.valueOf(split[4]));
     }
 
     @Override
     public void draw(ShapeDrawer drawer, Batch batch) {
-        drawer.rectangle(bottomLeftCorner.x, bottomLeftCorner.y, width, height, AutoBuilder.LINE_THICKNESS, rotation);
+        float scale = AutoBuilder.getConfig().getPointScaleFactor();
+        drawer.rectangle(bottomLeftCorner.x * scale,
+                bottomLeftCorner.y * scale,
+                width * scale,
+                height * scale,
+                AutoBuilder.LINE_THICKNESS,
+                rotation);
     }
 }
