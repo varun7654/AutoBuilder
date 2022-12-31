@@ -127,22 +127,21 @@ public class DrivenPathRenderer implements PathRenderer {
         lastDrawing.draw();
 
         // Find the robot preview index in another loop, so we don't cache it
-        for (int i = 0; i < robotPositions.size() - 1; i++) {
-            if (i == robotPreviewIndex) {
-                ArrayList<TextComponent> textComponents = new ArrayList<>();
 
-                for (int j = 0; j < robotPositions.get(i).size(); j++) {
-                    RobotPosition robotPosition = robotPositions.get(i).get(j);
-                    renderRobotBoundingBox(shapeRenderer, robotPosition, getColor(robotPosition.name()));
+        if (robotPositions.size() > robotPreviewIndex && robotPreviewIndex >= 0) {
+            ArrayList<TextComponent> textComponents = new ArrayList<>();
+            List<RobotPosition> robotPositionAtTime = robotPositions.get(robotPreviewIndex);
+            for (RobotPosition robotPosition : robotPositionAtTime) {
+                renderRobotBoundingBox(shapeRenderer, robotPosition, getColor(robotPosition.name()));
 
-                    textComponents.add(new TextComponent(robotPosition.name() + " @").setBold(true).setSize(15));
-                    addTextComponents(robotPosition, textComponents);
-                }
-
-                HoverManager.setHoverText(new TextBlock(Fonts.ROBOTO, 13, 300, textComponents.toArray(new TextComponent[0])),
-                        0, Gdx.graphics.getHeight() - 2);
+                textComponents.add(new TextComponent(robotPosition.name() + " @").setBold(true).setSize(15));
+                addTextComponents(robotPosition, textComponents);
             }
+
+            HoverManager.setHoverText(new TextBlock(Fonts.ROBOTO, 13, 300, textComponents.toArray(new TextComponent[0])),
+                    0, Gdx.graphics.getHeight() - 2);
         }
+
 
         //render the robot preview at the latest position
         if (robotPositions.size() - 1 > 0) {
