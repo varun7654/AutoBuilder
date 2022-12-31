@@ -72,14 +72,6 @@ public class DrivenPathRenderer implements PathRenderer {
             float robotLength = AutoBuilder.getConfig().getRobotLength();
             float pointScaleFactor = AutoBuilder.getConfig().getPointScaleFactor();
 
-            if (robotPositions.size() > 0) {
-                RobotPosition initialPos = robotPositions.get(0).get(0);
-                lastPointLeft.set((float) (initialPos.x() * pointScaleFactor),
-                        (float) (initialPos.x() * pointScaleFactor));
-                lastPointRight.set((float) (initialPos.x() * pointScaleFactor),
-                        (float) (initialPos.x() * pointScaleFactor));
-            }
-
             for (int i = lastDrawingIndex; i < robotPositions.size() - 1; i++) {
                 RobotPosition pos1 = robotPositions.get(i).get(0);
 
