@@ -48,14 +48,6 @@ public class DrivenPathRenderer implements PathRenderer {
             float robotLength = AutoBuilder.getConfig().getRobotLength();
             float pointScaleFactor = AutoBuilder.getConfig().getPointScaleFactor();
 
-            if (robotPositions.size() > 0) {
-                RobotPosition initialPos = robotPositions.get(0).get(0);
-                lastPointLeft.set((float) (initialPos.x() * pointScaleFactor),
-                        (float) (initialPos.x() * pointScaleFactor));
-                lastPointRight.set((float) (initialPos.x() * pointScaleFactor),
-                        (float) (initialPos.x() * pointScaleFactor));
-            }
-
             for (int i = 0; i < robotPositions.size() - 1; i++) {
                 RobotPosition pos1 = robotPositions.get(i).get(0);
 
@@ -90,14 +82,16 @@ public class DrivenPathRenderer implements PathRenderer {
 
 
                 shapeRenderer.setColor(Color.WHITE);
-                shapeRenderer.filledPolygon(new float[]{
-                        lastPointRight.x, lastPointRight.y,
-                        currPointRight.x, currPointRight.y,
-                        nextPointRight.x, nextPointRight.y,
-                        nextPointLeft.x, nextPointLeft.y,
-                        currPointLeft.x, currPointLeft.y,
-                        lastPointLeft.x, lastPointLeft.y,
-                });
+                if (i > 1) {
+                    shapeRenderer.filledPolygon(new float[]{
+                            lastPointRight.x, lastPointRight.y,
+                            currPointRight.x, currPointRight.y,
+                            nextPointRight.x, nextPointRight.y,
+                            nextPointLeft.x, nextPointLeft.y,
+                            currPointLeft.x, currPointLeft.y,
+                            lastPointLeft.x, lastPointLeft.y,
+                    });
+                }
 
                 lastPointLeft.set(nextPointLeft);
                 lastPointRight.set(nextPointRight);
