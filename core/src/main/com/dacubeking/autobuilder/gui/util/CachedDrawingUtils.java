@@ -5,49 +5,69 @@ import space.earlygrey.shapedrawer.AbstractShapeDrawer;
 import space.earlygrey.shapedrawer.Drawing;
 import space.earlygrey.shapedrawer.ShapeDrawer;
 
+import java.lang.invoke.MethodHandle;
+import java.lang.invoke.MethodHandles;
 import java.lang.reflect.Field;
-import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.util.HashMap;
 
 public final class CachedDrawingUtils {
 
     private CachedDrawingUtils() {
     }
 
-    private static final @NotNull Method createNewDrawingMethod;
-    private static final @NotNull Field batchManagerField;
-    private static final @NotNull Field drawingField;
+    private static final @NotNull MethodHandle createNewDrawingHandle;
+    private static final @NotNull MethodHandle batchManagerFieldHandle;
+    private static final @NotNull MethodHandle drawingFieldHandle;
 
     static {
         try {
-            batchManagerField = AbstractShapeDrawer.class.getDeclaredField("batchManager");
+            Field batchManagerField = AbstractShapeDrawer.class.getDeclaredField("batchManager");
             batchManagerField.setAccessible(true);
+            batchManagerFieldHandle = MethodHandles.lookup().unreflectGetter(batchManagerField);
 
             Class<?> batchManagerClass = batchManagerField.getType();
-            
-            createNewDrawingMethod = batchManagerClass.getDeclaredMethod("createDrawing");
-            createNewDrawingMethod.setAccessible(true);
 
-            drawingField = batchManagerClass.getDeclaredField("drawing");
+            Method createNewDrawingMethod = batchManagerClass.getDeclaredMethod("createDrawing");
+            createNewDrawingMethod.setAccessible(true);
+            createNewDrawingHandle = MethodHandles.lookup().unreflect(createNewDrawingMethod);
+
+            Field drawingField = batchManagerClass.getDeclaredField("drawing");
             drawingField.setAccessible(true);
-        } catch (NoSuchMethodException | NoSuchFieldException e) {
+            drawingFieldHandle = MethodHandles.lookup().unreflectSetter(drawingField);
+        } catch (NoSuchMethodException | NoSuchFieldException | IllegalAccessException e) {
             throw new RuntimeException(e);
         }
     }
 
     public static Drawing createNewDrawing(ShapeDrawer shapeDrawer) {
         try {
-            return (Drawing) createNewDrawingMethod.invoke(batchManagerField.get(shapeDrawer));
-        } catch (IllegalAccessException | InvocationTargetException e) {
+            return (Drawing) createNewDrawingHandle.invoke(getBatchManager(shapeDrawer));
+        } catch (Throwable e) {
             throw new RuntimeException(e);
         }
     }
 
     public static void setDrawing(ShapeDrawer shapeDrawer, Drawing drawing) {
         try {
-            drawingField.set(batchManagerField.get(shapeDrawer), drawing);
-        } catch (IllegalAccessException e) {
+            drawingFieldHandle.invoke(getBatchManager(shapeDrawer), drawing);
+        } catch (Throwable e) {
             throw new RuntimeException(e);
         }
+    }
+
+
+    private static final HashMap<ShapeDrawer, Object> batchManagers = new HashMap<>();
+
+    // We cache the batch manager because it's a final field and can't be changed
+    // We also return object because we can't access the class of the batch manager
+    private static Object getBatchManager(ShapeDrawer shapeDrawer) throws Throwable {
+        var batchManager = batchManagers.get(shapeDrawer);
+
+        if (batchManager == null) {
+            batchManager = batchManagerFieldHandle.invoke(shapeDrawer);
+            batchManagers.put(shapeDrawer, batchManager);
+        }
+        return batchManager;
     }
 }
