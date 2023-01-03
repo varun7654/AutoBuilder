@@ -120,8 +120,6 @@ public class DrivenPathRenderer extends PathRenderer {
         CachedDrawingUtils.setDrawing(shapeRenderer, null);
         lastDrawing.draw();
 
-        // Find the robot preview index in another loop, so we don't cache it
-
         if (robotPositions.size() > robotPreviewIndex && robotPreviewIndex >= 0) {
             ArrayList<TextComponent> textComponents = new ArrayList<>();
             List<RobotPosition> robotPositionAtTime = robotPositions.get(robotPreviewIndex);

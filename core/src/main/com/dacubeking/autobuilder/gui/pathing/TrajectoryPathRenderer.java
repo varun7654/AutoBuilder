@@ -696,8 +696,7 @@ public class TrajectoryPathRenderer extends PathRenderer implements MovablePoint
             return trajectory;
         }, executorService);
 
-        completableFutureTrajectory.thenRun(() -> UndoHandler.getInstance().triggerSave())
-        ;
+        completableFutureTrajectory.thenRun(() -> UndoHandler.getInstance().triggerSave());
 
 
         if (updateListener && pathChangeListener != null) {
