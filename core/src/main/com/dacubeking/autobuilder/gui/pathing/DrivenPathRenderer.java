@@ -13,7 +13,9 @@ import com.dacubeking.autobuilder.gui.gui.textrendering.TextBlock;
 import com.dacubeking.autobuilder.gui.gui.textrendering.TextComponent;
 import com.dacubeking.autobuilder.gui.net.NetworkTablesHelper;
 import com.dacubeking.autobuilder.gui.pathing.pointclicks.CloseTrajectoryPoint;
+import com.dacubeking.autobuilder.gui.util.CachedDrawingUtils;
 import org.jetbrains.annotations.NotNull;
+import space.earlygrey.shapedrawer.Drawing;
 import space.earlygrey.shapedrawer.ShapeDrawer;
 
 import java.text.DecimalFormat;
@@ -24,7 +26,7 @@ import java.util.Random;
 
 import static com.dacubeking.autobuilder.gui.util.MouseUtil.isControlPressed;
 
-public class DrivenPathRenderer implements PathRenderer {
+public class DrivenPathRenderer extends PathRenderer {
 
     @NotNull NetworkTablesHelper networkTables = NetworkTablesHelper.getInstance();
 
@@ -39,16 +41,32 @@ public class DrivenPathRenderer implements PathRenderer {
     @NotNull Vector2 currPointLeft = new Vector2();
     @NotNull Vector2 currPointRight = new Vector2();
 
+    private Drawing lastDrawing;
+
+    private int lastDrawingIndex = 0;
+
+    @Override
+    protected void deleteRenderCache() {
+        lastDrawing = null;
+        lastDrawingIndex = 0;
+    }
+
     @Override
     public void render(@NotNull ShapeDrawer shapeRenderer, @NotNull OrthographicCamera cam) {
         List<List<RobotPosition>> robotPositions = networkTables.getRobotPositions();
 
+        if (robotPositions.size() < lastDrawingIndex) {
+            deleteRenderCache();
+        }
+        if (lastDrawing == null) {
+            lastDrawing = CachedDrawingUtils.createNewDrawing(shapeRenderer);
+        }
+
+        CachedDrawingUtils.setDrawing(shapeRenderer, lastDrawing);
         synchronized (robotPositions) {
-            float robotWidth = AutoBuilder.getConfig().getRobotWidth();
-            float robotLength = AutoBuilder.getConfig().getRobotLength();
             float pointScaleFactor = AutoBuilder.getConfig().getPointScaleFactor();
 
-            for (int i = 0; i < robotPositions.size() - 1; i++) {
+            for (int i = lastDrawingIndex; i < robotPositions.size() - 1; i++) {
                 RobotPosition pos1 = robotPositions.get(i).get(0);
 
                 RobotPosition pos2 = robotPositions.get(i + 1).get(0);
@@ -59,10 +77,6 @@ public class DrivenPathRenderer implements PathRenderer {
                 currPointRight.set(0, AutoBuilder.LINE_THICKNESS / 2);
 
                 float angle = (float) Math.atan2(pos1.y() - pos2.y(), pos1.x() - pos2.x());
-
-                if (i < robotPositions.size() - 2) {
-                    RobotPosition pos3 = robotPositions.get(i + 2).get(0);
-                }
 
                 nextPointLeft.rotateRad(angle);
                 nextPointRight.rotateRad(angle);
@@ -82,7 +96,7 @@ public class DrivenPathRenderer implements PathRenderer {
 
 
                 shapeRenderer.setColor(Color.WHITE);
-                if (i > 1) {
+                if (i > lastDrawingIndex) {
                     shapeRenderer.filledPolygon(new float[]{
                             lastPointRight.x, lastPointRight.y,
                             currPointRight.x, currPointRight.y,
@@ -95,23 +109,31 @@ public class DrivenPathRenderer implements PathRenderer {
 
                 lastPointLeft.set(nextPointLeft);
                 lastPointRight.set(nextPointRight);
-
-                if (i == robotPreviewIndex) {
-                    ArrayList<TextComponent> textComponents = new ArrayList<>();
-
-                    for (int j = 0; j < robotPositions.get(i).size(); j++) {
-                        RobotPosition robotPosition = robotPositions.get(i).get(j);
-                        renderRobotBoundingBox(shapeRenderer, robotPosition, getColor(robotPosition.name()));
-
-                        textComponents.add(new TextComponent(robotPosition.name() + " @").setBold(true).setSize(15));
-                        addTextComponents(robotPosition, textComponents);
-                    }
-
-                    HoverManager.setHoverText(new TextBlock(Fonts.ROBOTO, 13, 300, textComponents.toArray(new TextComponent[0])),
-                            0, Gdx.graphics.getHeight() - 2);
-                }
             }
+            lastDrawingIndex = Math.max(lastDrawingIndex, robotPositions.size() - 2);
         }
+
+        if (lastDrawing != null) {
+            lastDrawing.draw();
+        }
+
+        CachedDrawingUtils.setDrawing(shapeRenderer, null);
+        lastDrawing.draw();
+
+        if (robotPositions.size() > robotPreviewIndex && robotPreviewIndex >= 0) {
+            ArrayList<TextComponent> textComponents = new ArrayList<>();
+            List<RobotPosition> robotPositionAtTime = robotPositions.get(robotPreviewIndex);
+            for (RobotPosition robotPosition : robotPositionAtTime) {
+                renderRobotBoundingBox(shapeRenderer, robotPosition, getColor(robotPosition.name()));
+
+                textComponents.add(new TextComponent(robotPosition.name() + " @").setBold(true).setSize(15));
+                addTextComponents(robotPosition, textComponents);
+            }
+
+            HoverManager.setHoverText(new TextBlock(Fonts.ROBOTO, 13, 300, textComponents.toArray(new TextComponent[0])),
+                    0, Gdx.graphics.getHeight() - 2);
+        }
+
 
         //render the robot preview at the latest position
         if (robotPositions.size() - 1 > 0) {
@@ -121,6 +143,8 @@ public class DrivenPathRenderer implements PathRenderer {
                 renderRobotBoundingBox(shapeRenderer, robotPosition, getColor(robotPosition.name()));
             }
         }
+
+
         robotPreviewIndex = -1;
     }
 
@@ -141,9 +165,9 @@ public class DrivenPathRenderer implements PathRenderer {
 
     private void renderRobotBoundingBox(@NotNull ShapeDrawer shapeRenderer, RobotPosition pos1,
                                         Color color) {
+        float pointScaleFactor = AutoBuilder.getConfig().getPointScaleFactor();
         renderRobotBoundingBox(
-                new Vector2((float) (pos1.x() * AutoBuilder.getConfig().getPointScaleFactor()),
-                        (float) (pos1.y() * AutoBuilder.getConfig().getPointScaleFactor())),
+                new Vector2((float) (pos1.x() * pointScaleFactor), (float) (pos1.y() * pointScaleFactor)),
                 (float) pos1.theta(), shapeRenderer, color, Color.WHITE);
     }
 
@@ -174,10 +198,10 @@ public class DrivenPathRenderer implements PathRenderer {
         ArrayList<CloseTrajectoryPoint> points = new ArrayList<>();
         List<List<RobotPosition>> robotPositions = networkTables.getRobotPositions();
         synchronized (robotPositions) {
+            float scale = AutoBuilder.getConfig().getPointScaleFactor();
             for (int i = 0; i < robotPositions.size(); i++) {
                 RobotPosition robotPosition = robotPositions.get(i).get(0);
-                float len2 = mousePos.dst2((float) (robotPosition.x() * AutoBuilder.getConfig().getPointScaleFactor()),
-                        (float) (robotPosition.y() * AutoBuilder.getConfig().getPointScaleFactor()), 0);
+                float len2 = mousePos.dst2((float) (robotPosition.x() * scale), (float) (robotPosition.y() * scale), 0);
                 if (len2 < maxDistance2) {
                     points.add(new CloseTrajectoryPoint(len2, this, i, 0));
                 }

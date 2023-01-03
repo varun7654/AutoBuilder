@@ -34,10 +34,12 @@ public class Line extends Drawable {
     @Override
     public void draw(ShapeDrawer drawer, Batch batch) {
         drawer.setColor(color);
-        drawer.line(start.x * AutoBuilder.getConfig().getPointScaleFactor(),
-                start.y * AutoBuilder.getConfig().getPointScaleFactor(),
-                end.x * AutoBuilder.getConfig().getPointScaleFactor(),
-                end.y * AutoBuilder.getConfig().getPointScaleFactor(), AutoBuilder.LINE_THICKNESS);
+        float scale = AutoBuilder.getConfig().getPointScaleFactor();
+        drawer.line(start.x * scale,
+                start.y * scale,
+                end.x * scale,
+                end.y * scale,
+                AutoBuilder.LINE_THICKNESS);
     }
 
     public static @Nullable Line fromString(String line) {
