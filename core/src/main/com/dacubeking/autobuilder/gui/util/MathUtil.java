@@ -28,14 +28,16 @@ public class MathUtil {
 
     @Contract("_ -> new")
     public static @NotNull Vector2 toRenderVector2(@NotNull Pose2d poseMeters) {
-        return new Vector2((float) poseMeters.getTranslation().getX() * AutoBuilder.getConfig().getPointScaleFactor(),
-                (float) poseMeters.getTranslation().getY() * AutoBuilder.getConfig().getPointScaleFactor());
+        float pointScaleFactor = AutoBuilder.getConfig().getPointScaleFactor();
+        return new Vector2((float) poseMeters.getTranslation().getX() * pointScaleFactor,
+                (float) poseMeters.getTranslation().getY() * pointScaleFactor);
     }
 
     @Contract("_ -> new")
     public static @NotNull Vector3 toRenderVector3(@NotNull Pose2d poseMeters) {
-        return new Vector3((float) poseMeters.getTranslation().getX() * AutoBuilder.getConfig().getPointScaleFactor(),
-                (float) poseMeters.getTranslation().getY() * AutoBuilder.getConfig().getPointScaleFactor(),
+        float pointScaleFactor = AutoBuilder.getConfig().getPointScaleFactor();
+        return new Vector3((float) poseMeters.getTranslation().getX() * pointScaleFactor,
+                (float) poseMeters.getTranslation().getY() * pointScaleFactor,
                 0);
     }
 
@@ -54,22 +56,25 @@ public class MathUtil {
 
     @Contract("_ -> new")
     public static @NotNull Vector3 toRenderVector3(@NotNull Translation2d translation2d) {
-        return new Vector3((float) translation2d.getX() * AutoBuilder.getConfig().getPointScaleFactor(),
-                (float) translation2d.getY() * AutoBuilder.getConfig().getPointScaleFactor(),
+        float pointScaleFactor = AutoBuilder.getConfig().getPointScaleFactor();
+        return new Vector3((float) translation2d.getX() * pointScaleFactor,
+                (float) translation2d.getY() * pointScaleFactor,
                 0);
     }
 
     @Contract("_, _ -> new")
     public static @NotNull Vector3 toRenderVector3(double x, double y) {
-        return new Vector3((float) x * AutoBuilder.getConfig().getPointScaleFactor(),
-                (float) y * AutoBuilder.getConfig().getPointScaleFactor(),
+        float pointScaleFactor = AutoBuilder.getConfig().getPointScaleFactor();
+        return new Vector3((float) x * pointScaleFactor,
+                (float) y * pointScaleFactor,
                 0);
     }
 
     @Contract("_, _ -> new")
     public static @NotNull Vector2 toRenderVector2(double x, double y) {
-        return new Vector2((float) x * AutoBuilder.getConfig().getPointScaleFactor(),
-                (float) y * AutoBuilder.getConfig().getPointScaleFactor());
+        float pointScaleFactor = AutoBuilder.getConfig().getPointScaleFactor();
+        return new Vector2((float) x * pointScaleFactor,
+                (float) y * pointScaleFactor);
     }
 
     /**

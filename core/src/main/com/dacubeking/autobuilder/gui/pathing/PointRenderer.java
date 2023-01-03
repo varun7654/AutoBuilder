@@ -41,8 +41,8 @@ public class PointRenderer {
     }
 
     public void draw(@NotNull ShapeDrawer shape, @NotNull OrthographicCamera camera) {
-        shape.filledCircle(x * AutoBuilder.getConfig().getPointScaleFactor(),
-                y * AutoBuilder.getConfig().getPointScaleFactor(), radius, color);
+        float pointScaleFactor = AutoBuilder.getConfig().getPointScaleFactor();
+        shape.filledCircle(x * pointScaleFactor, y * pointScaleFactor, radius, color);
     }
 
 
@@ -90,13 +90,13 @@ public class PointRenderer {
     }
 
     public @NotNull Vector3 getRenderPos3() {
-        return new Vector3(x * AutoBuilder.getConfig().getPointScaleFactor(),
-                y * AutoBuilder.getConfig().getPointScaleFactor(), 0);
+        float pointScaleFactor = AutoBuilder.getConfig().getPointScaleFactor();
+        return new Vector3(x * pointScaleFactor, y * pointScaleFactor, 0);
     }
 
     public @NotNull Vector2 getRenderPos2() {
-        return new Vector2(x * AutoBuilder.getConfig().getPointScaleFactor(),
-                y * AutoBuilder.getConfig().getPointScaleFactor());
+        float pointScaleFactor = AutoBuilder.getConfig().getPointScaleFactor();
+        return new Vector2(x * pointScaleFactor, y * pointScaleFactor);
     }
 
     @Override

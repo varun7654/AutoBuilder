@@ -68,8 +68,6 @@ public class DrivenPathRenderer implements PathRenderer {
 
         CachedDrawingUtils.setDrawing(shapeRenderer, lastDrawing);
         synchronized (robotPositions) {
-            float robotWidth = AutoBuilder.getConfig().getRobotWidth();
-            float robotLength = AutoBuilder.getConfig().getRobotLength();
             float pointScaleFactor = AutoBuilder.getConfig().getPointScaleFactor();
 
             for (int i = lastDrawingIndex; i < robotPositions.size() - 1; i++) {
@@ -173,9 +171,9 @@ public class DrivenPathRenderer implements PathRenderer {
 
     private void renderRobotBoundingBox(@NotNull ShapeDrawer shapeRenderer, RobotPosition pos1,
                                         Color color) {
+        float pointScaleFactor = AutoBuilder.getConfig().getPointScaleFactor();
         renderRobotBoundingBox(
-                new Vector2((float) (pos1.x() * AutoBuilder.getConfig().getPointScaleFactor()),
-                        (float) (pos1.y() * AutoBuilder.getConfig().getPointScaleFactor())),
+                new Vector2((float) (pos1.x() * pointScaleFactor), (float) (pos1.y() * pointScaleFactor)),
                 (float) pos1.theta(), shapeRenderer, color, Color.WHITE);
     }
 
@@ -206,10 +204,10 @@ public class DrivenPathRenderer implements PathRenderer {
         ArrayList<CloseTrajectoryPoint> points = new ArrayList<>();
         List<List<RobotPosition>> robotPositions = networkTables.getRobotPositions();
         synchronized (robotPositions) {
+            float scale = AutoBuilder.getConfig().getPointScaleFactor();
             for (int i = 0; i < robotPositions.size(); i++) {
                 RobotPosition robotPosition = robotPositions.get(i).get(0);
-                float len2 = mousePos.dst2((float) (robotPosition.x() * AutoBuilder.getConfig().getPointScaleFactor()),
-                        (float) (robotPosition.y() * AutoBuilder.getConfig().getPointScaleFactor()), 0);
+                float len2 = mousePos.dst2((float) (robotPosition.x() * scale), (float) (robotPosition.y() * scale), 0);
                 if (len2 < maxDistance2) {
                     points.add(new CloseTrajectoryPoint(len2, this, i, 0));
                 }

@@ -434,11 +434,12 @@ public final class AutoBuilder extends ApplicationAdapter {
         mouseDiff.set(mousePos).sub(lastMousePos);
 
         if (MouseUtil.isAltPressed() && !onGui) {
+            float pointScaleFactor = AutoBuilder.getConfig().getPointScaleFactor();
             HoverManager.setHoverText(new TextBlock(Fonts.JETBRAINS_MONO, 14,
                             new TextComponent("X: ").setBold(true),
-                            new TextComponent(df.format(mousePos.x / AutoBuilder.getConfig().getPointScaleFactor())),
+                            new TextComponent(df.format(mousePos.x / pointScaleFactor)),
                             new TextComponent(" Y: ").setBold(true),
-                            new TextComponent(df.format(mousePos.y / AutoBuilder.getConfig().getPointScaleFactor()))),
+                            new TextComponent(df.format(mousePos.y / pointScaleFactor))),
                     0, Gdx.graphics.getHeight() - 2);
         }
         //Figure out the max distance a point can be from the mouse
@@ -584,8 +585,7 @@ public final class AutoBuilder extends ApplicationAdapter {
         FileHandler.saveAuto(false);
     }
 
-    public static @NotNull
-    Config getConfig() {
+    public static @NotNull Config getConfig() {
         return config;
     }
 
