@@ -53,7 +53,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
-public class TrajectoryPathRenderer implements MovablePointEventHandler, Serializable, PathRenderer {
+public class TrajectoryPathRenderer extends PathRenderer implements MovablePointEventHandler, Serializable {
     @NotNull private final Color color;
     @NotNull private final List<Spline.ControlVector> controlVectors;
     @NotNull private final List<Rotation2d> rotation2dList;
@@ -88,7 +88,7 @@ public class TrajectoryPathRenderer implements MovablePointEventHandler, Seriali
                                   @NotNull ExecutorService executorService, float velocityStart, float velocityEnd,
                                   @NotNull List<TrajectoryConstraint> constraints) {
         this.color = color;
-        this.controlVectors = (List<ControlVector>) Collections.synchronizedList(pointList);
+        this.controlVectors = Collections.synchronizedList(pointList);
         this.rotation2dList = rotation2dList;
 
         pointRenderList = new ArrayList<>();
@@ -107,13 +107,20 @@ public class TrajectoryPathRenderer implements MovablePointEventHandler, Seriali
         updatePath();
     }
 
+
     public void setPathChangeListener(@NotNull PathChangeListener pathChangeListener) {
         this.pathChangeListener = pathChangeListener;
         updatePath();
     }
 
     private @Nullable Drawing cachedDrawing = null;
-    private @NotNull AtomicBoolean isDrawingCached = new AtomicBoolean(false);
+    private final @NotNull AtomicBoolean isDrawingCached = new AtomicBoolean(false);
+
+    @Override
+    protected void deleteRenderCache() {
+        isDrawingCached.set(false);
+        cachedDrawing = null;
+    }
 
     @Override
     public void render(@NotNull ShapeDrawer renderer, @NotNull OrthographicCamera cam) {
@@ -199,27 +206,29 @@ public class TrajectoryPathRenderer implements MovablePointEventHandler, Seriali
 
             renderRobotBoundingBox(origin, rotation, renderer, getColor(), Color.WHITE);
         } else if (robotPreviewTime >= 0) {
-            State state = trajectory.sample(robotPreviewTime);
-            Vector2 origin = MathUtil.toRenderVector2(state.poseMeters);
-            float rotation = (float) (config.isHolonomic() ? rotation2dList.get(robotPreviewIndex).getRadians() :
-                    state.poseMeters.getRotation().getRadians());
-            renderRobotBoundingBox(origin, rotation, renderer, getColor(), Color.WHITE);
+            if (trajectory != null) {
+                State state = trajectory.sample(robotPreviewTime);
+                Vector2 origin = MathUtil.toRenderVector2(state.poseMeters);
+                float rotation = (float) (config.isHolonomic() ? rotation2dList.get(robotPreviewIndex).getRadians() :
+                        state.poseMeters.getRotation().getRadians());
+                renderRobotBoundingBox(origin, rotation, renderer, getColor(), Color.WHITE);
 
-            HoverManager.setHoverText(new TextBlock(Fonts.ROBOTO, 13, 300,
-                    new TextComponent("Pose: x: ").setBold(true),
-                    new TextComponent(df.format(state.poseMeters.getX()) + "m"),
-                    new TextComponent(" y: ").setBold(true),
-                    new TextComponent(df.format(state.poseMeters.getY()) + "m"),
-                    new TextComponent(" theta: ").setBold(true),
-                    new TextComponent(df.format(state.poseMeters.getRotation().getDegrees()) + "°\n"),
-                    new TextComponent("Velocity: ").setBold(true),
-                    new TextComponent(df.format(state.velocityMetersPerSecond) + "m/s\n"),
-                    new TextComponent("Acceleration: ").setBold(true),
-                    new TextComponent(df.format(state.accelerationMetersPerSecondSq) + "m/s²\n"),
-                    new TextComponent("Curvature: ").setBold(true),
-                    new TextComponent(df.format(Math.toDegrees(state.curvatureRadPerMeter)) + "°/m\n"),
-                    new TextComponent("Time: ").setBold(true),
-                    new TextComponent(df.format(state.timeSeconds) + "s")), 0, Gdx.graphics.getHeight() - 2);
+                HoverManager.setHoverText(new TextBlock(Fonts.ROBOTO, 13, 300,
+                        new TextComponent("Pose: x: ").setBold(true),
+                        new TextComponent(df.format(state.poseMeters.getX()) + "m"),
+                        new TextComponent(" y: ").setBold(true),
+                        new TextComponent(df.format(state.poseMeters.getY()) + "m"),
+                        new TextComponent(" theta: ").setBold(true),
+                        new TextComponent(df.format(state.poseMeters.getRotation().getDegrees()) + "°\n"),
+                        new TextComponent("Velocity: ").setBold(true),
+                        new TextComponent(df.format(state.velocityMetersPerSecond) + "m/s\n"),
+                        new TextComponent("Acceleration: ").setBold(true),
+                        new TextComponent(df.format(state.accelerationMetersPerSecondSq) + "m/s²\n"),
+                        new TextComponent("Curvature: ").setBold(true),
+                        new TextComponent(df.format(Math.toDegrees(state.curvatureRadPerMeter)) + "°/m\n"),
+                        new TextComponent("Time: ").setBold(true),
+                        new TextComponent(df.format(state.timeSeconds) + "s")), 0, Gdx.graphics.getHeight() - 2);
+            }
         }
 
         for (int i = 0; i < pointRenderList.size(); i++) {

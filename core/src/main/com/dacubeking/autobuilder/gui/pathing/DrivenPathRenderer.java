@@ -7,7 +7,6 @@ import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.math.Vector3;
 import com.dacubeking.autobuilder.gui.AutoBuilder;
-import com.dacubeking.autobuilder.gui.RenderEvents;
 import com.dacubeking.autobuilder.gui.gui.hover.HoverManager;
 import com.dacubeking.autobuilder.gui.gui.textrendering.Fonts;
 import com.dacubeking.autobuilder.gui.gui.textrendering.TextBlock;
@@ -27,7 +26,7 @@ import java.util.Random;
 
 import static com.dacubeking.autobuilder.gui.util.MouseUtil.isControlPressed;
 
-public class DrivenPathRenderer implements PathRenderer {
+public class DrivenPathRenderer extends PathRenderer {
 
     @NotNull NetworkTablesHelper networkTables = NetworkTablesHelper.getInstance();
 
@@ -42,25 +41,22 @@ public class DrivenPathRenderer implements PathRenderer {
     @NotNull Vector2 currPointLeft = new Vector2();
     @NotNull Vector2 currPointRight = new Vector2();
 
-    {
-        RenderEvents.addRenderCacheDeletionListener(this, this::clearCache);
-    }
-
-    private void clearCache() {
-        lastDrawing = null;
-        lastDrawingIndex = 0;
-    }
-
     private Drawing lastDrawing;
 
     private int lastDrawingIndex = 0;
+
+    @Override
+    protected void deleteRenderCache() {
+        lastDrawing = null;
+        lastDrawingIndex = 0;
+    }
 
     @Override
     public void render(@NotNull ShapeDrawer shapeRenderer, @NotNull OrthographicCamera cam) {
         List<List<RobotPosition>> robotPositions = networkTables.getRobotPositions();
 
         if (robotPositions.size() < lastDrawingIndex) {
-            clearCache();
+            deleteRenderCache();
         }
         if (lastDrawing == null) {
             lastDrawing = CachedDrawingUtils.createNewDrawing(shapeRenderer);

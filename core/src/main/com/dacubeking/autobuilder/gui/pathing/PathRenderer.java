@@ -4,16 +4,25 @@ import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.math.Vector3;
+import com.badlogic.gdx.utils.Disposable;
 import com.dacubeking.autobuilder.gui.AutoBuilder;
+import com.dacubeking.autobuilder.gui.RenderEvents;
 import com.dacubeking.autobuilder.gui.pathing.pointclicks.CloseTrajectoryPoint;
 import org.jetbrains.annotations.NotNull;
 import space.earlygrey.shapedrawer.ShapeDrawer;
 
 import java.util.ArrayList;
 
-public interface PathRenderer {
+public abstract class PathRenderer implements Disposable {
 
-    void render(@NotNull ShapeDrawer renderer, @NotNull OrthographicCamera cam);
+    PathRenderer() {
+        RenderEvents.addRenderCacheDeletionListener(this, this::deleteRenderCache);
+    }
+
+    abstract protected void deleteRenderCache();
+
+
+    abstract void render(@NotNull ShapeDrawer renderer, @NotNull OrthographicCamera cam);
 
     /**
      * Update the point that is selected. This should be called every frame.
@@ -22,7 +31,7 @@ public interface PathRenderer {
      * @param mousePos  the current mouse position
      * @param mouseDiff the difference between the current and last mouse position
      */
-    void updatePoint(OrthographicCamera camera, Vector3 mousePos, Vector3 mouseDiff);
+    public abstract void updatePoint(OrthographicCamera camera, Vector3 mousePos, Vector3 mouseDiff);
 
     /**
      * Get a list of all points that are close to the mouse position.
@@ -30,19 +39,19 @@ public interface PathRenderer {
      * @param maxDistance2 The maximum distance to the mouse position squared.
      * @return List of all points on the trajectory that are close to the mouse position.
      */
-    @NotNull ArrayList<CloseTrajectoryPoint> getCloseTrajectoryPoints(float maxDistance2, Vector3 mousePos);
+    abstract @NotNull ArrayList<CloseTrajectoryPoint> getCloseTrajectoryPoints(float maxDistance2, Vector3 mousePos);
 
     /**
      * Sets the time on the trajectory that the robot pose preview should be shown. This should be called every frame when it will
      * be shown.
      */
-    void setRobotPathPreviewPoint(CloseTrajectoryPoint closePoint);
+    public abstract void setRobotPathPreviewPoint(CloseTrajectoryPoint closePoint);
 
     /**
      * @param mousePos current mouse position
      * @return the distance to the closest point that isn't a main point on the path
      */
-    double distToClosestPointNotMainPoint(Vector3 mousePos);
+    public abstract double distToClosestPointNotMainPoint(Vector3 mousePos);
 
 
     /**
@@ -52,8 +61,8 @@ public interface PathRenderer {
      * @param rotation Rotation of the point (in radians)
      * @param renderer shapeDrawer
      */
-    default void renderRobotBoundingBox(Vector2 origin, float rotation, @NotNull ShapeDrawer renderer, Color mainColor,
-                                        Color secondaryColor) {
+    protected void renderRobotBoundingBox(Vector2 origin, float rotation, @NotNull ShapeDrawer renderer, Color mainColor,
+                                          Color secondaryColor) {
         float robotWidth = AutoBuilder.getConfig().getRobotWidth();
         float robotLength = AutoBuilder.getConfig().getRobotLength();
         float pointScaleFactor = AutoBuilder.getConfig().getPointScaleFactor();
@@ -78,5 +87,10 @@ public interface PathRenderer {
 
         renderer.setColor(secondaryColor);
         renderer.line(rightTop, rightBottom, AutoBuilder.LINE_THICKNESS);
+    }
+
+    @Override
+    public void dispose() {
+        RenderEvents.removeRenderCacheDeletionListener(this);
     }
 }

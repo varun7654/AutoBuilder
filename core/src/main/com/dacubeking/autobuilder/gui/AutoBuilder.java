@@ -56,6 +56,7 @@ import java.util.stream.Collectors;
 
 import static com.dacubeking.autobuilder.gui.util.MouseUtil.getMouseX;
 
+@SuppressWarnings("NotNullFieldNotInitialized")
 public final class AutoBuilder extends ApplicationAdapter {
 
     private static final AutoBuilder instance = new AutoBuilder();
@@ -187,6 +188,7 @@ public final class AutoBuilder extends ApplicationAdapter {
 
         if (config.isShooterConfigEnabled()) {
             File shooterConfigFile = config.getShooterConfigPath();
+            //noinspection ResultOfMethodCallIgnored
             shooterConfigFile.getParentFile().mkdirs();
 
             try {

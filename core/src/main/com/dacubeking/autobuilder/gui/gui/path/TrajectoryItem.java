@@ -380,6 +380,7 @@ public class TrajectoryItem extends AbstractGuiItem implements PathChangeListene
         startVelocityTextBox.dispose();
         endVelocityTextBox.dispose();
         reversedCheckBox.dispose();
+        trajectoryPathRenderer.dispose();
     }
 
     @Override
