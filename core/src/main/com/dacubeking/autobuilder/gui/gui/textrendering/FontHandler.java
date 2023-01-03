@@ -12,25 +12,26 @@ public class FontHandler {
     @NotNull private static final HashMap<Fonts, FontFamily> FONT_FAMILY_MAP = new HashMap<>();
 
     static {
-        FONT_FAMILY_MAP.put(Fonts.ROBOTO, new FontFamily(Fonts.ROBOTO, "roboto/Roboto-Regular.ttf",
-                "roboto/Roboto-Bold.ttf",
-                "roboto/Roboto-Italic.ttf",
-                "roboto/Roboto-BoldItalic.ttf"));
+        FONT_FAMILY_MAP.put(Fonts.ROBOTO, new FontFamily(Fonts.ROBOTO, "Roboto/Roboto-Regular.ttf",
+                "Roboto/Roboto-Bold.ttf",
+                "Roboto/Roboto-Italic.ttf",
+                "Roboto/Roboto-BoldItalic.ttf"));
 
-        FONT_FAMILY_MAP.put(Fonts.JETBRAINS_MONO, new FontFamily(Fonts.JETBRAINS_MONO, "mono/JetBrainsMono-Regular.ttf",
-                "mono/JetBrainsMono-Bold.ttf",
-                "mono/JetBrainsMono-Italic.ttf",
-                "mono/JetBrainsMono-BoldItalic.ttf"));
+        FONT_FAMILY_MAP.put(Fonts.JETBRAINS_MONO, new FontFamily(Fonts.JETBRAINS_MONO, "JetBrainsMono/JetBrainsMono-Regular.ttf",
+                "JetBrainsMono/JetBrainsMono-Bold.ttf",
+                "JetBrainsMono/JetBrainsMono-Italic.ttf",
+                "JetBrainsMono/JetBrainsMono-BoldItalic.ttf"));
+
+        FONT_FAMILY_MAP.put(Fonts.ROBOTO_MONO, new FontFamily(Fonts.ROBOTO_MONO, "RobotoMono/RobotoMono-Regular.ttf",
+                "RobotoMono/RobotoMono-Bold.ttf",
+                "RobotoMono/RobotoMono-Italic.ttf",
+                "RobotoMono/RobotoMono-BoldItalic.ttf"));
     }
 
     @NotNull private static final List<Integer> fontSizes;
 
     static {
         fontSizes = new ArrayList<>();
-        fontSizes.add(36);
-        fontSizes.add(22);
-        fontSizes.add(12);
-        fontSizes.add(16);
     }
 
     public static void dispose() {
@@ -38,16 +39,10 @@ public class FontHandler {
             fontFamily.dispose();
         }
     }
-    
+
     public static void updateFonts() {
         for (FontFamily fontFamily : FONT_FAMILY_MAP.values()) {
             fontFamily.dispose();
-        }
-
-        for (Integer fontSize : fontSizes) {
-            for (FontFamily font : FONT_FAMILY_MAP.values()) {
-                font.generateFonts(fontSize);
-            }
         }
     }
 
