@@ -1,6 +1,7 @@
 package com.dacubeking.autobuilder.gui.scripting.reflection;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import org.jetbrains.annotations.NotNull;
 
@@ -28,6 +29,8 @@ public final class ReflectionClassData {
     @JsonProperty public final boolean isAnnotatedAsAccessible;
     @JsonProperty public final String alias;
 
+    @JsonIgnoreProperties public final String name;
+
     @JsonCreator
     public ReflectionClassData(@JsonProperty("fullName") @NotNull String fullName,
                                @JsonProperty("fieldNames") String @NotNull [] fieldNames,
@@ -51,6 +54,12 @@ public final class ReflectionClassData {
         this.isCommand = isCommand;
         this.isAnnotatedAsAccessible = isAnnotatedAsAccessible;
         this.alias = alias;
+
+        if (alias.isEmpty()) {
+            this.name = fullName;
+        } else {
+            this.name = alias;
+        }
     }
 
 

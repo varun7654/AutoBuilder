@@ -96,8 +96,6 @@ public class RobotCodeData {
     public static Hashtable<String, ReflectionClassData> robotClassesMap = new Hashtable<>();
     public static Hashtable<String, ReflectionClassData> robotFullNameClassesMap = new Hashtable<>();
 
-    public static Hashtable<String, String> robotFullNameToAlias = new Hashtable<>();
-
     public static void initData() {
         try {
             File file = new File(AutoBuilder.USER_DIRECTORY + "/" + AutoBuilder.getConfig().getRobotCodeDataFile());
@@ -119,12 +117,11 @@ public class RobotCodeData {
                     robotClassesMap.put(splitFullName[splitFullName.length - 1], robotClass);
                 } else {
                     robotClassesMap.put(robotClass.alias, robotClass);
-                    robotFullNameToAlias.put(robotClass.fullName, robotClass.alias);
                 }
+                robotFullNameClassesMap.put(robotClass.alias, robotClass);
                 robotFullNameClassesMap.put(robotClass.fullName, robotClass);
                 robotClass.initMap();
             }
-
 
             System.out.println("Loaded " + robotClassesMap.size() + " robot classes");
         } catch (IOException e) {
@@ -201,7 +198,7 @@ public class RobotCodeData {
             error = true; // Set the error flag, but continue to allow us to complain about not having a method
             hasInstance = false;
         } else {
-            if (robotFullNameClassesMap.get(reflectionClassData.fullName).isAnnotatedAsAccessible) {
+            if (robotFullNameClassesMap.get(reflectionClassData.name).isAnnotatedAsAccessible) {
                 hasInstance = true;
                 classTextComponents.add(new TextComponent("Using annotated instance for class "));
             } else {
@@ -216,45 +213,51 @@ public class RobotCodeData {
 
                 if (singletonMethod.isPresent()) {
                     hasInstance = isStatic(singletonMethod.get()) &&
-                            singletonMethod.get().returnType.equals(reflectionClassData.fullName);
+                            singletonMethod.get().returnType.equals(reflectionClassData.name);
                     classTextComponents.add(new TextComponent("Using singleton class "));
                 } else {
                     classTextComponents.add(new TextComponent("Using class "));
                     hasInstance = false;
                 }
             }
-            var className = new TextComponent(reflectionClassData.fullName).setItalic(true).setColor(classColor);
-            if (robotFullNameToAlias.containsKey(reflectionClassData.fullName)) {
-                classTextComponents.add(className.setColor(Color.GRAY));
-                classTextComponents.addAll(List.of(
-                        new TextComponent("\n(aliased as: "),
-                        new TextComponent(robotFullNameToAlias.get(reflectionClassData.fullName))
-                                .setItalic(true).setColor(classColor),
-                        new TextComponent(")")
-                ));
-            } else {
-                classTextComponents.add(className);
-            }
+            var className = new TextComponent(reflectionClassData.name).setItalic(true).setColor(classColor);
+
+            classTextComponents.add(className);
         }
 
 
         if (classAndMethod.length == 1 /* no arguments */ && !error && reflectionClassData.isCommand
                 && !classMethod.string().endsWith(".")) {
             if (hasInstance) {
-                classTextComponents.add(
-                        new TextComponent("\n\nThis class is a command it will be executed by the command scheduler. "));
-                classTextComponents.add(
-                        new TextComponent("This will be run asynchronously by the scheduler unless the method has " +
-                                "been annotated with the "));
-                classTextComponents.add(new TextComponent("@RequireWait").setItalic(true).setColor(Color.ORANGE));
-                classTextComponents.add(new TextComponent(" annotation."));
-                classTextComponents.add(
-                        new TextComponent("\n\nIf the command has been annotated with the annotation sequential " +
-                                "calls will not be run until this command stop executing."));
-                sendableCommands.add(createSendableCommand(reflectionClassData.fullName,
-                        new String[]{}, new String[]{}, true, true));
                 classColor.set(DARK_TEAL);
-                createLintingPos(lintingPositions, classMethod.index(), false, classColor, classTextComponents);
+                if (args.length == 1 && args[0].string().equals("cancel")) {
+                    classTextComponents.add(new TextComponent("\n\nThis command will be cancelled if it is currently " +
+                            "executing."));
+                    createLintingPos(lintingPositions, classMethod.index(), false, classColor, classTextComponents);
+                    createLintingPos(lintingPositions, args[0].index(), false, Color.BLACK, classTextComponents);
+                    sendableCommands.add(createSendableCommand(reflectionClassData.name,
+                            new String[]{"shouldCancel"}, new String[]{"true"}, true, true));
+                } else {
+                    classTextComponents.add(
+                            new TextComponent("\n\nThis class is a command it will be executed by the command scheduler. "));
+                    classTextComponents.add(
+                            new TextComponent("This will be run asynchronously by the scheduler unless the method has " +
+                                    "been annotated with the "));
+                    classTextComponents.add(new TextComponent("@RequireWait").setItalic(true).setColor(Color.ORANGE));
+                    classTextComponents.add(new TextComponent(" annotation."));
+                    classTextComponents.add(
+                            new TextComponent("\n\nIf the command has been annotated with the annotation sequential " +
+                                    "calls will not be run until this command stop executing."));
+                    createLintingPos(lintingPositions, classMethod.index(), false, classColor, classTextComponents);
+                    if (args.length > 0) {
+                        createLintingPos(lintingPositions, args[0].index(), true, Color.BLACK, new TextComponent(
+                                "Executing a command does not take any arguments, (except for the first argument " +
+                                        "which could be \"cancel\" to cancel the command instead of executing it)"));
+                        return false;
+                    }
+                    sendableCommands.add(createSendableCommand(reflectionClassData.name,
+                            new String[]{"shouldCancel"}, new String[]{"false"}, true, true));
+                }
                 return true;
             } else {
                 classTextComponents.addAll(List.of(
@@ -399,7 +402,7 @@ public class RobotCodeData {
         }
 
 
-        sendableCommands.add(createSendableCommand(reflectionClassData.fullName + "." + method.methodName,
+        sendableCommands.add(createSendableCommand(reflectionClassData.name + "." + method.methodName,
                 Arrays.stream(args).map(StringIndex::toString).toArray(String[]::new),
                 argumentTypes.toArray(String[]::new),
                 true));
@@ -408,16 +411,12 @@ public class RobotCodeData {
     }
 
     @NotNull
-    private static SendableCommand createSendableCommand(String fullName,
+    private static SendableCommand createSendableCommand(String name,
                                                          String[] argTypes,
                                                          String[] args,
                                                          boolean reflection,
                                                          boolean command) {
-        if (robotFullNameToAlias.containsKey(fullName)) {
-            fullName = robotFullNameToAlias.get(fullName);
-        }
-
-        return new SendableCommand(fullName, argTypes, args, reflection, command);
+        return new SendableCommand(name, args, argTypes, reflection, command);
     }
 
     @NotNull
