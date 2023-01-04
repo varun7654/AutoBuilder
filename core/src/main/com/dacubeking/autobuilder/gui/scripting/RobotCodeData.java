@@ -241,7 +241,7 @@ public class RobotCodeData {
                     classTextComponents.add(
                             new TextComponent("\n\nThis class is a command it will be executed by the command scheduler. "));
                     classTextComponents.add(
-                            new TextComponent("This will be run asynchronously by the scheduler unless the method has " +
+                            new TextComponent("This will be run asynchronously by the scheduler unless the command has " +
                                     "been annotated with the "));
                     classTextComponents.add(new TextComponent("@RequireWait").setItalic(true).setColor(Color.ORANGE));
                     classTextComponents.add(new TextComponent(" annotation."));
