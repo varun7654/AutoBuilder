@@ -236,7 +236,7 @@ public class RobotCodeData {
                     createLintingPos(lintingPositions, classMethod.index(), false, classColor, classTextComponents);
                     createLintingPos(lintingPositions, args[0].index(), false, Color.BLACK, classTextComponents);
                     sendableCommands.add(createSendableCommand(reflectionClassData.name,
-                            new String[]{"shouldCancel"}, new String[]{"true"}, true, true));
+                            new String[]{"true"}, new String[]{"shouldCancel"}, true, true));
                 } else {
                     classTextComponents.add(
                             new TextComponent("\n\nThis class is a command it will be executed by the command scheduler. "));
@@ -256,7 +256,7 @@ public class RobotCodeData {
                         return false;
                     }
                     sendableCommands.add(createSendableCommand(reflectionClassData.name,
-                            new String[]{"shouldCancel"}, new String[]{"false"}, true, true));
+                            new String[]{"false"}, new String[]{"shouldCancel"}, true, true));
                 }
                 return true;
             } else {
@@ -412,19 +412,19 @@ public class RobotCodeData {
 
     @NotNull
     private static SendableCommand createSendableCommand(String name,
-                                                         String[] argTypes,
                                                          String[] args,
+                                                         String[] argTypes,
                                                          boolean reflection,
                                                          boolean command) {
         return new SendableCommand(name, args, argTypes, reflection, command);
     }
 
     @NotNull
-    private static SendableCommand createSendableCommand(String fullName,
-                                                         String[] argTypes,
+    private static SendableCommand createSendableCommand(String name,
                                                          String[] args,
+                                                         String[] argTypes,
                                                          boolean reflection) {
-        return createSendableCommand(fullName, argTypes, args, reflection, false);
+        return createSendableCommand(name, args, argTypes, reflection, false);
     }
 
     private static TextComponent getPossibleArguments(ReflectionClassData reflectionClassData, StringIndex[] classAndMethod) {
