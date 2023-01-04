@@ -79,7 +79,7 @@ public class RobotCodeData {
      */
     private static boolean checkNumberParseable(@NotNull String s, @NotNull Pattern pattern,
                                                 @NotNull Function<@NotNull String, ?> parseFunction) {
-        if (pattern.asMatchPredicate().test(s)) {
+        if (!pattern.asMatchPredicate().test(s)) {
             return false;
         }
         try {
