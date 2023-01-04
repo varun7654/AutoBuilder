@@ -66,7 +66,7 @@ public abstract class AbstractGuiItem implements Disposable {
                 pathGui.guiItemsDeletions.add(this);
                 AutoBuilder.requestRendering();
                 UndoHandler.getInstance().somethingChanged();
-            } else if (isMouseOver(drawStartX, drawStartY - 40, drawWidth - 5, 40)) {
+            } else if (isMouseOver(drawStartX, drawStartY - 39, drawWidth - 5, 39)) {
                 setClosed(!isClosed());
             }
         }
