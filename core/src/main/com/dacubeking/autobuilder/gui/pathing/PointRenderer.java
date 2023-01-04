@@ -9,30 +9,26 @@ import org.jetbrains.annotations.NotNull;
 import space.earlygrey.shapedrawer.ShapeDrawer;
 
 public class PointRenderer {
-    protected final float radius;
     protected float x;
     protected float y;
     protected Color color;
 
-    public PointRenderer(float x, float y, Color color, float radius) {
+    public PointRenderer(float x, float y, Color color) {
         this.x = x;
         this.y = y;
         this.color = color;
-        this.radius = radius;
     }
 
-    public PointRenderer(@NotNull Vector2 pos, Color color, float radius) {
+    public PointRenderer(@NotNull Vector2 pos, Color color) {
         this.x = pos.x;
         this.y = pos.y;
         this.color = color;
-        this.radius = radius;
     }
 
-    public PointRenderer(@NotNull Vector3 pos, Color color, float radius) {
+    public PointRenderer(@NotNull Vector3 pos, Color color) {
         this.x = pos.x;
         this.y = pos.y;
         this.color = color;
-        this.radius = radius;
     }
 
     public void move(float x, float y) {
@@ -42,7 +38,7 @@ public class PointRenderer {
 
     public void draw(@NotNull ShapeDrawer shape, @NotNull OrthographicCamera camera) {
         float pointScaleFactor = AutoBuilder.getConfig().getPointScaleFactor();
-        shape.filledCircle(x * pointScaleFactor, y * pointScaleFactor, radius, color);
+        shape.filledCircle(x * pointScaleFactor, y * pointScaleFactor, AutoBuilder.getPointSize(), color);
     }
 
 

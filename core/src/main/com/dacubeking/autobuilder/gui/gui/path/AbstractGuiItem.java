@@ -49,7 +49,7 @@ public abstract class AbstractGuiItem implements Disposable {
     }
 
     private final TextBlock headerTextBlock = new TextBlock(Fonts.ROBOTO, 36,
-            new TextComponent("headerText").setColor(Color.WHITE));
+            new TextComponent("headerText").setColor(Color.WHITE).setBold(true));
 
     @Override
     public void dispose() {

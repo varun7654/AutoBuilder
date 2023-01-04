@@ -70,11 +70,11 @@ public class DrivenPathRenderer extends PathRenderer {
                 RobotPosition pos1 = robotPositions.get(i).get(0);
 
                 RobotPosition pos2 = robotPositions.get(i + 1).get(0);
-                nextPointLeft.set(0, -AutoBuilder.LINE_THICKNESS / 2);
-                nextPointRight.set(0, AutoBuilder.LINE_THICKNESS / 2);
+                nextPointLeft.set(0, -AutoBuilder.getLineThickness() / 2);
+                nextPointRight.set(0, AutoBuilder.getLineThickness() / 2);
 
-                currPointLeft.set(0, -AutoBuilder.LINE_THICKNESS / 2);
-                currPointRight.set(0, AutoBuilder.LINE_THICKNESS / 2);
+                currPointLeft.set(0, -AutoBuilder.getLineThickness() / 2);
+                currPointRight.set(0, AutoBuilder.getLineThickness() / 2);
 
                 float angle = (float) Math.atan2(pos1.y() - pos2.y(), pos1.x() - pos2.x());
 

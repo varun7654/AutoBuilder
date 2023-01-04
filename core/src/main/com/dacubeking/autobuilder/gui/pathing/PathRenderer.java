@@ -81,12 +81,12 @@ public abstract class PathRenderer implements Disposable {
         rightBottom.rotateAroundRad(origin, rotation);
 
         renderer.setColor(mainColor);
-        renderer.line(leftTop, rightTop, AutoBuilder.LINE_THICKNESS);
-        renderer.line(rightBottom, leftBottom, AutoBuilder.LINE_THICKNESS);
-        renderer.line(leftBottom, leftTop, AutoBuilder.LINE_THICKNESS);
+        renderer.line(leftTop, rightTop, AutoBuilder.getLineThickness());
+        renderer.line(rightBottom, leftBottom, AutoBuilder.getLineThickness());
+        renderer.line(leftBottom, leftTop, AutoBuilder.getLineThickness());
 
         renderer.setColor(secondaryColor);
-        renderer.line(rightTop, rightBottom, AutoBuilder.LINE_THICKNESS);
+        renderer.line(rightTop, rightBottom, AutoBuilder.getLineThickness());
     }
 
     @Override

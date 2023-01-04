@@ -74,7 +74,7 @@ public class Rectangle extends Drawable {
                 bottomLeftCorner.y * scale,
                 width * scale,
                 height * scale,
-                AutoBuilder.LINE_THICKNESS,
+                AutoBuilder.getLineThickness(),
                 rotation);
     }
 }

@@ -61,6 +61,6 @@ public class Path extends Drawable {
             }
             lastScale = scale;
         }
-        drawer.path(cachedVertices, AutoBuilder.LINE_THICKNESS);
+        drawer.path(cachedVertices, AutoBuilder.getLineThickness());
     }
 }

@@ -39,7 +39,7 @@ public class Line extends Drawable {
                 start.y * scale,
                 end.x * scale,
                 end.y * scale,
-                AutoBuilder.LINE_THICKNESS);
+                AutoBuilder.getLineThickness());
     }
 
     public static @Nullable Line fromString(String line) {

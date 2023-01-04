@@ -69,8 +69,8 @@ public final class AutoBuilder extends ApplicationAdapter {
         return instance;
     }
 
-    public static final float LINE_THICKNESS = 4;
-    public static final float POINT_SIZE = 8;
+    private static final float LINE_THICKNESS = 0.0250050815f;
+    public static final float POINT_SIZE = LINE_THICKNESS * 2;
     public static final float CONTROL_VECTOR_SCALE = 3;
     public static final float MIN_CONTROL_VECTOR_DISTANCE = 0.1f;
 
@@ -120,6 +120,14 @@ public final class AutoBuilder extends ApplicationAdapter {
         e.printStackTrace();
         System.out.println("Something went wrong during fame " + Gdx.graphics.getFrameId());
         Gdx.app.exit();
+    }
+
+    public static float getLineThickness() {
+        return LINE_THICKNESS * config.getPointScaleFactor();
+    }
+
+    public static float getPointSize() {
+        return POINT_SIZE * config.getPointScaleFactor();
     }
 
     @Override
@@ -174,7 +182,7 @@ public final class AutoBuilder extends ApplicationAdapter {
         hudCam.position.y = Gdx.graphics.getHeight() / 2f;
         hudViewport = new ScreenViewport(hudCam);
 
-        origin = new PointRenderer(0, 0, Color.ORANGE, POINT_SIZE);
+        origin = new PointRenderer(0, 0, Color.ORANGE);
 
         pathGui = new PathGui(asyncPathingService, cameraHandler);
 
@@ -445,7 +453,7 @@ public final class AutoBuilder extends ApplicationAdapter {
                     0, Gdx.graphics.getHeight() - 2);
         }
         //Figure out the max distance a point can be from the mouse
-        float maxDistance = (float) Math.pow(Math.max(20 * cam.zoom, POINT_SIZE), 2);
+        float maxDistance = (float) Math.pow(Math.max(20 * cam.zoom, getPointSize()), 2);
 
         drivenPathRenderer.update();
 

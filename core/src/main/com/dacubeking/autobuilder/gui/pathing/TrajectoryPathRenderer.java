@@ -96,7 +96,7 @@ public class TrajectoryPathRenderer extends PathRenderer implements MovablePoint
         for (ControlVector controlVector : controlVectors) {
             pointRenderList.add(
                     new MovablePointRenderer((float) controlVector.x[0], (float) controlVector.y[0], color,
-                            AutoBuilder.POINT_SIZE, this));
+                            AutoBuilder.getPointSize(), this));
         }
 
         this.executorService = executorService;
@@ -131,8 +131,8 @@ public class TrajectoryPathRenderer extends PathRenderer implements MovablePoint
             cachedDrawing = CachedDrawingUtils.createNewDrawing(renderer);
             CachedDrawingUtils.setDrawing(renderer, cachedDrawing);
             //Get the first 2 points of the line at t = 0
-            lastPointLeft.set(0, -AutoBuilder.LINE_THICKNESS / 2);
-            lastPointRight.set(0, AutoBuilder.LINE_THICKNESS / 2);
+            lastPointLeft.set(0, -AutoBuilder.getLineThickness() / 2);
+            lastPointRight.set(0, AutoBuilder.getLineThickness() / 2);
             if (trajectory != null) {
                 List<State> states = trajectory.getStates();
                 if (states.size() > 0) {
@@ -158,8 +158,8 @@ public class TrajectoryPathRenderer extends PathRenderer implements MovablePoint
                         speedColor.set(speedColor.r, speedColor.g, speedColor.b, 1);
 
                         //Get the 2 points of the line at the current time
-                        nextPointLeft.set(0, -AutoBuilder.LINE_THICKNESS / 2);
-                        nextPointRight.set(0, AutoBuilder.LINE_THICKNESS / 2);
+                        nextPointLeft.set(0, -AutoBuilder.getLineThickness() / 2);
+                        nextPointRight.set(0, AutoBuilder.getLineThickness() / 2);
 
                         nextPointLeft.rotateRad((float) cur.getRotation().getRadians());
                         nextPointRight.rotateRad((float) cur.getRotation().getRadians());
@@ -191,12 +191,13 @@ public class TrajectoryPathRenderer extends PathRenderer implements MovablePoint
 
         if (controlPoint != null) {
             PointRenderer selectedPoint = pointRenderList.get(selectionPointIndex);
-            renderer.line(selectedPoint.getRenderPos2(), controlPoint.getRenderPos2(), Color.WHITE, AutoBuilder.LINE_THICKNESS);
+            renderer.line(selectedPoint.getRenderPos2(), controlPoint.getRenderPos2(), Color.WHITE,
+                    AutoBuilder.getLineThickness());
             controlPoint.draw(renderer, cam);
 
             if (rotationPoint != null && config.isHolonomic()) {
                 renderer.line(selectedPoint.getRenderPos2(), rotationPoint.getRenderPos2(), Color.WHITE,
-                        AutoBuilder.LINE_THICKNESS);
+                        AutoBuilder.getLineThickness());
                 rotationPoint.draw(renderer, cam);
             }
 
@@ -236,7 +237,7 @@ public class TrajectoryPathRenderer extends PathRenderer implements MovablePoint
 
             if (i == selectionPointIndex) {
                 if (highlightPoint == null) {
-                    highlightPoint = new PointRenderer(pointRenderer.getPos2(), Color.WHITE, AutoBuilder.POINT_SIZE * 1.4f);
+                    highlightPoint = new PointRenderer(pointRenderer.getPos2(), Color.WHITE);
                 } else {
                     highlightPoint.setPosition(pointRenderer.getPos2());
                 }
@@ -370,7 +371,7 @@ public class TrajectoryPathRenderer extends PathRenderer implements MovablePoint
                 new MovablePointRenderer(
                         (float) newPoint.poseMeters.getX(),
                         (float) newPoint.poseMeters.getY(),
-                        color, AutoBuilder.POINT_SIZE, this
+                        color, AutoBuilder.getPointSize(), this
                 ));
 
         rotation2dList.add(closePoint.prevPointIndex() + 1, newPoint.poseMeters.getRotation());
@@ -466,12 +467,12 @@ public class TrajectoryPathRenderer extends PathRenderer implements MovablePoint
         Vector2 pos2 = point.getPos2();
         float controlXPos = (float) (pos2.x + (controlVector.x[1] / AutoBuilder.CONTROL_VECTOR_SCALE));
         float controlYPos = (float) (pos2.y + (controlVector.y[1] / AutoBuilder.CONTROL_VECTOR_SCALE));
-        controlPoint = new MovablePointRenderer(controlXPos, controlYPos, Color.GREEN, AutoBuilder.POINT_SIZE, this);
+        controlPoint = new MovablePointRenderer(controlXPos, controlYPos, Color.GREEN, AutoBuilder.getPointSize(), this);
 
 
         float rotationXPos = (float) (pos2.x + rotation2dList.get(selectionPointIndex).getCos());
         float rotationYPos = (float) (pos2.y + rotation2dList.get(selectionPointIndex).getSin());
-        rotationPoint = new MovablePointRenderer(rotationXPos, rotationYPos, Color.BLUE, AutoBuilder.POINT_SIZE, this);
+        rotationPoint = new MovablePointRenderer(rotationXPos, rotationYPos, Color.BLUE, AutoBuilder.getPointSize(), this);
     }
 
     private enum PointType {

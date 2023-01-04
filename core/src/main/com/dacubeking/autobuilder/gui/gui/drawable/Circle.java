@@ -46,6 +46,6 @@ public class Circle extends Drawable {
         drawer.circle(center.x * scale,
                 center.y * scale,
                 radius * scale,
-                AutoBuilder.LINE_THICKNESS);
+                AutoBuilder.getLineThickness());
     }
 }

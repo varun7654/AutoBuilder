@@ -25,19 +25,19 @@ public class MovablePointRenderer extends PointRenderer {
 
     public MovablePointRenderer(float x, float y, @NotNull Color color, float radius,
                                 @NotNull MovablePointEventHandler eventHandler) {
-        super(x, y, color, radius);
+        super(x, y, color);
         this.eventHandler = eventHandler;
     }
 
     public MovablePointRenderer(@NotNull Vector3 pos, @NotNull Color color, float radius,
                                 @NotNull MovablePointEventHandler eventHandler) {
-        super(pos, color, radius);
+        super(pos, color);
         this.eventHandler = eventHandler;
     }
 
     public MovablePointRenderer(@NotNull Vector2 pos, @NotNull Color color, float radius,
                                 @NotNull MovablePointEventHandler eventHandler) {
-        super(pos, color, radius);
+        super(pos, color);
         this.eventHandler = eventHandler;
     }
 
