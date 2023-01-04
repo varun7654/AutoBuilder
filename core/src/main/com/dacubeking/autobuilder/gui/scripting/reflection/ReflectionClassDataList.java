@@ -6,20 +6,15 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.ArrayList;
 
 public class ReflectionClassDataList {
-    @JsonProperty("reflectionClassData")
-    public ArrayList<ReflectionClassData> reflectionClassData = new ArrayList<>();
+    @JsonProperty public
+    ArrayList<ReflectionClassData> reflectionClassData = new ArrayList<>();
 
-    @JsonProperty("instanceLocations")
-    public ArrayList<String> instanceLocations = new ArrayList<>();
 
-    @JsonCreator
     protected ReflectionClassDataList() {
     }
 
-
-    ReflectionClassDataList(@JsonProperty ArrayList<ReflectionClassData> reflectionClassData,
-                            @JsonProperty ArrayList<String> instanceLocations) {
+    @JsonCreator
+    ReflectionClassDataList(ArrayList<ReflectionClassData> reflectionClassData) {
         this.reflectionClassData = reflectionClassData;
-        this.instanceLocations = instanceLocations;
     }
 }

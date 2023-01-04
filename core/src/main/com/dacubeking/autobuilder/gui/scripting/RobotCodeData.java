@@ -95,7 +95,8 @@ public class RobotCodeData {
 
     public static Hashtable<String, ReflectionClassData> robotClassesMap = new Hashtable<>();
     public static Hashtable<String, ReflectionClassData> robotFullNameClassesMap = new Hashtable<>();
-    public static List<String> accessibleClasses;
+
+    public static Hashtable<String, String> robotFullNameToAlias = new Hashtable<>();
 
     public static void initData() {
         try {
@@ -111,11 +112,15 @@ public class RobotCodeData {
                     (ReflectionClassDataList) Serializer.deserialize(string, ReflectionClassDataList.class);
 
             robotClasses = reflectionClassDataList.reflectionClassData;
-            accessibleClasses = reflectionClassDataList.instanceLocations;
 
             for (ReflectionClassData robotClass : robotClasses) {
-                String[] splitFullName = robotClass.fullName.split("\\.");
-                robotClassesMap.put(splitFullName[splitFullName.length - 1], robotClass);
+                if (robotClass.alias.isEmpty()) {
+                    String[] splitFullName = robotClass.fullName.split("\\.");
+                    robotClassesMap.put(splitFullName[splitFullName.length - 1], robotClass);
+                } else {
+                    robotClassesMap.put(robotClass.alias, robotClass);
+                    robotFullNameToAlias.put(robotClass.fullName, robotClass.alias);
+                }
                 robotFullNameClassesMap.put(robotClass.fullName, robotClass);
                 robotClass.initMap();
             }
@@ -189,19 +194,18 @@ public class RobotCodeData {
                 break; // Found the class
             }
         }
-
+        final Color classColor = new Color(Color.BLACK);
         if (reflectionClassData == null) {
             classTextComponents.add(new TextComponent("\nCould not find class: ")); // Add the error message
             classTextComponents.add(new TextComponent(classAndMethod[0].string()).setItalic(true));
             error = true; // Set the error flag, but continue to allow us to complain about not having a method
             hasInstance = false;
         } else {
-            if (accessibleClasses.contains(reflectionClassData.fullName)) {
+            if (robotFullNameClassesMap.get(reflectionClassData.fullName).isAnnotatedAsAccessible) {
                 hasInstance = true;
                 classTextComponents.add(new TextComponent("Using annotated instance for class "));
             } else {
                 // Try to find a getInstance method
-
                 Optional<ReflectionMethodData> singletonMethod;
                 if (reflectionClassData.methodMap.containsKey("getInstance")) {
                     singletonMethod = reflectionClassData.methodMap.get("getInstance").stream()
@@ -219,31 +223,61 @@ public class RobotCodeData {
                     hasInstance = false;
                 }
             }
-            classTextComponents.add(new TextComponent(reflectionClassData.fullName).setItalic(true));
+            var className = new TextComponent(reflectionClassData.fullName).setItalic(true).setColor(classColor);
+            if (robotFullNameToAlias.containsKey(reflectionClassData.fullName)) {
+                classTextComponents.add(className.setColor(Color.GRAY));
+                classTextComponents.addAll(List.of(
+                        new TextComponent("\n(aliased as: "),
+                        new TextComponent(robotFullNameToAlias.get(reflectionClassData.fullName))
+                                .setItalic(true).setColor(classColor),
+                        new TextComponent(")")
+                ));
+            } else {
+                classTextComponents.add(className);
+            }
         }
 
 
-        if (classAndMethod.length == 1 /* no arguments */ && hasInstance && reflectionClassData.isCommand
+        if (classAndMethod.length == 1 /* no arguments */ && !error && reflectionClassData.isCommand
                 && !classMethod.string().endsWith(".")) {
-            classTextComponents.add(
-                    new TextComponent("\n\nThis class is a command it will be executed by the command scheduler"));
-            classTextComponents.add(new TextComponent("This will be run asynchronously by the scheduler unless the method has " +
-                    "been annotated with the "));
-            classTextComponents.add(new TextComponent("@RequireWait").setItalic(true).setColor(Color.ORANGE));
-            classTextComponents.add(new TextComponent(" annotation."));
-            classTextComponents.add(new TextComponent("\n\nIf the command has been annotated with the annotation sequential " +
-                    "commands will not be run until this command stop executing."));
-            sendableCommands.add(new SendableCommand(reflectionClassData.fullName,
-                    new String[]{}, new String[]{}, true, true));
-            createLintingPos(lintingPositions, classMethod.index(), false, DARK_TEAL, classTextComponents);
-            return true;
-        } else if (classAndMethod.length <= 1) {
+            if (hasInstance) {
+                classTextComponents.add(
+                        new TextComponent("\n\nThis class is a command it will be executed by the command scheduler. "));
+                classTextComponents.add(
+                        new TextComponent("This will be run asynchronously by the scheduler unless the method has " +
+                                "been annotated with the "));
+                classTextComponents.add(new TextComponent("@RequireWait").setItalic(true).setColor(Color.ORANGE));
+                classTextComponents.add(new TextComponent(" annotation."));
+                classTextComponents.add(
+                        new TextComponent("\n\nIf the command has been annotated with the annotation sequential " +
+                                "calls will not be run until this command stop executing."));
+                sendableCommands.add(createSendableCommand(reflectionClassData.fullName,
+                        new String[]{}, new String[]{}, true, true));
+                classColor.set(DARK_TEAL);
+                createLintingPos(lintingPositions, classMethod.index(), false, classColor, classTextComponents);
+                return true;
+            } else {
+                classTextComponents.addAll(List.of(
+                        new TextComponent("\n\nThis class is a command, but we couldn't find a way to get an instance " +
+                                "of it. Please make sure that you annotate an instance of the class with the "),
+                        new TextComponent("@AutoBuilderAccessible").setItalic(true).setColor(Color.ORANGE),
+                        new TextComponent(" annotation. \n\nIf you were trying to execute a static method in this Command you " +
+                                "can ignore this message.")
+                ));
+
+                classColor.set(DARK_TEAL);
+                error = true;
+            }
+        }
+
+        if (!error) {
+            classColor.set(BLUE);
+        }
+        if (classAndMethod.length <= 1) {
             classTextComponents.add(new TextComponent("\n\nExpected a method after class or for the class to be a command"));
             error = true;
-            createLintingPos(lintingPositions, classMethod.index(), error, classTextComponents);
-        } else {
-            createLintingPos(lintingPositions, classMethod.index(), error, BLUE, classTextComponents);
         }
+        createLintingPos(lintingPositions, classMethod.index(), error, classColor, classTextComponents);
 
 
         if (error) {
@@ -365,12 +399,33 @@ public class RobotCodeData {
         }
 
 
-        sendableCommands.add(new SendableCommand(reflectionClassData.fullName + "." + method.methodName,
+        sendableCommands.add(createSendableCommand(reflectionClassData.fullName + "." + method.methodName,
                 Arrays.stream(args).map(StringIndex::toString).toArray(String[]::new),
                 argumentTypes.toArray(String[]::new),
                 true));
 
         return true;
+    }
+
+    @NotNull
+    private static SendableCommand createSendableCommand(String fullName,
+                                                         String[] argTypes,
+                                                         String[] args,
+                                                         boolean reflection,
+                                                         boolean command) {
+        if (robotFullNameToAlias.containsKey(fullName)) {
+            fullName = robotFullNameToAlias.get(fullName);
+        }
+
+        return new SendableCommand(fullName, argTypes, args, reflection, command);
+    }
+
+    @NotNull
+    private static SendableCommand createSendableCommand(String fullName,
+                                                         String[] argTypes,
+                                                         String[] args,
+                                                         boolean reflection) {
+        return createSendableCommand(fullName, argTypes, args, reflection, false);
     }
 
     private static TextComponent getPossibleArguments(ReflectionClassData reflectionClassData, StringIndex[] classAndMethod) {
