@@ -28,6 +28,9 @@ import static com.dacubeking.autobuilder.gui.scripting.util.StringIndex.splitWit
 
 public class RobotCodeData {
 
+    private static final Color DARK_TEAL = Color.valueOf("00627a");
+    private static final Color BLUE = Color.valueOf("005ad9");
+
     public static final @NotNull Map<String, Function<@NotNull String, @NotNull Boolean>> inferableTypesVerification;
 
     static {
@@ -220,24 +223,28 @@ public class RobotCodeData {
         }
 
 
-        if (classAndMethod.length == 1 /* no arguments */ && hasInstance && reflectionClassData.isCommand) {
-            classTextComponents.add(new TextComponent("\n\nThis class is a command and the corresponding, initialize, execute, " +
-                    "end methods will be called\n\n"));
-            classTextComponents.add(new TextComponent("This will not be run by the scheduler, and requirements will not be " +
-                    "checked").setBold(true));
-            classTextComponents.add(new TextComponent("\nThe isFinished method will be respected and the command will continue " +
-                    "to be executed until it returns true. Sequential commands will not be run until this command returns true"));
+        if (classAndMethod.length == 1 /* no arguments */ && hasInstance && reflectionClassData.isCommand
+                && !classMethod.string().endsWith(".")) {
+            classTextComponents.add(
+                    new TextComponent("\n\nThis class is a command it will be executed by the command scheduler"));
+            classTextComponents.add(new TextComponent("This will be run asynchronously by the scheduler unless the method has " +
+                    "been annotated with the "));
+            classTextComponents.add(new TextComponent("@RequireWait").setItalic(true).setColor(Color.ORANGE));
+            classTextComponents.add(new TextComponent(" annotation."));
+            classTextComponents.add(new TextComponent("\n\nIf the command has been annotated with the annotation sequential " +
+                    "commands will not be run until this command stop executing."));
             sendableCommands.add(new SendableCommand(reflectionClassData.fullName,
                     new String[]{}, new String[]{}, true, true));
-            createLintingPos(lintingPositions, classMethod.index(), false, classTextComponents);
+            createLintingPos(lintingPositions, classMethod.index(), false, DARK_TEAL, classTextComponents);
             return true;
         } else if (classAndMethod.length <= 1) {
-            classTextComponents.add(new TextComponent("\n\nExpected a method after class"));
+            classTextComponents.add(new TextComponent("\n\nExpected a method after class or for the class to be a command"));
             error = true;
+            createLintingPos(lintingPositions, classMethod.index(), error, classTextComponents);
+        } else {
+            createLintingPos(lintingPositions, classMethod.index(), error, BLUE, classTextComponents);
         }
 
-
-        createLintingPos(lintingPositions, classMethod.index(), error, classTextComponents);
 
         if (error) {
             // Don't continue if there was an error
@@ -399,14 +406,24 @@ public class RobotCodeData {
         return Modifier.isStatic(methodData.modifiers);
     }
 
-    private static void createLintingPos(List<LintingPos> lintingPositions, int index, boolean error,
-                                         List<TextComponent> textComponents) {
+    private static void createLintingPos(@NotNull List<LintingPos> lintingPositions, int index, boolean error,
+                                         @NotNull List<TextComponent> textComponents) {
         createLintingPos(lintingPositions, index, error, textComponents.toArray(TextComponent[]::new));
     }
 
-    private static void createLintingPos(List<LintingPos> lintingPositions, int index, boolean error,
-                                         TextComponent... textComponents) {
-        lintingPositions.add(new LintingPos(index, error ? Color.RED : Color.CLEAR,
+    private static void createLintingPos(@NotNull List<LintingPos> lintingPositions, int index, boolean error, Color textColor,
+                                         @NotNull List<TextComponent> textComponents) {
+        createLintingPos(lintingPositions, index, error, textColor, textComponents.toArray(TextComponent[]::new));
+    }
+
+    private static void createLintingPos(@NotNull List<LintingPos> lintingPositions, int index, boolean error,
+                                         @NotNull TextComponent... textComponents) {
+        createLintingPos(lintingPositions, index, error, Color.BLACK, textComponents);
+    }
+
+    private static void createLintingPos(@NotNull List<LintingPos> lintingPositions, int index, boolean error, Color textColor,
+                                         @NotNull TextComponent... textComponents) {
+        lintingPositions.add(new LintingPos(index, error ? Color.RED : Color.CLEAR, textColor,
                 new TextBlock(Fonts.ROBOTO, 14, 300, textComponents)));
     }
 }

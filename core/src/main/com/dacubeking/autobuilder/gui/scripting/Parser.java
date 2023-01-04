@@ -24,6 +24,7 @@ public class Parser {
 
     private final static Color DARK_GREEN = Color.valueOf("007400");
     private final static Color ORANGE = Color.valueOf("#FF9A00");
+    private final static Color PINK = Color.valueOf("#a811aa");
 
     /**
      * Parses a string into a list of {@link SendableCommand}s
@@ -68,7 +69,7 @@ public class Parser {
                 case "print":
                     if (args.length == 0) {
                         error = true;
-                        lintingPositions.add(new LintingPos(method.index(), Color.RED, new TextBlock(Fonts.ROBOTO, 14, 300,
+                        lintingPositions.add(new LintingPos(method.index(), Color.RED, PINK, new TextBlock(Fonts.ROBOTO, 14, 300,
                                 new TextComponent("Usage: print <text>\n").setBold(true),
                                 new TextComponent("Expected 1 or more argument(s) after print"))));
                     } else {
@@ -77,11 +78,14 @@ public class Parser {
                             aggregate.append(arg.string()).append(" ");
                         }
 
-                        lintingPositions.add(new LintingPos(method.index(), Color.CLEAR, new TextBlock(Fonts.ROBOTO, 14, 300,
+                        var message = new TextBlock(Fonts.ROBOTO, 14, 300,
                                 new TextComponent("Built in method\n").setBold(true),
                                 new TextComponent("Will print \""),
                                 new TextComponent(aggregate.toString()).setItalic(true),
-                                new TextComponent("\" to the console"))));
+                                new TextComponent("\" to the console"));
+
+                        lintingPositions.add(new LintingPos(method.index(), Color.CLEAR, PINK, message));
+                        lintingPositions.add(new LintingPos(args[0].index(), Color.CLEAR, Color.BLACK, message));
                         sendableCommands.add(new SendableCommand(method.string(), new String[]{aggregate.toString()},
                                 new String[]{String.class.getName()}, false));
                     }
@@ -89,18 +93,28 @@ public class Parser {
                 case "sleep":
                     if (args.length != 1) {
                         error = true;
-                        lintingPositions.add(new LintingPos(method.index(), Color.RED, new TextBlock(Fonts.ROBOTO, 14, 300,
+
+                        var message = new TextBlock(Fonts.ROBOTO, 14, 300,
                                 new TextComponent("Usage: sleep <time>\n").setBold(true),
-                                new TextComponent("Expected a long after sleep"))));
+                                new TextComponent("Expected a long after sleep"));
+
+                        lintingPositions.add(new LintingPos(method.index(), Color.RED, PINK, message));
+
+                        if (args.length > 1) {
+                            lintingPositions.add(new LintingPos(args[1].index(), Color.RED, Color.BLACK, message));
+                        }
                         break;
                     }
 
                     try {
                         long duration = Long.parseLong(args[0].string());
 
-                        lintingPositions.add(new LintingPos(method.index(), Color.CLEAR, new TextBlock(Fonts.ROBOTO, 14, 300,
+                        var message = new TextBlock(Fonts.ROBOTO, 14, 300,
                                 new TextComponent("Built in method\n").setBold(true),
-                                new TextComponent("Will sleep for " + duration + "ms").setBold(false))));
+                                new TextComponent("Will sleep for " + duration + "ms").setBold(false));
+
+                        lintingPositions.add(new LintingPos(method.index(), Color.CLEAR, PINK, message));
+                        lintingPositions.add(new LintingPos(args[0].index(), Color.CLEAR, message));
 
                         sendableCommands.add(new SendableCommand(method.string(), new String[]{args[0].string()},
                                 new String[]{long.class.getName()}, false));
@@ -200,7 +214,9 @@ public class Parser {
 
                     if (AutoBuilder.getConfig().getReflectionEnabled()) {
                         //Try using reflection
-                        if (!RobotCodeData.validateMethod(method, args, lintingPositions, sendableCommands)) error = true;
+                        if (!RobotCodeData.validateMethod(method, args, lintingPositions, sendableCommands)) {
+                            error = true;
+                        }
                     } else {
                         // Use fallback
                         if (AutoBuilder.getConfig().getScriptMethods().contains(
