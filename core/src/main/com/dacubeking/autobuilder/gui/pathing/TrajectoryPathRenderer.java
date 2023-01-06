@@ -281,7 +281,7 @@ public class TrajectoryPathRenderer extends PathRenderer implements MovablePoint
 
             if (i == selectionPointIndex) {
                 if (highlightPoint == null) {
-                    highlightPoint = new PointRenderer(pointRenderer.getPos2(), Color.WHITE);
+                    highlightPoint = new PointRenderer(pointRenderer.getPos2(), Color.WHITE, 1.4f);
                 } else {
                     highlightPoint.setPosition(pointRenderer.getPos2());
                 }

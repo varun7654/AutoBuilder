@@ -12,8 +12,6 @@ import com.dacubeking.autobuilder.gui.events.movablepoint.PointMoveEvent;
 import com.dacubeking.autobuilder.gui.undo.UndoHandler;
 import org.jetbrains.annotations.NotNull;
 
-import static com.dacubeking.autobuilder.gui.AutoBuilder.POINT_SIZE;
-
 public class MovablePointRenderer extends PointRenderer {
 
 
@@ -45,7 +43,8 @@ public class MovablePointRenderer extends PointRenderer {
 
     public boolean update(@NotNull OrthographicCamera camera, @NotNull Vector3 mousePos, Vector3 mouseDiff) {
         if (Gdx.input.isButtonJustPressed(Input.Buttons.LEFT) || Gdx.input.isButtonJustPressed(Input.Buttons.RIGHT)) {
-            if (new Vector3(mousePos).sub(getRenderPos3()).len2() < Math.pow(Math.max(20 * camera.zoom, POINT_SIZE), 2)) {
+            if (new Vector3(mousePos).sub(getRenderPos3()).len2() <
+                    Math.pow(Math.max(20 * camera.zoom, AutoBuilder.getPointSize() * radius), 2)) {
                 if (Gdx.input.isButtonJustPressed(Input.Buttons.LEFT)) {
                     startPress.set(mousePos);
                     pressed = true;

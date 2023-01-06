@@ -11,11 +11,17 @@ public class PointRenderer {
     protected float x;
     protected float y;
     protected Color color;
+    protected float radius;
 
-    public PointRenderer(float x, float y, Color color) {
+    public PointRenderer(float x, float y, Color color, float radius) {
         this.x = x;
         this.y = y;
         this.color = color;
+        this.radius = radius;
+    }
+
+    public PointRenderer(float x, float y, Color color) {
+        this(x, y, color, 1);
     }
 
     public PointRenderer(@NotNull Vector2 pos, Color color) {
@@ -23,6 +29,14 @@ public class PointRenderer {
         this.y = pos.y;
         this.color = color;
     }
+
+    public PointRenderer(@NotNull Vector2 pos, Color color, float radius) {
+        this.x = pos.x;
+        this.y = pos.y;
+        this.color = color;
+        this.radius = radius;
+    }
+
 
     public PointRenderer(@NotNull Vector3 pos, Color color) {
         this.x = pos.x;
@@ -37,7 +51,7 @@ public class PointRenderer {
 
     public void draw(@NotNull ShapeDrawer shape) {
         float pointScaleFactor = AutoBuilder.getConfig().getPointScaleFactor();
-        shape.filledCircle(x * pointScaleFactor, y * pointScaleFactor, AutoBuilder.getPointSize(), color);
+        shape.filledCircle(x * pointScaleFactor, y * pointScaleFactor, AutoBuilder.getPointSize() * radius, color);
     }
 
 
