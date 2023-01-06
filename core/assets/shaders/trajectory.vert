@@ -12,13 +12,12 @@ attribute float a_speedPercent;
 uniform mat4 u_projTrans;
 uniform vec2 u_colorhv;
 
-
 varying vec4 v_color;
 
 void main()
 {
     vec3 _hsvColor = vec3(u_colorhv.x, a_speedPercent * 0.9 + 0.1, u_colorhv.y);
     v_color = vec4(hsv2rgb(_hsvColor), 0);
-    vec4 pos = vec4(a_position.xy, 0, 1);;
+    vec4 pos = vec4(a_position.xy, 0, 1);
     gl_Position =  u_projTrans * pos;
 }

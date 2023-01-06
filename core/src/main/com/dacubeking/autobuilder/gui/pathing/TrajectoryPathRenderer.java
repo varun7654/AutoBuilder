@@ -38,7 +38,6 @@ import com.dacubeking.autobuilder.gui.wpi.math.trajectory.TrajectoryGenerator.Co
 import com.dacubeking.autobuilder.gui.wpi.math.trajectory.constraint.TrajectoryConstraint;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import space.earlygrey.shapedrawer.Drawing;
 import space.earlygrey.shapedrawer.ShapeDrawer;
 
 import java.io.Serializable;
@@ -57,6 +56,11 @@ import java.util.concurrent.locks.ReentrantLock;
 public class TrajectoryPathRenderer extends PathRenderer implements MovablePointEventHandler, Serializable {
 
     @NotNull private static final ShaderProgram trajectoryShader = ShaderLoader.loadShader("trajectory");
+    @NotNull private static final VertexAttributes shaderAttributes = new VertexAttributes(
+            new VertexAttribute(Usage.Generic, 2, ShaderProgram.POSITION_ATTRIBUTE),
+            new VertexAttribute(Usage.Generic, 1, "a_speedPercent")
+    );
+    private @Nullable Mesh mesh = null;
     @NotNull private final Color color;
     @NotNull private final List<Spline.ControlVector> controlVectors;
     @NotNull private final List<Rotation2d> rotation2dList;
@@ -83,6 +87,10 @@ public class TrajectoryPathRenderer extends PathRenderer implements MovablePoint
     @NotNull Vector2 nextPointRight = new Vector2();
     private int robotPreviewIndex;
     @NotNull private final List<TrajectoryConstraint> constraints;
+
+    // Reused objects
+    private final float @NotNull [] colorHsv = new float[3];
+
 
     DecimalFormat df = new DecimalFormat("#.##");
 
@@ -116,13 +124,15 @@ public class TrajectoryPathRenderer extends PathRenderer implements MovablePoint
         updatePath();
     }
 
-    private @Nullable Drawing cachedDrawing = null;
     private final @NotNull AtomicBoolean isDrawingCached = new AtomicBoolean(false);
 
     @Override
     protected void deleteRenderCache() {
         isDrawingCached.set(false);
-        cachedDrawing = null;
+        if (mesh != null) {
+            mesh.dispose();
+        }
+        mesh = null;
     }
 
     @Override
@@ -136,82 +146,80 @@ public class TrajectoryPathRenderer extends PathRenderer implements MovablePoint
         if (trajectory != null) {
             List<State> states = trajectory.getStates();
             if (states.size() > 0) {
-                lastPointLeft.rotateRad((float) states.get(0).poseMeters.getRotation().getRadians());
-                lastPointRight.rotateRad((float) states.get(0).poseMeters.getRotation().getRadians());
+                if (!isDrawingCached.getAndSet(true) || mesh == null) {
+                    mesh = new Mesh(true, states.size() * 6 * 3, 0, shaderAttributes);
+                    lastPointLeft.rotateRad((float) states.get(0).poseMeters.getRotation().getRadians());
+                    lastPointRight.rotateRad((float) states.get(0).poseMeters.getRotation().getRadians());
 
-                lastPointLeft.add((float) states.get(0).poseMeters.getTranslation().getX() * pointScaleFactor,
-                        (float) states.get(0).poseMeters.getTranslation().getY() * pointScaleFactor);
-                lastPointRight.add((float) states.get(0).poseMeters.getTranslation().getX() * pointScaleFactor,
-                        (float) states.get(0).poseMeters.getTranslation().getY() * pointScaleFactor);
-                double maxSpeed = AutoBuilder.getConfig().getPathingConfig().maxVelocityMetersPerSecond;
-                float lastSpeedPercent = (float) (states.get(0).velocityMetersPerSecond / maxSpeed);
-
-                var attributes = new VertexAttributes(
-                        new VertexAttribute(Usage.Generic, 2, ShaderProgram.POSITION_ATTRIBUTE),
-                        new VertexAttribute(Usage.Generic, 1, "a_speedPercent")
-                );
-                float[] vertexData = new float[states.size() * 6 * 3];
-                int i = 0;
-
-                for (State state : states) {
-                    Pose2d cur = state.poseMeters;
-
-                    //Use the speed of the path to determine its saturation
-                    float speedPercent = (float) (Math.abs(state.velocityMetersPerSecond) / maxSpeed);
-
-                    //Get the 2 points of the line at the current time
-                    nextPointLeft.set(0, -AutoBuilder.getLineThickness() / 2);
-                    nextPointRight.set(0, AutoBuilder.getLineThickness() / 2);
-
-                    nextPointLeft.rotateRad((float) cur.getRotation().getRadians());
-                    nextPointRight.rotateRad((float) cur.getRotation().getRadians());
-
-                    nextPointLeft.add((float) cur.getTranslation().getX() * pointScaleFactor,
-                            (float) cur.getTranslation().getY() * pointScaleFactor);
-                    nextPointRight.add((float) cur.getTranslation().getX() * pointScaleFactor,
-                            (float) cur.getTranslation().getY() * pointScaleFactor);
+                    lastPointLeft.add((float) states.get(0).poseMeters.getTranslation().getX() * pointScaleFactor,
+                            (float) states.get(0).poseMeters.getTranslation().getY() * pointScaleFactor);
+                    lastPointRight.add((float) states.get(0).poseMeters.getTranslation().getX() * pointScaleFactor,
+                            (float) states.get(0).poseMeters.getTranslation().getY() * pointScaleFactor);
+                    double maxSpeed = AutoBuilder.getConfig().getPathingConfig().maxVelocityMetersPerSecond;
+                    float lastSpeedPercent = (float) (states.get(0).velocityMetersPerSecond / maxSpeed);
 
 
-                    //Add the 4 vertices of the quad to the vertex data
-                    // Triangle 1
-                    vertexData[i++] = lastPointLeft.x;
-                    vertexData[i++] = lastPointLeft.y;
-                    vertexData[i++] = lastSpeedPercent;
-
-                    vertexData[i++] = lastPointRight.x;
-                    vertexData[i++] = lastPointRight.y;
-                    vertexData[i++] = lastSpeedPercent;
+                    int i = 0;
+                    float[] vertexData = new float[states.size() * 6 * 3];
 
 
-                    vertexData[i++] = nextPointLeft.x;
-                    vertexData[i++] = nextPointLeft.y;
-                    vertexData[i++] = speedPercent;
+                    for (State state : states) {
+                        Pose2d cur = state.poseMeters;
 
-                    // Triangle 2
-                    vertexData[i++] = nextPointLeft.x;
-                    vertexData[i++] = nextPointLeft.y;
-                    vertexData[i++] = speedPercent;
+                        //Use the speed of the path to determine its saturation
+                        float speedPercent = (float) (Math.abs(state.velocityMetersPerSecond) / maxSpeed);
 
-                    vertexData[i++] = lastPointRight.x;
-                    vertexData[i++] = lastPointRight.y;
-                    vertexData[i++] = lastSpeedPercent;
+                        //Get the 2 points of the line at the current time
+                        nextPointLeft.set(0, -AutoBuilder.getLineThickness() / 2);
+                        nextPointRight.set(0, AutoBuilder.getLineThickness() / 2);
 
-                    vertexData[i++] = nextPointRight.x;
-                    vertexData[i++] = nextPointRight.y;
-                    vertexData[i++] = speedPercent;
+                        nextPointLeft.rotateRad((float) cur.getRotation().getRadians());
+                        nextPointRight.rotateRad((float) cur.getRotation().getRadians());
 
-                    //Set the last point to the current point
-                    lastPointLeft.set(nextPointLeft);
-                    lastPointRight.set(nextPointRight);
-                    lastSpeedPercent = speedPercent;
+                        nextPointLeft.add((float) cur.getTranslation().getX() * pointScaleFactor,
+                                (float) cur.getTranslation().getY() * pointScaleFactor);
+                        nextPointRight.add((float) cur.getTranslation().getX() * pointScaleFactor,
+                                (float) cur.getTranslation().getY() * pointScaleFactor);
+
+
+                        //Add the 4 vertices of the quad to the vertex data
+                        // Triangle 1
+                        vertexData[i++] = lastPointLeft.x;
+                        vertexData[i++] = lastPointLeft.y;
+                        vertexData[i++] = lastSpeedPercent;
+
+                        vertexData[i++] = lastPointRight.x;
+                        vertexData[i++] = lastPointRight.y;
+                        vertexData[i++] = lastSpeedPercent;
+
+
+                        vertexData[i++] = nextPointLeft.x;
+                        vertexData[i++] = nextPointLeft.y;
+                        vertexData[i++] = speedPercent;
+
+                        // Triangle 2
+                        vertexData[i++] = nextPointLeft.x;
+                        vertexData[i++] = nextPointLeft.y;
+                        vertexData[i++] = speedPercent;
+
+                        vertexData[i++] = lastPointRight.x;
+                        vertexData[i++] = lastPointRight.y;
+                        vertexData[i++] = lastSpeedPercent;
+
+                        vertexData[i++] = nextPointRight.x;
+                        vertexData[i++] = nextPointRight.y;
+                        vertexData[i++] = speedPercent;
+
+                        //Set the last point to the current point
+                        lastPointLeft.set(nextPointLeft);
+                        lastPointRight.set(nextPointRight);
+                        lastSpeedPercent = speedPercent;
+                    }
+                    mesh.setVertices(vertexData);
                 }
-
                 renderer.getBatch().end();
 
-                var mesh = new Mesh(true, states.size() * 6 * 3, 0, attributes);
-                mesh.setVertices(vertexData);
 
-                float[] colorHsv = new float[3];
                 color.toHsv(colorHsv);
 
                 trajectoryShader.bind();
@@ -219,8 +227,6 @@ public class TrajectoryPathRenderer extends PathRenderer implements MovablePoint
                 trajectoryShader.setUniformf("u_colorhv", colorHsv[0] / 360, colorHsv[2]);
 
                 mesh.render(trajectoryShader, GL20.GL_TRIANGLES);
-                mesh.dispose();
-
 
                 renderer.getBatch().begin();
             }
