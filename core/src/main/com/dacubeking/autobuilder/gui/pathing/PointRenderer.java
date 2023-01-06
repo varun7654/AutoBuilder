@@ -1,7 +1,6 @@
 package com.dacubeking.autobuilder.gui.pathing;
 
 import com.badlogic.gdx.graphics.Color;
-import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.math.Vector3;
 import com.dacubeking.autobuilder.gui.AutoBuilder;
@@ -36,7 +35,7 @@ public class PointRenderer {
         this.y = y;
     }
 
-    public void draw(@NotNull ShapeDrawer shape, @NotNull OrthographicCamera camera) {
+    public void draw(@NotNull ShapeDrawer shape) {
         float pointScaleFactor = AutoBuilder.getConfig().getPointScaleFactor();
         shape.filledCircle(x * pointScaleFactor, y * pointScaleFactor, AutoBuilder.getPointSize(), color);
     }
