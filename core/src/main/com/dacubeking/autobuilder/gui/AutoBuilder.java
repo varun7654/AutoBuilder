@@ -164,7 +164,7 @@ public final class AutoBuilder extends ApplicationAdapter {
         if (new File(USER_DIRECTORY + "/field.png").exists()) {
             field = new Texture(new FileHandle(USER_DIRECTORY + "/field.png"), true);
         } else {
-            field = new Texture(Gdx.files.internal("field22.png"), true);
+            field = new Texture(Gdx.files.internal("field23.png"), true);
         }
 
         field.setFilter(TextureFilter.MipMapLinearLinear, Texture.TextureFilter.Nearest);
