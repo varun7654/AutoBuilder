@@ -4,6 +4,7 @@ import com.badlogic.gdx.ApplicationAdapter;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Graphics;
 import com.badlogic.gdx.Input;
+import com.badlogic.gdx.assets.AssetManager;
 import com.badlogic.gdx.files.FileHandle;
 import com.badlogic.gdx.graphics.*;
 import com.badlogic.gdx.graphics.Cursor.SystemCursor;
@@ -327,7 +328,7 @@ public final class AutoBuilder extends ApplicationAdapter {
         //batch.flush();
 
         //Draw all the paths
-        origin.draw(shapeRenderer, cam);
+        origin.draw(shapeRenderer);
 
         double pathTime = 0;
         for (AbstractGuiItem guiItem : pathGui.guiItems) {
@@ -619,5 +620,12 @@ public final class AutoBuilder extends ApplicationAdapter {
             undoHandler.clearUndoHistory();
         }
         undoHandler.forceCreateUndoState();
+    }
+
+
+    private final @NotNull AssetManager assetManager = new AssetManager();
+
+    public @NotNull AssetManager getAssetManager() {
+        return assetManager;
     }
 }

@@ -2,8 +2,9 @@ package com.dacubeking.autobuilder.gui.pathing;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input.Buttons;
-import com.badlogic.gdx.graphics.Color;
-import com.badlogic.gdx.graphics.OrthographicCamera;
+import com.badlogic.gdx.graphics.*;
+import com.badlogic.gdx.graphics.VertexAttributes.Usage;
+import com.badlogic.gdx.graphics.glutils.ShaderProgram;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.math.Vector3;
 import com.dacubeking.autobuilder.gui.AutoBuilder;
@@ -22,8 +23,8 @@ import com.dacubeking.autobuilder.gui.gui.textrendering.TextComponent;
 import com.dacubeking.autobuilder.gui.pathing.pointclicks.ClosePoint;
 import com.dacubeking.autobuilder.gui.pathing.pointclicks.CloseTrajectoryPoint;
 import com.dacubeking.autobuilder.gui.undo.UndoHandler;
-import com.dacubeking.autobuilder.gui.util.CachedDrawingUtils;
 import com.dacubeking.autobuilder.gui.util.MathUtil;
+import com.dacubeking.autobuilder.gui.util.shaders.ShaderLoader;
 import com.dacubeking.autobuilder.gui.wpi.math.geometry.Pose2d;
 import com.dacubeking.autobuilder.gui.wpi.math.geometry.Rotation2d;
 import com.dacubeking.autobuilder.gui.wpi.math.spline.Spline;
@@ -37,7 +38,6 @@ import com.dacubeking.autobuilder.gui.wpi.math.trajectory.TrajectoryGenerator.Co
 import com.dacubeking.autobuilder.gui.wpi.math.trajectory.constraint.TrajectoryConstraint;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import space.earlygrey.shapedrawer.Drawing;
 import space.earlygrey.shapedrawer.ShapeDrawer;
 
 import java.io.Serializable;
@@ -54,6 +54,13 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
 public class TrajectoryPathRenderer extends PathRenderer implements MovablePointEventHandler, Serializable {
+
+    @NotNull private static final ShaderProgram trajectoryShader = ShaderLoader.loadShader("trajectory");
+    @NotNull private static final VertexAttributes shaderAttributes = new VertexAttributes(
+            new VertexAttribute(Usage.Generic, 2, ShaderProgram.POSITION_ATTRIBUTE),
+            new VertexAttribute(Usage.Generic, 1, "a_speedPercent")
+    );
+    private @Nullable Mesh mesh = null;
     @NotNull private final Color color;
     @NotNull private final List<Spline.ControlVector> controlVectors;
     @NotNull private final List<Rotation2d> rotation2dList;
@@ -80,6 +87,10 @@ public class TrajectoryPathRenderer extends PathRenderer implements MovablePoint
     @NotNull Vector2 nextPointRight = new Vector2();
     private int robotPreviewIndex;
     @NotNull private final List<TrajectoryConstraint> constraints;
+
+    // Reused objects
+    private final float @NotNull [] colorHsv = new float[3];
+
 
     DecimalFormat df = new DecimalFormat("#.##");
 
@@ -113,29 +124,30 @@ public class TrajectoryPathRenderer extends PathRenderer implements MovablePoint
         updatePath();
     }
 
-    private @Nullable Drawing cachedDrawing = null;
     private final @NotNull AtomicBoolean isDrawingCached = new AtomicBoolean(false);
 
     @Override
     protected void deleteRenderCache() {
         isDrawingCached.set(false);
-        cachedDrawing = null;
+        if (mesh != null) {
+            mesh.dispose();
+        }
+        mesh = null;
     }
 
     @Override
     public void render(@NotNull ShapeDrawer renderer, @NotNull OrthographicCamera cam) {
         Config config = AutoBuilder.getConfig();
         float pointScaleFactor = config.getPointScaleFactor();
+        //Get the first 2 points of the line at t = 0
+        lastPointLeft.set(0, -AutoBuilder.getLineThickness() / 2);
+        lastPointRight.set(0, AutoBuilder.getLineThickness() / 2);
 
-        if (cachedDrawing == null || !isDrawingCached.getAndSet(true)) {
-            cachedDrawing = CachedDrawingUtils.createNewDrawing(renderer);
-            CachedDrawingUtils.setDrawing(renderer, cachedDrawing);
-            //Get the first 2 points of the line at t = 0
-            lastPointLeft.set(0, -AutoBuilder.getLineThickness() / 2);
-            lastPointRight.set(0, AutoBuilder.getLineThickness() / 2);
-            if (trajectory != null) {
-                List<State> states = trajectory.getStates();
-                if (states.size() > 0) {
+        if (trajectory != null) {
+            List<State> states = trajectory.getStates();
+            if (states.size() > 0) {
+                if (!isDrawingCached.getAndSet(true) || mesh == null) {
+                    mesh = new Mesh(true, states.size() * 6 * 3, 0, shaderAttributes);
                     lastPointLeft.rotateRad((float) states.get(0).poseMeters.getRotation().getRadians());
                     lastPointRight.rotateRad((float) states.get(0).poseMeters.getRotation().getRadians());
 
@@ -143,19 +155,19 @@ public class TrajectoryPathRenderer extends PathRenderer implements MovablePoint
                             (float) states.get(0).poseMeters.getTranslation().getY() * pointScaleFactor);
                     lastPointRight.add((float) states.get(0).poseMeters.getTranslation().getX() * pointScaleFactor,
                             (float) states.get(0).poseMeters.getTranslation().getY() * pointScaleFactor);
+                    double maxSpeed = AutoBuilder.getConfig().getPathingConfig().maxVelocityMetersPerSecond;
+                    float lastSpeedPercent = (float) (states.get(0).velocityMetersPerSecond / maxSpeed);
+
+
+                    int i = 0;
+                    float[] vertexData = new float[states.size() * 6 * 3];
+
 
                     for (State state : states) {
                         Pose2d cur = state.poseMeters;
 
                         //Use the speed of the path to determine its saturation
-                        double speed = Math.abs(state.velocityMetersPerSecond);
-                        float[] color = new float[3];
-                        this.color.toHsv(color);
-                        color[1] =
-                                (float) (0.9 * (speed / AutoBuilder.getConfig()
-                                        .getPathingConfig().maxVelocityMetersPerSecond) + 0.1);
-                        Color speedColor = new Color().fromHsv(color);
-                        speedColor.set(speedColor.r, speedColor.g, speedColor.b, 1);
+                        float speedPercent = (float) (Math.abs(state.velocityMetersPerSecond) / maxSpeed);
 
                         //Get the 2 points of the line at the current time
                         nextPointLeft.set(0, -AutoBuilder.getLineThickness() / 2);
@@ -169,36 +181,68 @@ public class TrajectoryPathRenderer extends PathRenderer implements MovablePoint
                         nextPointRight.add((float) cur.getTranslation().getX() * pointScaleFactor,
                                 (float) cur.getTranslation().getY() * pointScaleFactor);
 
-                        //Render the line
-                        renderer.setColor(speedColor);
-                        renderer.filledPolygon(new float[]{
-                                lastPointLeft.x, lastPointLeft.y,
-                                lastPointRight.x, lastPointRight.y,
-                                nextPointRight.x, nextPointRight.y,
-                                nextPointLeft.x, nextPointLeft.y
-                        });
 
+                        //Add the 4 vertices of the quad to the vertex data
+                        // Triangle 1
+                        vertexData[i++] = lastPointLeft.x;
+                        vertexData[i++] = lastPointLeft.y;
+                        vertexData[i++] = lastSpeedPercent;
+
+                        vertexData[i++] = lastPointRight.x;
+                        vertexData[i++] = lastPointRight.y;
+                        vertexData[i++] = lastSpeedPercent;
+
+
+                        vertexData[i++] = nextPointLeft.x;
+                        vertexData[i++] = nextPointLeft.y;
+                        vertexData[i++] = speedPercent;
+
+                        // Triangle 2
+                        vertexData[i++] = nextPointLeft.x;
+                        vertexData[i++] = nextPointLeft.y;
+                        vertexData[i++] = speedPercent;
+
+                        vertexData[i++] = lastPointRight.x;
+                        vertexData[i++] = lastPointRight.y;
+                        vertexData[i++] = lastSpeedPercent;
+
+                        vertexData[i++] = nextPointRight.x;
+                        vertexData[i++] = nextPointRight.y;
+                        vertexData[i++] = speedPercent;
+
+                        //Set the last point to the current point
                         lastPointLeft.set(nextPointLeft);
                         lastPointRight.set(nextPointRight);
+                        lastSpeedPercent = speedPercent;
                     }
+                    mesh.setVertices(vertexData);
                 }
-            }
+                renderer.getBatch().end();
 
-            CachedDrawingUtils.setDrawing(renderer, null);
-            assert cachedDrawing != null;
+
+                color.toHsv(colorHsv);
+
+                trajectoryShader.bind();
+                trajectoryShader.setUniformMatrix("u_projTrans", renderer.getBatch().getProjectionMatrix());
+                trajectoryShader.setUniformf("u_colorhv", colorHsv[0] / 360, colorHsv[2]);
+
+                mesh.render(trajectoryShader, GL20.GL_TRIANGLES);
+
+                renderer.getBatch().begin();
+            }
         }
-        cachedDrawing.draw();
+
 
         if (controlPoint != null) {
             PointRenderer selectedPoint = pointRenderList.get(selectionPointIndex);
             renderer.line(selectedPoint.getRenderPos2(), controlPoint.getRenderPos2(), Color.WHITE,
                     AutoBuilder.getLineThickness());
-            controlPoint.draw(renderer, cam);
+            controlPoint.draw(renderer);
 
             if (rotationPoint != null && config.isHolonomic()) {
                 renderer.line(selectedPoint.getRenderPos2(), rotationPoint.getRenderPos2(), Color.WHITE,
                         AutoBuilder.getLineThickness());
-                rotationPoint.draw(renderer, cam);
+                rotationPoint.draw(renderer);
             }
 
             Vector2 origin = selectedPoint.getRenderPos2();
@@ -237,14 +281,14 @@ public class TrajectoryPathRenderer extends PathRenderer implements MovablePoint
 
             if (i == selectionPointIndex) {
                 if (highlightPoint == null) {
-                    highlightPoint = new PointRenderer(pointRenderer.getPos2(), Color.WHITE);
+                    highlightPoint = new PointRenderer(pointRenderer.getPos2(), Color.WHITE, 1.4f);
                 } else {
                     highlightPoint.setPosition(pointRenderer.getPos2());
                 }
 
-                highlightPoint.draw(renderer, cam);
+                highlightPoint.draw(renderer);
             }
-            pointRenderer.draw(renderer, cam);
+            pointRenderer.draw(renderer);
         }
         //Reset the robot preview time so that it won't be visible in the next frame. (Requires that it is set again)
         robotPreviewTime = -1;
