@@ -23,13 +23,13 @@ import com.dacubeking.autobuilder.gui.gui.textrendering.TextComponent;
 import com.dacubeking.autobuilder.gui.pathing.pointclicks.ClosePoint;
 import com.dacubeking.autobuilder.gui.pathing.pointclicks.CloseTrajectoryPoint;
 import com.dacubeking.autobuilder.gui.undo.UndoHandler;
+import com.dacubeking.autobuilder.gui.util.Colors;
 import com.dacubeking.autobuilder.gui.util.MathUtil;
 import com.dacubeking.autobuilder.gui.util.shaders.ShaderLoader;
 import com.dacubeking.autobuilder.gui.wpi.math.geometry.Pose2d;
 import com.dacubeking.autobuilder.gui.wpi.math.geometry.Rotation2d;
 import com.dacubeking.autobuilder.gui.wpi.math.spline.Spline;
 import com.dacubeking.autobuilder.gui.wpi.math.spline.Spline.ControlVector;
-import com.dacubeking.autobuilder.gui.wpi.math.spline.SplineParameterizer.MalformedSplineException;
 import com.dacubeking.autobuilder.gui.wpi.math.trajectory.Trajectory;
 import com.dacubeking.autobuilder.gui.wpi.math.trajectory.Trajectory.State;
 import com.dacubeking.autobuilder.gui.wpi.math.trajectory.TrajectoryConfig;
@@ -728,8 +728,10 @@ public class TrajectoryPathRenderer extends PathRenderer implements MovablePoint
             Trajectory trajectory;
             try {
                 trajectory = TrajectoryGenerator.generateTrajectory(controlVectorsList, trajectoryConfig);
-            } catch (MalformedSplineException e) {
-                NotificationHandler.addNotification(new Notification(Color.RED, "Could not parameterize a malformed spline",
+            } catch (Exception e) {
+                NotificationHandler.addNotification(new Notification(Colors.LIGHT_RED,
+                        new TextBlock(Fonts.ROBOTO, 18,
+                                new TextComponent(e.getClass().getSimpleName() + ": \n" + e.getMessage())),
                         3000));
                 e.printStackTrace();
                 throw e;

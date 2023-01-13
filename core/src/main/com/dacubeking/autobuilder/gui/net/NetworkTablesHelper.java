@@ -14,6 +14,7 @@ import com.dacubeking.autobuilder.gui.pathing.RobotPosition;
 import com.dacubeking.autobuilder.gui.serialization.path.Autonomous;
 import com.dacubeking.autobuilder.gui.serialization.path.GuiSerializer;
 import com.dacubeking.autobuilder.gui.serialization.path.NotDeployableException;
+import com.dacubeking.autobuilder.gui.util.Colors;
 import edu.wpi.first.networktables.EntryListenerFlags;
 import edu.wpi.first.networktables.NetworkTable;
 import edu.wpi.first.networktables.NetworkTableEntry;
@@ -251,14 +252,14 @@ public final class NetworkTablesHelper {
                 NotificationHandler.addNotification(new Notification(LIGHT_GREEN, "Auto Uploaded", 2000));
             } catch (IOException | ClassNotFoundException e) {
                 e.printStackTrace();
-                NotificationHandler.addNotification(new Notification(Color.RED, "Auto Failed to Upload", 2000));
+                NotificationHandler.addNotification(new Notification(Colors.LIGHT_RED, "Auto Failed to Upload", 2000));
             } catch (NotDeployableException e) {
                 NotificationHandler.addNotification(
-                        new Notification(Color.RED, "Your autonomous contains errors: Cannot deploy!", 2000));
+                        new Notification(Colors.LIGHT_RED, "Your autonomous contains errors: Cannot deploy!", 2000));
             }
         } else {
             System.out.println("Cannot Send Data; Not Connected");
-            NotificationHandler.addNotification(new Notification(Color.RED, "Auto Failed to Upload: NOT CONNECTED", 2000));
+            NotificationHandler.addNotification(new Notification(Colors.LIGHT_RED, "Auto Failed to Upload: NOT CONNECTED", 2000));
         }
     }
 

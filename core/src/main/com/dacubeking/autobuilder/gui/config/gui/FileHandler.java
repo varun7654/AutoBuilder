@@ -10,6 +10,7 @@ import com.dacubeking.autobuilder.gui.net.Serializer;
 import com.dacubeking.autobuilder.gui.serialization.path.Autonomous;
 import com.dacubeking.autobuilder.gui.serialization.path.GuiSerializer;
 import com.dacubeking.autobuilder.gui.undo.UndoHandler;
+import com.dacubeking.autobuilder.gui.util.Colors;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -71,7 +72,7 @@ public class FileHandler {
                 } catch (IOException exception) {
                     exception.printStackTrace();
                     NotificationHandler.addNotification(
-                            new Notification(Color.RED, "Failed to load config/Autonomous file: " + file.getName(),
+                            new Notification(Colors.LIGHT_RED, "Failed to load config/Autonomous file: " + file.getName(),
                                     3000));
                     e.printStackTrace();
                 }
@@ -103,7 +104,7 @@ public class FileHandler {
         } catch (IOException e) {
             e.printStackTrace();
             NotificationHandler.addNotification(
-                    new Notification(Color.RED, "Failed to load config file: " + configFile.getName(), 10000));
+                    new Notification(Colors.LIGHT_RED, "Failed to load config file: " + configFile.getName(), 10000));
         }
     }
 
