@@ -74,6 +74,11 @@ public class LabeledTextInputField extends TextGuiElement {
     }
 
     @Override
+    public void onUnfocus() {
+        textBox.onUnfocus();
+    }
+
+    @Override
     public void dispose() {
         super.dispose();
         textBox.dispose();

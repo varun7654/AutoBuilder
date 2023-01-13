@@ -158,6 +158,10 @@ public class SettingsGui extends ScrollableGui implements Disposable {
         super.update(maxScrollPos);
         if (panelOpen && !panelWasOpen) {
             trajectoryConfigGuiElement.updateValues();
+
+            for (GuiElement guiItem : guiItems) {
+                guiItem.onUnfocus();
+            }
         }
         return panelOpen && (isMouseOver(panelX, panelY, panelWidth, panelHeight)
                 || isMouseOver(openButton.getX(), openButton.getY(), openButton.getWidth(), openButton.getHeight()));

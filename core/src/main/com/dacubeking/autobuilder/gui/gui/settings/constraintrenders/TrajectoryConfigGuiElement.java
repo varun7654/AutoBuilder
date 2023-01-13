@@ -95,6 +95,13 @@ public class TrajectoryConfigGuiElement implements GuiElement {
     }
 
     @Override
+    public void onUnfocus() {
+        for (GuiElement element : elements) {
+            element.onUnfocus();
+        }
+    }
+
+    @Override
     public void dispose() {
         for (GuiElement element : elements) {
             element.dispose();

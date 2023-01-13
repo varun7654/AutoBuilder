@@ -304,6 +304,13 @@ public class ConstraintGuiElement implements GuiElement {
     }
 
     @Override
+    public void onUnfocus() {
+        for (GuiElement constraint : constraints) {
+            constraint.onUnfocus();
+        }
+    }
+
+    @Override
     public void dispose() {
         for (GuiElement constraint : constraints) {
             constraint.dispose();

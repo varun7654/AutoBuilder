@@ -70,6 +70,13 @@ public class IndentedElement implements GuiElement {
     }
 
     @Override
+    public void onUnfocus() {
+        for (GuiElement element : elements) {
+            element.onUnfocus();
+        }
+    }
+
+    @Override
     public float getHeight(float drawStartX, float drawStartY, float drawWidth, boolean isLeftMouseJustUnpressed) {
         float drawY = drawStartY;
         for (GuiElement element : elements) {

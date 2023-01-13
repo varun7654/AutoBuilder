@@ -663,4 +663,9 @@ public class TextBox extends InputEventListener {
         this.textBoxUnfocusedCallback = textUnfocusCallback;
         return this;
     }
+
+    public void onUnfocus() {
+        textBoxUnfocusedCallback.accept(this);
+        selected = false;
+    }
 }

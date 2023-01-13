@@ -16,4 +16,7 @@ public interface GuiElement {
     float getHeight(float drawStartX, float drawStartY, float drawWidth, boolean isLeftMouseJustUnpressed);
 
     void dispose();
+
+    default void onUnfocus() {
+    }
 }
