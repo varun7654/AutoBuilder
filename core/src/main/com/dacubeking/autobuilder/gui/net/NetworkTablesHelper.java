@@ -49,11 +49,15 @@ public final class NetworkTablesHelper {
     private NetworkTableEntry robotPositionsEntry;
     private NetworkTableEntry distanceEntry;
 
-    public boolean isEnabled() {
-        return enabled;
+    public boolean isRobotEnabled() {
+        return robotEnabled;
     }
 
-    private volatile boolean enabled = false;
+    private volatile boolean robotEnabled = false;
+    private boolean isStarted = false;
+    private boolean networkTablesEnabled;
+
+    private final Object enabledStateChangeNotifier = new Object();
 
     private NetworkTablesHelper() {
     }
@@ -85,118 +89,147 @@ public final class NetworkTablesHelper {
 
     public void start(HudRenderer hudRenderer, @NotNull DrawableRenderer drawableRenderer) {
         new Thread(() -> {
-            inst = NetworkTableInstance.getDefault();
-
-            String teamNumber = AutoBuilder.getConfig().getTeamNumber(); // Might also be an IP address
-            if (teamNumber.length() <= 4 && teamNumber.matches("[0-9]+")) {
-                inst.startClientTeam(Integer.parseInt(teamNumber));
-            } else {
-                inst.startClient(teamNumber);
-            }
-            autoData = inst.getTable("autodata");
-            autoPath = autoData.getEntry("autoPath");
-            smartDashboardTable = inst.getTable("SmartDashboard");
-            processingTable = autoData.getEntry("processing");
-            shooterConfigStatusIdEntry = inst.getTable("limelightgui").getEntry("shooterconfigStatusId");
-            limelightForcedOn = inst.getTable("limelightgui").getEntry("forceledon");
-            shooterConfigEntry = inst.getTable("limelightgui").getEntry("shooterconfig");
-            shooterConfigStatusEntry = inst.getTable("limelightgui").getEntry("shooterconfigStatus");
-            hudElementsEntry = NetworkTableInstance.getDefault().getEntry("autodata/hudElements");
-            drawablesEntry = NetworkTableInstance.getDefault().getEntry("autodata/drawables");
-            enabledTable = autoData.getEntry("enabled");
-            robotPositionsEntry = NetworkTableInstance.getDefault().getEntry("autodata/robotPositions");
-            distanceEntry = smartDashboardTable.getEntry("Shooter Distance to Target");
-
-
-            enabledTable.addListener(entryNotification -> {
-                if (entryNotification.getEntry().getBoolean(false)) {
-                    if (!enabled) {
-                        enabled = true;
-                        robotPositions.clear();
+            while (true) {
+                synchronized (enabledStateChangeNotifier) {
+                    if (isStarted == networkTablesEnabled) {
+                        try {
+                            enabledStateChangeNotifier.wait();
+                        } catch (InterruptedException e) {
+                            break;
+                        }
                     }
+                }
+
+                if (networkTablesEnabled) {
+                    inst = NetworkTableInstance.getDefault();
+                    inst.stopServer();
+
+                    String teamNumber = AutoBuilder.getConfig().getTeamNumber(); // Might also be an IP address
+                    if (teamNumber.length() <= 4 && teamNumber.matches("[0-9]+")) {
+                        inst.startClientTeam(Integer.parseInt(teamNumber));
+                    } else {
+                        inst.startClient(teamNumber);
+                    }
+                    autoData = inst.getTable("autodata");
+                    autoPath = autoData.getEntry("autoPath");
+                    smartDashboardTable = inst.getTable("SmartDashboard");
+                    processingTable = autoData.getEntry("processing");
+                    shooterConfigStatusIdEntry = inst.getTable("limelightgui").getEntry("shooterconfigStatusId");
+                    limelightForcedOn = inst.getTable("limelightgui").getEntry("forceledon");
+                    shooterConfigEntry = inst.getTable("limelightgui").getEntry("shooterconfig");
+                    shooterConfigStatusEntry = inst.getTable("limelightgui").getEntry("shooterconfigStatus");
+                    hudElementsEntry = NetworkTableInstance.getDefault().getEntry("autodata/hudElements");
+                    drawablesEntry = NetworkTableInstance.getDefault().getEntry("autodata/drawables");
+                    enabledTable = autoData.getEntry("robotEnabled");
+                    robotPositionsEntry = NetworkTableInstance.getDefault().getEntry("autodata/robotPositions");
+                    distanceEntry = smartDashboardTable.getEntry("Shooter Distance to Target");
+
+
+                    enabledTable.addListener(entryNotification -> {
+                                if (entryNotification.getEntry().getBoolean(false)) {
+                                    if (!robotEnabled) {
+                                        robotEnabled = true;
+                                        robotPositions.clear();
+                                    }
+                                } else {
+                                    robotEnabled = false;
+                                }
+                            },
+                            EntryListenerFlags.kNew | EntryListenerFlags.kUpdate | EntryListenerFlags.kImmediate | EntryListenerFlags.kLocal);
+
+                    robotPositionsEntry.addListener(entryNotification -> {
+                                @Nullable String positions = robotPositionsEntry.getString(null);
+                                if (positions != null) {
+                                    String[] positionsArray = positions.split(";");
+                                    List<RobotPosition> positionsList = new ArrayList<>(positionsArray.length);
+                                    for (String s : positionsArray) {
+                                        RobotPosition robotPosition = RobotPosition.fromString(s);
+                                        if (robotPosition != null) {
+                                            positionsList.add(robotPosition);
+                                        }
+                                    }
+                                    positionsList.sort((o1, o2) -> {
+                                        if (o1.name().equals("Robot Position")) { // Always put robot position first
+                                            return -1;
+                                        } else if (o2.name().equals("Robot Position")) {
+                                            return 1;
+                                        } else {
+                                            return o1.name().compareTo(o2.name());
+                                        }
+                                    });
+                                    robotPositions.add(positionsList);
+                                    AutoBuilder.requestRendering();
+                                }
+                            },
+                            EntryListenerFlags.kNew | EntryListenerFlags.kUpdate | EntryListenerFlags.kImmediate | EntryListenerFlags.kLocal);
+
+                    processingTable.addListener(entryNotification -> {
+                                double processingId = entryNotification.getEntry().getDouble(0);
+                                if (processingId == 1) {
+                                    NotificationHandler.addNotification(
+                                            new Notification(Color.CORAL, "The Roborio has started deserializing the auto",
+                                                    1500));
+                                } else if (processingId == 2) {
+                                    NotificationHandler.addNotification(
+                                            new Notification(LIGHT_GREEN, "The Roborio has finished deserializing the auto",
+                                                    1500));
+                                } else {
+                                    NotificationHandler.addNotification(
+                                            new Notification(LIGHT_GREEN, "The Roborio has set: " + processingId, 1500));
+                                }
+                            },
+                            EntryListenerFlags.kNew | EntryListenerFlags.kUpdate | EntryListenerFlags.kImmediate | EntryListenerFlags.kLocal);
+
+                    hudElementsEntry.addListener(entryNotification -> {
+                                @Nullable String hudElementsString = entryNotification.getEntry().getString(null);
+                                if (hudElementsString != null) {
+                                    String[] hudElementsStringArray = hudElementsString.split(";");
+
+                                    List<HudElement> hudElements = new ArrayList<>(hudElementsStringArray.length);
+                                    for (String s : hudElementsStringArray) {
+                                        HudElement hudElement = HudElement.fromString(s);
+                                        if (hudElement != null) {
+                                            hudElements.add(hudElement);
+                                        }
+                                    }
+
+                                    hudRenderer.setHudElements(hudElements);
+                                }
+                            },
+                            EntryListenerFlags.kNew | EntryListenerFlags.kUpdate | EntryListenerFlags.kImmediate | EntryListenerFlags.kLocal);
+
+                    drawablesEntry.addListener(entryNotification -> {
+                                @Nullable String[] drawablesString = entryNotification.getEntry().getStringArray(null);
+                                if (drawablesString != null) {
+                                    ArrayList<Drawable> drawables = new ArrayList<>(drawablesString.length);
+                                    for (String s : drawablesString) {
+                                        switch (s.charAt(0)) {
+                                            case 'R' -> drawables.add(Rectangle.fromString(s));
+                                            case 'P' -> drawables.add(Path.fromString(s));
+                                            case 'C' -> drawables.add(Circle.fromString(s));
+                                            case 'L' -> drawables.add(Line.fromString(s));
+                                        }
+                                    }
+                                    drawableRenderer.setDrawables(drawables);
+                                    AutoBuilder.requestRendering();
+                                }
+                            },
+                            EntryListenerFlags.kNew | EntryListenerFlags.kUpdate | EntryListenerFlags.kImmediate | EntryListenerFlags.kLocal);
+
+                    if (AutoBuilder.getInstance().shooterGui != null) { // Only add the listeners if the shooter gui is
+                        // robotEnabled
+                        smartDashboardTable.getEntry("Shooter Distance to Target").addListener(
+                                entryNotification -> AutoBuilder.requestRendering(),
+                                EntryListenerFlags.kNew | EntryListenerFlags.kUpdate | EntryListenerFlags.kImmediate | EntryListenerFlags.kLocal
+                        );
+                    }
+                    isStarted = true;
                 } else {
-                    enabled = false;
-                }
-            }, EntryListenerFlags.kNew | EntryListenerFlags.kUpdate | EntryListenerFlags.kImmediate | EntryListenerFlags.kLocal);
-
-            robotPositionsEntry.addListener(entryNotification -> {
-                @Nullable String positions = robotPositionsEntry.getString(null);
-                if (positions != null) {
-                    String[] positionsArray = positions.split(";");
-                    List<RobotPosition> positionsList = new ArrayList<>(positionsArray.length);
-                    for (String s : positionsArray) {
-                        RobotPosition robotPosition = RobotPosition.fromString(s);
-                        if (robotPosition != null) {
-                            positionsList.add(robotPosition);
-                        }
+                    if (inst != null) {
+                        inst.stopServer();
                     }
-                    positionsList.sort((o1, o2) -> {
-                        if (o1.name().equals("Robot Position")) { // Always put robot position first
-                            return -1;
-                        } else if (o2.name().equals("Robot Position")) {
-                            return 1;
-                        } else {
-                            return o1.name().compareTo(o2.name());
-                        }
-                    });
-                    robotPositions.add(positionsList);
-                    AutoBuilder.requestRendering();
+                    isStarted = false;
                 }
-            }, EntryListenerFlags.kNew | EntryListenerFlags.kUpdate | EntryListenerFlags.kImmediate | EntryListenerFlags.kLocal);
-
-            processingTable.addListener(entryNotification -> {
-                double processingId = entryNotification.getEntry().getDouble(0);
-                if (processingId == 1) {
-                    NotificationHandler.addNotification(
-                            new Notification(Color.CORAL, "The Roborio has started deserializing the auto", 1500));
-                } else if (processingId == 2) {
-                    NotificationHandler.addNotification(
-                            new Notification(LIGHT_GREEN, "The Roborio has finished deserializing the auto", 1500));
-                } else {
-                    NotificationHandler.addNotification(
-                            new Notification(LIGHT_GREEN, "The Roborio has set: " + processingId, 1500));
-                }
-            }, EntryListenerFlags.kNew | EntryListenerFlags.kUpdate | EntryListenerFlags.kImmediate | EntryListenerFlags.kLocal);
-
-            hudElementsEntry.addListener(entryNotification -> {
-                @Nullable String hudElementsString = entryNotification.getEntry().getString(null);
-                if (hudElementsString != null) {
-                    String[] hudElementsStringArray = hudElementsString.split(";");
-
-                    List<HudElement> hudElements = new ArrayList<>(hudElementsStringArray.length);
-                    for (String s : hudElementsStringArray) {
-                        HudElement hudElement = HudElement.fromString(s);
-                        if (hudElement != null) {
-                            hudElements.add(hudElement);
-                        }
-                    }
-
-                    hudRenderer.setHudElements(hudElements);
-                }
-            }, EntryListenerFlags.kNew | EntryListenerFlags.kUpdate | EntryListenerFlags.kImmediate | EntryListenerFlags.kLocal);
-
-            drawablesEntry.addListener(entryNotification -> {
-                @Nullable String[] drawablesString = entryNotification.getEntry().getStringArray(null);
-                if (drawablesString != null) {
-                    ArrayList<Drawable> drawables = new ArrayList<>(drawablesString.length);
-                    for (String s : drawablesString) {
-                        switch (s.charAt(0)) {
-                            case 'R' -> drawables.add(Rectangle.fromString(s));
-                            case 'P' -> drawables.add(Path.fromString(s));
-                            case 'C' -> drawables.add(Circle.fromString(s));
-                            case 'L' -> drawables.add(Line.fromString(s));
-                        }
-                    }
-                    drawableRenderer.setDrawables(drawables);
-                    AutoBuilder.requestRendering();
-                }
-            }, EntryListenerFlags.kNew | EntryListenerFlags.kUpdate | EntryListenerFlags.kImmediate | EntryListenerFlags.kLocal);
-
-            if (AutoBuilder.getInstance().shooterGui != null) { // Only add the listeners if the shooter gui is enabled
-                smartDashboardTable.getEntry("Shooter Distance to Target").addListener(
-                        entryNotification -> AutoBuilder.requestRendering(),
-                        EntryListenerFlags.kNew | EntryListenerFlags.kUpdate | EntryListenerFlags.kImmediate | EntryListenerFlags.kLocal
-                );
             }
         }).start();
     }
@@ -297,9 +330,13 @@ public final class NetworkTablesHelper {
         return inst.isConnected();
     }
 
-    public void disconnectClient() {
-        if (inst != null) {
-            inst.stopClient();
+    /**
+     * If NT is enabled and this method is called with enabled = true, then the server will be restarted.
+     */
+    public void setNTEnabled(boolean enabled) {
+        synchronized (enabledStateChangeNotifier) {
+            this.networkTablesEnabled = enabled;
+            enabledStateChangeNotifier.notify();
         }
     }
 }

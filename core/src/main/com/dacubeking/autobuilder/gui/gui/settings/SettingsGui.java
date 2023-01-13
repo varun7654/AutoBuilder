@@ -303,12 +303,7 @@ public class SettingsGui extends ScrollableGui implements Disposable {
 
     public void updateNetworkTablesEnabled(boolean networkTablesEnabled) {
         AutoBuilder.getConfig().setNetworkTablesEnabled(networkTablesEnabled);
-        if (networkTablesEnabled) {
-            NetworkTablesHelper.getInstance().start(AutoBuilder.getInstance().hudRenderer,
-                    AutoBuilder.getInstance().drawableRenderer);
-        } else {
-            NetworkTablesHelper.getInstance().disconnectClient();
-        }
+        NetworkTablesHelper.getInstance().setNTEnabled(networkTablesEnabled);
         UndoHandler.getInstance().somethingChanged();
     }
 

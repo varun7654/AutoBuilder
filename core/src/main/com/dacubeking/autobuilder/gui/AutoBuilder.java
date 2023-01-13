@@ -211,9 +211,13 @@ public final class AutoBuilder extends ApplicationAdapter {
         }
         configGUI = new ConfigGUI();
 
+
+        networkTables.start(hudRenderer, drawableRenderer);
+
         if (config.isNetworkTablesEnabled()) {
-            networkTables.start(hudRenderer, drawableRenderer);
+            networkTables.setNTEnabled(true);
         }
+
         FileHandler.startAutoSaveThread(); // Start the autoSave thread only after we've loaded everything to prevent the auto
         // from getting autosaved (deleted) before it is loaded
     }

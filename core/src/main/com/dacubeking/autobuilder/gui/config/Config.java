@@ -3,11 +3,13 @@ package com.dacubeking.autobuilder.gui.config;
 
 import com.dacubeking.autobuilder.gui.AutoBuilder;
 import com.dacubeking.autobuilder.gui.RenderEvents;
+import com.dacubeking.autobuilder.gui.net.NetworkTablesHelper;
 import com.fasterxml.jackson.annotation.*;
 
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 
 @JsonIgnoreProperties(ignoreUnknown = true)
@@ -221,6 +223,10 @@ public class Config {
             RenderEvents.fireRenderCacheDeletionEvent();
         }
 
+        if (!Objects.equals(this.teamNumber, config.teamNumber) && this.networkTablesEnabled) {
+            NetworkTablesHelper.getInstance().setNTEnabled(true);
+        }
+
 
         this.scriptMethods = config.scriptMethods;
         this.selectedAutoFile = config.selectedAutoFile;
@@ -244,6 +250,13 @@ public class Config {
     }
 
     public synchronized void setTeamNumber(String teamNumber) {
+        if (this.teamNumber.equals(teamNumber)) {
+            return;
+        }
+
+        if (networkTablesEnabled) {
+            NetworkTablesHelper.getInstance().setNTEnabled(true);
+        }
         this.teamNumber = teamNumber;
     }
 
