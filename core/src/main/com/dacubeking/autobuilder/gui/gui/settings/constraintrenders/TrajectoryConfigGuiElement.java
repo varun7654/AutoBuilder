@@ -109,9 +109,9 @@ public class TrajectoryConfigGuiElement implements GuiElement {
     }
 
     public void updateValues() {
-        maxVelocityTextField.textBox.setText(
+        maxVelocityTextField.setText(
                 String.valueOf(AutoBuilder.getConfig().getPathingConfig().maxVelocityMetersPerSecond));
-        maxAccelerationTextField.textBox.setText(
+        maxAccelerationTextField.setText(
                 String.valueOf(AutoBuilder.getConfig().getPathingConfig().maxAccelerationMetersPerSecondSq));
         constraintGuiElement.updateValues();
     }

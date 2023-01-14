@@ -83,4 +83,8 @@ public class LabeledTextInputField extends TextGuiElement {
         super.dispose();
         textBox.dispose();
     }
+
+    public void setText(String text) {
+        textBox.setText(text, true);
+    }
 }

@@ -205,14 +205,14 @@ public class SettingsGui extends ScrollableGui implements Disposable {
     }
 
     public void updateValues() {
-        teamNumberInputField.textBox.setText(String.valueOf(AutoBuilder.getConfig().getTeamNumber()));
-        robotLengthField.textBox.setText(String.valueOf(AutoBuilder.getConfig().getRobotLength()));
-        robotWidthField.textBox.setText(String.valueOf(AutoBuilder.getConfig().getRobotWidth()));
+        teamNumberInputField.setText(String.valueOf(AutoBuilder.getConfig().getTeamNumber()));
+        robotLengthField.setText(String.valueOf(AutoBuilder.getConfig().getRobotLength()));
+        robotWidthField.setText(String.valueOf(AutoBuilder.getConfig().getRobotWidth()));
         isHolonomicCheckbox.setCheckBox(AutoBuilder.getConfig().isHolonomic());
 
-        pointScaleFactorField.textBox.setText(String.valueOf(AutoBuilder.getConfig().getPointScaleFactor()));
-        originX.textBox.setText(String.valueOf(AutoBuilder.getConfig().getOriginX()));
-        originY.textBox.setText(String.valueOf(AutoBuilder.getConfig().getOriginY()));
+        pointScaleFactorField.setText(String.valueOf(AutoBuilder.getConfig().getPointScaleFactor()));
+        originX.setText(String.valueOf(AutoBuilder.getConfig().getOriginX()));
+        originY.setText(String.valueOf(AutoBuilder.getConfig().getOriginY()));
         networkTablesEnabledCheckbox.setCheckBox(AutoBuilder.getConfig().isNetworkTablesEnabled());
         trajectoryConfigGuiElement.updateValues();
     }

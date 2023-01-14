@@ -191,7 +191,9 @@ public class TextBox extends InputEventListener {
         if (selected) {
             if (getKeyPressed(Keys.RIGHT)) {
                 // Move the cursor to the right
-                if (!highlighting) highlightPosEnd = selectedPos; // If we aren't highlighting, then we need to set the end to
+                if (!highlighting) {
+                    highlightPosEnd = selectedPos; // If we aren't highlighting, then we need to set the end to
+                }
                 // the start current cursor position to avoid issues when we start highlighting again
 
                 selectedPos++;
@@ -205,7 +207,9 @@ public class TextBox extends InputEventListener {
                             (!(Character.isWhitespace(text.charAt(selectedPos))
                                     || STOP_WORD_CHARS.contains(String.valueOf(text.charAt(selectedPos - 1))))
                                     || !foundNonWhitespace)) {
-                        if (!Character.isWhitespace(text.charAt(selectedPos))) foundNonWhitespace = true;
+                        if (!Character.isWhitespace(text.charAt(selectedPos))) {
+                            foundNonWhitespace = true;
+                        }
                         selectedPos++;
                     }
                 }
@@ -220,7 +224,9 @@ public class TextBox extends InputEventListener {
             }
 
             if (getKeyPressed(Keys.LEFT)) {
-                if (!highlighting) highlightPosEnd = selectedPos; // If we aren't highlighting, then we need to set the end to
+                if (!highlighting) {
+                    highlightPosEnd = selectedPos; // If we aren't highlighting, then we need to set the end to
+                }
                 // the start current cursor position to avoid issues when we start highlighting again
 
                 selectedPos--;
@@ -233,7 +239,9 @@ public class TextBox extends InputEventListener {
                             (!(Character.isWhitespace(text.charAt(selectedPos - 1))
                                     || STOP_WORD_CHARS.contains(String.valueOf(text.charAt(selectedPos - 1))))
                                     || !foundNonWhitespace)) {
-                        if (!Character.isWhitespace(text.charAt(selectedPos - 1))) foundNonWhitespace = true;
+                        if (!Character.isWhitespace(text.charAt(selectedPos - 1))) {
+                            foundNonWhitespace = true;
+                        }
                         selectedPos--;
                     }
                 }
@@ -249,11 +257,15 @@ public class TextBox extends InputEventListener {
 
             //Act like we click up on the previous line
             if (getKeyPressed(Keys.UP)) {
-                if (!highlighting) highlightPosEnd = selectedPos; // If we aren't highlighting, then we need to set the end to
+                if (!highlighting) {
+                    highlightPosEnd = selectedPos; // If we aren't highlighting, then we need to set the end to
+                }
                 // the start current cursor position to avoid issues when we start highlighting again
 
                 Vector2 pos = textBlock.getPositionOfIndex(selectedPos);
-                if (xPos == -1) xPos = pos.x;
+                if (xPos == -1) {
+                    xPos = pos.x;
+                }
                 selectedPos = textBlock.getIndexOfPosition(new Vector2(xPos, pos.y + textBlock.getDefaultLineSpacingSize() - 1));
 
                 highlightPosBegin = selectedPos;
@@ -266,11 +278,15 @@ public class TextBox extends InputEventListener {
 
             //Act like we click down on the next line
             if (getKeyPressed(Keys.DOWN)) {
-                if (!highlighting) highlightPosEnd = selectedPos; // If we aren't highlighting, then we need to set the end to
+                if (!highlighting) {
+                    highlightPosEnd = selectedPos; // If we aren't highlighting, then we need to set the end to
+                }
                 // the start current cursor position to avoid issues when we start highlighting again
 
                 Vector2 pos = textBlock.getPositionOfIndex(selectedPos);
-                if (xPos == -1) xPos = pos.x;
+                if (xPos == -1) {
+                    xPos = pos.x;
+                }
                 selectedPos = textBlock.getIndexOfPosition(new Vector2(xPos, pos.y - textBlock.getDefaultLineSpacingSize() / 2));
 
                 highlightPosBegin = selectedPos;
@@ -609,11 +625,26 @@ public class TextBox extends InputEventListener {
      * @param text text to set
      */
     public void setText(@NotNull String text) {
+        setText(text, false);
+    }
+
+    /**
+     * NOTE: If the textbox is selected the value that is set in this function will be ignored
+     *
+     * @param text text to set
+     */
+    public void setText(@NotNull String text, boolean triggerCallback) {
         if (selected) {
             highlighting = false;
             selectedPos = text.length();
         }
+        if (Objects.equals(this.text, text)) {
+            return;
+        }
         this.text = text;
+        if (triggerCallback) {
+            fireTextChangeEvent();
+        }
     }
 
     public boolean isSelected() {
