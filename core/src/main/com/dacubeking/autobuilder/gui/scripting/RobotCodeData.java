@@ -2,6 +2,8 @@ package com.dacubeking.autobuilder.gui.scripting;
 
 import com.badlogic.gdx.graphics.Color;
 import com.dacubeking.autobuilder.gui.AutoBuilder;
+import com.dacubeking.autobuilder.gui.gui.notification.Notification;
+import com.dacubeking.autobuilder.gui.gui.notification.NotificationHandler;
 import com.dacubeking.autobuilder.gui.gui.textrendering.Fonts;
 import com.dacubeking.autobuilder.gui.gui.textrendering.TextBlock;
 import com.dacubeking.autobuilder.gui.gui.textrendering.TextComponent;
@@ -12,6 +14,8 @@ import com.dacubeking.autobuilder.gui.scripting.reflection.ReflectionMethodData;
 import com.dacubeking.autobuilder.gui.scripting.sendable.SendableCommand;
 import com.dacubeking.autobuilder.gui.scripting.util.LintingPos;
 import com.dacubeking.autobuilder.gui.scripting.util.StringIndex;
+import com.dacubeking.autobuilder.gui.util.Colors;
+import com.fasterxml.jackson.databind.DatabindException;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -106,8 +110,22 @@ public class RobotCodeData {
             fileInputStream.close();
             String string = new String(bytes);
 
-            ReflectionClassDataList reflectionClassDataList =
-                    (ReflectionClassDataList) Serializer.deserialize(string, ReflectionClassDataList.class);
+            ReflectionClassDataList reflectionClassDataList = null;
+            try {
+                reflectionClassDataList =
+                        (ReflectionClassDataList) Serializer.deserialize(string, ReflectionClassDataList.class);
+            } catch (DatabindException e) {
+                System.out.println("Error deserializing robot code data");
+                NotificationHandler.addNotification(new Notification(Colors.LIGHT_RED,
+                        "Error deserializing robot code data. Maybe the AutoBuilder library is out of date?", 6000));
+                e.printStackTrace();
+            }
+
+
+            if (reflectionClassDataList == null) {
+                robotClasses = new ArrayList<>();
+                return;
+            }
 
             robotClasses = reflectionClassDataList.reflectionClassData;
 
