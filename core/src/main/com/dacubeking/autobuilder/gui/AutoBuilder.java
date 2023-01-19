@@ -75,6 +75,9 @@ public final class AutoBuilder extends ApplicationAdapter {
     public static final float CONTROL_VECTOR_SCALE = 3;
     public static final float MIN_CONTROL_VECTOR_DISTANCE = 0.1f;
 
+    public static final double FIELD_HEIGHT_METERS = 8.0137;
+    public static final double FIELD_WIDTH_METERS = 16.54175;
+
     @NotNull ConfigGUI configGUI;
 
     @NotNull private final Vector3 mousePos = new Vector3();

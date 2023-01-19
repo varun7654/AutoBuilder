@@ -10,15 +10,22 @@ import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.scenes.scene2d.utils.ScissorStack;
 import com.badlogic.gdx.utils.Disposable;
 import com.dacubeking.autobuilder.gui.AutoBuilder;
+import com.dacubeking.autobuilder.gui.config.Config;
 import com.dacubeking.autobuilder.gui.gui.elements.NumberTextBox;
 import com.dacubeking.autobuilder.gui.gui.elements.TextBox;
 import com.dacubeking.autobuilder.gui.gui.elements.scrollablegui.*;
 import com.dacubeking.autobuilder.gui.gui.hover.HoverManager;
+import com.dacubeking.autobuilder.gui.gui.path.AbstractGuiItem;
+import com.dacubeking.autobuilder.gui.gui.path.TrajectoryItem;
 import com.dacubeking.autobuilder.gui.gui.settings.constraintrenders.TrajectoryConfigGuiElement;
 import com.dacubeking.autobuilder.gui.gui.textrendering.TextComponent;
 import com.dacubeking.autobuilder.gui.net.NetworkTablesHelper;
+import com.dacubeking.autobuilder.gui.pathing.MovablePointRenderer;
+import com.dacubeking.autobuilder.gui.pathing.TrajectoryPathRenderer;
 import com.dacubeking.autobuilder.gui.undo.UndoHandler;
 import com.dacubeking.autobuilder.gui.util.RoundedShapeRenderer;
+import com.dacubeking.autobuilder.gui.wpi.math.geometry.Rotation2d;
+import com.dacubeking.autobuilder.gui.wpi.math.spline.Spline.ControlVector;
 import space.earlygrey.shapedrawer.ShapeDrawer;
 
 import java.util.ArrayList;
@@ -139,13 +146,28 @@ public class SettingsGui extends ScrollableGui implements Disposable {
         guiItems.add(networkTablesEnabledCheckbox);
         guiItems.add(new SpaceGuiElement(10));
 
+        guiItems.add(new TextGuiElement(new TextComponent("Utility", Color.BLACK).setBold(true).setSize(28)));
+        guiItems.add(new DividerGuiElement());
+        guiItems.add(new ButtonGuiElement(this::resetConfig, new TextComponent("Reset Config", Color.BLACK))
+                .setHoverText(HoverManager.createDefaultHoverTextBlock(
+                        new TextComponent("Resets the config to the default values.\n" +
+                                "Ctrl + Z to Undo", Color.BLACK)
+                )));
+        guiItems.add(new ButtonGuiElement(this::reflectPathPointsAcrossX,
+                new TextComponent("Reflect Across Center (X)", Color.BLACK))
+                .setHoverText(HoverManager.createDefaultHoverTextBlock(
+                        new TextComponent("Reflects all of the path points across the center of the field. " +
+                                "(The line x = " + (AutoBuilder.FIELD_WIDTH_METERS / 2) + ")\n" +
+                                "Ctrl + Z to Undo", Color.BLACK)
+                )));
+        guiItems.add(new SpaceGuiElement(10));
+
         guiItems.add(new TextGuiElement(new TextComponent("Pathing Config", Color.BLACK).setBold(true).setSize(28)));
         guiItems.add(new DividerGuiElement());
         guiItems.add(trajectoryConfigGuiElement);
         guiItems.add(new DividerGuiElement());
         guiItems.add(new SpaceGuiElement(25));
     }
-
 
     private float maxScrollPos = 0;
 
@@ -305,6 +327,41 @@ public class SettingsGui extends ScrollableGui implements Disposable {
         AutoBuilder.getConfig().setNetworkTablesEnabled(networkTablesEnabled);
         NetworkTablesHelper.getInstance().setNTEnabled(networkTablesEnabled);
         UndoHandler.getInstance().somethingChanged();
+    }
+
+    private void resetConfig() {
+        UndoHandler.getInstance().flushChanges();
+        AutoBuilder.getConfig().setConfig(new Config());
+        UndoHandler.getInstance().forceCreateUndoState();
+        UndoHandler.getInstance().reloadState();
+    }
+
+    private void reflectPathPointsAcrossX() {
+        UndoHandler.getInstance().flushChanges();
+
+        float halfWidth = (float) AutoBuilder.FIELD_WIDTH_METERS / 2;
+
+        for (AbstractGuiItem guiItem : AutoBuilder.getInstance().pathGui.guiItems) {
+            if (guiItem instanceof TrajectoryItem trajectoryItem) {
+                TrajectoryPathRenderer pathRenderer = trajectoryItem.getPathRenderer();
+                synchronized (pathRenderer.getControlVectors()) {
+                    for (int i = 0; i < pathRenderer.getControlVectors().size(); i++) {
+                        ControlVector controlVector = pathRenderer.getControlVectors().get(i);
+                        MovablePointRenderer point = pathRenderer.getPointList().get(i);
+                        Rotation2d rotation = pathRenderer.getRotations().get(i);
+
+                        point.setX(-(point.getX() - halfWidth) + halfWidth);
+                        double[] prevControlVector = controlVector.x;
+                        controlVector.x = new double[]{point.getX(), -prevControlVector[1], 0};
+                        pathRenderer.getRotations().set(i, new Rotation2d(-rotation.getCos(), rotation.getSin()));
+                    }
+                }
+                System.out.println(pathRenderer.getRotations());
+            }
+        }
+
+        UndoHandler.getInstance().forceCreateUndoState();
+        UndoHandler.getInstance().reloadState();
     }
 
     @Override
