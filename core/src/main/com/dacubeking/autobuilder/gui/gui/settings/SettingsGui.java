@@ -356,7 +356,6 @@ public class SettingsGui extends ScrollableGui implements Disposable {
                         pathRenderer.getRotations().set(i, new Rotation2d(-rotation.getCos(), rotation.getSin()));
                     }
                 }
-                System.out.println(pathRenderer.getRotations());
             }
         }
 
