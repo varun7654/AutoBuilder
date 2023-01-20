@@ -4,18 +4,21 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
 import com.badlogic.gdx.graphics.Color;
 import com.dacubeking.autobuilder.gui.AutoBuilder;
-import com.dacubeking.autobuilder.gui.CameraHandler;
 import com.dacubeking.autobuilder.gui.config.gui.FileHandler;
 import com.dacubeking.autobuilder.gui.gui.path.AbstractGuiItem;
 import com.dacubeking.autobuilder.gui.gui.path.PathGui;
 import com.dacubeking.autobuilder.gui.gui.path.ScriptItem;
 import com.dacubeking.autobuilder.gui.gui.path.TrajectoryItem;
+import com.dacubeking.autobuilder.gui.pathing.TimedRotation;
 import com.dacubeking.autobuilder.gui.serialization.path.*;
+import com.dacubeking.autobuilder.gui.wpi.math.spline.Spline.ControlVector;
 import com.dacubeking.autobuilder.gui.wpi.math.trajectory.TrajectoryGenerator.ControlVectorList;
+import com.dacubeking.autobuilder.gui.wpi.math.trajectory.constraint.TrajectoryConstraint;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public final class UndoHandler {
     private static final int MAX_UNDO_HISTORY = 1000;
@@ -40,7 +43,7 @@ public final class UndoHandler {
         return undoHandler;
     }
 
-    public synchronized void update(PathGui pathGui, @NotNull CameraHandler cameraHandler) {
+    public synchronized void update(PathGui pathGui) {
         if (somethingChanged && System.currentTimeMillis() - lastUndoSaveTime > UNDO_SAVE_INTERVAL) {
             saveCurrentState(pathGui);
         } else if (!somethingChanged) {
@@ -55,7 +58,7 @@ public final class UndoHandler {
             if ((Gdx.input.isKeyPressed(Input.Keys.SHIFT_LEFT) || Gdx.input.isKeyPressed(Input.Keys.SHIFT_RIGHT))) {
                 pointer--;
                 if (pointer >= 0) {
-                    restoreState(undoHistory.get(pointer), pathGui, cameraHandler);
+                    restoreState(undoHistory.get(pointer));
                     //System.out.println("redoing to: " + pointer);
                 } else {
                     pointer = 0;
@@ -65,7 +68,7 @@ public final class UndoHandler {
                 //System.out.println(undoHistory);
                 pointer++;
                 if (pointer < undoHistory.size()) {
-                    restoreState(undoHistory.get(pointer), pathGui, cameraHandler);
+                    restoreState(undoHistory.get(pointer));
                     //System.out.println("undoing to: " + pointer);
                 } else {
                     pointer = undoHistory.size() - 1;
@@ -113,31 +116,9 @@ public final class UndoHandler {
         FileHandler.saveAuto(true);
     }
 
-    public synchronized void restoreState(@NotNull UndoState undoState, PathGui pathGui,
-                                          @NotNull CameraHandler cameraHandler) {
+    public synchronized void restoreState(@NotNull UndoState undoState) {
         AutoBuilder.getConfig().setConfig(undoState.config().copy());
-        List<AbstractGuiItem> guiItemList = new ArrayList<>();
-        for (AbstractAutonomousStep autonomousStep : undoState.autonomous().getAutonomousSteps()) {
-            if (autonomousStep instanceof TrajectoryAutonomousStep trajectoryAutonomousStep) {
-                Color color = new Color().fromHsv(trajectoryAutonomousStep.getColor(), 1, 1);
-                color.set(color.r, color.g, color.b, 1);
-                TrajectoryItem trajectoryItem = new TrajectoryItem(pathGui, cameraHandler,
-                        new ControlVectorList(trajectoryAutonomousStep.getControlVectors()),
-                        trajectoryAutonomousStep.getRotations(),
-                        trajectoryAutonomousStep.isReversed(), color, trajectoryAutonomousStep.isClosed(),
-                        trajectoryAutonomousStep.getVelocityStart(), trajectoryAutonomousStep.getVelocityEnd(),
-                        trajectoryAutonomousStep.getConstraints());
-                guiItemList.add(trajectoryItem);
-            } else if (autonomousStep instanceof ScriptAutonomousStep scriptAutonomousStep) {
-                ScriptItem scriptItem = new ScriptItem(scriptAutonomousStep.getScript(),
-                        scriptAutonomousStep.isClosed(), scriptAutonomousStep.isValid());
-                guiItemList.add(scriptItem);
-            }
-        }
-        for (AbstractGuiItem guiItem : pathGui.guiItems) {
-            guiItem.dispose();
-        }
-        pathGui.guiItems = guiItemList;
+        setAutonomousTimeline(undoState.autonomous());
         AutoBuilder.getInstance().settingsGui.updateValues();
     }
 
@@ -160,7 +141,7 @@ public final class UndoHandler {
      */
     public synchronized void reloadState() {
         PathGui pathGui = AutoBuilder.getInstance().pathGui;
-        restoreState(getCurrentState(pathGui), pathGui, AutoBuilder.getInstance().cameraHandler);
+        restoreState(getCurrentState(pathGui));
     }
 
     /**
@@ -169,29 +150,55 @@ public final class UndoHandler {
     public synchronized void reloadPaths() {
         Autonomous newAutonomousState = GuiSerializer.serializeAutonomousForUndoHistory(
                 AutoBuilder.getInstance().pathGui.guiItems);
+        setAutonomousTimeline(newAutonomousState);
+    }
 
-        for (AbstractGuiItem guiItem : AutoBuilder.getInstance().pathGui.guiItems) {
-            guiItem.dispose();
-        }
-        AutoBuilder.getInstance().pathGui.guiItems = new ArrayList<>();
-        for (AbstractAutonomousStep autonomousStep : newAutonomousState.getAutonomousSteps()) {
+    /**
+     * Set the autonomous timeline to the given autonomous
+     *
+     * @param autonomous The autonomous to set the timeline to
+     */
+    private synchronized void setAutonomousTimeline(Autonomous autonomous) {
+        List<AbstractGuiItem> guiItemList = new ArrayList<>();
+        var pathGui = AutoBuilder.getInstance().pathGui;
+        var cameraHandler = AutoBuilder.getInstance().cameraHandler;
+
+        for (AbstractAutonomousStep autonomousStep : autonomous.getAutonomousSteps()) {
             if (autonomousStep instanceof TrajectoryAutonomousStep trajectoryAutonomousStep) {
                 Color color = new Color().fromHsv(trajectoryAutonomousStep.getColor(), 1, 1);
                 color.set(color.r, color.g, color.b, 1);
-                TrajectoryItem trajectoryItem = new TrajectoryItem(AutoBuilder.getInstance().pathGui,
-                        AutoBuilder.getInstance().cameraHandler,
-                        new ControlVectorList(trajectoryAutonomousStep.getControlVectors()),
-                        trajectoryAutonomousStep.getRotations(),
-                        trajectoryAutonomousStep.isReversed(), color, trajectoryAutonomousStep.isClosed(),
-                        trajectoryAutonomousStep.getVelocityStart(), trajectoryAutonomousStep.getVelocityEnd(),
-                        trajectoryAutonomousStep.getConstraints());
-                AutoBuilder.getInstance().pathGui.guiItems.add(trajectoryItem);
+                TrajectoryItem trajectoryItem = new TrajectoryItem(
+                        pathGui,
+                        cameraHandler,
+                        trajectoryAutonomousStep.getControlVectors().stream()
+                                .map(ControlVector::new)
+                                .collect(Collectors.toCollection(ControlVectorList::new)),
+                        trajectoryAutonomousStep.getRotations().stream()
+                                .map(TimedRotation::new)
+                                .collect(Collectors.toCollection(ArrayList::new)),
+                        trajectoryAutonomousStep.isReversed(),
+                        color,
+                        trajectoryAutonomousStep.isClosed(),
+                        trajectoryAutonomousStep.getVelocityStart(),
+                        trajectoryAutonomousStep.getVelocityEnd(),
+                        trajectoryAutonomousStep.getConstraints().stream()
+                                .map(TrajectoryConstraint::copy)
+                                .collect(Collectors.toCollection(ArrayList::new))
+                );
+                guiItemList.add(trajectoryItem);
             } else if (autonomousStep instanceof ScriptAutonomousStep scriptAutonomousStep) {
-                ScriptItem scriptItem = new ScriptItem(scriptAutonomousStep.getScript(),
-                        scriptAutonomousStep.isClosed(), scriptAutonomousStep.isValid());
-                AutoBuilder.getInstance().pathGui.guiItems.add(scriptItem);
+                ScriptItem scriptItem = new ScriptItem(
+                        scriptAutonomousStep.getScript(),
+                        scriptAutonomousStep.isClosed(),
+                        scriptAutonomousStep.isValid()
+                );
+                guiItemList.add(scriptItem);
             }
         }
+        for (AbstractGuiItem guiItem : pathGui.guiItems) {
+            guiItem.dispose();
+        }
+        pathGui.guiItems = guiItemList;
     }
 
     public synchronized void flushChanges() {

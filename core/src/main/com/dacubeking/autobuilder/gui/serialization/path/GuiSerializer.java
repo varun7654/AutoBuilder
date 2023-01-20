@@ -4,6 +4,7 @@ import com.dacubeking.autobuilder.gui.gui.path.AbstractGuiItem;
 import com.dacubeking.autobuilder.gui.gui.path.ScriptItem;
 import com.dacubeking.autobuilder.gui.gui.path.TrajectoryItem;
 import com.dacubeking.autobuilder.gui.pathing.TimedRotation;
+import com.dacubeking.autobuilder.gui.wpi.math.spline.Spline.ControlVector;
 import com.dacubeking.autobuilder.gui.wpi.math.trajectory.Trajectory;
 import com.dacubeking.autobuilder.gui.wpi.math.trajectory.TrajectoryGenerator.ControlVectorList;
 import com.dacubeking.autobuilder.gui.wpi.math.trajectory.constraint.TrajectoryConstraint;
@@ -70,17 +71,22 @@ public class GuiSerializer {
                 trajectoryItem.getPathRenderer().getColor().toHsv(color);
                 autonomousSteps.add(new TrajectoryAutonomousStep(
                         null,
-                        new ControlVectorList(trajectoryItem.getPathRenderer().getControlVectors()),
-                        trajectoryItem.getPathRenderer().getRotations().stream().map(TimedRotation::new)
-                                .collect(Collectors.toList()), // Add fake times as they are not used in undo history
+                        trajectoryItem.getPathRenderer().getControlVectors().stream()
+                                .map(ControlVector::new)
+                                .collect(Collectors.toCollection(ControlVectorList::new)),
+                        trajectoryItem.getPathRenderer().getRotations().stream()
+                                .map(TimedRotation::new)
+                                .collect(Collectors.toCollection(ArrayList::new)),
+                        // Add fake times as they are not used in undo history
                         trajectoryItem.getPathRenderer().isReversed(),
                         color[0],
                         trajectoryItem.isClosed(),
                         trajectoryItem.getPathRenderer().getVelocityStart(),
                         trajectoryItem.getPathRenderer().getVelocityEnd(),
-                        trajectoryItem.getPathRenderer().getConstraints().stream()
+                        trajectoryItem.getPathRenderer().getConstraints().stream() // Copy constraints
                                 .map(TrajectoryConstraint::copy)
-                                .collect(Collectors.toCollection(ArrayList::new)))); // Copy constraints
+                                .collect(Collectors.toCollection(ArrayList::new)))
+                );
             }
         }
         return new Autonomous(autonomousSteps);

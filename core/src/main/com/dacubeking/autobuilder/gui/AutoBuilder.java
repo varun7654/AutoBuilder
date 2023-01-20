@@ -437,7 +437,7 @@ public final class AutoBuilder extends ApplicationAdapter {
 
     private void update() {
         MouseUtil.update();
-        undoHandler.update(pathGui, cameraHandler);
+        undoHandler.update(pathGui);
         boolean onGui = pathGui.update();
         onGui = onGui | settingsGui.update();
         if (shooterGui != null) {
@@ -622,7 +622,7 @@ public final class AutoBuilder extends ApplicationAdapter {
     }
 
     public void restoreState(Autonomous autonomous, boolean clearUndoHistory) {
-        undoHandler.restoreState(new UndoState(autonomous, config), pathGui, cameraHandler);
+        undoHandler.restoreState(new UndoState(autonomous, config));
         if (clearUndoHistory) {
             undoHandler.clearUndoHistory();
         }
