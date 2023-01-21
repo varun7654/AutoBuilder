@@ -309,12 +309,19 @@ public final class AutoBuilder extends ApplicationAdapter {
         renderTimeNano = System.nanoTime() - prev;
     }
 
-    DecimalFormat df;
+    DecimalFormat df2;
+    DecimalFormat df3;
 
     {
-        df = new DecimalFormat();
-        df.setMaximumFractionDigits(4);
-        df.setMinimumFractionDigits(4);
+        df2 = new DecimalFormat();
+        df2.setMaximumFractionDigits(2);
+        df2.setMinimumFractionDigits(2);
+        df2.setMinimumFractionDigits(2);
+
+        df3 = new DecimalFormat();
+        df3.setMaximumFractionDigits(3);
+        df3.setMinimumFractionDigits(3);
+        df3.setMinimumFractionDigits(3);
     }
 
     double[] frameTimes = new double[60];
@@ -360,7 +367,7 @@ public final class AutoBuilder extends ApplicationAdapter {
         hudBatch.begin();
 
         TextBlock timeText = new TextBlock(Fonts.ROBOTO, 18, new TextComponent("Total Driving Time: " +
-                df.format(pathTime) + "s", Color.WHITE).setBold(true));
+                df3.format(pathTime) + "s", Color.WHITE).setBold(true));
 
         FontRenderer.renderText(hudBatch, shapeRenderer, pathGui.getPanelX() - timeText.getWidth() - 10,
                 60, timeText);
@@ -396,16 +403,12 @@ public final class AutoBuilder extends ApplicationAdapter {
         if (frameTimePos == frameTimes.length) {
             frameTimePos = 0;
         }
-        FontRenderer.renderText(hudBatch, null, 4, 4, new TextBlock(Fonts.JETBRAINS_MONO, 12,
-                new TextComponent(Integer.toString(Gdx.graphics.getFramesPerSecond())).setBold(true).setColor(Color.WHITE),
-                new TextComponent(" FPS, Peak: ").setBold(false).setColor(Color.WHITE),
-                new TextComponent(df.format(Arrays.stream(frameTimes).max().orElseThrow())).setBold(true).setColor(Color.WHITE),
-                new TextComponent(" ms, Avg: ").setBold(false).setColor(Color.WHITE),
-                new TextComponent(df.format(Arrays.stream(frameTimes).average().orElseThrow())).setBold(true)
+        FontRenderer.renderText(hudBatch, null, 4, 1, new TextBlock(Fonts.JETBRAINS_MONO, 11,
+                new TextComponent(df2.format(Arrays.stream(frameTimes).average().orElseThrow())).setBold(true)
                         .setColor(Color.WHITE),
-                new TextComponent(" ms Render Calls: ").setBold(false).setColor(Color.WHITE),
-                new TextComponent(hudBatch.renderCalls + batch.renderCalls + "").setColor(Color.WHITE).setBold(true),
-                new TextComponent(" Last Save: ").setBold(false).setColor(Color.WHITE),
+                new TextComponent("/").setBold(false).setColor(Color.WHITE),
+                new TextComponent(df2.format(Arrays.stream(frameTimes).max().orElseThrow())).setBold(true).setColor(Color.WHITE),
+                new TextComponent(" ms Last Save: ").setBold(false).setColor(Color.WHITE),
                 new TextComponent(lastSave).setColor(Color.WHITE).setBold(true)));
 
         pathGui.render(hudShapeRenderer, hudBatch, hudCam);
@@ -455,9 +458,9 @@ public final class AutoBuilder extends ApplicationAdapter {
             float pointScaleFactor = AutoBuilder.getConfig().getPointScaleFactor();
             HoverManager.setHoverText(new TextBlock(Fonts.JETBRAINS_MONO, 14,
                             new TextComponent("X: ").setBold(true),
-                            new TextComponent(df.format(mousePos.x / pointScaleFactor)),
+                            new TextComponent(df3.format(mousePos.x / pointScaleFactor)),
                             new TextComponent(" Y: ").setBold(true),
-                            new TextComponent(df.format(mousePos.y / pointScaleFactor))),
+                            new TextComponent(df3.format(mousePos.y / pointScaleFactor))),
                     0, Gdx.graphics.getHeight() - 2);
         }
         //Figure out the max distance a point can be from the mouse
