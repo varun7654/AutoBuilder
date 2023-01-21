@@ -180,7 +180,7 @@ public class SettingsGui extends ScrollableGui implements Disposable {
         super.update(maxScrollPos);
         if (panelOpen && !panelWasOpen) {
             trajectoryConfigGuiElement.updateValues();
-
+        } else if (!panelOpen && panelWasOpen) {
             for (GuiElement guiItem : guiItems) {
                 guiItem.onUnfocus();
             }
