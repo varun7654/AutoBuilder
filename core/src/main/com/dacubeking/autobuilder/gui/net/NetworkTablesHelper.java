@@ -28,6 +28,7 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.stream.Stream;
 
 public final class NetworkTablesHelper {
+    public static final String ROBOT_POSITION_DEFAULT_NAME = "Robot Position";
     private final List<List<RobotPosition>> robotPositions = Collections.synchronizedList(new ArrayList<>());
     private NetworkTableInstance inst;
     private NetworkTable autoData;
@@ -131,10 +132,10 @@ public final class NetworkTablesHelper {
                                 }
                             }
                             positionsList.sort((o1, o2) -> {
-                                if (o1.name().equals("Robot Position")) { // Always put robot position first
-                                    return -1;
-                                } else if (o2.name().equals("Robot Position")) {
+                                if (o1.name().equals(ROBOT_POSITION_DEFAULT_NAME)) { // Always put robot position last
                                     return 1;
+                                } else if (o2.name().equals(ROBOT_POSITION_DEFAULT_NAME)) {
+                                    return -1;
                                 } else {
                                     return o1.name().compareTo(o2.name());
                                 }

@@ -53,6 +53,8 @@ public class DrivenPathRenderer extends PathRenderer {
 
     @Override
     public void render(@NotNull ShapeDrawer shapeRenderer, @NotNull OrthographicCamera cam) {
+        float latestRobotPreviewOpacity = 1; // Opacity of the latest robot preview
+
         List<List<RobotPosition>> robotPositions = networkTables.getRobotPositions();
 
         if (robotPositions.size() < lastDrawingIndex) {
@@ -121,10 +123,13 @@ public class DrivenPathRenderer extends PathRenderer {
         lastDrawing.draw();
 
         if (robotPositions.size() > robotPreviewIndex && robotPreviewIndex >= 0) {
+            latestRobotPreviewOpacity = 0.2f; //make the robot (at the latest time) preview less opaque
+
             ArrayList<TextComponent> textComponents = new ArrayList<>();
             List<RobotPosition> robotPositionAtTime = robotPositions.get(robotPreviewIndex);
+            
             for (RobotPosition robotPosition : robotPositionAtTime) {
-                renderRobotBoundingBox(shapeRenderer, robotPosition, getColor(robotPosition.name()));
+                renderRobotBoundingBox(shapeRenderer, robotPosition, getColor(robotPosition.name()), 1);
 
                 textComponents.add(new TextComponent(robotPosition.name() + " @").setBold(true).setSize(15));
                 addTextComponents(robotPosition, textComponents);
@@ -136,11 +141,11 @@ public class DrivenPathRenderer extends PathRenderer {
 
 
         //render the robot preview at the latest position
+
         if (robotPositions.size() - 1 > 0) {
-            List<RobotPosition> positions = robotPositions.get(
-                    robotPositions.size() - 1);
+            List<RobotPosition> positions = robotPositions.get(robotPositions.size() - 1);
             for (RobotPosition robotPosition : positions) {
-                renderRobotBoundingBox(shapeRenderer, robotPosition, getColor(robotPosition.name()));
+                renderRobotBoundingBox(shapeRenderer, robotPosition, getColor(robotPosition.name()), latestRobotPreviewOpacity);
             }
         }
 
@@ -149,7 +154,6 @@ public class DrivenPathRenderer extends PathRenderer {
     }
 
     private final HashMap<String, Color> colors = new HashMap<>();
-    private int colorIndex = 0;
 
     private Color getColor(String name) {
         if (!colors.containsKey(name)) {
@@ -158,13 +162,12 @@ public class DrivenPathRenderer extends PathRenderer {
             Color color = new Color().fromHsv(random.nextFloat(360), 1, 1);
             color.a = 1;
             colors.put(name, color);
-            colorIndex += 1;
         }
         return colors.get(name);
     }
 
     private void renderRobotBoundingBox(@NotNull ShapeDrawer shapeRenderer, RobotPosition pos1,
-                                        Color color) {
+                                        Color color, float opacity) {
         float pointScaleFactor = AutoBuilder.getConfig().getPointScaleFactor();
         renderRobotBoundingBox(
                 new Vector2((float) (pos1.x() * pointScaleFactor), (float) (pos1.y() * pointScaleFactor)),
