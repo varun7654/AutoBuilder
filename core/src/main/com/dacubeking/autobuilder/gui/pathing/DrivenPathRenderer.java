@@ -69,9 +69,9 @@ public class DrivenPathRenderer extends PathRenderer {
             float pointScaleFactor = AutoBuilder.getConfig().getPointScaleFactor();
 
             for (int i = lastDrawingIndex; i < robotPositions.size() - 1; i++) {
-                RobotPosition pos1 = robotPositions.get(i).get(0);
+                RobotPosition pos1 = robotPositions.get(i).get(robotPositions.get(i).size() - 1);
 
-                RobotPosition pos2 = robotPositions.get(i + 1).get(0);
+                RobotPosition pos2 = robotPositions.get(i + 1).get(robotPositions.get(i + 1).size() - 1);
                 nextPointLeft.set(0, -AutoBuilder.getLineThickness() / 2);
                 nextPointRight.set(0, AutoBuilder.getLineThickness() / 2);
 
@@ -127,7 +127,7 @@ public class DrivenPathRenderer extends PathRenderer {
 
             ArrayList<TextComponent> textComponents = new ArrayList<>();
             List<RobotPosition> robotPositionAtTime = robotPositions.get(robotPreviewIndex);
-            
+
             for (RobotPosition robotPosition : robotPositionAtTime) {
                 renderRobotBoundingBox(shapeRenderer, robotPosition, getColor(robotPosition.name()), 1);
 
