@@ -16,7 +16,7 @@ import org.jetbrains.annotations.Nullable;
  * Enforces a particular constraint only within a rectangular region.
  */
 @Constraint(name = "Rectangular Region", description = "Enforces a particular constraint only within a rectangular region.")
-public class RectangularRegionConstraint implements TrajectoryConstraint {
+public class RectangularRegionConstraint implements TrajectoryConstraint, PositionedConstraint {
 
     @ConstraintField(name = "Bottom Left", description = "The bottom left corner of the region.")
     @JsonProperty("bottomLeftPoint")
@@ -95,5 +95,27 @@ public class RectangularRegionConstraint implements TrajectoryConstraint {
                 && robotPose.getX() <= m_topRightPoint.getX()
                 && robotPose.getY() >= m_bottomLeftPoint.getY()
                 && robotPose.getY() <= m_topRightPoint.getY();
+    }
+
+    @Override
+    public void reflectX(double x) {
+        // Switch the x values of the bottom left and top right points.
+        m_bottomLeftPoint = new Translation2d(-(m_topRightPoint.getX() - x) + x, m_bottomLeftPoint.getY());
+        m_topRightPoint = new Translation2d(-(m_bottomLeftPoint.getX() - x) + x, m_topRightPoint.getY());
+
+        if (m_constraint instanceof PositionedConstraint) {
+            ((PositionedConstraint) m_constraint).reflectX(x);
+        }
+    }
+
+    @Override
+    public void reflectY(double y) {
+        // Switch the y values of the bottom left and top right points.
+        m_bottomLeftPoint = new Translation2d(m_bottomLeftPoint.getX(), -(m_topRightPoint.getY() - y) + y);
+        m_topRightPoint = new Translation2d(m_topRightPoint.getX(), -(m_bottomLeftPoint.getY() - y) + y);
+
+        if (m_constraint instanceof PositionedConstraint) {
+            ((PositionedConstraint) m_constraint).reflectY(y);
+        }
     }
 }

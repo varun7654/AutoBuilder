@@ -26,6 +26,8 @@ import com.dacubeking.autobuilder.gui.undo.UndoHandler;
 import com.dacubeking.autobuilder.gui.util.RoundedShapeRenderer;
 import com.dacubeking.autobuilder.gui.wpi.math.geometry.Rotation2d;
 import com.dacubeking.autobuilder.gui.wpi.math.spline.Spline.ControlVector;
+import com.dacubeking.autobuilder.gui.wpi.math.trajectory.constraint.PositionedConstraint;
+import com.dacubeking.autobuilder.gui.wpi.math.trajectory.constraint.TrajectoryConstraint;
 import space.earlygrey.shapedrawer.ShapeDrawer;
 
 import java.util.ArrayList;
@@ -354,6 +356,12 @@ public class SettingsGui extends ScrollableGui implements Disposable {
                         double[] prevControlVector = controlVector.x;
                         controlVector.x = new double[]{point.getX(), -prevControlVector[1], 0};
                         pathRenderer.getRotations().set(i, new Rotation2d(-rotation.getCos(), rotation.getSin()));
+                    }
+                }
+
+                for (TrajectoryConstraint constraint : pathRenderer.getConstraints()) {
+                    if (constraint instanceof PositionedConstraint positionedConstraint) {
+                        positionedConstraint.reflectX(halfWidth);
                     }
                 }
             }

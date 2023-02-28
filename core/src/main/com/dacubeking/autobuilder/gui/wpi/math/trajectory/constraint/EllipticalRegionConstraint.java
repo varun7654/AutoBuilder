@@ -17,7 +17,7 @@ import org.jetbrains.annotations.Nullable;
  * Enforces a particular constraint only within an elliptical region.
  */
 @Constraint(name = "Elliptical Region", description = "Enforces a particular constraint only within an elliptical region.")
-public class EllipticalRegionConstraint implements TrajectoryConstraint {
+public class EllipticalRegionConstraint implements TrajectoryConstraint, PositionedConstraint {
 
     @ConstraintField(name = "Center", description = "The center of the ellipse.")
     @JsonProperty("center")
@@ -107,5 +107,17 @@ public class EllipticalRegionConstraint implements TrajectoryConstraint {
         return Math.pow(robotPose.getX() - m_center.getX(), 2) * Math.pow(m_radii.getY(), 2)
                 + Math.pow(robotPose.getY() - m_center.getY(), 2) * Math.pow(m_radii.getX(), 2)
                 <= Math.pow(m_radii.getX(), 2) * Math.pow(m_radii.getY(), 2);
+    }
+
+    @Override
+    public void reflectX(double x) {
+        m_center = new Translation2d(-(m_center.getX() - x) + x, m_center.getY());
+        m_radii = new Translation2d(m_radii.getX(), -m_radii.getY());
+    }
+
+    @Override
+    public void reflectY(double y) {
+        m_center = new Translation2d(m_center.getX(), -(m_center.getY() - y) + y);
+        m_radii = new Translation2d(-m_radii.getX(), m_radii.getY());
     }
 }
