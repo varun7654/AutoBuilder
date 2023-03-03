@@ -100,9 +100,11 @@ public class RectangularRegionConstraint implements TrajectoryConstraint, Positi
     @Override
     public void reflectX(double x) {
         // Switch the x values of the bottom left and top right points.
-        m_bottomLeftPoint = new Translation2d(-(m_topRightPoint.getX() - x) + x, m_bottomLeftPoint.getY());
-        m_topRightPoint = new Translation2d(-(m_bottomLeftPoint.getX() - x) + x, m_topRightPoint.getY());
+        var bottomLeftPoint = new Translation2d(-(m_topRightPoint.getX() - x) + x, m_bottomLeftPoint.getY());
+        var topRightPoint = new Translation2d(-(m_bottomLeftPoint.getX() - x) + x, m_topRightPoint.getY());
 
+        m_topRightPoint = topRightPoint;
+        m_bottomLeftPoint = bottomLeftPoint;
         if (m_constraint instanceof PositionedConstraint) {
             ((PositionedConstraint) m_constraint).reflectX(x);
         }
@@ -111,8 +113,11 @@ public class RectangularRegionConstraint implements TrajectoryConstraint, Positi
     @Override
     public void reflectY(double y) {
         // Switch the y values of the bottom left and top right points.
-        m_bottomLeftPoint = new Translation2d(m_bottomLeftPoint.getX(), -(m_topRightPoint.getY() - y) + y);
-        m_topRightPoint = new Translation2d(m_topRightPoint.getX(), -(m_bottomLeftPoint.getY() - y) + y);
+        var bottomLeftPoint = new Translation2d(m_bottomLeftPoint.getX(), -(m_topRightPoint.getY() - y) + y);
+        var topRightPoint = new Translation2d(m_topRightPoint.getX(), -(m_bottomLeftPoint.getY() - y) + y);
+
+        m_bottomLeftPoint = bottomLeftPoint;
+        m_topRightPoint = topRightPoint;
 
         if (m_constraint instanceof PositionedConstraint) {
             ((PositionedConstraint) m_constraint).reflectY(y);
