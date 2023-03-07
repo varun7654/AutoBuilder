@@ -5,16 +5,9 @@
     <option name="MAIN_CLASS_NAME" value="com.dacubeking.autobuilder.gui.desktop.DesktopLauncher" />
     <module name="AutoBuilder.desktop.main" />
     <option name="PROGRAM_PARAMETERS" value="-XX:+UseZGC" />
-    <extension name="coverage">
-      <pattern>
-        <option name="PATTERN" value="com.dacubeking.autobuilder.gui.desktop.*" />
-        <option name="ENABLED" value="true" />
-      </pattern>
-      <pattern>
-        <option name="PATTERN" value="com.dacubeking.autobuilder.gui.*" />
-        <option name="ENABLED" value="true" />
-      </pattern>
-    </extension>
+    <selectedOptions>
+      <option name="environmentVariables" visible="false" />
+    </selectedOptions>
     <method v="2">
       <option name="Make" enabled="true" />
     </method>

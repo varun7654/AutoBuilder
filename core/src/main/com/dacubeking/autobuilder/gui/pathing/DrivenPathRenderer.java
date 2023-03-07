@@ -203,7 +203,8 @@ public class DrivenPathRenderer extends PathRenderer {
         synchronized (robotPositions) {
             float scale = AutoBuilder.getConfig().getPointScaleFactor();
             for (int i = 0; i < robotPositions.size(); i++) {
-                RobotPosition robotPosition = robotPositions.get(i).get(0);
+                ArrayList<RobotPosition> robotPositionsAtTime = (ArrayList<RobotPosition>) robotPositions.get(i);
+                RobotPosition robotPosition = robotPositionsAtTime.get(robotPositionsAtTime.size() - 1);
                 float len2 = mousePos.dst2((float) (robotPosition.x() * scale), (float) (robotPosition.y() * scale), 0);
                 if (len2 < maxDistance2) {
                     points.add(new CloseTrajectoryPoint(len2, this, i, 0));
