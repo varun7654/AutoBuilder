@@ -24,7 +24,8 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
         @JsonSubTypes.Type(MaxVelocityConstraint.class),
         @JsonSubTypes.Type(MecanumDriveKinematicsConstraint.class),
         @JsonSubTypes.Type(RectangularRegionConstraint.class),
-        @JsonSubTypes.Type(SwerveDriveKinematicsConstraint.class)
+        @JsonSubTypes.Type(SwerveDriveKinematicsConstraint.class),
+        @JsonSubTypes.Type(SwerveDriveVoltageConstraint.class)
 })
 public interface TrajectoryConstraint {
     /**

@@ -85,6 +85,9 @@ public class AddConstraintGuiElement implements GuiElement {
         constraints.add(new ConstraintType("Swerve Drive Kinematics",
                 () -> new SwerveDriveKinematicsConstraint(new SwerveDriveKinematics(
                         new Translation2d(), new Translation2d(), new Translation2d(), new Translation2d()), 1)));
+        constraints.add(new ConstraintType("Swerve Drive Voltage",
+                () -> new SwerveDriveVoltageConstraint(new SimpleMotorFeedforward(1, 1, 1),
+                        10.0)));
     }
 
     Vector2 pos = new Vector2();
