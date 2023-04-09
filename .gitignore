@@ -102,3 +102,5 @@ Thumbs.db
 .idea/discord.xml
 
 /desktop/out/*
+
+sonarlint
