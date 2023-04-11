@@ -72,7 +72,9 @@ public class AddConstraintGuiElement implements GuiElement {
                 () -> new CentripetalAccelerationConstraint(1.0)));
         constraints.add(new ConstraintType("Max Velocity",
                 () -> new MaxVelocityConstraint(1.0)));
-
+        constraints.add(new ConstraintType("Max Acceleration",
+                () -> new MaxAccelerationConstraint(1.0)));
+        
         constraints.add(new ConstraintType("Differential Drive Kinematics",
                 () -> new DifferentialDriveKinematicsConstraint(new DifferentialDriveKinematics(10), 1.0)));
         constraints.add(new ConstraintType("Differential Drive Voltage",
