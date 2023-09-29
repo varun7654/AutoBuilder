@@ -1,0 +1,10 @@
+com.dacubeking.AutoBuilder.robot
+com.dacubeking.AutoBuilder.robot.annotations
+com.dacubeking.AutoBuilder.robot.drawable
+com.dacubeking.AutoBuilder.robot.reflection
+com.dacubeking.AutoBuilder.robot.robotinterface
+com.dacubeking.AutoBuilder.robot.sender.hud
+com.dacubeking.AutoBuilder.robot.sender.pathpreview
+com.dacubeking.AutoBuilder.robot.serialization
+com.dacubeking.AutoBuilder.robot.serialization.command
+com.dacubeking.AutoBuilder.robot.utility

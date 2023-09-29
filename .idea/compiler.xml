@@ -6,6 +6,8 @@
     </annotationProcessing>
     <bytecodeTargetLevel target="11">
       <module name="AutoBuilder.main" target="17" />
+      <module name="AutoBuilder.robot.main" target="17" />
+      <module name="AutoBuilder.robot.test" target="17" />
       <module name="AutoBuilder.test" target="17" />
     </bytecodeTargetLevel>
   </component>

@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.dacubeking.AutoBuilder.robot.drawable.PathTest" tests="3" skipped="0" failures="0" errors="0" timestamp="2023-09-29T22:12:28" hostname="VARUN-NEW-PC" time="0.003">
+  <properties/>
+  <testcase name="testToString()" classname="com.dacubeking.AutoBuilder.robot.drawable.PathTest" time="0.001"/>
+  <testcase name="testToString2()" classname="com.dacubeking.AutoBuilder.robot.drawable.PathTest" time="0.0"/>
+  <testcase name="testToString3()" classname="com.dacubeking.AutoBuilder.robot.drawable.PathTest" time="0.001"/>
+  <system-out><![CDATA[P:(1.0,3.0),(3.0,4.0),(5.0,6.0),(7.0,6.0),(9.0,10.0),(11.0,15.0),#eb2d4e
+]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

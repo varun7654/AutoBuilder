@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.dacubeking.AutoBuilder.robot.drawable.CircleTest" tests="2" skipped="0" failures="0" errors="0" timestamp="2023-09-29T22:12:28" hostname="VARUN-NEW-PC" time="0.025">
+  <properties/>
+  <testcase name="testToString()" classname="com.dacubeking.AutoBuilder.robot.drawable.CircleTest" time="0.022"/>
+  <testcase name="testToString2()" classname="com.dacubeking.AutoBuilder.robot.drawable.CircleTest" time="0.002"/>
+  <system-out><![CDATA[C:(5.12312,12312.212),3.0,#14437c
+]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd" xmlns="http://maven.apache.org/POM/4.0.0"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <!-- This module was also published with a richer model, Gradle metadata,  -->
+  <!-- which should be used instead. Do not delete the following line which  -->
+  <!-- is to indicate to Gradle or any Gradle module metadata file consumer  -->
+  <!-- that they should prefer consuming it instead. -->
+  <!-- do_not_remove: published-with-gradle-metadata -->
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>com.dacubeking</groupId>
+  <artifactId>autobuilder-robot</artifactId>
+  <version>2.2.8</version>
+  <dependencies>
+    <dependency>
+      <groupId>org.jetbrains</groupId>
+      <artifactId>annotations</artifactId>
+      <version>23.0.0</version>
+      <scope>runtime</scope>
+    </dependency>
+    <dependency>
+      <groupId>com.google.guava</groupId>
+      <artifactId>guava</artifactId>
+      <version>31.1-jre</version>
+      <scope>runtime</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.reflections</groupId>
+      <artifactId>reflections</artifactId>
+      <version>0.10.2</version>
+      <scope>runtime</scope>
+    </dependency>
+    <dependency>
+      <groupId>edu.wpi.first.wpilibj</groupId>
+      <artifactId>wpilibj-java</artifactId>
+      <version>2023.4.3</version>
+      <scope>runtime</scope>
+    </dependency>
+    <dependency>
+      <groupId>edu.wpi.first.wpimath</groupId>
+      <artifactId>wpimath-java</artifactId>
+      <version>2023.4.3</version>
+      <scope>runtime</scope>
+    </dependency>
+    <dependency>
+      <groupId>edu.wpi.first.ntcore</groupId>
+      <artifactId>ntcore-java</artifactId>
+      <version>2023.4.3</version>
+      <scope>runtime</scope>
+    </dependency>
+    <dependency>
+      <groupId>edu.wpi.first.hal</groupId>
+      <artifactId>hal-java</artifactId>
+      <version>2023.4.3</version>
+      <scope>runtime</scope>
+    </dependency>
+    <dependency>
+      <groupId>edu.wpi.first.wpinet</groupId>
+      <artifactId>wpinet-java</artifactId>
+      <version>2023.4.3</version>
+      <scope>runtime</scope>
+    </dependency>
+    <dependency>
+      <groupId>edu.wpi.first.wpiutil</groupId>
+      <artifactId>wpiutil-java</artifactId>
+      <version>2023.4.3</version>
+      <scope>runtime</scope>
+    </dependency>
+    <dependency>
+      <groupId>edu.wpi.first.wpilibNewCommands</groupId>
+      <artifactId>wpilibNewCommands-java</artifactId>
+      <version>2023.4.3</version>
+      <scope>runtime</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.msgpack</groupId>
+      <artifactId>jackson-dataformat-msgpack</artifactId>
+      <version>0.9.3</version>
+      <scope>runtime</scope>
+    </dependency>
+  </dependencies>
+</project>

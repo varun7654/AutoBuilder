@@ -1,0 +1,179 @@
+{
+  "formatVersion": "1.1",
+  "component": {
+    "group": "com.dacubeking",
+    "module": "autobuilder-robot",
+    "version": "2.2.8",
+    "attributes": {
+      "org.gradle.status": "release"
+    }
+  },
+  "createdBy": {
+    "gradle": {
+      "version": "7.2"
+    }
+  },
+  "variants": [
+    {
+      "name": "apiElements",
+      "attributes": {
+        "org.gradle.category": "library",
+        "org.gradle.dependency.bundling": "external",
+        "org.gradle.jvm.version": 17,
+        "org.gradle.libraryelements": "jar",
+        "org.gradle.usage": "java-api"
+      },
+      "files": [
+        {
+          "name": "autobuilder-robot-2.2.8.jar",
+          "url": "autobuilder-robot-2.2.8.jar",
+          "size": 72384,
+          "sha512": "fb5720f9eff607834eadcd17961c67833628bbe39adc729d2a20b76492deff8bf0859eb89857857309d9668978fb34d01ba0571f775322387c47c29281a4e2f5",
+          "sha256": "16f0e371c82bf4466bed78538e343e99be22dce05b795ad7ae6988ed39d87015",
+          "sha1": "0f5634e27ae16dd5bffd199fbc8cea467f022c02",
+          "md5": "db30b4f0853bf31dc7bb97066c3106cb"
+        }
+      ]
+    },
+    {
+      "name": "runtimeElements",
+      "attributes": {
+        "org.gradle.category": "library",
+        "org.gradle.dependency.bundling": "external",
+        "org.gradle.jvm.version": 17,
+        "org.gradle.libraryelements": "jar",
+        "org.gradle.usage": "java-runtime"
+      },
+      "dependencies": [
+        {
+          "group": "org.jetbrains",
+          "module": "annotations",
+          "version": {
+            "requires": "23.0.0"
+          }
+        },
+        {
+          "group": "com.google.guava",
+          "module": "guava",
+          "version": {
+            "requires": "31.1-jre"
+          }
+        },
+        {
+          "group": "org.reflections",
+          "module": "reflections",
+          "version": {
+            "requires": "0.10.2"
+          }
+        },
+        {
+          "group": "edu.wpi.first.wpilibj",
+          "module": "wpilibj-java",
+          "version": {
+            "requires": "2023.4.3"
+          }
+        },
+        {
+          "group": "edu.wpi.first.wpimath",
+          "module": "wpimath-java",
+          "version": {
+            "requires": "2023.4.3"
+          }
+        },
+        {
+          "group": "edu.wpi.first.ntcore",
+          "module": "ntcore-java",
+          "version": {
+            "requires": "2023.4.3"
+          }
+        },
+        {
+          "group": "edu.wpi.first.hal",
+          "module": "hal-java",
+          "version": {
+            "requires": "2023.4.3"
+          }
+        },
+        {
+          "group": "edu.wpi.first.wpinet",
+          "module": "wpinet-java",
+          "version": {
+            "requires": "2023.4.3"
+          }
+        },
+        {
+          "group": "edu.wpi.first.wpiutil",
+          "module": "wpiutil-java",
+          "version": {
+            "requires": "2023.4.3"
+          }
+        },
+        {
+          "group": "edu.wpi.first.wpilibNewCommands",
+          "module": "wpilibNewCommands-java",
+          "version": {
+            "requires": "2023.4.3"
+          }
+        },
+        {
+          "group": "org.msgpack",
+          "module": "jackson-dataformat-msgpack",
+          "version": {
+            "requires": "0.9.3"
+          }
+        }
+      ],
+      "files": [
+        {
+          "name": "autobuilder-robot-2.2.8.jar",
+          "url": "autobuilder-robot-2.2.8.jar",
+          "size": 72384,
+          "sha512": "fb5720f9eff607834eadcd17961c67833628bbe39adc729d2a20b76492deff8bf0859eb89857857309d9668978fb34d01ba0571f775322387c47c29281a4e2f5",
+          "sha256": "16f0e371c82bf4466bed78538e343e99be22dce05b795ad7ae6988ed39d87015",
+          "sha1": "0f5634e27ae16dd5bffd199fbc8cea467f022c02",
+          "md5": "db30b4f0853bf31dc7bb97066c3106cb"
+        }
+      ]
+    },
+    {
+      "name": "sourcesElements",
+      "attributes": {
+        "org.gradle.category": "documentation",
+        "org.gradle.dependency.bundling": "external",
+        "org.gradle.docstype": "sources",
+        "org.gradle.usage": "java-runtime"
+      },
+      "files": [
+        {
+          "name": "autobuilder-robot-2.2.8-sources.jar",
+          "url": "autobuilder-robot-2.2.8-sources.jar",
+          "size": 46111,
+          "sha512": "df374bb3f433c2808dd911b3efd3f7202767d76b3994b375db8c60d16f89b4e07933da6bd9bbd8c961fbd7fb168713487f3900fe6dedfe90e3d9318a1d7c24df",
+          "sha256": "475a275ba1309a1df1f6c3d4650b5137939b0d4b123a0bca99979a1877c79e3e",
+          "sha1": "1c7b70f61a0a8ccd565d7e662ac68c41bc033888",
+          "md5": "38e9e1d3d374147cef0d92534ea3a4dc"
+        }
+      ]
+    },
+    {
+      "name": "javadocElements",
+      "attributes": {
+        "org.gradle.category": "documentation",
+        "org.gradle.dependency.bundling": "external",
+        "org.gradle.docstype": "javadoc",
+        "org.gradle.usage": "java-runtime"
+      },
+      "files": [
+        {
+          "name": "autobuilder-robot-2.2.8-javadoc.jar",
+          "url": "autobuilder-robot-2.2.8-javadoc.jar",
+          "size": 249603,
+          "sha512": "d0f3a91d91cff772173f6386773075179b902d889ec54cd1c64508e7fd56410194bd169d66c07bedf391c4492b3214eba6cec5870ae76b4767c8c815df93a653",
+          "sha256": "4faf2c9e090405c5870589f1e36f45381c045db9482a3d4f92b60502613359b7",
+          "sha1": "538745cc3b052ebb79662a82c12aa339942b601a",
+          "md5": "0159ba0f9ec79cd1c1c9852048739d7c"
+        }
+      ]
+    }
+  ]
+}

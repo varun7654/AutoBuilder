@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.dacubeking.AutoBuilder.robot.drawable.LineTest" tests="1" skipped="0" failures="0" errors="0" timestamp="2023-09-29T22:12:28" hostname="VARUN-NEW-PC" time="0.003">
+  <properties/>
+  <testcase name="testToString()" classname="com.dacubeking.AutoBuilder.robot.drawable.LineTest" time="0.003"/>
+  <system-out><![CDATA[L:(1.0,2.0),(3.0,4.0),#eb2d4e
+]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

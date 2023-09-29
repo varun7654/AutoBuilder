@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.dacubeking.AutoBuilder.robot.drawable.RectangleTest" tests="2" skipped="0" failures="0" errors="0" timestamp="2023-09-29T22:12:28" hostname="VARUN-NEW-PC" time="0.008">
+  <properties/>
+  <testcase name="testToString()" classname="com.dacubeking.AutoBuilder.robot.drawable.RectangleTest" time="0.007"/>
+  <testcase name="testToString2()" classname="com.dacubeking.AutoBuilder.robot.drawable.RectangleTest" time="0.001"/>
+  <system-out><![CDATA[R:(3.123,1.123),1.45323,-5.131,3.123,#170559
+]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>
