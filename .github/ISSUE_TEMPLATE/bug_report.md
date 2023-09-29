@@ -29,11 +29,9 @@ If applicable, add screenshots to help explain your problem.
  - Version [e.g. 2.0.1]
 
 **Rio Side (please complete the following information):**
- - Rio
-   - [ ] Rio 1
-   - [ ] Rio 2
+ - Rio Version [e.g. Rio 1.0, Rio 2.0]
  - WPILib Version: [e.g. 2023.2.1]
- - Version [e.g. 2.0.1 (not this is different from the UI version; Check your `build.gradle` for the version you're using]
+ - Version [e.g. 2.0.1 (not this is different from the UI version; Check your `build.gradle` for the version you're using)]
 
 **Additional context**
 Add any other context about the problem here.
