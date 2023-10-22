@@ -1,6 +1,7 @@
 package com.dacubeking.autobuilder.gui.net;
 
 import com.badlogic.gdx.graphics.Color;
+import com.dacubeking.AutoBuilder.robot.serialization.Autonomous;
 import com.dacubeking.autobuilder.gui.AutoBuilder;
 import com.dacubeking.autobuilder.gui.config.gui.FileHandler;
 import com.dacubeking.autobuilder.gui.gui.drawable.*;
@@ -11,11 +12,9 @@ import com.dacubeking.autobuilder.gui.gui.notification.NotificationHandler;
 import com.dacubeking.autobuilder.gui.gui.path.AbstractGuiItem;
 import com.dacubeking.autobuilder.gui.gui.shooter.ShooterConfig;
 import com.dacubeking.autobuilder.gui.pathing.RobotPosition;
-import com.dacubeking.autobuilder.gui.serialization.path.Autonomous;
 import com.dacubeking.autobuilder.gui.serialization.path.GuiSerializer;
 import com.dacubeking.autobuilder.gui.serialization.path.NotDeployableException;
 import com.dacubeking.autobuilder.gui.util.Colors;
-import edu.wpi.first.networktables.EntryListenerFlags;
 import edu.wpi.first.networktables.NetworkTable;
 import edu.wpi.first.networktables.NetworkTableEntry;
 import edu.wpi.first.networktables.NetworkTableInstance;
@@ -216,9 +215,11 @@ public final class NetworkTablesHelper {
 
                     String teamNumber = AutoBuilder.getConfig().getTeamNumber(); // Might also be an IP address
                     if (teamNumber.length() <= 4 && teamNumber.matches("[0-9]+")) {
-                        inst.startClientTeam(Integer.parseInt(teamNumber));
+                        inst.setServerTeam(Integer.parseInt(teamNumber));
+                        inst.startClient4("AutoBuilder");
                     } else {
-                        inst.startClient(teamNumber);
+                        inst.setServer(teamNumber);
+                        inst.startClient4("AutoBuilder");
                     }
 
                     if (AutoBuilder.getInstance().shooterGui != null) { // Only add the listeners if the shooter gui is

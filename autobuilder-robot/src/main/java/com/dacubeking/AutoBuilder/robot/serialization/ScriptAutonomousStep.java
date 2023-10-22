@@ -16,21 +16,23 @@ import java.util.concurrent.ExecutionException;
 @Internal
 public class ScriptAutonomousStep extends AbstractAutonomousStep {
 
+    private final String script;
+    private final boolean valid;
     private final SendableScript sendableScript;
 
     @JsonCreator
-    private ScriptAutonomousStep(@JsonProperty(required = true, value = "sendableScript") SendableScript sendableScript) {
+    public ScriptAutonomousStep(@JsonProperty(required = true, value = "script") String script,
+                                @JsonProperty(required = true, value = "closed") boolean closed,
+                                @JsonProperty(required = true, value = "valid") boolean valid,
+                                @JsonProperty(required = true, value = "sendableScript") SendableScript sendableScript) {
+        super(closed);
+        this.script = script;
+        this.valid = valid;
         this.sendableScript = sendableScript;
     }
 
-    @Override
-    @NotNull
-    public String toString() {
-        return "ScriptAutonomousStep{" + "sendableScript='" + sendableScript + '\'' + '}';
-    }
-
     @JsonProperty
-    private SendableScript getSendableScript() {
+    public SendableScript getSendableScript() {
         return sendableScript;
     }
 
@@ -53,5 +55,24 @@ public class ScriptAutonomousStep extends AbstractAutonomousStep {
         }
 
         sendableScript.execute();
+    }
+
+    @JsonProperty("script")
+    public String getScript() {
+        return script;
+    }
+
+    @JsonProperty("valid")
+    public boolean isValid() {
+        return valid;
+    }
+
+    @Override
+    public String toString() {
+        return "ScriptAutonomousStep{" +
+                "script='" + script + '\'' +
+                ", valid=" + valid +
+                ", sendableScript=" + sendableScript +
+                '}';
     }
 }

@@ -1,6 +1,6 @@
 package com.dacubeking.AutoBuilder.robot.utility;
 
-public class OsUtil {
+public final class OsUtil {
     private static final String OS = System.getProperty("os.name").toLowerCase();
 
     static public boolean isAndroid = System.getProperty("java.runtime.name").contains("Android");

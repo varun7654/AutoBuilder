@@ -11,4 +11,14 @@ public final class Utils {
     public static String getColorAsHex(Color8Bit color) {
         return String.format("#%02x%02x%02x", color.red, color.green, color.blue);
     }
+
+    private static boolean isOnRobot = true;
+
+    public static boolean isOnRobot() {
+        return isOnRobot;
+    }
+
+    private static void setIsOnRobot(boolean isOnRobot) {
+        Utils.isOnRobot = isOnRobot;
+    }
 }

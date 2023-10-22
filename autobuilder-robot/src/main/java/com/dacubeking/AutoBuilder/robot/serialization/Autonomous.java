@@ -13,10 +13,19 @@ import java.util.List;
 @Internal
 public class Autonomous {
     private final List<AbstractAutonomousStep> autonomousSteps;
+    private boolean deployable;
 
     @JsonCreator
     public Autonomous(@JsonProperty(required = true, value = "autonomousSteps") List<AbstractAutonomousStep> autonomousSteps) {
         this.autonomousSteps = autonomousSteps;
+    }
+
+    public void setDeployable(boolean deployable) {
+        this.deployable = deployable;
+    }
+
+    public boolean isDeployable() {
+        return deployable;
     }
 
     @JsonProperty

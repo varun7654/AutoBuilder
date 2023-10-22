@@ -2,6 +2,7 @@ package com.dacubeking.AutoBuilder.robot.serialization.command;
 
 import com.dacubeking.AutoBuilder.robot.annotations.RequireWait;
 import com.dacubeking.AutoBuilder.robot.robotinterface.AutonomousContainer;
+import com.dacubeking.AutoBuilder.robot.utility.Utils;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -26,7 +27,7 @@ import java.util.function.Function;
 import static com.dacubeking.AutoBuilder.robot.robotinterface.AutonomousContainer.getCommandTranslator;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
-class SendableCommand {
+public class SendableCommand {
 
     public static final double LOOPING_PERIOD_SECONDS = 0.02; // 50 Hz/20 ms
     @JsonProperty("methodName")
@@ -41,9 +42,9 @@ class SendableCommand {
 
     @JsonProperty("command") private final boolean command;
 
-    private final boolean shouldWait;
+    private boolean shouldWait;
 
-    private final boolean shouldCancelCommand;
+    private boolean shouldCancelCommand;
 
     private static final @NotNull Map<String, Function<String, Object>> INFERABLE_TYPES_PARSER;
 
@@ -79,12 +80,19 @@ class SendableCommand {
             boolean.class.getName()
     );
 
+    public SendableCommand(@JsonProperty("methodName") String methodName,
+                           @JsonProperty("args") String[] args,
+                           @JsonProperty("argTypes") String[] argTypes,
+                           @JsonProperty("reflection") boolean reflection) {
+        this(methodName, args, argTypes, reflection, false);
+    }
+
     @JsonCreator
-    protected SendableCommand(@JsonProperty("methodName") @NotNull String methodName,
-                              @JsonProperty("args") String @NotNull [] args,
-                              @JsonProperty("argTypes") String[] argTypes,
-                              @JsonProperty("reflection") boolean reflection,
-                              @JsonProperty("command") boolean command) {
+    public SendableCommand(@JsonProperty("methodName") @NotNull String methodName,
+                           @JsonProperty("args") String @NotNull [] args,
+                           @JsonProperty("argTypes") String[] argTypes,
+                           @JsonProperty("reflection") boolean reflection,
+                           @JsonProperty("command") boolean command) {
         Method methodToCall = null;
         Object instance = null;
         boolean shouldWait;
@@ -97,6 +105,12 @@ class SendableCommand {
 
         objArgs = new Object[args.length];
 
+        if (Utils.isOnRobot()) {
+            init();
+        }
+    }
+
+    private void init() {
         if (command) {
             // If we're a command, the command name is the method name
             if (AutonomousContainer.getInstance().getAccessibleInstances().containsKey(methodName)) {
@@ -212,11 +226,11 @@ class SendableCommand {
 
     @JsonIgnoreProperties
     @Nullable
-    private final Object instance;
+    private Object instance;
 
     @JsonIgnoreProperties
     @Nullable
-    private final Method methodToCall;
+    private Method methodToCall;
 
     @JsonIgnoreProperties private final Object @NotNull [] objArgs;
 

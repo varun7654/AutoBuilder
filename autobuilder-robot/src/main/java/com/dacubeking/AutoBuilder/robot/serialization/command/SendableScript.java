@@ -1,19 +1,15 @@
 package com.dacubeking.AutoBuilder.robot.serialization.command;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.List;
+import java.util.ArrayList;
 import java.util.concurrent.ExecutionException;
 
-
-/**
- * Note: this class has a natural ordering that is inconsistent with equals.
- */
-@JsonIgnoreProperties(ignoreUnknown = true)
 public class SendableScript implements Comparable<SendableScript> {
+
 
     /**
      * @throws InterruptedException if the thread is interrupted while executing the commands
@@ -27,6 +23,16 @@ public class SendableScript implements Comparable<SendableScript> {
         }
     }
 
+    @Override
+    public String toString() {
+        return "SendableScript{" +
+                "delayType=" + delayType +
+                ", delay=" + delay +
+                ", deployable=" + deployable +
+                ", commands=" + commands +
+                '}';
+    }
+
     public enum DelayType {
         NONE,
         TIME,
@@ -35,17 +41,22 @@ public class SendableScript implements Comparable<SendableScript> {
 
     private DelayType delayType;
     private double delay;
+    private boolean deployable;
 
-    private final List<SendableCommand> commands;
+    private final ArrayList<SendableCommand> commands;
 
 
     @JsonCreator
     public SendableScript(@JsonProperty("delayType") DelayType delayType,
                           @JsonProperty("delay") double delay,
-                          @JsonProperty("commands") List<SendableCommand> commands) {
+                          @JsonProperty("commands") ArrayList<SendableCommand> commands) {
         this.delayType = delayType;
         this.delay = delay;
         this.commands = commands;
+    }
+
+    public SendableScript() {
+        this(DelayType.NONE, 0, new ArrayList<>());
     }
 
     @JsonProperty("delayType")
@@ -59,8 +70,13 @@ public class SendableScript implements Comparable<SendableScript> {
     }
 
     @JsonProperty("commands")
-    public List<SendableCommand> getCommands() {
+    public ArrayList<SendableCommand> getCommands() {
         return commands;
+    }
+
+    @JsonIgnore
+    public boolean isDeployable() {
+        return deployable;
     }
 
     public void setDelay(double delay) {
@@ -71,17 +87,12 @@ public class SendableScript implements Comparable<SendableScript> {
         this.delayType = delayType;
     }
 
-    @Override
-    public int compareTo(@NotNull SendableScript o) {
-        return Double.compare(delay, o.delay);
+    public void setDeployable(boolean deployable) {
+        this.deployable = deployable;
     }
 
     @Override
-    public String toString() {
-        return "SendableScript{" +
-                "delayType=" + delayType +
-                ", delay=" + delay +
-                ", commands=" + commands +
-                '}';
+    public int compareTo(@NotNull SendableScript o) {
+        return Double.compare(delay, o.delay);
     }
 }

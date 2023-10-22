@@ -3,8 +3,8 @@ package com.dacubeking.autobuilder.gui.util;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.math.Vector3;
 import com.dacubeking.autobuilder.gui.AutoBuilder;
-import com.dacubeking.autobuilder.gui.wpi.math.geometry.Pose2d;
-import com.dacubeking.autobuilder.gui.wpi.math.geometry.Translation2d;
+import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.geometry.Translation2d;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 

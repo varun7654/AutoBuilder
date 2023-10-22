@@ -1,13 +1,13 @@
 package com.dacubeking.autobuilder.gui.serialization.path;
 
+import com.dacubeking.AutoBuilder.robot.serialization.*;
 import com.dacubeking.autobuilder.gui.gui.path.AbstractGuiItem;
 import com.dacubeking.autobuilder.gui.gui.path.ScriptItem;
 import com.dacubeking.autobuilder.gui.gui.path.TrajectoryItem;
-import com.dacubeking.autobuilder.gui.pathing.TimedRotation;
-import com.dacubeking.autobuilder.gui.wpi.math.spline.Spline.ControlVector;
-import com.dacubeking.autobuilder.gui.wpi.math.trajectory.Trajectory;
-import com.dacubeking.autobuilder.gui.wpi.math.trajectory.TrajectoryGenerator.ControlVectorList;
-import com.dacubeking.autobuilder.gui.wpi.math.trajectory.constraint.TrajectoryConstraint;
+import edu.wpi.first.math.spline.Spline.ControlVector;
+import edu.wpi.first.math.trajectory.Trajectory;
+import edu.wpi.first.math.trajectory.TrajectoryGenerator.ControlVectorList;
+import edu.wpi.first.math.trajectory.constraint.TrajectoryConstraint;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -147,7 +147,7 @@ public class GuiSerializer {
             }
         }
 
-        autonomous.deployable = deployable;
+        autonomous.setDeployable(deployable);
         return autonomous;
     }
 }

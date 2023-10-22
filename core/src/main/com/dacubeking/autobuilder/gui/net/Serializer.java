@@ -1,6 +1,6 @@
 package com.dacubeking.autobuilder.gui.net;
 
-import com.dacubeking.autobuilder.gui.serialization.path.Autonomous;
+import com.dacubeking.AutoBuilder.robot.serialization.Autonomous;
 import com.fasterxml.jackson.core.exc.StreamReadException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;

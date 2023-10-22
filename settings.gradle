@@ -1,2 +1,2 @@
-include 'desktop', 'core', 'autobuilder-robot'
+include 'desktop', 'core', 'autobuilder-robot', 'shared'
 

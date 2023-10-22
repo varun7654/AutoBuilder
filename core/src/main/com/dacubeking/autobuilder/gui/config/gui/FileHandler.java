@@ -2,12 +2,12 @@ package com.dacubeking.autobuilder.gui.config.gui;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Color;
+import com.dacubeking.AutoBuilder.robot.serialization.Autonomous;
 import com.dacubeking.autobuilder.gui.AutoBuilder;
 import com.dacubeking.autobuilder.gui.config.Config;
 import com.dacubeking.autobuilder.gui.gui.notification.Notification;
 import com.dacubeking.autobuilder.gui.gui.notification.NotificationHandler;
 import com.dacubeking.autobuilder.gui.net.Serializer;
-import com.dacubeking.autobuilder.gui.serialization.path.Autonomous;
 import com.dacubeking.autobuilder.gui.serialization.path.GuiSerializer;
 import com.dacubeking.autobuilder.gui.undo.UndoHandler;
 import com.dacubeking.autobuilder.gui.util.Colors;
@@ -205,14 +205,14 @@ public class FileHandler {
             File autoFile;
             autoFile = new File(
                     config.getAutoPath().getParentFile().getAbsolutePath() + "/" +
-                            (autonomous.deployable ? "" : "NOTDEPLOYABLE") + new File(
+                            (autonomous.isDeployable() ? "" : "NOTDEPLOYABLE") + new File(
                             config.getSelectedAuto()).getName());
             autoFile.getParentFile().mkdirs();
 
             try {
                 Serializer.serializeToFile(autonomous, autoFile, config.getSelectedAuto().endsWith(".json"));
 
-                if (autonomous.deployable) {
+                if (autonomous.isDeployable()) {
                     File fileToDelete = new File(
                             config.getAutoPath().getParentFile().getAbsolutePath() + "/NOTDEPLOYABLE" +
                                     new File(config.getSelectedAuto()).getName());

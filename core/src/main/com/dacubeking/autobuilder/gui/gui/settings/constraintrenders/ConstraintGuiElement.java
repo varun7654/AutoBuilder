@@ -12,8 +12,8 @@ import com.dacubeking.autobuilder.gui.gui.settings.constraintrenders.annotations
 import com.dacubeking.autobuilder.gui.gui.textrendering.TextComponent;
 import com.dacubeking.autobuilder.gui.undo.UndoHandler;
 import com.dacubeking.autobuilder.gui.util.Colors;
-import com.dacubeking.autobuilder.gui.wpi.math.trajectory.constraint.SwerveDriveKinematicsConstraint;
-import com.dacubeking.autobuilder.gui.wpi.math.trajectory.constraint.TrajectoryConstraint;
+import edu.wpi.first.math.trajectory.constraint.SwerveDriveKinematicsConstraint;
+import edu.wpi.first.math.trajectory.constraint.TrajectoryConstraint;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import space.earlygrey.shapedrawer.ShapeDrawer;
