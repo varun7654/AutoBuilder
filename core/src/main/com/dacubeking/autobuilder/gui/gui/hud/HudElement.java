@@ -10,32 +10,33 @@ import com.dacubeking.autobuilder.gui.gui.textrendering.TextBlock;
 import com.dacubeking.autobuilder.gui.gui.textrendering.TextComponent;
 import com.dacubeking.autobuilder.gui.util.NTUtil;
 import com.dacubeking.autobuilder.gui.util.RoundedShapeRenderer;
-import edu.wpi.first.networktables.EntryListenerFlags;
-import edu.wpi.first.networktables.NetworkTableEntry;
+import edu.wpi.first.networktables.NetworkTableEvent.Kind;
 import edu.wpi.first.networktables.NetworkTableInstance;
+import edu.wpi.first.networktables.Topic;
 import org.jetbrains.annotations.Nullable;
 import space.earlygrey.shapedrawer.ShapeDrawer;
 
 import java.text.DecimalFormat;
+import java.util.EnumSet;
 
 public class HudElement implements Disposable {
 
     protected final Color color;
-    protected final NetworkTableEntry entry;
+    protected final Topic entry;
     protected final String label;
     protected float width;
     protected final DecimalFormat decimalFormat;
-    protected final int listenerId;
+    protected final int listenerHandle;
 
-    public HudElement(NetworkTableEntry entry, String label, Color color, float width, DecimalFormat decimalFormat) {
+    public HudElement(Topic entry, String label, Color color, float width, DecimalFormat decimalFormat) {
         this.entry = entry;
         this.label = label;
         this.color = color;
         this.width = width;
         this.decimalFormat = decimalFormat;
 
-        listenerId = entry.addListener((entryNotification -> AutoBuilder.requestRendering()),
-                EntryListenerFlags.kNew | EntryListenerFlags.kUpdate | EntryListenerFlags.kImmediate);
+        listenerHandle = NetworkTableInstance.getDefault().addListener(entry,
+                EnumSet.of(Kind.kImmediate, Kind.kValueRemote), entryNotification -> AutoBuilder.requestRendering());
     }
 
 
@@ -62,7 +63,7 @@ public class HudElement implements Disposable {
             return null;
         }
         return new HudElement(
-                NetworkTableInstance.getDefault().getEntry(split[0]),
+                NetworkTableInstance.getDefault().getTopic(split[0]),
                 split[1],
                 Color.valueOf(split[2]),
                 Float.parseFloat(split[3]),
@@ -72,6 +73,6 @@ public class HudElement implements Disposable {
 
     @Override
     public void dispose() {
-        entry.removeListener(listenerId);
+        NetworkTableInstance.getDefault().removeListener(listenerHandle);
     }
 }
