@@ -104,3 +104,4 @@ Thumbs.db
 /desktop/out/*
 
 sonarlint
+/autobuilder-robot/build/
