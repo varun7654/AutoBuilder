@@ -90,7 +90,8 @@ public final class NetworkTablesHelper {
     }
 
     public void start(HudRenderer hudRenderer, @NotNull DrawableRenderer drawableRenderer) {
-        new Thread(() -> {
+        var thread = new Thread(() -> {
+
             inst = NetworkTableInstance.getDefault();
 
             autoData = inst.getTable("autodata");
@@ -235,7 +236,12 @@ public final class NetworkTablesHelper {
                     isStarted = false;
                 }
             }
-        }).start();
+        });
+        thread.setUncaughtExceptionHandler((t, e) -> {
+            e.printStackTrace();
+            NotificationHandler.addNotification(new Notification(Colors.LIGHT_RED, "Network Tables Failed to Start", 5000));
+        });
+        thread.start();
     }
 
 

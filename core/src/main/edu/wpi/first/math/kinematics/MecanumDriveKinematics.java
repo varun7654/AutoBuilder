@@ -5,11 +5,11 @@
 package edu.wpi.first.math.kinematics;
 
 import com.dacubeking.autobuilder.gui.gui.settings.constraintrenders.annotations.ConstraintField;
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import edu.wpi.first.math.MathSharedStore;
 import edu.wpi.first.math.MathUsageId;
 import edu.wpi.first.math.geometry.Translation2d;
-import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonProperty;
 import org.ejml.simple.SimpleMatrix;
 
 /**

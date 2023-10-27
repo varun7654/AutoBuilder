@@ -44,8 +44,6 @@ dependencies {
     // Add ntcore-java
     implementation "edu.wpi.first.ntcore:ntcore-java:$wpilibVersion"
 
-    // Add wpiutil-java
-    implementation "edu.wpi.first.wpiutil:wpiutil-java:$wpilibVersion"
 
     // Add ntcore-jni for runtime. We are adding all supported platforms
     // so that our application will work on all supported platforms.
@@ -56,6 +54,9 @@ dependencies {
     runtimeOnly "edu.wpi.first.ntcore:ntcore-jni:$wpilibVersion:linuxx86-64"
     runtimeOnly "edu.wpi.first.ntcore:ntcore-jni:$wpilibVersion:osxuniversal"
 
+    // Add wpiutil-java
+    implementation "edu.wpi.first.wpiutil:wpiutil-java:$wpilibVersion"
+
     // Add wpiutil-jni for runtime. We are adding all supported platforms
     // so that our application will work on all supported platforms.
     runtimeOnly "edu.wpi.first.wpiutil:wpiutil-jni:$wpilibVersion:windowsx86-64"
@@ -64,6 +65,19 @@ dependencies {
     runtimeOnly "edu.wpi.first.wpiutil:wpiutil-jni:$wpilibVersion:linuxathena"
     runtimeOnly "edu.wpi.first.wpiutil:wpiutil-jni:$wpilibVersion:linuxx86-64"
     runtimeOnly "edu.wpi.first.wpiutil:wpiutil-jni:$wpilibVersion:osxuniversal"
+
+
+    // Add wpiutil-java
+    implementation "edu.wpi.first.wpimath:wpimath-java:$wpilibVersion"
+
+    // Add wpiutil-jni for runtime. We are adding all supported platforms
+    // so that our application will work on all supported platforms.
+    runtimeOnly "edu.wpi.first.wpimath:wpimath-jni:$wpilibVersion:windowsx86-64"
+    runtimeOnly "edu.wpi.first.wpimath:wpimath-jni:$wpilibVersion:linuxarm32"
+    runtimeOnly "edu.wpi.first.wpimath:wpimath-jni:$wpilibVersion:linuxarm64"
+    runtimeOnly "edu.wpi.first.wpimath:wpimath-jni:$wpilibVersion:linuxathena"
+    runtimeOnly "edu.wpi.first.wpimath:wpimath-jni:$wpilibVersion:linuxx86-64"
+    runtimeOnly "edu.wpi.first.wpimath:wpimath-jni:$wpilibVersion:osxuniversal"
 
     implementation "space.earlygrey:shapedrawer:$shapedrawerVersion"
 
