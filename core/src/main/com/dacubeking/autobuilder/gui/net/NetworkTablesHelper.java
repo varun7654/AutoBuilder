@@ -1,6 +1,7 @@
 package com.dacubeking.autobuilder.gui.net;
 
 import com.badlogic.gdx.graphics.Color;
+import com.dacubeking.AutoBuilder.robot.serialization.Autonomous;
 import com.dacubeking.autobuilder.gui.AutoBuilder;
 import com.dacubeking.autobuilder.gui.config.gui.FileHandler;
 import com.dacubeking.autobuilder.gui.gui.drawable.*;
@@ -11,16 +12,15 @@ import com.dacubeking.autobuilder.gui.gui.notification.NotificationHandler;
 import com.dacubeking.autobuilder.gui.gui.path.AbstractGuiItem;
 import com.dacubeking.autobuilder.gui.gui.shooter.ShooterConfig;
 import com.dacubeking.autobuilder.gui.pathing.RobotPosition;
-import com.dacubeking.autobuilder.gui.serialization.path.Autonomous;
 import com.dacubeking.autobuilder.gui.serialization.path.GuiSerializer;
 import com.dacubeking.autobuilder.gui.serialization.path.NotDeployableException;
 import com.dacubeking.autobuilder.gui.util.Colors;
-import edu.wpi.first.networktables.EntryListenerFlags;
 import edu.wpi.first.networktables.NetworkTable;
 import edu.wpi.first.networktables.NetworkTableEntry;
+import edu.wpi.first.networktables.NetworkTableEvent.Kind;
 import edu.wpi.first.networktables.NetworkTableInstance;
+import edu.wpi.first.networktables.NetworkTableType;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.io.IOException;
 import java.util.*;
@@ -90,7 +90,8 @@ public final class NetworkTablesHelper {
     }
 
     public void start(HudRenderer hudRenderer, @NotNull DrawableRenderer drawableRenderer) {
-        new Thread(() -> {
+        var thread = new Thread(() -> {
+
             inst = NetworkTableInstance.getDefault();
 
             autoData = inst.getTable("autodata");
@@ -107,9 +108,9 @@ public final class NetworkTablesHelper {
             robotPositionsEntry = NetworkTableInstance.getDefault().getEntry("autodata/robotPositions");
             distanceEntry = smartDashboardTable.getEntry("Shooter Distance to Target");
 
-
-            enabledTable.addListener(entryNotification -> {
-                        if (entryNotification.getEntry().getBoolean(false)) {
+            NetworkTableInstance.getDefault().addListener(enabledTable, EnumSet.of(Kind.kImmediate, Kind.kValueAll),
+                    entryNotification -> {
+                        if (entryNotification.valueData.value.getBoolean()) {
                             if (!robotEnabled) {
                                 robotEnabled = true;
                                 robotPositions.clear();
@@ -117,12 +118,12 @@ public final class NetworkTablesHelper {
                         } else {
                             robotEnabled = false;
                         }
-                    },
-                    EntryListenerFlags.kNew | EntryListenerFlags.kUpdate | EntryListenerFlags.kImmediate | EntryListenerFlags.kLocal);
+                    });
 
-            robotPositionsEntry.addListener(entryNotification -> {
-                        @Nullable String positions = robotPositionsEntry.getString(null);
-                        if (positions != null) {
+            NetworkTableInstance.getDefault().addListener(robotPositionsEntry, EnumSet.of(Kind.kImmediate, Kind.kValueAll),
+                    entryNotification -> {
+                        if (entryNotification.valueData.value.getType().equals(NetworkTableType.kString)) {
+                            String positions = entryNotification.valueData.value.getString();
                             String[] positionsArray = positions.split(";");
                             List<RobotPosition> positionsList = new ArrayList<>(positionsArray.length);
                             for (String s : positionsArray) {
@@ -143,11 +144,11 @@ public final class NetworkTablesHelper {
                             robotPositions.add(positionsList);
                             AutoBuilder.requestRendering();
                         }
-                    },
-                    EntryListenerFlags.kNew | EntryListenerFlags.kUpdate | EntryListenerFlags.kImmediate | EntryListenerFlags.kLocal);
+                    });
 
-            processingTable.addListener(entryNotification -> {
-                        double processingId = entryNotification.getEntry().getDouble(0);
+            NetworkTableInstance.getDefault()
+                    .addListener(processingTable, EnumSet.of(Kind.kImmediate, Kind.kValueAll), entryNotification -> {
+                        double processingId = entryNotification.valueData.value.getInteger();
                         if (processingId == 1) {
                             NotificationHandler.addNotification(
                                     new Notification(Color.CORAL, "The Roborio has started deserializing the auto",
@@ -160,12 +161,11 @@ public final class NetworkTablesHelper {
                             NotificationHandler.addNotification(
                                     new Notification(LIGHT_GREEN, "The Roborio has set: " + processingId, 1500));
                         }
-                    },
-                    EntryListenerFlags.kNew | EntryListenerFlags.kUpdate | EntryListenerFlags.kImmediate | EntryListenerFlags.kLocal);
-
-            hudElementsEntry.addListener(entryNotification -> {
-                        @Nullable String hudElementsString = entryNotification.getEntry().getString(null);
-                        if (hudElementsString != null) {
+                    });
+            NetworkTableInstance.getDefault().addListener(hudElementsEntry, EnumSet.of(Kind.kImmediate, Kind.kValueAll),
+                    entryNotification -> {
+                        if (entryNotification.valueData.value.getType() == NetworkTableType.kString) {
+                            String hudElementsString = entryNotification.valueData.value.getString();
                             String[] hudElementsStringArray = hudElementsString.split(";");
 
                             List<HudElement> hudElements = new ArrayList<>(hudElementsStringArray.length);
@@ -178,12 +178,12 @@ public final class NetworkTablesHelper {
 
                             hudRenderer.setHudElements(hudElements);
                         }
-                    },
-                    EntryListenerFlags.kNew | EntryListenerFlags.kUpdate | EntryListenerFlags.kImmediate | EntryListenerFlags.kLocal);
+                    });
 
-            drawablesEntry.addListener(entryNotification -> {
-                        @Nullable String[] drawablesString = entryNotification.getEntry().getStringArray(null);
-                        if (drawablesString != null) {
+            NetworkTableInstance.getDefault()
+                    .addListener(drawablesEntry, EnumSet.of(Kind.kImmediate, Kind.kValueAll), entryNotification -> {
+                        if (entryNotification.valueData.value.getType() == NetworkTableType.kString) {
+                            String[] drawablesString = entryNotification.valueData.value.getStringArray();
                             ArrayList<Drawable> drawables = new ArrayList<>(drawablesString.length);
                             for (String s : drawablesString) {
                                 switch (s.charAt(0)) {
@@ -196,8 +196,7 @@ public final class NetworkTablesHelper {
                             drawableRenderer.setDrawables(drawables);
                             AutoBuilder.requestRendering();
                         }
-                    },
-                    EntryListenerFlags.kNew | EntryListenerFlags.kUpdate | EntryListenerFlags.kImmediate | EntryListenerFlags.kLocal);
+                    });
 
 
             while (true) {
@@ -216,17 +215,18 @@ public final class NetworkTablesHelper {
 
                     String teamNumber = AutoBuilder.getConfig().getTeamNumber(); // Might also be an IP address
                     if (teamNumber.length() <= 4 && teamNumber.matches("[0-9]+")) {
-                        inst.startClientTeam(Integer.parseInt(teamNumber));
+                        inst.setServerTeam(Integer.parseInt(teamNumber));
+                        inst.startClient4("AutoBuilder");
                     } else {
-                        inst.startClient(teamNumber);
+                        inst.setServer(teamNumber);
+                        inst.startClient4("AutoBuilder");
                     }
 
                     if (AutoBuilder.getInstance().shooterGui != null) { // Only add the listeners if the shooter gui is
                         // robotEnabled
-                        smartDashboardTable.getEntry("Shooter Distance to Target").addListener(
-                                entryNotification -> AutoBuilder.requestRendering(),
-                                EntryListenerFlags.kNew | EntryListenerFlags.kUpdate | EntryListenerFlags.kImmediate | EntryListenerFlags.kLocal
-                        );
+                        NetworkTableInstance.getDefault().addListener(smartDashboardTable.getTopic("Shooter Distance to Target"),
+                                EnumSet.of(Kind.kImmediate, Kind.kValueAll),
+                                entryNotification -> AutoBuilder.requestRendering());
                     }
                     isStarted = true;
                 } else {
@@ -236,7 +236,12 @@ public final class NetworkTablesHelper {
                     isStarted = false;
                 }
             }
-        }).start();
+        });
+        thread.setUncaughtExceptionHandler((t, e) -> {
+            e.printStackTrace();
+            NotificationHandler.addNotification(new Notification(Colors.LIGHT_RED, "Network Tables Failed to Start", 5000));
+        });
+        thread.start();
     }
 
 

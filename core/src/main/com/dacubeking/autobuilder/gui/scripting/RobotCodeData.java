@@ -1,6 +1,7 @@
 package com.dacubeking.autobuilder.gui.scripting;
 
 import com.badlogic.gdx.graphics.Color;
+import com.dacubeking.AutoBuilder.robot.serialization.command.SendableCommand;
 import com.dacubeking.autobuilder.gui.AutoBuilder;
 import com.dacubeking.autobuilder.gui.gui.notification.Notification;
 import com.dacubeking.autobuilder.gui.gui.notification.NotificationHandler;
@@ -11,7 +12,6 @@ import com.dacubeking.autobuilder.gui.net.Serializer;
 import com.dacubeking.autobuilder.gui.scripting.reflection.ReflectionClassData;
 import com.dacubeking.autobuilder.gui.scripting.reflection.ReflectionClassDataList;
 import com.dacubeking.autobuilder.gui.scripting.reflection.ReflectionMethodData;
-import com.dacubeking.autobuilder.gui.scripting.sendable.SendableCommand;
 import com.dacubeking.autobuilder.gui.scripting.util.LintingPos;
 import com.dacubeking.autobuilder.gui.scripting.util.StringIndex;
 import com.dacubeking.autobuilder.gui.util.Colors;

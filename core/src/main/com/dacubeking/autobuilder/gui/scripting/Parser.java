@@ -1,13 +1,13 @@
 package com.dacubeking.autobuilder.gui.scripting;
 
 import com.badlogic.gdx.graphics.Color;
+import com.dacubeking.AutoBuilder.robot.serialization.command.SendableCommand;
+import com.dacubeking.AutoBuilder.robot.serialization.command.SendableScript;
+import com.dacubeking.AutoBuilder.robot.serialization.command.SendableScript.DelayType;
 import com.dacubeking.autobuilder.gui.AutoBuilder;
 import com.dacubeking.autobuilder.gui.gui.textrendering.Fonts;
 import com.dacubeking.autobuilder.gui.gui.textrendering.TextBlock;
 import com.dacubeking.autobuilder.gui.gui.textrendering.TextComponent;
-import com.dacubeking.autobuilder.gui.scripting.sendable.SendableCommand;
-import com.dacubeking.autobuilder.gui.scripting.sendable.SendableScript;
-import com.dacubeking.autobuilder.gui.scripting.sendable.SendableScript.DelayType;
 import com.dacubeking.autobuilder.gui.scripting.util.LintingPos;
 import com.dacubeking.autobuilder.gui.scripting.util.StringIndex;
 import org.jetbrains.annotations.NotNull;

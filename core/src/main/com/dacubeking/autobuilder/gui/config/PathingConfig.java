@@ -1,14 +1,14 @@
 package com.dacubeking.autobuilder.gui.config;
 
-import com.dacubeking.autobuilder.gui.wpi.math.controller.SimpleMotorFeedforward;
-import com.dacubeking.autobuilder.gui.wpi.math.geometry.Rotation2d;
-import com.dacubeking.autobuilder.gui.wpi.math.geometry.Translation2d;
-import com.dacubeking.autobuilder.gui.wpi.math.kinematics.DifferentialDriveKinematics;
-import com.dacubeking.autobuilder.gui.wpi.math.kinematics.MecanumDriveKinematics;
-import com.dacubeking.autobuilder.gui.wpi.math.kinematics.SwerveDriveKinematics;
-import com.dacubeking.autobuilder.gui.wpi.math.trajectory.constraint.*;
+import edu.wpi.first.math.controller.SimpleMotorFeedforward;
+import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.geometry.Translation2d;
+import edu.wpi.first.math.kinematics.DifferentialDriveKinematics;
+import edu.wpi.first.math.kinematics.MecanumDriveKinematics;
+import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import edu.wpi.first.math.trajectory.constraint.*;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;

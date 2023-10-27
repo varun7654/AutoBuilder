@@ -1,0 +1,84 @@
+plugins {
+    // Apply the java-library plugin for API and implementation separation.
+    id 'java-library'
+    id 'maven-publish'
+    id "java"
+    id 'signing'
+}
+
+sourceCompatibility = JavaVersion.VERSION_17
+targetCompatibility = JavaVersion.VERSION_17
+
+group = 'com.dacubeking'
+version = '2.2.8'
+var wpilibVersion = "2023.4.3"
+
+repositories {
+    // Use Maven Central for resolving dependencies.
+    mavenCentral()
+
+    repositories {
+        maven {
+            url "https://frcmaven.wpi.edu/artifactory/release/"
+        }
+    }
+}
+
+dependencies {
+    implementation 'org.jetbrains:annotations:23.0.0'
+
+    // Use JUnit Jupiter for testing.
+    testImplementation 'org.junit.jupiter:junit-jupiter:5.8.2'
+    implementation 'com.google.guava:guava:31.1-jre'
+    implementation 'org.reflections:reflections:0.10.2'
+
+
+    implementation "edu.wpi.first.wpilibj:wpilibj-java:${wpilibVersion}"
+    implementation "edu.wpi.first.wpimath:wpimath-java:${wpilibVersion}"
+    implementation "edu.wpi.first.ntcore:ntcore-java:${wpilibVersion}"
+    implementation "edu.wpi.first.hal:hal-java:${wpilibVersion}"
+    implementation "edu.wpi.first.wpinet:wpinet-java:${wpilibVersion}"
+    implementation "edu.wpi.first.wpiutil:wpiutil-java:${wpilibVersion}"
+//    implementation "edu.wpi.first.cscore:cscore-java:${wpilibVersion}"
+//    implementation "edu.wpi.first.cameraserver:cameraserver-java:${wpilibVersion}"
+
+
+    implementation "edu.wpi.first.wpilibNewCommands:wpilibNewCommands-java:${wpilibVersion}"
+
+
+    implementation 'org.msgpack:jackson-dataformat-msgpack:0.9.3'
+}
+
+tasks.named('test') {
+    // Use JUnit Platform for unit tests.
+    useJUnitPlatform()
+}
+
+java {
+    withSourcesJar()
+    withJavadocJar()
+}
+
+publishing {
+    publications {
+        myLibrary(MavenPublication) {
+            from components.java
+        }
+    }
+
+    publishing {
+        repositories {
+            maven {
+                name = "releases"
+                credentials(PasswordCredentials)
+                url = uri("https://maven.dacubeking.com/releases/")
+            }
+
+            maven {
+                name = "snapshots"
+                credentials(PasswordCredentials)
+                url = uri("https://maven.dacubeking.com/snapshots/")
+            }
+        }
+    }
+}

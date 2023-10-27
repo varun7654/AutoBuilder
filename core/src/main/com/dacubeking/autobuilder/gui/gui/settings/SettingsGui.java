@@ -24,10 +24,10 @@ import com.dacubeking.autobuilder.gui.pathing.MovablePointRenderer;
 import com.dacubeking.autobuilder.gui.pathing.TrajectoryPathRenderer;
 import com.dacubeking.autobuilder.gui.undo.UndoHandler;
 import com.dacubeking.autobuilder.gui.util.RoundedShapeRenderer;
-import com.dacubeking.autobuilder.gui.wpi.math.geometry.Rotation2d;
-import com.dacubeking.autobuilder.gui.wpi.math.spline.Spline.ControlVector;
-import com.dacubeking.autobuilder.gui.wpi.math.trajectory.constraint.PositionedConstraint;
-import com.dacubeking.autobuilder.gui.wpi.math.trajectory.constraint.TrajectoryConstraint;
+import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.spline.Spline.ControlVector;
+import edu.wpi.first.math.trajectory.constraint.PositionedConstraint;
+import edu.wpi.first.math.trajectory.constraint.TrajectoryConstraint;
 import space.earlygrey.shapedrawer.ShapeDrawer;
 
 import java.util.ArrayList;

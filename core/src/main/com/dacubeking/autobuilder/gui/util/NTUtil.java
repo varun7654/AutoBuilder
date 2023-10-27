@@ -1,17 +1,17 @@
 package com.dacubeking.autobuilder.gui.util;
 
-import edu.wpi.first.networktables.NetworkTableEntry;
 import edu.wpi.first.networktables.NetworkTableValue;
+import edu.wpi.first.networktables.Topic;
 
 import java.text.DecimalFormat;
 
 public final class NTUtil {
-    public static String getEntryAsString(NetworkTableEntry entry, DecimalFormat decimalFormat) {
-        NetworkTableValue value = entry.getValue();
+    public static String getEntryAsString(Topic entry, DecimalFormat decimalFormat) {
+        NetworkTableValue value = entry.getGenericEntry().get();
         return switch (value.getType()) {
-            case kBoolean -> entry.getBoolean(false) ? "true" : "false";
-            case kDouble -> String.valueOf(decimalFormat.format(entry.getDouble(0)));
-            case kString -> entry.getString("");
+            case kBoolean -> value.getBoolean() ? "true" : "false";
+            case kDouble -> String.valueOf(decimalFormat.format(value.getDouble()));
+            case kString -> value.getString();
             case kUnassigned -> "Unassigned";
             default -> "Invalid type";
         };

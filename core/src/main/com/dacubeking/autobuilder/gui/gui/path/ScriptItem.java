@@ -4,12 +4,12 @@ import com.badlogic.gdx.graphics.Camera;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.g2d.PolygonSpriteBatch;
 import com.badlogic.gdx.scenes.scene2d.utils.ScissorStack;
+import com.dacubeking.AutoBuilder.robot.serialization.command.SendableScript;
 import com.dacubeking.autobuilder.gui.AutoBuilder;
 import com.dacubeking.autobuilder.gui.events.input.TextChangeListener;
 import com.dacubeking.autobuilder.gui.gui.elements.TextBox;
 import com.dacubeking.autobuilder.gui.gui.textrendering.TextComponent;
 import com.dacubeking.autobuilder.gui.scripting.Parser;
-import com.dacubeking.autobuilder.gui.scripting.sendable.SendableScript;
 import com.dacubeking.autobuilder.gui.scripting.util.LintingPos;
 import com.dacubeking.autobuilder.gui.util.RoundedShapeRenderer;
 import org.jetbrains.annotations.NotNull;
@@ -72,7 +72,9 @@ public class ScriptItem extends AbstractGuiItem implements TextChangeListener {
                     LIGHT_BLUE, "Script", error, warningText);
         }
         spriteBatch.flush();
-        if (pop == 1) ScissorStack.popScissors();
+        if (pop == 1) {
+            ScissorStack.popScissors();
+        }
         return getHeight();
     }
 

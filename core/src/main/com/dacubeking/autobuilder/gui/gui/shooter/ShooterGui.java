@@ -226,7 +226,9 @@ public class ShooterGui extends ScrollableGui implements NumberTextboxChangeList
                     }
                 }
                 //Sort if we're not currently editing a textbox
-                if (!clickedOnTextBoxThisFrame) Collections.sort(shooterConfig.getShooterConfigs());
+                if (!clickedOnTextBoxThisFrame) {
+                    Collections.sort(shooterConfig.getShooterConfigs());
+                }
             }
             if (sortedShooterConfigs.size() > 0) {
 
@@ -355,7 +357,9 @@ public class ShooterGui extends ScrollableGui implements NumberTextboxChangeList
         }
         lastClicked = numberTextBox;
         clickedOnTextBoxThisFrame = true;
-        if (row >= shooterConfig.getShooterConfigs().size()) return text;
+        if (row >= shooterConfig.getShooterConfigs().size()) {
+            return text;
+        }
 
         return switch (column) {
             case 0 -> String.valueOf(shooterConfig.getShooterConfigs().get(row).getDistance());

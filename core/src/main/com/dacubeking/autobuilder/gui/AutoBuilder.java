@@ -15,6 +15,8 @@ import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.utils.viewport.ExtendViewport;
 import com.badlogic.gdx.utils.viewport.ScreenViewport;
 import com.badlogic.gdx.utils.viewport.Viewport;
+import com.dacubeking.AutoBuilder.robot.serialization.Autonomous;
+import com.dacubeking.AutoBuilder.robot.utility.Utils;
 import com.dacubeking.autobuilder.gui.config.Config;
 import com.dacubeking.autobuilder.gui.config.gui.ConfigGUI;
 import com.dacubeking.autobuilder.gui.config.gui.FileHandler;
@@ -38,7 +40,6 @@ import com.dacubeking.autobuilder.gui.pathing.TrajectoryPathRenderer;
 import com.dacubeking.autobuilder.gui.pathing.pointclicks.ClosePoint;
 import com.dacubeking.autobuilder.gui.pathing.pointclicks.CloseTrajectoryPoint;
 import com.dacubeking.autobuilder.gui.scripting.RobotCodeData;
-import com.dacubeking.autobuilder.gui.serialization.path.Autonomous;
 import com.dacubeking.autobuilder.gui.undo.UndoHandler;
 import com.dacubeking.autobuilder.gui.undo.UndoState;
 import com.dacubeking.autobuilder.gui.util.MouseUtil;
@@ -148,6 +149,14 @@ public final class AutoBuilder extends ApplicationAdapter {
 
         FontHandler.updateFonts();
         RobotCodeData.initData();
+
+        try {
+            var setIsOnRobotMethod = Utils.class.getDeclaredMethod("setIsOnRobot", boolean.class);
+            setIsOnRobotMethod.setAccessible(true);
+            setIsOnRobotMethod.invoke(null, false);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
 
         Gdx.app.getInput().setInputProcessor(inputEventThrower);
 

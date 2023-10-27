@@ -22,10 +22,16 @@ tasks.named('test') {
 }
 
 
+var wpilibVersion = "2023.4.3" // Ensure this in sync with the version in autobuilder-robot/build.gradle
+
 dependencies {
     implementation group: 'org.ejml', name: 'ejml-all', version: '0.41'
     implementation 'org.jetbrains:annotations:23.0.0'
     implementation 'org.junit.jupiter:junit-jupiter:5.9.0'
+    implementation project(path: ':shared')
+    implementation project(path: ':shared')
+    implementation project(path: ':shared')
+    implementation project(path: ':autobuilder-robot')
     testImplementation 'junit:junit:4.13.2'
     testImplementation 'org.mockito:mockito-core:4.7.0'
     compileOnly 'org.projectlombok:lombok:1.18.24'
@@ -36,18 +42,42 @@ dependencies {
     api 'com.fasterxml.jackson.core:jackson-databind:2.13.4'
 
     // Add ntcore-java
-    implementation "edu.wpi.first.ntcore:ntcore-java:2022.4.1"
+    implementation "edu.wpi.first.ntcore:ntcore-java:$wpilibVersion"
 
-    // Add wpiutil-java
-    implementation "edu.wpi.first.wpiutil:wpiutil-java:2022.4.1"
 
     // Add ntcore-jni for runtime. We are adding all supported platforms
     // so that our application will work on all supported platforms.
-    runtimeOnly "edu.wpi.first.ntcore:ntcore-jni:2022.4.1:windowsx86"
-    runtimeOnly "edu.wpi.first.ntcore:ntcore-jni:2022.4.1:windowsx86-64"
-    runtimeOnly "edu.wpi.first.ntcore:ntcore-jni:2022.4.1:linuxx86-64"
-    runtimeOnly "edu.wpi.first.ntcore:ntcore-jni:2022.4.1:linuxraspbian"
-    runtimeOnly "edu.wpi.first.ntcore:ntcore-jni:2022.4.1:osxx86-64"
+    runtimeOnly "edu.wpi.first.ntcore:ntcore-jni:$wpilibVersion:windowsx86-64"
+    runtimeOnly "edu.wpi.first.ntcore:ntcore-jni:$wpilibVersion:linuxarm32"
+    runtimeOnly "edu.wpi.first.ntcore:ntcore-jni:$wpilibVersion:linuxarm64"
+    runtimeOnly "edu.wpi.first.ntcore:ntcore-jni:$wpilibVersion:linuxathena"
+    runtimeOnly "edu.wpi.first.ntcore:ntcore-jni:$wpilibVersion:linuxx86-64"
+    runtimeOnly "edu.wpi.first.ntcore:ntcore-jni:$wpilibVersion:osxuniversal"
+
+    // Add wpiutil-java
+    implementation "edu.wpi.first.wpiutil:wpiutil-java:$wpilibVersion"
+
+    // Add wpiutil-jni for runtime. We are adding all supported platforms
+    // so that our application will work on all supported platforms.
+    runtimeOnly "edu.wpi.first.wpiutil:wpiutil-jni:$wpilibVersion:windowsx86-64"
+    runtimeOnly "edu.wpi.first.wpiutil:wpiutil-jni:$wpilibVersion:linuxarm32"
+    runtimeOnly "edu.wpi.first.wpiutil:wpiutil-jni:$wpilibVersion:linuxarm64"
+    runtimeOnly "edu.wpi.first.wpiutil:wpiutil-jni:$wpilibVersion:linuxathena"
+    runtimeOnly "edu.wpi.first.wpiutil:wpiutil-jni:$wpilibVersion:linuxx86-64"
+    runtimeOnly "edu.wpi.first.wpiutil:wpiutil-jni:$wpilibVersion:osxuniversal"
+
+
+    // Add wpiutil-java
+    implementation "edu.wpi.first.wpimath:wpimath-java:$wpilibVersion"
+
+    // Add wpiutil-jni for runtime. We are adding all supported platforms
+    // so that our application will work on all supported platforms.
+    runtimeOnly "edu.wpi.first.wpimath:wpimath-jni:$wpilibVersion:windowsx86-64"
+    runtimeOnly "edu.wpi.first.wpimath:wpimath-jni:$wpilibVersion:linuxarm32"
+    runtimeOnly "edu.wpi.first.wpimath:wpimath-jni:$wpilibVersion:linuxarm64"
+    runtimeOnly "edu.wpi.first.wpimath:wpimath-jni:$wpilibVersion:linuxathena"
+    runtimeOnly "edu.wpi.first.wpimath:wpimath-jni:$wpilibVersion:linuxx86-64"
+    runtimeOnly "edu.wpi.first.wpimath:wpimath-jni:$wpilibVersion:osxuniversal"
 
     implementation "space.earlygrey:shapedrawer:$shapedrawerVersion"
 
