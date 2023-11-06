@@ -10,19 +10,75 @@ import com.dacubeking.AutoBuilder.robot.serialization.command.SendableScript;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.trajectory.Trajectory;
 import edu.wpi.first.wpilibj.DriverStation;
-import edu.wpi.first.wpilibj.Timer;
+import edu.wpi.first.wpilibj2.command.CommandBase;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 
-import static com.dacubeking.AutoBuilder.robot.robotinterface.AutonomousContainer.getCommandTranslator;
+public class GuiAuto extends CommandBase {
 
-public class GuiAuto implements Runnable {
+
+    @Override
+    public void execute() {
+        if (isFirstRun) {
+            if (initialPose != null) {
+                //TODO: Set initial pose
+                AutonomousContainer.getInstance().printDebug("Set initial pose: " + initialPose);
+            } else {
+                AutonomousContainer.getInstance().printDebug("No initial pose set");
+            }
+
+            if (!abstractAutonomousSteps.isEmpty()) {
+                abstractAutonomousSteps.peek().initialize();
+            }
+
+            isFirstRun = false;
+        }
+
+        if (abstractAutonomousSteps.isEmpty()) {
+            return;
+        }
+
+        AbstractAutonomousStep autonomousStep = abstractAutonomousSteps.peek();
+
+        try {
+            if (autonomousStep.execute(scriptsToExecuteByTime, scriptsToExecuteByPercent)) {
+                autonomousStep.end();
+                abstractAutonomousSteps.remove();
+                if (!abstractAutonomousSteps.isEmpty()) {
+                    abstractAutonomousSteps.peek().initialize();
+                }
+
+                //Sort the lists to make sure they are sorted by time
+                Collections.sort(scriptsToExecuteByTime);
+                Collections.sort(scriptsToExecuteByPercent);
+            }
+        } catch (CommandExecutionFailedException | ExecutionException e) {
+            DriverStation.reportError("Failed to execute autonomous step. " + e.getMessage(), e.getStackTrace());
+            abstractAutonomousSteps.clear(); // Will end the auto
+        }
+    }
+
+    @Override
+    public void end(boolean interrupted) {
+        if (!abstractAutonomousSteps.isEmpty()) {
+            abstractAutonomousSteps.peek().end();
+        }
+
+        abstractAutonomousSteps.clear();
+    }
+
+    @Override
+    public boolean isFinished() {
+        return abstractAutonomousSteps.isEmpty();
+    }
 
     private static final Autonomous DO_NOTHING_AUTONOMOUS = new Autonomous(new ArrayList<>());
     private @NotNull Autonomous autonomous = DO_NOTHING_AUTONOMOUS; // default to do nothing in case of some error
@@ -37,7 +93,8 @@ public class GuiAuto implements Runnable {
     public GuiAuto(File autonomousFile) throws IOException {
         autonomous = (Autonomous) Serializer.deserializeFromFile(autonomousFile, Autonomous.class,
                 autonomousFile.getName().endsWith(".json"));
-        init();
+        this.setName(autonomousFile.getPath() + "GuiAuto");
+        initialize();
     }
 
     /**
@@ -53,85 +110,35 @@ public class GuiAuto implements Runnable {
             DriverStation.reportError("Failed to deserialize auto. " + e.getMessage(), e.getStackTrace());
             // The do nothing auto will be used
         }
-        init();
+        this.setName("JsonGuiAuto");
+        initialize();
     }
 
     /**
      * Finds and saves the initial pose of the robot.
      */
-    private void init() {
+    @Override
+    public void initialize() {
         for (AbstractAutonomousStep autonomousStep : autonomous.getAutonomousSteps()) {
-            if (autonomousStep instanceof TrajectoryAutonomousStep) {
-                TrajectoryAutonomousStep trajectoryAutonomousStep = (TrajectoryAutonomousStep) autonomousStep;
+            if (autonomousStep instanceof TrajectoryAutonomousStep trajectoryAutonomousStep) {
                 Trajectory.State initialState = trajectoryAutonomousStep.getTrajectory().getStates().get(0);
                 initialPose = new Pose2d(initialState.poseMeters.getTranslation(),
                         trajectoryAutonomousStep.getRotations().get(0).getRotation());
                 break;
             }
         }
+
+        scriptsToExecuteByPercent = new ArrayList<>();
+        scriptsToExecuteByTime = new ArrayList<>();
+        abstractAutonomousSteps = new LinkedList<>(autonomous.getAutonomousSteps());
+        isFirstRun = true;
     }
 
-    /**
-     * Runs the autonomous.
-     */
-    @Override
-    public void run() {
-        AutonomousContainer.getInstance().isInitialized();
+    private List<SendableScript> scriptsToExecuteByTime;
+    private List<SendableScript> scriptsToExecuteByPercent;
+    private LinkedList<AbstractAutonomousStep> abstractAutonomousSteps;
 
-        Thread.currentThread().setUncaughtExceptionHandler((t, e) -> {
-            DriverStation.reportError("Uncaught exception in auto thread: " + e.getMessage(), e.getStackTrace());
-            getCommandTranslator().stopRobot();
-        });
-
-        if (autonomous == DO_NOTHING_AUTONOMOUS) {
-            DriverStation.reportError("No auto was loaded. Doing nothing.", false);
-            return;
-        }
-
-        AutonomousContainer.getInstance().printDebug("Started Running: " + Timer.getFPGATimestamp());
-
-
-        //Set our initial pose in our robot tracker
-        if (initialPose != null) {
-            getCommandTranslator().setRobotPose(initialPose);
-            AutonomousContainer.getInstance().printDebug("Set initial pose: " + initialPose);
-        } else {
-            AutonomousContainer.getInstance().printDebug("No initial pose set");
-        }
-
-        //Loop though all the steps and execute them
-        List<SendableScript> scriptsToExecuteByTime = new ArrayList<>();
-        List<SendableScript> scriptsToExecuteByPercent = new ArrayList<>();
-
-        for (AbstractAutonomousStep autonomousStep : autonomous.getAutonomousSteps()) {
-            AutonomousContainer.getInstance().printDebug("Doing a step: " + Timer.getFPGATimestamp());
-
-            if (Thread.interrupted()) {
-                getCommandTranslator().stopRobot();
-                AutonomousContainer.getInstance().printDebug("Auto was interrupted " + Timer.getFPGATimestamp());
-                return;
-            }
-
-            try {
-                autonomousStep.execute(scriptsToExecuteByTime, scriptsToExecuteByPercent);
-            } catch (InterruptedException e) {
-                getCommandTranslator().stopRobot();
-                AutonomousContainer.getInstance().printDebug("Auto prematurely stopped at " + Timer.getFPGATimestamp() +
-                        ". This is not an error if you disabled your robot.");
-                if (AutonomousContainer.getInstance().areDebugPrintsEnabled()) {
-                    e.printStackTrace();
-                }
-                return;
-            } catch (CommandExecutionFailedException | ExecutionException e) {
-                getCommandTranslator().stopRobot();
-                e.printStackTrace(); // We should always print this out since it is a fatal error
-                return;
-            }
-        }
-
-        System.out.println("Finished Autonomous at " + Timer.getFPGATimestamp());
-        getCommandTranslator().stopRobot();
-    }
+    private boolean isFirstRun = true;
 
     /**
      * Gets the initial pose of the robot.

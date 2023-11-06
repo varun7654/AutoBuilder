@@ -1,26 +1,45 @@
 package com.dacubeking.AutoBuilder.robot.serialization.command;
 
+import com.dacubeking.AutoBuilder.robot.annotations.AutoBuilderRobotSide;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.concurrent.ExecutionException;
 
 public class SendableScript implements Comparable<SendableScript> {
 
 
+    @JsonIgnore
+    @AutoBuilderRobotSide
+    public LinkedList<SendableCommand> executionQueue;
+
     /**
-     * @throws InterruptedException if the thread is interrupted while executing the commands
+     * @return true if all the commands have finished executing, false if some commands still need to be executed.
      */
-    public void execute() throws InterruptedException, CommandExecutionFailedException, ExecutionException {
-        for (SendableCommand command : commands) {
-            if (Thread.interrupted()) {
-                throw new InterruptedException("Interrupted while trying to execute a script ");
-            }
-            command.execute();
+    @AutoBuilderRobotSide
+    public boolean execute() throws CommandExecutionFailedException, ExecutionException {
+        if (executionQueue.isEmpty()) {
+            return true;
         }
+
+        SendableCommand command = executionQueue.peek();
+
+
+        // Keep executing commands until we reach one we need to wait at.
+        while (command.execute()) {
+            executionQueue.remove();
+        }
+
+        return executionQueue.isEmpty();
+    }
+
+    public void initialize() {
+        commands.forEach(SendableCommand::setFirstRun);
+        executionQueue = new LinkedList<>(commands);
     }
 
     @Override

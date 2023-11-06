@@ -1,5 +1,6 @@
 package com.dacubeking.AutoBuilder.robot.serialization;
 
+import com.dacubeking.AutoBuilder.robot.annotations.AutoBuilderRobotSide;
 import com.dacubeking.AutoBuilder.robot.serialization.command.CommandExecutionFailedException;
 import com.dacubeking.AutoBuilder.robot.serialization.command.SendableScript;
 import com.fasterxml.jackson.annotation.*;
@@ -38,13 +39,27 @@ public abstract class AbstractAutonomousStep {
      *
      * @param scriptsToExecuteByTime    A mutable arraylist representing scripts to run while driving the autonomous path.
      * @param scriptsToExecuteByPercent A mutable arraylist representing scripts to run while driving the autonomous path.
-     * @throws InterruptedException            Thrown if the thread is interrupted (ex: auto is killed).
+     * @return true if the autonomous step is finished, false otherwise
      * @throws CommandExecutionFailedException Thrown if a script fails to execute.
      * @throws ExecutionException              Thrown if something goes wrong running a command on the main thread.
      */
-    public abstract void execute(List<SendableScript> scriptsToExecuteByTime,
-                                 List<SendableScript> scriptsToExecuteByPercent) throws InterruptedException,
-            CommandExecutionFailedException, ExecutionException;
+    @AutoBuilderRobotSide
+    public abstract boolean execute(List<SendableScript> scriptsToExecuteByTime,
+                                    List<SendableScript> scriptsToExecuteByPercent) throws CommandExecutionFailedException,
+            ExecutionException;
+
+    /**
+     * End this autonomous step.
+     */
+    @AutoBuilderRobotSide
+    public abstract void end();
+
+    /**
+     * Initialize this autonomous step.
+     */
+    @AutoBuilderRobotSide
+    public abstract void initialize();
+
 
     @JsonProperty("closed")
     public boolean isClosed() {

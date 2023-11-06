@@ -1,15 +1,16 @@
 package com.dacubeking.AutoBuilder.robot.serialization.command;
 
+import com.dacubeking.AutoBuilder.robot.annotations.AutoBuilderRobotSide;
 import com.dacubeking.AutoBuilder.robot.annotations.RequireWait;
 import com.dacubeking.AutoBuilder.robot.robotinterface.AutonomousContainer;
 import com.dacubeking.AutoBuilder.robot.utility.Utils;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.google.common.util.concurrent.UncheckedExecutionException;
 import edu.wpi.first.wpilibj.DriverStation;
-import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.CommandScheduler;
+import edu.wpi.first.wpilibj2.command.WaitCommand;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -20,16 +21,12 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.function.Function;
-
-import static com.dacubeking.AutoBuilder.robot.robotinterface.AutonomousContainer.getCommandTranslator;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class SendableCommand {
 
-    public static final double LOOPING_PERIOD_SECONDS = 0.02; // 50 Hz/20 ms
     @JsonProperty("methodName")
     @NotNull
     protected final String methodName;
@@ -40,13 +37,12 @@ public class SendableCommand {
 
     @JsonProperty("reflection") public final boolean reflection;
 
-    @JsonProperty("command") private final boolean command;
+    @JsonProperty("command") private boolean command;
 
-    @JsonIgnoreProperties
+    @AutoBuilderRobotSide
     private boolean shouldWait;
-
-    @JsonIgnoreProperties
-
+	
+    @AutoBuilderRobotSide
     private boolean shouldCancelCommand;
 
     private static final @NotNull Map<String, Function<String, Object>> INFERABLE_TYPES_PARSER;
@@ -114,6 +110,7 @@ public class SendableCommand {
         }
     }
 
+    @AutoBuilderRobotSide
     private void init() {
         if (command) {
             // If we're a command, the command name is the method name
@@ -218,11 +215,15 @@ public class SendableCommand {
 
         shouldWait = shouldWait || AutonomousContainer.getInstance().getRequireWaitObjects().contains(instance);
 
-        this.methodToCall = methodToCall;
-        this.instance = instance;
-        this.shouldWait = shouldWait;
+        if (!reflection && methodName.equals("sleep")) {
+            // We no longer implement sleep as an actual sleep so convert it to a wait command
+            command = true;
+            instance = new WaitCommand(Double.parseDouble(args[0]));
+            shouldWait = true;
+        }
     }
 
+    @AutoBuilderRobotSide
     private static void throwIllegalArgumentException(@NotNull String errorMessage, @Nullable Exception e) {
         DriverStation.reportError(errorMessage, false);
         throw new IllegalArgumentException(errorMessage, e);
@@ -230,10 +231,12 @@ public class SendableCommand {
 
     @JsonIgnoreProperties
     @Nullable
+    @AutoBuilderRobotSide
     private Object instance;
 
     @JsonIgnoreProperties
     @Nullable
+    @AutoBuilderRobotSide
     private Method methodToCall;
 
     @JsonIgnoreProperties private final Object @NotNull [] objArgs;
@@ -263,13 +266,24 @@ public class SendableCommand {
     }
 
 
+    @AutoBuilderRobotSide
+    public void setFirstRun() {
+        firstRun = true;
+    }
+
+
+    @AutoBuilderRobotSide
+    public boolean firstRun;
+
+
     /**
-     * @throws InterruptedException            If the command fails do to an interrupt
+     * @return true if the command is finished, false otherwise
      * @throws CommandExecutionFailedException If the command fails to execute for any other reason
      * @throws ExecutionException              Should never happen (for some reason the future was cancelled or threw and
      *                                         exception)
      */
-    protected void execute() throws InterruptedException, CommandExecutionFailedException, ExecutionException {
+    @AutoBuilderRobotSide
+    protected boolean execute() throws CommandExecutionFailedException, ExecutionException {
         if (!command && methodToCall == null && reflection) {
             throw new CommandExecutionFailedException("Method to call is null");
         }
@@ -278,87 +292,37 @@ public class SendableCommand {
             throw new CommandExecutionFailedException("Instance is null when calling a command");
         }
 
-        // The built command's shouldn't be run on the main thread
-        if (getCommandTranslator().runOnMainThread && reflection) {
-            if (!command) {
-                while (true) {
-                    double startTime = Timer.getFPGATimestamp(); // Time the command to keep the period constant
-
-                    CompletableFuture<Object> future = new CompletableFuture<>();
-
-                    getCommandTranslator().runOnMainThread(() -> {
-                        try {
-                            future.complete(invokeMethod());
-                        } catch (CommandExecutionFailedException | InterruptedException e) {
-                            future.complete(new UncheckedExecutionException(e));
-                        }
-                    }); // Schedule the command to run on the main thread
-
-                    if (!shouldWait) {
-                        return;
-                    }
-
-                    Object result = future.get(); // Wait for the command to finish
-
-                    if (result instanceof UncheckedExecutionException) { // If the command failed rethrow the exception
-                        Throwable exception = ((UncheckedExecutionException) result).getCause();
-                        if (exception instanceof InterruptedException) {
-                            throw (InterruptedException) exception;
-                        } else if (exception instanceof CommandExecutionFailedException) {
-                            throw (CommandExecutionFailedException) exception;
-                        } else {
-                            throw new CommandExecutionFailedException(
-                                    "Unexpected Exception. Please report this: " + exception.getMessage(), exception);
-                        }
-                    }
-
-                    if (!(result instanceof Boolean) || result.equals(true)) {
-                        break; // If the command returns true or is not a boolean, stop the command
-                    }
-
-                    //Keep executing the method if it returns false
-                    //noinspection BusyWait
-                    Thread.sleep((long) Math.max((LOOPING_PERIOD_SECONDS - (Timer.getFPGATimestamp() - startTime)) * 1000, 0));
-                }
+        if (command) {
+            var wpiCommand = (Command) instance;
+            if (shouldCancelCommand) {
+                wpiCommand.cancel();
             } else {
-                if (shouldCancelCommand) {
-                    getCommandTranslator().runOnMainThread(() -> ((Command) instance).cancel());
-                } else {
-                    getCommandTranslator().runOnMainThread(() -> ((Command) instance).schedule());
+                if (firstRun) {
+                    wpiCommand.initialize();
+                    wpiCommand.schedule();
+                    CommandScheduler.getInstance().schedule(wpiCommand);
+                    firstRun = false;
+                }
 
-                    if (shouldWait) {
-                        CompletableFuture<Boolean> future;
-                        do {
-                            //Wait for the command to finish
-                            //noinspection BusyWait
-                            Thread.sleep((long) LOOPING_PERIOD_SECONDS * 1000);
-                            future = new CompletableFuture<>();
-                            final var finalFuture = future;
-                            getCommandTranslator().runOnMainThread(
-                                    () -> finalFuture.complete(((Command) instance).isScheduled()));
-                        } while (future.get());
-                    }
+                if (shouldWait) {
+                    return wpiCommand.isFinished();
                 }
             }
         } else {
-            if (command) {
-                throw new CommandExecutionFailedException("Commands must be run on the main thread");
+            if (shouldCancelCommand) {
+                throw new CommandExecutionFailedException("Cannot cancel a method call");
             }
-            while (true) {
-                double startTime = Timer.getFPGATimestamp();
-                Object result = invokeMethod();
-                if (shouldWait || !(result instanceof Boolean) || result.equals(true)) {
-                    break;
-                }
+            var out = invokeMethod();
 
-                //Keep executing the method if it returns false
-                //noinspection BusyWait
-                Thread.sleep((long) Math.max((LOOPING_PERIOD_SECONDS - (Timer.getFPGATimestamp() - startTime)) * 1000, 0));
+            // If the method returns true & is a boolean, stop executing it. If
+            if (shouldWait && out instanceof Boolean) {
+                return (Boolean) out;
             }
         }
+        return true;
     }
 
-    private @Nullable Object invokeMethod() throws InterruptedException, CommandExecutionFailedException {
+    private @Nullable Object invokeMethod() throws CommandExecutionFailedException {
         assert !command;
         try {
             if (reflection) {
@@ -367,12 +331,11 @@ public class SendableCommand {
             } else {
                 switch (methodName) {
                     case "print" -> System.out.println(objArgs[0]);
-                    case "sleep" -> Thread.sleep((long) objArgs[0]);
+                    case "sleep" -> throw new UnsupportedOperationException(
+                            "The sleep method should have been converted to a command");
                 }
                 return null;
             }
-        } catch (InterruptedException e) {
-            throw e;
         } catch (Exception e) {
             throw new CommandExecutionFailedException("Could not invoke method " + methodName + " due to: " + e.getMessage(), e);
         }

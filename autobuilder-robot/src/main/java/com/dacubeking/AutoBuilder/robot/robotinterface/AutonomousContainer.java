@@ -4,23 +4,23 @@ package com.dacubeking.AutoBuilder.robot.robotinterface;
 import com.dacubeking.AutoBuilder.robot.GuiAuto;
 import com.dacubeking.AutoBuilder.robot.NetworkAuto;
 import com.dacubeking.AutoBuilder.robot.annotations.AutoBuilderAccessible;
+import com.dacubeking.AutoBuilder.robot.annotations.AutoBuilderRobotSide;
 import com.dacubeking.AutoBuilder.robot.annotations.RequireWait;
 import com.google.common.base.Preconditions;
+import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.networktables.NetworkTable;
 import edu.wpi.first.networktables.NetworkTableEntry;
 import edu.wpi.first.networktables.NetworkTableEvent.Kind;
 import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.Filesystem;
-import edu.wpi.first.wpilibj.TimedRobot;
-import edu.wpi.first.wpilibj.Timer;
+import edu.wpi.first.wpilibj2.command.Command;
 import org.jetbrains.annotations.ApiStatus.Internal;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.io.IOException;
-import java.lang.Thread.State;
 import java.lang.reflect.InvocationTargetException;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
@@ -30,8 +30,11 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
+import java.util.function.Consumer;
+import java.util.function.Function;
 import java.util.regex.Pattern;
 
+@AutoBuilderRobotSide
 public final class AutonomousContainer {
 
     private final @NotNull NetworkTableInstance instance = NetworkTableInstance.getDefault();
@@ -43,8 +46,8 @@ public final class AutonomousContainer {
     private @Nullable NetworkAuto networkAuto = null;
     private final @NotNull ExecutorService deserializerExecutor = Executors.newSingleThreadExecutor();
 
-    private @Nullable Thread autoThread = null;
-    private final @NotNull Object autoThreadLock = new Object();
+    private Function<TrajectoryBuilderInfo, Command> trajectoryFollowerSupplier;
+    private Consumer<Pose2d> initialPoseSetter;
 
     private static final AutonomousContainer autonomousContainer = new AutonomousContainer();
 
@@ -56,7 +59,6 @@ public final class AutonomousContainer {
 
     }
 
-    private CommandTranslator commandTranslator;
     private boolean isHolonomic;
     private volatile boolean debugPrints = false;
 
@@ -67,37 +69,30 @@ public final class AutonomousContainer {
     private static final String AUTO_DIRECTORY = Filesystem.getDeployDirectory().getAbsoluteFile() + "/autos/";
 
     /**
-     * @param isHolonomic       Is the robot using a holonomic drivetrain? (ex: swerve or mecanum)
-     * @param commandTranslator The command translator to use
-     * @param crashOnError      Should the robot crash on error? If this is enabled, and an auto fails to load, the robot will
-     *                          crash. If this is disabled, the robot will skip the invalid auto and continue to the next one.
-     * @param parentObjects     Objects that can be used to access other objects annotated with {@link AutoBuilderAccessible}.
-     * @param timedRobot        The timed robot to use to create the period function for the autos. This can be null if you're
-     *                          running autos completely asynchronously.
+     * @param isHolonomic                Is the robot using a holonomic drivetrain? (ex: swerve or mecanum)
+     * @param trajectoryFollowerSupplier A supplier that returns a command that will follow the trajectory from a
+     *                                   {@link TrajectoryBuilderInfo} object.
+     * @param initialPoseSetter          A consumer that sets the initial pose of the robot.
+     * @param parentObjects              Objects that can be used to access other objects annotated with
+     *                                   {@link AutoBuilderAccessible}.
+     * @throws NullPointerException If either {@code trajectoryFollowerSupplier} or {@code initialPoseSetter} is null.
      */
     @SuppressWarnings("unused")
     public synchronized void initialize(
             boolean isHolonomic,
-            @NotNull CommandTranslator commandTranslator,
-            boolean crashOnError,
-            @Nullable TimedRobot timedRobot,
+            @NotNull Function<TrajectoryBuilderInfo, Command> trajectoryFollowerSupplier,
+            @NotNull Consumer<Pose2d> initialPoseSetter,
             Object... parentObjects
 
 
     ) {
-        Preconditions.checkArgument(this.commandTranslator == null, "The Autonomous Container has already been initialized");
-        Preconditions.checkArgument(commandTranslator != null, "Command translator cannot be null");
-        Preconditions.checkArgument(!isHolonomic || commandTranslator.setAutonomousRotation != null,
-                "The command translator must have a setAutonomousRotation method if the robot is holonomic");
+        Preconditions.checkNotNull(trajectoryFollowerSupplier, "Trajectory follower supplier cannot be null");
+        Preconditions.checkNotNull(initialPoseSetter, "Initial pose setter cannot be null");
 
-        if (commandTranslator.runOnMainThread) {
-            Preconditions.checkArgument(timedRobot != null,
-                    "TimedRobot cannot be null if autonomous commands are being issues on the main thread");
-            timedRobot.addPeriodic(this::onAutoPeriodic, 0.001);
-        }
 
-        initializeAccessibleInstances(parentObjects, crashOnError);
+        initializeAccessibleInstances(parentObjects, true);
         printDebug("Initialized Accessible Instances");
+
 
         //Create the listener for network autos
         NetworkTableInstance.getDefault()
@@ -122,11 +117,12 @@ public final class AutonomousContainer {
                 });
 
         this.isHolonomic = isHolonomic;
-        this.commandTranslator = commandTranslator;
+        this.trajectoryFollowerSupplier = trajectoryFollowerSupplier;
+        this.initialPoseSetter = initialPoseSetter;
 
         long startLoadingTime = System.currentTimeMillis();
 
-        findAutosAndLoadAutos(new File(AUTO_DIRECTORY), crashOnError);
+        findAutosAndLoadAutos(new File(AUTO_DIRECTORY));
         System.out.println("Found " + numAutonomousFiles + " Autos. Waiting for them to load");
 
         blockedThread = Thread.currentThread();
@@ -137,11 +133,6 @@ public final class AutonomousContainer {
                 Thread.sleep(1000);
             } catch (InterruptedException ignored) {
             }
-        }
-
-        if (crashOnError) {
-            Preconditions.checkState(loadedAutosCount.get() == numAutonomousFiles,
-                    "Not all autonomous files were successfully loaded");
         }
 
         System.out.println("Successfully loaded " + autonomousList.size() + " auto"
@@ -251,18 +242,16 @@ public final class AutonomousContainer {
     /**
      * Recursively finds all autonomous files in the given directory and loads them.
      *
-     * @param directory    The directory to search in.
-     * @param crashOnError Should the robot crash on error? If this is enabled, and an auto fails to load, the robot will crash.
-     *                     If this is disabled, the robot will skip the invalid auto and continue to the next one.
+     * @param directory The directory to search in.
      */
-    private synchronized void findAutosAndLoadAutos(File directory, boolean crashOnError) {
+    private synchronized void findAutosAndLoadAutos(File directory) {
         File[] autos = directory.listFiles();
         if (autos == null) {
             System.out.println("No autos files found");
         } else {
             for (File file : autos) {
                 if (file.isDirectory()) {
-                    findAutosAndLoadAutos(file, crashOnError);
+                    findAutosAndLoadAutos(file);
                     continue;
                 }
 
@@ -271,9 +260,6 @@ public final class AutonomousContainer {
                 if (fileName.endsWith(".json") || fileName.endsWith(".auto")) {
                     if (file.getName().contains("NOTDEPLOYABLE")) {
                         System.out.println("Skipping " + file.getAbsolutePath() + " because it is marked as NOTDEPLOYABLE");
-                        if (crashOnError) {
-                            throw new RuntimeException("An un-deployable file was found");
-                        }
                         continue;
                     }
                     printDebug("Found auto file: " + file.getAbsolutePath());
@@ -307,13 +293,9 @@ public final class AutonomousContainer {
         }
     }
 
-    public synchronized static CommandTranslator getCommandTranslator() {
-        return getInstance().commandTranslator;
-    }
-
     @Internal
     public synchronized void isInitialized() {
-        Preconditions.checkArgument(commandTranslator != null, "The Autonomous Container must be initialized before any " +
+        Preconditions.checkNotNull(initialPoseSetter, "The Autonomous Container must be initialized before any " +
                 "autonomous can be run. (Call initialize(...) first)");
     }
 
@@ -335,12 +317,12 @@ public final class AutonomousContainer {
     }
 
     @Internal
-    public @NotNull Hashtable<String, Object> getAccessibleInstances() {
+    public @NotNull Map<String, Object> getAccessibleInstances() {
         return parentObjects;
     }
 
     @Internal
-    public List<Object> getRequireWaitObjects() {
+    public @NotNull List<Object> getRequireWaitObjects() {
         return requireWaitObjects;
     }
 
@@ -349,12 +331,22 @@ public final class AutonomousContainer {
         this.debugPrints = debugPrints;
     }
 
+    @Internal
+    public @NotNull Function<TrajectoryBuilderInfo, Command> getTrajectoryFollowerSupplier() {
+        return trajectoryFollowerSupplier;
+    }
+
+    @Internal
+    public @NotNull Consumer<Pose2d> getInitialPoseSetter() {
+        return initialPoseSetter;
+    }
+
 
     /**
      * @return A list of the names of all the autos that have been loaded. The name is the name of the file, without the .json
      */
     @SuppressWarnings("unused")
-    public ArrayList<String> getAutonomousNames() {
+    public List<String> getAutonomousNames() {
         ArrayList<String> names = new ArrayList<>(autonomousList.size());
         for (File absoluteFilePath : autonomousList.keySet()) {
             String fileName = absoluteFilePath.getName();
@@ -437,8 +429,7 @@ public final class AutonomousContainer {
             return;
         }
 
-        // Ensure that no other autos are currently running
-        runAuto(selectedAuto);
+        selectedAuto.schedule();
     }
 
     /**
@@ -467,64 +458,6 @@ public final class AutonomousContainer {
             DriverStation.reportError("Could not find auto: " + file.getAbsolutePath(), false);
             return;
         }
-        Thread.interrupted(); // Clear the interrupted flag on the calling thread
-        runAuto(selectedAuto);
-    }
-
-    private void runAuto(@NotNull GuiAuto selectedAuto) {
-        // Ensure that no other autos are currently running
-        killAuto();
-        commandTranslator.clearCommandQueue();
-
-        // We then create a new thread to run the auto and run it
-        synchronized (autoThreadLock) {
-            autoThread = new Thread(selectedAuto);
-            autoThread.start();
-        }
-    }
-
-    /**
-     * Kills the currently running autonomous.
-     */
-    public void killAuto() {
-        synchronized (autoThreadLock) {
-            if (autoThread != null && autoThread.isAlive()) {
-                autoThread.interrupt();
-
-                double nextStackTracePrint = Timer.getFPGATimestamp() + 1;
-                while (autoThread.isAlive() && autoThread.getState() != State.TERMINATED) {
-                    if (Timer.getFPGATimestamp() > nextStackTracePrint) {
-                        Exception throwable = new Exception(
-                                "Waiting for auto to die. autoThread.getState() = " + autoThread.getState() +
-                                        "\n Take a look at the stack trace for the auto thread bellow. Ensure that your auto " +
-                                        "will " +
-                                        "exit when it is interrupted.");
-                        throwable.setStackTrace(autoThread.getStackTrace());
-                        throwable.printStackTrace();
-                        if (commandTranslator.runOnMainThread) {
-                            Exception throwable2 = new Exception("The auto is running on the main thread. " +
-                                    "Double check the stack trace below and ensure that nothing is blocking your main thread." +
-                                    "(Note: The below stack trace will be the stack trace of the main thread, if you called " +
-                                    "killAuto() from the main thread");
-                            throwable2.fillInStackTrace();
-                            throwable2.printStackTrace();
-                        }
-                        nextStackTracePrint = Timer.getFPGATimestamp() + 5;
-                    }
-
-                    try {
-                        //noinspection BusyWait
-                        Thread.sleep(10);
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
-                    }
-                }
-                getCommandTranslator().stopRobot();
-            }
-        }
-    }
-
-    private void onAutoPeriodic() {
-        commandTranslator.onPeriodic();
+        selectedAuto.schedule();
     }
 }

@@ -40,22 +40,31 @@ public class ScriptAutonomousStep extends AbstractAutonomousStep {
      * Runs the script
      */
     @Override
-    public void execute(@NotNull List<SendableScript> scriptsToExecuteByTime,
-                        @NotNull List<SendableScript> scriptsToExecuteByPercent)
-            throws InterruptedException, CommandExecutionFailedException, ExecutionException {
+    public boolean execute(@NotNull List<SendableScript> scriptsToExecuteByTime,
+                           @NotNull List<SendableScript> scriptsToExecuteByPercent)
+            throws CommandExecutionFailedException, ExecutionException {
 
         if (sendableScript.getDelayType() == SendableScript.DelayType.TIME) {
             scriptsToExecuteByTime.add(sendableScript);
-            return;
-        }
-
-        if (sendableScript.getDelayType() == SendableScript.DelayType.PERCENT) {
+        } else if (sendableScript.getDelayType() == SendableScript.DelayType.PERCENT) {
             scriptsToExecuteByPercent.add(sendableScript);
-            return;
+        } else {
+            return sendableScript.execute();
         }
 
-        sendableScript.execute();
+        return true;
     }
+
+    @Override
+    public void initialize() {
+        sendableScript.initialize();
+    }
+
+    @Override
+    public void end() {
+
+    }
+
 
     @JsonProperty("script")
     public String getScript() {
