@@ -11,6 +11,8 @@ import com.dacubeking.autobuilder.gui.gui.textrendering.TextComponent;
 import com.dacubeking.autobuilder.gui.util.RoundedShapeRenderer;
 import space.earlygrey.shapedrawer.ShapeDrawer;
 
+import static com.google.common.primitives.Floats.min;
+
 public class Notification {
     private final long deleteTime;
     private final long creationTime;
@@ -52,8 +54,14 @@ public class Notification {
 
     public boolean tick(ShapeDrawer drawer, Batch batch) {
         long now = System.currentTimeMillis();
-        float renderHeight = (Gdx.graphics.getHeight()) + Math.min(Math.min((float) (now - creationTime) / ANIMATE_IN_OUT_TIME,
-                (float) (deleteTime - now) / ANIMATE_IN_OUT_TIME), 1) * (-50);
+        notification.setWrapWidth(Gdx.graphics.getWidth() - 20.0f);
+
+        float renderHeight = (Gdx.graphics.getHeight()) +
+                min((float) (now - creationTime) / ANIMATE_IN_OUT_TIME, // Appear part
+                        (float) (deleteTime - now) / ANIMATE_IN_OUT_TIME, // Disappear part
+                        1 // Maximum amount out
+                ) * -(notification.getHeight() + notification.getBottomPaddingAmount() + 5); // Scale factor
+
         RoundedShapeRenderer.roundedRect(drawer, Gdx.graphics.getWidth() / 2f - ((notification.getWidth() + 20) / 2f),
                 renderHeight, (notification.getWidth() + 20),
                 notification.getHeight() + notification.getBottomPaddingAmount(), 5, color);
