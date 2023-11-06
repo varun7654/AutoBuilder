@@ -370,6 +370,7 @@ public class TrajectoryItem extends AbstractGuiItem implements PathChangeListene
         }
 
         cameraHandler.ensureOnScreen(trajectoryPathRenderer.getPointList().get(row).getRenderPos3());
+        AutoBuilder.getInstance().selectPoint(trajectoryPathRenderer, row);
         return text;
     }
 

@@ -173,4 +173,8 @@ public class CameraHandler extends InputEventListener {
         targetX = cam.position.x + worldPos.x - worldPosOfTargetScreenPos.x;
         targetY = cam.position.y + worldPos.y - worldPosOfTargetScreenPos.y;
     }
+
+    public float getZoom() {
+        return zoom;
+    }
 }

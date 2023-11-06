@@ -9,6 +9,7 @@ import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.math.Vector3;
 import com.dacubeking.AutoBuilder.robot.serialization.TimedRotation;
 import com.dacubeking.autobuilder.gui.AutoBuilder;
+import com.dacubeking.autobuilder.gui.CameraHandler;
 import com.dacubeking.autobuilder.gui.config.Config;
 import com.dacubeking.autobuilder.gui.events.movablepoint.MovablePointEventHandler;
 import com.dacubeking.autobuilder.gui.events.movablepoint.PointMoveEvent;
@@ -448,14 +449,12 @@ public class TrajectoryPathRenderer extends PathRenderer implements MovablePoint
     }
 
     /**
-     * @param closePoint object that was created by {@link TrajectoryPathRenderer#getClosePoints(float, Vector3)}
-     * @param camera     the camera
-     * @param mousePos   the current mouse position
-     * @param mouseDiff  the difference between the current and last mouse position
-     * @param itemList   the list of gui items that contains all the path items
+     * @param closePoint    object that was created by {@link TrajectoryPathRenderer#getClosePoints(float, Vector3)}
+     * @param cameraHandler the cameraHandler
+     * @param itemList      the list of gui items that contains all the path items
      */
-    public void selectPoint(@NotNull ClosePoint closePoint, @NotNull OrthographicCamera camera, @NotNull Vector3 mousePos,
-                            @NotNull Vector3 mouseDiff, @NotNull List<AbstractGuiItem> itemList) {
+    public void selectPoint(@NotNull ClosePoint closePoint, @NotNull CameraHandler cameraHandler,
+                            @NotNull List<AbstractGuiItem> itemList) {
         selectionPointIndex = closePoint.index();
         attachedPath = null;
 
@@ -499,7 +498,7 @@ public class TrajectoryPathRenderer extends PathRenderer implements MovablePoint
             }
 
             if (Math.abs(selectedPoint.getPos2().sub((float) otherPathPose2d.x[0], (float) otherPathPose2d.y[0]).len2())
-                    < Math.pow((20 / AutoBuilder.getConfig().getPointScaleFactor() * camera.zoom), 2)) {
+                    < Math.pow((20 / AutoBuilder.getConfig().getPointScaleFactor() * cameraHandler.getZoom()), 2)) {
                 updateConnectedPath(selectedPoint);
             } else {
                 attachedPath = null;

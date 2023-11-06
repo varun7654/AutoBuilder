@@ -447,6 +447,16 @@ public final class AutoBuilder extends ApplicationAdapter {
     @Nullable ClosePoint lastSelectedPoint = null;
     boolean somethingMoved = false;
 
+    public void selectPoint(TrajectoryPathRenderer trajectoryPathRenderer, int index) {
+        removeLastSelectedPoint();
+        var point = new ClosePoint(0, trajectoryPathRenderer, index);
+        trajectoryPathRenderer.selectPoint(
+                point, cameraHandler, AutoBuilder.getInstance().pathGui.guiItems
+        );
+
+        lastSelectedPoint = point;
+    }
+
     private void update() {
         MouseUtil.update();
         undoHandler.update(pathGui);
@@ -518,7 +528,7 @@ public final class AutoBuilder extends ApplicationAdapter {
                             pointAdded = true;
                             somethingMoved = false;
                         } else {
-                            trajectoryPathRenderer.selectPoint(closestPoint, cam, mousePos, mouseDiff,
+                            trajectoryPathRenderer.selectPoint(closestPoint, cameraHandler,
                                     pathGui.guiItems);
                             lastSelectedPoint = closestPoint;
                             somethingMoved = true;
