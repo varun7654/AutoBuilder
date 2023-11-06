@@ -61,6 +61,10 @@ public class PathGui extends InputEventListener {
     private int panelHeight;
     private float smoothScrollPos = 0;
     private float scrollPos = 0;
+    /**
+     * Move to the target Scroll position slower
+     */
+    private boolean softerScroll = false;
     private float maxScroll = 0;
     private @NotNull Rectangle clipBounds;
     private @Nullable TrajectoryItem lastPath = null;
@@ -214,8 +218,21 @@ public class PathGui extends InputEventListener {
         }
         guiItemsDeletions.clear();
 
-        smoothScrollPos = (float) (smoothScrollPos + (scrollPos - smoothScrollPos) /
-                Math.max(1, 0.05 / AutoBuilder.getDeltaTime()));
+
+        double scrollEase;
+        if (softerScroll) {
+            scrollEase = Math.max(1, 0.07 / AutoBuilder.getDeltaTime());
+        } else {
+            scrollEase = Math.max(1, 0.05 / AutoBuilder.getDeltaTime());
+        }
+        double scrollChange = (scrollPos - smoothScrollPos) / scrollEase;
+
+        if (softerScroll) {
+            scrollChange = MathUtil.clamp(scrollChange, -50, 50); // Limit max speed so it's easier to tell how the timeline is
+            // moving
+        }
+
+        smoothScrollPos = (float) (smoothScrollPos + scrollChange);
 
         if (Math.abs(scrollPos - smoothScrollPos) < 1e-2) {
             AutoBuilder.disableContinuousRendering(this);
@@ -253,7 +270,9 @@ public class PathGui extends InputEventListener {
                     isLeftMouseJustUnpressed = false; //Don't register a click so the element doesn't reopen
                     draggingElement.setClosed(wasDraggingElementClosed);
                     guiItems.remove(oldDraggingElementIndex);
-                    if (newDraggingElementIndex > oldDraggingElementIndex) newDraggingElementIndex--;
+                    if (newDraggingElementIndex > oldDraggingElementIndex) {
+                        newDraggingElementIndex--;
+                    }
                     guiItems.add(newDraggingElementIndex, draggingElement);
                     draggingElement = null;
                     UndoHandler.getInstance().somethingChanged();
@@ -366,6 +385,7 @@ public class PathGui extends InputEventListener {
 
     public void scrollPathGui(float amountY) {
         scrollPos = MathUtil.clamp(scrollPos + amountY * 80, 0, Math.max(scrollPos, maxScroll));
+        softerScroll = false;
     }
 
 
@@ -388,6 +408,20 @@ public class PathGui extends InputEventListener {
             if (guiItem instanceof TrajectoryItem trajectoryItem) {
                 trajectoryItem.updatePath();
             }
+        }
+    }
+
+    public void ensureVisibleOnGui(float currentRelativePos, float padding) {
+        float absolutePos = -(currentRelativePos - (int) smoothScrollPos - Gdx.graphics.getHeight() + 10);
+        float minimumVisible = smoothScrollPos;
+        float highestVisible = smoothScrollPos + Gdx.graphics.getHeight() - 20;
+
+        softerScroll = true;
+
+        if (absolutePos - padding < minimumVisible) {
+            scrollPos = absolutePos - padding;
+        } else if (absolutePos + padding > highestVisible) {
+            scrollPos = absolutePos - Gdx.graphics.getHeight() + 20 + padding;
         }
     }
 }

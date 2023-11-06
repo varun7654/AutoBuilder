@@ -5,7 +5,7 @@ import space.earlygrey.shapedrawer.ShapeDrawer;
 
 public class RoundedShapeRenderer {
     /**
-     * Draws a rectangle with rounded corners of the given radius.
+     * Draws a rectangle with rounded corners of the given radius. (x & y) are for the bottom left of the rectangle
      */
     public static void roundedRect(ShapeDrawer drawer, float x, float y, float width, float height, float radius) {
         // Central rectangle
@@ -24,6 +24,9 @@ public class RoundedShapeRenderer {
         drawer.sector(x + radius, y + height - radius, radius, (float) Math.PI / 2, (float) Math.PI / 2);
     }
 
+    /**
+     * Draws a rectangle with rounded corners of the given radius. (x & y) are for the bottom left of the rectangle
+     */
     public static void roundedRect(ShapeDrawer drawer, float x, float y, float width, float height, float radius, Color color) {
         // Central rectangle
         drawer.filledRectangle(x + radius, y + radius, width - 2 * radius, height - 2 * radius, color);
@@ -42,6 +45,9 @@ public class RoundedShapeRenderer {
         drawer.sector(x + radius, y + height - radius, radius, (float) Math.PI / 2, (float) Math.PI / 2);
     }
 
+    /**
+     * Draws a rectangle with rounded corners of the given radius. (x & y) are for the top left of the rectangle
+     */
     public static void roundedRectTopLeft(ShapeDrawer drawer, float x, float y, float width, float height, float radius,
                                           Color color) {
         roundedRect(drawer, x, y - height, width, height, radius, color);

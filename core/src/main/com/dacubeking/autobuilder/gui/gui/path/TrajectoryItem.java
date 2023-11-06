@@ -103,11 +103,7 @@ public class TrajectoryItem extends AbstractGuiItem implements PathChangeListene
                 rotation2dList.stream().map(TimedRotation::getRotation).collect(Collectors.toList()),
                 pathGui.executorService, velocityStart, velocityEnd, constraints);
 
-        if (AutoBuilder.getConfig().isHolonomic()) {
-            trajectoryPathRenderer.setReversed(reversed);
-        } else {
-            trajectoryPathRenderer.setReversed(reversed);
-        }
+        trajectoryPathRenderer.setReversed(reversed);
 
         trajectoryPathRenderer.setPathChangeListener(this);
         startVelocityTextBox = new PositionedNumberTextBox(df.format(getPathRenderer().getVelocityStart()), this, 0, 0, 18);
@@ -129,6 +125,8 @@ public class TrajectoryItem extends AbstractGuiItem implements PathChangeListene
     private final @NotNull ConstraintGuiElement pathConstraintRenderer;
     private static final TextBlock CONSTRAINTS_LABEL = new TextBlock(Fonts.ROBOTO, 22, new TextComponent("Constraints:")
             .setBold(true).setColor(Color.BLACK));
+
+    private int lastSelectedPoint = -1; // Used to determine if we should scroll the timeline when a point is selected
 
     @Override
     public int render(@NotNull ShapeDrawer shapeRenderer, @NotNull PolygonSpriteBatch spriteBatch, int drawStartX, int drawStartY,
@@ -165,9 +163,20 @@ public class TrajectoryItem extends AbstractGuiItem implements PathChangeListene
                     float height = getHeightOfTextBoxRow(textBoxList, drawWidth) + TEXTBOX_Y_PADDING_NEW_POINT;
 
                     shapeRenderer.setColor(Color.DARK_GRAY);
-                    RoundedShapeRenderer.roundedRect(shapeRenderer, drawStartX + 5, textBoxDrawY - height + 11,
+                    float rectYStart = textBoxDrawY - height + 11;
+                    RoundedShapeRenderer.roundedRect(shapeRenderer, drawStartX + 5, rectYStart,
                             drawWidth - 5, height, 3);
                     shapeRenderer.setColor(Color.WHITE);
+                    if (lastSelectedPoint != i) {
+                        lastSelectedPoint = i;
+                        pathGui.ensureVisibleOnGui(
+                                rectYStart + height / 2.0f, // Center of the element we want visible
+                                height / 2.0f + 10// padding so the entire element is visible + extra padding
+                        );
+                    }
+                } else if (trajectoryPathRenderer.getSelectionPoint() == -1) {
+                    // No point is selected
+                    lastSelectedPoint = -1;
                 }
 
                 for (int j = 0; j < textBoxList.size(); j++) {
@@ -219,7 +228,7 @@ public class TrajectoryItem extends AbstractGuiItem implements PathChangeListene
 
             List<TrajectoryConstraint> constraints = trajectoryPathRenderer.getConstraints();
             float constraintDrawOffset = 0;
-            if (constraints.size() > 0) {
+            if (!constraints.isEmpty()) {
                 FontRenderer.renderText(spriteBatch, shapeRenderer, drawStartX + 10, textBoxDrawY - 13, CONSTRAINTS_LABEL);
                 textBoxDrawY -= CONSTRAINTS_LABEL.getHeight() + TEXTBOX_Y_PADDING_NEW_POINT;
                 constraintDrawOffset = 5;
@@ -234,7 +243,7 @@ public class TrajectoryItem extends AbstractGuiItem implements PathChangeListene
         return getHeight();
     }
 
-    private static final double allowedAngleError = 1e-2;
+    private static final double ALLOWED_ANGLE_ERROR = 1e-2;
 
     private boolean checkWarning(PathGui pathGui) {
         TrajectoryItem lastTrajectoryItem = pathGui.getLastPath();
@@ -248,7 +257,7 @@ public class TrajectoryItem extends AbstractGuiItem implements PathChangeListene
                 double lastAngle = Math.atan2(lastPoint.y[1], lastPoint.x[1]);
                 double nextAngle = Math.atan2(nextPoint.y[1], nextPoint.x[1]);
 
-                if (Math.abs(lastAngle - nextAngle) < allowedAngleError) {
+                if (Math.abs(lastAngle - nextAngle) < ALLOWED_ANGLE_ERROR) {
                     return !((lastPoint.x[0] == nextPoint.x[0]) && (lastPoint.y[0] == nextPoint.y[0]));
                 } else {
                     return true;
@@ -316,19 +325,19 @@ public class TrajectoryItem extends AbstractGuiItem implements PathChangeListene
             ControlVector controlVector = trajectoryPathRenderer.getControlVectors().get(row);
             MovablePointRenderer point = trajectoryPathRenderer.getPointList().get(row);
             switch (column) {
-                case 0:
+                case 0 -> {
                     trajectoryPathRenderer.getControlVectors().set(row, new ControlVector(
                             new double[]{parsedNumber, controlVector.x[1], controlVector.x[2]},
                             new double[]{controlVector.y[0], controlVector.y[1], controlVector.y[2]}));
                     point.setX((float) parsedNumber);
-                    break;
-                case 1:
+                }
+                case 1 -> {
                     trajectoryPathRenderer.getControlVectors().set(row, new ControlVector(
                             new double[]{controlVector.x[0], controlVector.x[1], controlVector.x[2]},
                             new double[]{parsedNumber, controlVector.y[1], controlVector.y[2]}));
                     point.setY((float) parsedNumber);
-                    break;
-                case 2:
+                }
+                case 2 -> {
                     if (AutoBuilder.getConfig().isHolonomic()) {
                         trajectoryPathRenderer.getRotations().set(row, Rotation2d.fromDegrees(parsedNumber));
                     } else {
@@ -338,16 +347,13 @@ public class TrajectoryItem extends AbstractGuiItem implements PathChangeListene
                                 new double[]{controlVector.x[0], v.x, controlVector.x[2]},
                                 new double[]{controlVector.y[0], v.y, controlVector.y[2]}));
                     }
-                    break;
-                case 3:
-                    trajectoryPathRenderer.getControlVectors().set(row, new ControlVector(
-                            new double[]{controlVector.x[0], parsedNumber, controlVector.x[2]},
-                            new double[]{controlVector.y[0], controlVector.y[1], controlVector.y[2]}));
-                    break;
-                case 4:
-                    trajectoryPathRenderer.getControlVectors().set(row, new ControlVector(
-                            new double[]{controlVector.x[0], controlVector.x[1], controlVector.x[2]},
-                            new double[]{controlVector.y[0], parsedNumber, controlVector.y[2]}));
+                }
+                case 3 -> trajectoryPathRenderer.getControlVectors().set(row, new ControlVector(
+                        new double[]{controlVector.x[0], parsedNumber, controlVector.x[2]},
+                        new double[]{controlVector.y[0], controlVector.y[1], controlVector.y[2]}));
+                case 4 -> trajectoryPathRenderer.getControlVectors().set(row, new ControlVector(
+                        new double[]{controlVector.x[0], controlVector.x[1], controlVector.x[2]},
+                        new double[]{controlVector.y[0], parsedNumber, controlVector.y[2]}));
             }
 
             cameraHandler.ensureOnScreen(point.getRenderPos3());
