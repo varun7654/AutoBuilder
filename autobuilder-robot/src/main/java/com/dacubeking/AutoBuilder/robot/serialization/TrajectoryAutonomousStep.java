@@ -90,6 +90,7 @@ public class TrajectoryAutonomousStep extends AbstractAutonomousStep {
     @Override
     @AutoBuilderRobotSide
     public void initialize() {
+        timer = new Timer();
         rotationIndex = 1; // Start at the second rotation (the first is the starting rotation)
         isFirstRun = true;
     }
@@ -97,7 +98,7 @@ public class TrajectoryAutonomousStep extends AbstractAutonomousStep {
     private int rotationIndex;
     private boolean isFirstRun;
 
-    private Timer timer = new Timer();
+    private Timer timer;
     private Command pathDriveCommand = null;
 
     /**
