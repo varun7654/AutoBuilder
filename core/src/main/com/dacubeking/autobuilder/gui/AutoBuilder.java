@@ -528,7 +528,7 @@ public final class AutoBuilder extends ApplicationAdapter {
             }
         }
         //If we have a selected point, update it every frame
-        if (lastSelectedPoint != null) {
+        if (lastSelectedPoint != null && !onGui) {
             lastSelectedPoint.parentTrajectoryPathRenderer().updatePoint(cam, mousePos, mouseDiff);
             somethingMoved = Gdx.input.isButtonJustPressed(Input.Buttons.LEFT);
         }
