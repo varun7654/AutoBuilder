@@ -9,6 +9,10 @@ import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 
 public class MathUtil {
+
+    private MathUtil() {
+    }
+
     public static float clamp(float val, float min, float max) {
         return Math.max(min, Math.min(max, val));
     }
@@ -24,6 +28,18 @@ public class MathUtil {
     @Contract(pure = true)
     public static float len2(@NotNull Vector2 vec, float x, float y) {
         return ((x - vec.x) * (x - vec.x)) + ((y - vec.y) * (y - vec.y));
+    }
+
+
+    @Contract("_ -> new")
+    public static @NotNull Vector2 toVector2(@NotNull Pose2d poseMeters) {
+        return new Vector2((float) poseMeters.getTranslation().getX(),
+                (float) poseMeters.getTranslation().getY());
+    }
+
+    @Contract("_,_ -> new")
+    public static @NotNull Vector2 toVector2(double x, double y) {
+        return new Vector2((float) x, (float) y);
     }
 
     @Contract("_ -> new")

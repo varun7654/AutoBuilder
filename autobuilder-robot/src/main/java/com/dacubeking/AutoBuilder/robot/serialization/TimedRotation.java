@@ -37,4 +37,12 @@ public final class TimedRotation {
     public Rotation2d getRotation() {
         return rotation;
     }
+
+    @Override
+    public String toString() {
+        return "TimedRotation{" +
+                "time=" + time +
+                ", rotation=" + rotation +
+                '}';
+    }
 }

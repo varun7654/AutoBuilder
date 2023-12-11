@@ -802,41 +802,75 @@ public class TrajectoryPathRenderer extends PathRenderer implements MovablePoint
         return rotation2dList;
     }
 
+
+    record CloseTimedRotations(double distance, TimedRotation timedRotation) implements Comparable<CloseTimedRotations> {
+        @Override
+        public int compareTo(@NotNull TrajectoryPathRenderer.CloseTimedRotations o) {
+            if (Math.abs(Double.compare(this.distance, o.distance)) < 0.01) {
+                // If we're really close do the one that is earlier in the path
+                return Double.compare(this.timedRotation.time, o.timedRotation.time);
+            }
+            return Double.compare(this.distance, o.distance);
+        }
+    }
+
+
     /**
      * @return List of rotation points and the times they should be used
      * @throws NullPointerException if the trajectory has not been generated yet. Call {@link #getTrajectory()} to get the
      *                              trajectory.
      */
     public List<TimedRotation> getRotationsAndTimes() {
-        List<TimedRotation> rotationsAndTimes = new ArrayList<>(rotation2dList.size());
-        int currentIndexPos = 0;
-        rotationsAndTimes.add(new TimedRotation(0.0, rotation2dList.get(0)));
-        for (double i = 0; i < Objects.requireNonNull(trajectory).getTotalTimeSeconds(); i += 0.01f) {
-            Vector3 renderVector = MathUtil.toRenderVector3(trajectory.sample(i).poseMeters);
+        List<List<CloseTimedRotations>> closeRotationsList = new ArrayList<>(controlVectors.size());
+        for (int i = 0; i < controlVectors.size(); i++) {
+            closeRotationsList.add(new ArrayList<>());
+        }
+        for (int i = 0; i < Objects.requireNonNull(trajectory).getStates().size() - 1; i++) {
+            State state = trajectory.getStates().get(i);
+            State stateNext = trajectory.getStates().get(i + 1);
+            Vector2 point = MathUtil.toVector2(state.poseMeters);
+            Vector2 pointNext = MathUtil.toVector2(stateNext.poseMeters);
 
-            if (currentIndexPos + 1 < controlVectors.size() &&
-                    MathUtil.toRenderVector3(controlVectors.get(currentIndexPos + 1).x[0],
-                                    controlVectors.get(currentIndexPos + 1).y[0])
-                            .dst2(renderVector) < 8f) {
-                currentIndexPos++;
-                rotationsAndTimes.add(new TimedRotation(i, rotation2dList.get(currentIndexPos)));
+            var maxDistance2 = MathUtil.dist2(point, pointNext);
+
+
+            for (int j = 0; j < controlVectors.size(); j++) {
+                var targetPoint = MathUtil.toVector2(
+                        controlVectors.get(j).x[0],
+                        controlVectors.get(j).y[0]
+                );
+
+                Vector2 closestPoint = MathUtil.getClosestPointOnSegment(point, pointNext, targetPoint);
+
+                double time = state.timeSeconds;
+                if (!(closestPoint.epsilonEquals(point, 0.01f) || closestPoint.epsilonEquals(pointNext, 0.01f))) {
+                    Vector2 distanceBetweenStates = pointNext.cpy().sub(point);
+                    float distanceToClosestPoint = point.dst(closestPoint);
+                    float lenBetweenStates = distanceBetweenStates.len();
+                    double interpolationAmount = distanceToClosestPoint / lenBetweenStates;
+
+                    time = state.timeSeconds + interpolationAmount * (stateNext.timeSeconds - state.timeSeconds);
+                } else if (closestPoint.epsilonEquals(pointNext, 0.01f)) {
+                    time = stateNext.timeSeconds;
+                }
+
+                float distanceToPoint = closestPoint.dst2(targetPoint);
+                if (distanceToPoint < maxDistance2) {
+                    closeRotationsList.get(j).add(new CloseTimedRotations(distanceToPoint, new TimedRotation(time,
+                            rotation2dList.get(j))));
+                }
             }
         }
 
-        if (rotation2dList.size() - rotationsAndTimes.size() > 1) {
-            NotificationHandler.addNotification(new Notification(
-                    Color.ORANGE,
-                    "Warning: Path has " + (rotation2dList.size() - rotationsAndTimes.size()) + " extra rotations at the end of" +
-                            " the path",
-                    2000));
+        var timedRotations = new ArrayList<TimedRotation>(controlVectors.size());
+
+        for (List<CloseTimedRotations> closeRotations : closeRotationsList) {
+            timedRotations.add(closeRotations.stream().sorted().findFirst()
+                    .orElse(new CloseTimedRotations(0, new TimedRotation())).timedRotation());
         }
 
-        for (int i = currentIndexPos + 1; i < rotation2dList.size(); i++) {
-            rotationsAndTimes.add(new TimedRotation(trajectory.getTotalTimeSeconds(), rotation2dList.get(i)));
-        }
-
-        assert rotationsAndTimes.size() == rotation2dList.size();
-        return rotationsAndTimes;
+        assert timedRotations.size() == rotation2dList.size();
+        return timedRotations;
     }
 
     public void removeSelection() {

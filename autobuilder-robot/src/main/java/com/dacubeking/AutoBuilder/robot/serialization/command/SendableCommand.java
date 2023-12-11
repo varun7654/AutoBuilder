@@ -42,7 +42,10 @@ public class SendableCommand {
 
     @JsonProperty("command") private final boolean command;
 
+    @JsonIgnoreProperties
     private boolean shouldWait;
+
+    @JsonIgnoreProperties
 
     private boolean shouldCancelCommand;
 
@@ -69,6 +72,7 @@ public class SendableCommand {
         INFERABLE_TYPES_PARSER.put(Boolean.class.getName(), Boolean::valueOf);
     }
 
+    @JsonIgnoreProperties
     private static final List<String> primitiveTypes = Arrays.asList(
             int.class.getName(),
             double.class.getName(),
