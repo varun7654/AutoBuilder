@@ -5,6 +5,8 @@ import edu.wpi.first.networktables.NetworkTableEntry;
 import edu.wpi.first.networktables.NetworkTableInstance;
 import org.jetbrains.annotations.NotNull;
 
+import java.io.IOException;
+
 public class NetworkAuto extends GuiAuto {
 
     static final @NotNull NetworkTableInstance instance = NetworkTableInstance.getDefault();
@@ -14,7 +16,8 @@ public class NetworkAuto extends GuiAuto {
     /**
      * Deserializes an auto form a NT entry.
      */
-    public NetworkAuto() {
+    public NetworkAuto() throws IOException {
         super(autoPath.getString(null));
+        loadAutonomous();
     }
 }

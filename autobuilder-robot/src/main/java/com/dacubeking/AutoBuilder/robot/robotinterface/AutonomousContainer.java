@@ -73,6 +73,8 @@ public final class AutonomousContainer {
      * @param trajectoryFollowerSupplier A supplier that returns a command that will follow the trajectory from a
      *                                   {@link TrajectoryBuilderInfo} object.
      * @param initialPoseSetter          A consumer that sets the initial pose of the robot.
+     * @param lazyLoadAutos              If true, autos will be loaded when they are selected in the smart dashboard. If false,
+     *                                   all autos will be loaded when this method is called.
      * @param parentObjects              Objects that can be used to access other objects annotated with
      *                                   {@link AutoBuilderAccessible}.
      * @throws NullPointerException If either {@code trajectoryFollowerSupplier} or {@code initialPoseSetter} is null.
@@ -82,6 +84,7 @@ public final class AutonomousContainer {
             boolean isHolonomic,
             @NotNull Function<TrajectoryBuilderInfo, Command> trajectoryFollowerSupplier,
             @NotNull Consumer<Pose2d> initialPoseSetter,
+            boolean lazyLoadAutos,
             Object... parentObjects
 
 
@@ -105,6 +108,9 @@ public final class AutonomousContainer {
                         try {
                             networkAuto = new NetworkAuto(); //Create the auto object which will start deserializing the json
                             // and the auto
+                        } catch (IOException e) {
+                            DriverStation.reportError("Failed to deserialize network auto: " + e.getMessage(),
+                                    e.getStackTrace());
                         } finally {
                             networkAutoLock.unlock();
                         }
@@ -122,24 +128,33 @@ public final class AutonomousContainer {
 
         long startLoadingTime = System.currentTimeMillis();
 
-        findAutosAndLoadAutos(new File(AUTO_DIRECTORY));
-        System.out.println("Found " + numAutonomousFiles + " Autos. Waiting for them to load");
+        findAutosAndLoadAutos(new File(AUTO_DIRECTORY), lazyLoadAutos);
+        System.out.println("Found " + numAutonomousFiles + " Autos.");
+
 
         blockedThread = Thread.currentThread();
         // Wait for all autos to be loaded
         while (loadedAutosCount.get() < numAutonomousFiles) {
             try {
-                //noinspection BusyWait
-                Thread.sleep(1000);
+                this.wait(10000);
             } catch (InterruptedException ignored) {
             }
         }
 
-        System.out.println("Successfully loaded " + autonomousList.size() + " auto"
-                + (autonomousList.size() == 1 ? "" : "s") + " with "
-                + (loadedAutosCount.get() - successfullyLoadedAutosCount.get()) +
-                " failure" + (loadedAutosCount.get() - successfullyLoadedAutosCount.get() == 1 ? "" : "s") + " in "
-                + ((double) (System.currentTimeMillis() - startLoadingTime)) / 1000 + "s");
+        System.out.println("Successfully found "
+                + (!lazyLoadAutos ? "" : "and loaded ")
+                + autonomousList.size() + " auto"
+                + (autonomousList.size() == 1 ? "" : "s") + " in "
+                + ((System.currentTimeMillis() - startLoadingTime)) / 1000.0 + "s");
+
+
+        if (!lazyLoadAutos) {
+            System.out.println(((autonomousList.size() - successfullyLoadedAutosCount.get()) + " autos failed to load"));
+        }
+
+        if (autonomousList.isEmpty()) {
+            DriverStation.reportError("No autos found", false);
+        }
     }
 
 
@@ -244,14 +259,14 @@ public final class AutonomousContainer {
      *
      * @param directory The directory to search in.
      */
-    private synchronized void findAutosAndLoadAutos(File directory) {
+    private synchronized void findAutosAndLoadAutos(File directory, boolean lazyLoadAutos) {
         File[] autos = directory.listFiles();
         if (autos == null) {
             System.out.println("No autos files found");
         } else {
             for (File file : autos) {
                 if (file.isDirectory()) {
-                    findAutosAndLoadAutos(file);
+                    findAutosAndLoadAutos(file, lazyLoadAutos);
                     continue;
                 }
 
@@ -266,9 +281,13 @@ public final class AutonomousContainer {
 
                     CompletableFuture.runAsync(() -> {
                         try {
-                            autonomousList.put(file, new GuiAuto(file));
-                            successfullyLoadedAutosCount.incrementAndGet();
-                            printDebug("Successfully loaded auto: " + file.getAbsolutePath());
+                            var auto = new GuiAuto(file);
+                            autonomousList.put(file, auto);
+                            if (!lazyLoadAutos) {
+                                auto.loadAutonomous();
+                                successfullyLoadedAutosCount.incrementAndGet();
+                                printDebug("Successfully loaded auto: " + file.getAbsolutePath());
+                            }
                         } catch (IOException e) {
                             DriverStation.reportError("Failed to deserialize auto: " + e.getLocalizedMessage(),
                                     e.getStackTrace());
@@ -363,6 +382,16 @@ public final class AutonomousContainer {
         return autonomousList.keySet();
     }
 
+    public synchronized void loadAuto(String name, String side) {
+        try {
+            var auto = getAuto(name, side, false);
+            if (auto != null) {
+                auto.loadAutonomous();
+            }
+        } catch (IOException e) {
+            DriverStation.reportError("Failed to load auto: " + e.getMessage(), e.getStackTrace());
+        }
+    }
 
     /**
      * @param name             The name of the auto to get

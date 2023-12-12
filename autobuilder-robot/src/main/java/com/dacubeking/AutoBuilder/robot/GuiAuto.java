@@ -20,6 +20,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 
 public class GuiAuto extends CommandBase {
@@ -29,7 +30,7 @@ public class GuiAuto extends CommandBase {
     public void execute() {
         if (isFirstRun) {
             if (initialPose != null) {
-                //TODO: Set initial pose
+                AutonomousContainer.getInstance().getInitialPoseSetter().accept(initialPose);
                 AutonomousContainer.getInstance().printDebug("Set initial pose: " + initialPose);
             } else {
                 AutonomousContainer.getInstance().printDebug("No initial pose set");
@@ -84,17 +85,18 @@ public class GuiAuto extends CommandBase {
     private @NotNull Autonomous autonomous = DO_NOTHING_AUTONOMOUS; // default to do nothing in case of some error
     private @Nullable Pose2d initialPose;
 
+    private Callable<Autonomous> autonomousSupplier;
+
     /**
      * Ensure you are creating the objects for your auto on robot init. The roborio will take multiple seconds to initialize the
      * auto.
      *
      * @param autonomousFile File location of the auto
      */
-    public GuiAuto(File autonomousFile) throws IOException {
-        autonomous = (Autonomous) Serializer.deserializeFromFile(autonomousFile, Autonomous.class,
+    public GuiAuto(File autonomousFile) {
+        autonomousSupplier = () -> (Autonomous) Serializer.deserializeFromFile(autonomousFile, Autonomous.class,
                 autonomousFile.getName().endsWith(".json"));
         this.setName(autonomousFile.getPath() + "GuiAuto");
-        initialize();
     }
 
     /**
@@ -104,21 +106,32 @@ public class GuiAuto extends CommandBase {
      * @param autonomousJson String of the autonomous
      */
     public GuiAuto(String autonomousJson) {
-        try {
-            autonomous = (Autonomous) Serializer.deserialize(autonomousJson, Autonomous.class, true);
-        } catch (IOException e) {
-            DriverStation.reportError("Failed to deserialize auto. " + e.getMessage(), e.getStackTrace());
-            // The do nothing auto will be used
-        }
+        autonomousSupplier = () -> (Autonomous) Serializer.deserialize(autonomousJson, Autonomous.class, true);
         this.setName("JsonGuiAuto");
-        initialize();
     }
 
+
     /**
-     * Finds and saves the initial pose of the robot.
+     * Loads the autonomous and saves the initial pose.
      */
-    @Override
-    public void initialize() {
+    public void loadAutonomous() throws IOException {
+        try {
+            if (autonomousSupplier == null) {
+                throw new IllegalStateException("Autonomous supplier is null");
+            }
+
+            if (autonomous.equals(DO_NOTHING_AUTONOMOUS)) {
+                AutonomousContainer.getInstance().printDebug("Loading autonomous: " + this.getName());
+                autonomous = autonomousSupplier.call();
+                AutonomousContainer.getInstance().printDebug("Loaded autonomous: " + this.getName());
+            }
+        } catch (IOException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+
+
         for (AbstractAutonomousStep autonomousStep : autonomous.getAutonomousSteps()) {
             if (autonomousStep instanceof TrajectoryAutonomousStep trajectoryAutonomousStep) {
                 Trajectory.State initialState = trajectoryAutonomousStep.getTrajectory().getStates().get(0);
@@ -127,7 +140,10 @@ public class GuiAuto extends CommandBase {
                 break;
             }
         }
+    }
 
+    @Override
+    public void initialize() {
         scriptsToExecuteByPercent = new ArrayList<>();
         scriptsToExecuteByTime = new ArrayList<>();
         abstractAutonomousSteps = new LinkedList<>(autonomous.getAutonomousSteps());
