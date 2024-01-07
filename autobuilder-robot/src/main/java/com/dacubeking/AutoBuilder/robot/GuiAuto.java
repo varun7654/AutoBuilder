@@ -10,7 +10,7 @@ import com.dacubeking.AutoBuilder.robot.serialization.command.SendableScript;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.trajectory.Trajectory;
 import edu.wpi.first.wpilibj.DriverStation;
-import edu.wpi.first.wpilibj2.command.CommandBase;
+import edu.wpi.first.wpilibj2.command.Command;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -23,7 +23,7 @@ import java.util.List;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 
-public class GuiAuto extends CommandBase {
+public class GuiAuto extends Command {
 
 
     @Override
@@ -124,21 +124,20 @@ public class GuiAuto extends CommandBase {
                 AutonomousContainer.getInstance().printDebug("Loading autonomous: " + this.getName());
                 autonomous = autonomousSupplier.call();
                 AutonomousContainer.getInstance().printDebug("Loaded autonomous: " + this.getName());
+
+                for (AbstractAutonomousStep autonomousStep : autonomous.getAutonomousSteps()) {
+                    if (autonomousStep instanceof TrajectoryAutonomousStep trajectoryAutonomousStep) {
+                        Trajectory.State initialState = trajectoryAutonomousStep.getTrajectory().getStates().get(0);
+                        initialPose = new Pose2d(initialState.poseMeters.getTranslation(),
+                                trajectoryAutonomousStep.getRotations().get(0).getRotation());
+                        break;
+                    }
+                }
             }
         } catch (IOException e) {
             throw e;
         } catch (Exception e) {
             throw new RuntimeException(e);
-        }
-
-
-        for (AbstractAutonomousStep autonomousStep : autonomous.getAutonomousSteps()) {
-            if (autonomousStep instanceof TrajectoryAutonomousStep trajectoryAutonomousStep) {
-                Trajectory.State initialState = trajectoryAutonomousStep.getTrajectory().getStates().get(0);
-                initialPose = new Pose2d(initialState.poseMeters.getTranslation(),
-                        trajectoryAutonomousStep.getRotations().get(0).getRotation());
-                break;
-            }
         }
     }
 
