@@ -10,7 +10,7 @@ import com.dacubeking.AutoBuilder.robot.serialization.command.SendableScript;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.trajectory.Trajectory;
 import edu.wpi.first.wpilibj.DriverStation;
-import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.CommandBase;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -23,11 +23,15 @@ import java.util.List;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 
-public class GuiAuto extends Command {
+public class GuiAuto extends CommandBase {
 
 
     @Override
     public void execute() {
+        if (autonomous == DO_NOTHING_AUTONOMOUS_FAILED_LOADING) {
+            DriverStation.reportError("Failed to load autonomous. See logs for more details.", false);
+        }
+
         if (isFirstRun) {
             if (initialPose != null) {
                 AutonomousContainer.getInstance().getInitialPoseSetter().accept(initialPose);
@@ -82,10 +86,12 @@ public class GuiAuto extends Command {
     }
 
     private static final Autonomous DO_NOTHING_AUTONOMOUS = new Autonomous(new ArrayList<>());
+    private static final Autonomous DO_NOTHING_AUTONOMOUS_FAILED_LOADING = new Autonomous(new ArrayList<>());
+
     private @NotNull Autonomous autonomous = DO_NOTHING_AUTONOMOUS; // default to do nothing in case of some error
     private @Nullable Pose2d initialPose;
 
-    private Callable<Autonomous> autonomousSupplier;
+    private final Callable<Autonomous> autonomousSupplier;
 
     /**
      * Ensure you are creating the objects for your auto on robot init. The roborio will take multiple seconds to initialize the
@@ -120,7 +126,7 @@ public class GuiAuto extends Command {
                 throw new IllegalStateException("Autonomous supplier is null");
             }
 
-            if (autonomous.equals(DO_NOTHING_AUTONOMOUS)) {
+            if (autonomous == DO_NOTHING_AUTONOMOUS) {
                 AutonomousContainer.getInstance().printDebug("Loading autonomous: " + this.getName());
                 autonomous = autonomousSupplier.call();
                 AutonomousContainer.getInstance().printDebug("Loaded autonomous: " + this.getName());
@@ -135,6 +141,7 @@ public class GuiAuto extends Command {
                 }
             }
         } catch (IOException e) {
+            autonomous = DO_NOTHING_AUTONOMOUS_FAILED_LOADING;
             throw e;
         } catch (Exception e) {
             throw new RuntimeException(e);

@@ -383,8 +383,11 @@ public final class AutonomousContainer {
     }
 
     public synchronized void loadAuto(String name, String side) {
+        loadAuto(getAuto(name, side, false));
+    }
+
+    public synchronized void loadAuto(GuiAuto auto) {
         try {
-            var auto = getAuto(name, side, false);
             if (auto != null) {
                 auto.loadAutonomous();
             }
