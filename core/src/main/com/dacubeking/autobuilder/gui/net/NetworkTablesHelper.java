@@ -148,7 +148,7 @@ public final class NetworkTablesHelper {
 
             NetworkTableInstance.getDefault()
                     .addListener(processingTable, EnumSet.of(Kind.kImmediate, Kind.kValueAll), entryNotification -> {
-                        double processingId = entryNotification.valueData.value.getInteger();
+                        double processingId = entryNotification.valueData.value.getDouble();
                         if (processingId == 1) {
                             NotificationHandler.addNotification(
                                     new Notification(Color.CORAL, "The Roborio has started deserializing the auto",
