@@ -46,7 +46,7 @@ dependencies {
     implementation "edu.wpi.first.wpilibNewCommands:wpilibNewCommands-java:${wpilibVersion}"
 
 
-    implementation 'org.msgpack:jackson-dataformat-msgpack:0.9.3'
+    implementation 'org.msgpack:jackson-dataformat-msgpack:0.9.6'
 }
 
 tasks.named('test') {
