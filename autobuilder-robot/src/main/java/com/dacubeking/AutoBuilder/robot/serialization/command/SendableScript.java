@@ -26,12 +26,15 @@ public class SendableScript implements Comparable<SendableScript> {
             return true;
         }
 
-        SendableCommand command = executionQueue.peek();
+        SendableCommand command = executionQueue.pollFirst();
 
 
         // Keep executing commands until we reach one we need to wait at.
         while (command.execute()) {
-            executionQueue.remove();
+            if (executionQueue.isEmpty()) {
+                return true;
+            }
+            command = executionQueue.pollFirst();
         }
 
         return executionQueue.isEmpty();

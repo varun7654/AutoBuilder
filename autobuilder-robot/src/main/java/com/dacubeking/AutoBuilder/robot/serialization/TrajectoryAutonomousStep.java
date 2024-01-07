@@ -19,6 +19,7 @@ import org.jetbrains.annotations.ApiStatus.Internal;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 
@@ -52,6 +53,9 @@ public class TrajectoryAutonomousStep extends AbstractAutonomousStep {
         super(closed);
         this.reversed = reversed;
         this.color = color;
+        if (controlVectors == null) {
+            controlVectors = new ArrayList<>();
+        }
         this.controlVectors = controlVectors;
         this.rotations = rotations;
 
@@ -124,6 +128,7 @@ public class TrajectoryAutonomousStep extends AbstractAutonomousStep {
                     .apply(new TrajectoryBuilderInfo(trajectory, this::getTargetRotation));
             pathDriveCommand.schedule();
             timer.restart();
+            isFirstRun = false;
         }
 
         final double elapsedTime = timer.get();
