@@ -22,7 +22,7 @@ tasks.named('test') {
 }
 
 
-var wpilibVersion = "2023.4.3" // Ensure this in sync with the version in autobuilder-robot/build.gradle
+var wpilibVersion = "2024.1.1" // Ensure this in sync with the version in autobuilder-robot/build.gradle
 
 dependencies {
     implementation group: 'org.ejml', name: 'ejml-all', version: '0.41'
@@ -82,5 +82,6 @@ dependencies {
     implementation "space.earlygrey:shapedrawer:$shapedrawerVersion"
 
     implementation 'org.msgpack:jackson-dataformat-msgpack:0.9.6'
+    implementation 'org.ejml:ejml-all:0.43.1'
 
 }
