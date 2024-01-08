@@ -2,7 +2,6 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/.idea/modules/AutoBuilder.iml" filepath="$PROJECT_DIR$/.idea/modules/AutoBuilder.iml" />
       <module fileurl="file://$PROJECT_DIR$/core/src/main.iml" filepath="$PROJECT_DIR$/core/src/main.iml" />
     </modules>
   </component>

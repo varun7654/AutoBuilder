@@ -10,7 +10,8 @@ sourceCompatibility = JavaVersion.VERSION_17
 targetCompatibility = JavaVersion.VERSION_17
 
 group = 'com.dacubeking'
-version = '2.3.0'
+
+version = '2.3.0-command-rewrite-beta'
 var wpilibVersion = "2024.1.1"
 
 repositories {
